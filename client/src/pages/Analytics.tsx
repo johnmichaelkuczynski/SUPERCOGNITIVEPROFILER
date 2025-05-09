@@ -161,7 +161,7 @@ export default function Analytics() {
             </div>
             <div className="mb-4">
               <label className="text-sm font-medium mb-1 block">Time Period</label>
-              <Select defaultValue="all">
+              <Select defaultValue="all" onValueChange={(value: any) => setTimeframe(value !== 'all' ? value : '365days')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select time period" />
                 </SelectTrigger>
@@ -175,13 +175,11 @@ export default function Analytics() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setExportDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => {
-              setExportDialogOpen(false);
-              toast({
-                title: "Data Exported",
-                description: `Your analytics data has been exported as ${exportFormat.toUpperCase()}.`
-              });
-              // This would normally call an API to download the data
+            <Button onClick={async () => {
+              const success = await exportAnalyticsData(exportFormat, timeframe);
+              if (success) {
+                setExportDialogOpen(false);
+              }
             }}>Export</Button>
           </DialogFooter>
         </DialogContent>
@@ -213,13 +211,11 @@ export default function Analytics() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInsightsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => {
-              setInsightsDialogOpen(false);
-              toast({
-                title: "Insights Ready",
-                description: `Your ${insightType} insights are now available.`
-              });
-              // This would normally call an API to generate insights
+            <Button onClick={async () => {
+              const success = await getCognitiveInsights(insightType);
+              if (success) {
+                setInsightsDialogOpen(false);
+              }
             }}>View Insights</Button>
           </DialogFooter>
         </DialogContent>
