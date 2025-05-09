@@ -1,14 +1,61 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, Download } from 'lucide-react';
+import { Search, Filter, Download, Upload, Plus, FileText } from 'lucide-react';
 import { useDocuments } from '@/hooks/use-documents';
 import { modelColorMap, formatDate, countWords } from '@/lib/utils';
+import { useLLM } from '@/hooks/use-llm';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Documents() {
-  const { documents, isLoading } = useDocuments();
+  const { documents, isLoading, refetch } = useDocuments();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { toast } = useToast();
+  const { processFile } = useLLM();
+  
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+  
+  const uploadDocument = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "No file selected",
+        description: "Please select a file to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setUploading(true);
+    
+    try {
+      await processFile(selectedFile);
+      toast({
+        title: "Document uploaded",
+        description: "Your document has been processed and added to your library",
+      });
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      // Refresh document list
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to process document",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const filteredDocs = documents
     .filter(doc => 
@@ -30,10 +77,71 @@ export default function Documents() {
 
   return (
     <main className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Documents</h1>
-        <p className="text-slate-600">Manage your processed texts and generated content</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">Documents</h1>
+          <p className="text-slate-600">Manage your processed texts and generated content</p>
+        </div>
+        <Button 
+          onClick={() => fileInputRef.current?.click()}
+          className="bg-primary-600 hover:bg-primary-700 text-white"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Upload Document
+        </Button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          className="hidden"
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+        />
       </div>
+      
+      {/* File upload preview */}
+      {selectedFile && (
+        <div className="mb-6 bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-slate-600" />
+              <div>
+                <p className="font-medium text-slate-800">{selectedFile.name}</p>
+                <p className="text-xs text-slate-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setSelectedFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={uploadDocument}
+                disabled={uploading}
+                className="bg-primary-600 hover:bg-primary-700 text-white"
+              >
+                {uploading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    <span>Upload</span>
+                  </div>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">

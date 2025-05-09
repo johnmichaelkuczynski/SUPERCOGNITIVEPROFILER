@@ -148,9 +148,15 @@ export class DatabaseStorage implements IStorage {
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
     try {
+      // Generate a UUID for the document ID
+      const docId = `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       const [document] = await db
         .insert(documents)
-        .values(insertDocument)
+        .values({
+          ...insertDocument,
+          id: docId
+        })
         .returning();
       return document;
     } catch (error) {

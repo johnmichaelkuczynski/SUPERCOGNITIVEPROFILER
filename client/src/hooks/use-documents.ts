@@ -60,5 +60,6 @@ export function useDocuments() {
     isProcessing,
     processedContent,
     getRecentDocuments,
+    refetch: () => queryClient.invalidateQueries({queryKey: ['/api/documents']}),
   };
 }
