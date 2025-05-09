@@ -17,11 +17,12 @@ export default function Editor({ value, onChange, contextDocuments, onSubmit }: 
   
   // Handle key down events for Enter key submission
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Submit on Ctrl+Enter or Cmd+Enter (for Mac)
-    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    // Submit on just Enter key (for simpler usage)
+    if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       if (onSubmit) onSubmit();
     }
+    // Allow Shift+Enter for new lines
   };
   
   // Auto-resize textarea as content grows
@@ -110,7 +111,7 @@ export default function Editor({ value, onChange, contextDocuments, onSubmit }: 
             <textarea 
               ref={textareaRef}
               className="w-full border-0 focus:ring-0 p-0 text-slate-800 placeholder-slate-400 resize-none min-h-[250px]" 
-              placeholder="Type your prompt or paste your text here... (Press Ctrl+Enter to send)"
+              placeholder="Type your question or prompt here and press Enter to send..."
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={handleKeyDown}
