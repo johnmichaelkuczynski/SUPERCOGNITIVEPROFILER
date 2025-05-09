@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, Document, InsertDocument } from "@shared/schema";
+import { users, documents, type User, type InsertUser, type Document, type InsertDocument } from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -86,60 +86,106 @@ export class MemStorage implements IStorage {
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 
+// Implement a hybrid storage system that falls back to memory if DB operations fail
 export class DatabaseStorage implements IStorage {
+  private memStorage: MemStorage;
+  
+  constructor() {
+    this.memStorage = new MemStorage();
+  }
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error("Database error in getUser, falling back to memory storage:", error);
+      return this.memStorage.getUser(id);
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      return user;
+    } catch (error) {
+      console.error("Database error in getUserByUsername, falling back to memory storage:", error);
+      return this.memStorage.getUserByUsername(username);
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
+    try {
+      const [user] = await db
+        .insert(users)
+        .values(insertUser)
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Database error in createUser, falling back to memory storage:", error);
+      return this.memStorage.createUser(insertUser);
+    }
   }
   
   async getDocument(id: string): Promise<Document | undefined> {
-    const [document] = await db.select().from(documents).where(eq(documents.id, id));
-    return document;
+    try {
+      const [document] = await db.select().from(documents).where(eq(documents.id, id));
+      return document;
+    } catch (error) {
+      console.error("Database error in getDocument, falling back to memory storage:", error);
+      return this.memStorage.getDocument(id);
+    }
   }
 
   async getDocumentsByUserId(userId: number): Promise<Document[]> {
-    const results = await db.select().from(documents).where(eq(documents.userId, userId));
-    return results;
+    try {
+      const results = await db.select().from(documents).where(eq(documents.userId, userId));
+      return results;
+    } catch (error) {
+      console.error("Database error in getDocumentsByUserId, falling back to memory storage:", error);
+      return this.memStorage.getDocumentsByUserId(userId);
+    }
   }
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
-    const [document] = await db
-      .insert(documents)
-      .values(insertDocument)
-      .returning();
-    return document;
+    try {
+      const [document] = await db
+        .insert(documents)
+        .values(insertDocument)
+        .returning();
+      return document;
+    } catch (error) {
+      console.error("Database error in createDocument, falling back to memory storage:", error);
+      return this.memStorage.createDocument(insertDocument);
+    }
   }
 
   async updateDocument(id: string, documentUpdate: Partial<Document>): Promise<Document | undefined> {
-    const [document] = await db
-      .update(documents)
-      .set({
-        ...documentUpdate,
-        updatedAt: new Date()
-      })
-      .where(eq(documents.id, id))
-      .returning();
-    return document;
+    try {
+      const [document] = await db
+        .update(documents)
+        .set({
+          ...documentUpdate,
+          updatedAt: new Date()
+        })
+        .where(eq(documents.id, id))
+        .returning();
+      return document;
+    } catch (error) {
+      console.error("Database error in updateDocument, falling back to memory storage:", error);
+      return this.memStorage.updateDocument(id, documentUpdate);
+    }
   }
 
   async deleteDocument(id: string): Promise<boolean> {
-    const result = await db
-      .delete(documents)
-      .where(eq(documents.id, id));
-    return !!result;
+    try {
+      const result = await db
+        .delete(documents)
+        .where(eq(documents.id, id));
+      return !!result;
+    } catch (error) {
+      console.error("Database error in deleteDocument, falling back to memory storage:", error);
+      return this.memStorage.deleteDocument(id);
+    }
   }
 }
 
