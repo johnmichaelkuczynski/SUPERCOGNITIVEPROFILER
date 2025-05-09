@@ -1,12 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
+  const { toast } = useToast();
+  const [name, setName] = useState('');  
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleSaveUserProfile = async () => {
+    if (!name || !email) {
+      toast({
+        title: "Invalid input",
+        description: "Please enter both name and email",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Save to database would go here
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated"
+      });
+      
+      // Here we would make an API call to update user settings
+      
+    } catch (error) {
+      toast({
+        title: "Failed to update profile",
+        description: "There was an error updating your profile",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <main className="container mx-auto px-4 py-6">
       <div className="mb-6">
@@ -16,8 +56,7 @@ export default function Settings() {
       
       <Tabs defaultValue="general" className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+          <TabsTrigger value="general">Profile</TabsTrigger>
           <TabsTrigger value="privacy">Privacy</TabsTrigger>
           <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
@@ -25,18 +64,30 @@ export default function Settings() {
         <TabsContent value="general" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>Configure basic application settings</CardDescription>
+              <CardTitle>User Profile</CardTitle>
+              <CardDescription>Update your profile information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Display Name</Label>
-                <Input id="name" defaultValue="John Smith" />
+                <Label htmlFor="name">Full Name</Label>
+                <Input 
+                  id="name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  placeholder="Enter your full name" 
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" defaultValue="john.smith@example.com" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="Enter your email address"
+                />
+                <p className="text-xs text-slate-500">Your email is used for account identification and notifications</p>
               </div>
               
               <div className="flex items-center justify-between">
@@ -47,38 +98,19 @@ export default function Settings() {
                 <Switch id="dark-mode" />
               </div>
             </CardContent>
+            <CardFooter>
+              <Button 
+                className="w-full"
+                onClick={handleSaveUserProfile}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Saving...' : 'Save Profile'}
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
         
-        <TabsContent value="api-keys" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>API Key Management</CardTitle>
-              <CardDescription>Configure your language model API keys</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="openai-key">OpenAI API Key</Label>
-                <Input id="openai-key" type="password" placeholder="sk-..." />
-                <p className="text-xs text-slate-500">Required for GPT-4 functionality</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="anthropic-key">Anthropic API Key</Label>
-                <Input id="anthropic-key" type="password" placeholder="sk-ant-..." />
-                <p className="text-xs text-slate-500">Required for Claude functionality</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="perplexity-key">Perplexity API Key</Label>
-                <Input id="perplexity-key" type="password" placeholder="pplx-..." />
-                <p className="text-xs text-slate-500">Required for Perplexity functionality</p>
-              </div>
-              
-              <Button>Save API Keys</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
         
         <TabsContent value="privacy" className="mt-6">
           <Card>

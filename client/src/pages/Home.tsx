@@ -168,23 +168,35 @@ export default function Home() {
                 )}
               </div>
               
-              <Button 
-                onClick={handleProcessRequest} 
-                className="w-full"
-                disabled={isLoading || !prompt.trim()}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Message
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleProcessRequest} 
+                  className="flex-grow"
+                  disabled={isLoading || !prompt.trim()}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Message
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setPrompt('');
+                    setResponse('');
+                    setFiles([]);
+                  }}
+                >
+                  Clear Chat
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

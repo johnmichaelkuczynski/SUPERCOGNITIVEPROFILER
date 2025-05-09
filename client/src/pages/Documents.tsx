@@ -17,11 +17,13 @@ export default function Documents() {
     )
     .sort((a, b) => {
       if (sortBy === 'date') {
-        return b.date.getTime() - a.date.getTime();
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
       } else if (sortBy === 'title') {
         return a.title.localeCompare(b.title);
       } else if (sortBy === 'wordCount') {
-        return b.wordCount - a.wordCount;
+        return (b.wordCount || 0) - (a.wordCount || 0);
       }
       return 0;
     });
