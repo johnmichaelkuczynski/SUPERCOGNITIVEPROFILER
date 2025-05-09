@@ -1,0 +1,98 @@
+**Project Brief: Core Functionality and Total System Specification**
+
+---
+
+**1. Core Idea:**
+This app is a high-context, no-throttle writing, reasoning, and analysis engine for thinkers, writers, and serious users. It acts as a seamless passthrough interface for multiple large language models (LLMs) — Claude, GPT-4, and Perplexity — with advanced support for document uploads, large-scale text generation, and user self-analysis.
+
+---
+
+**2. Primary Capabilities:**
+
+* **LLM Passthrough:**
+
+  * Routes prompts and documents to Claude, GPT-4, and Perplexity
+  * User selects model per interaction or sets a default
+  * Maintains full prompt/response transparency (no hidden formatting)
+
+* **File Upload and Processing:**
+
+  * Accepts text files, Word docs, PDFs, and images
+  * Text extracted from PDFs and DOCX files
+  * OCR applied to images for text extraction
+
+* **Large Text Processing (up to 500,000 words):**
+
+  * Automatically chunks documents
+  * Preserves context across chunks
+  * Handles summarization, rewriting, extraction, and analysis across full-scale books
+
+* **Large-Scale Text Generation:**
+
+  * Supports user requests for generation of long documents (e.g. 500,000 words)
+  * Breaks down generation requests into coordinated sequences with consistent tone, structure, and logic
+
+* **Output Handling:**
+
+  * Outputs can be streamed or returned in full
+  * Results downloadable as plain text, PDF, or DOCX
+
+---
+
+**3. Psychoanalytic + Self-Analysis Module:**
+
+This app includes an optional, opt-in system for building self-profiles and longitudinal intelligence analysis.
+
+* **User Profiles:**
+
+  * Profiles are tied to user email
+  * Profiles persist across sessions
+
+* **Data Logging:**
+
+  * Logs interactions per user (prompt, model, timestamp, output)
+  * Extracts metadata on style, tone, topic, conceptual density, sentiment
+
+* **Synchronic Reports:**
+
+  * Snapshot analysis of user’s intellectual, emotional, and stylistic state
+  * Available in short, medium, or long formats
+  * Includes narrative description, analytics, charts, and visual summaries
+
+* **Diachronic Reports:**
+
+  * Analyzes trends over user-specified period (1 day, 1 week, 1 month, 3 months, 6 months)
+  * Detects changes in language, attention, conceptual focus, mood, abstraction, and more
+
+* **Custom Reports:**
+
+  * Users can request focus on specific areas (e.g., emotional stability, argumentative clarity, topic obsession)
+
+---
+
+**4. Architecture and Technical Notes:**
+
+* Backend supports chunked long-context handling for Claude and GPT-4
+* File processing layer handles DOCX → text, PDF → text, image → OCR
+* Modular routing system supports model-specific behavior and token constraints
+* Longform session memory optionally persists between days
+* Charts and analytics generated using open-source or embedded JS libraries
+
+---
+
+**5. Legal and Branding:**
+
+* Claude, GPT, and Perplexity are not used in name or title of the app
+* Descriptions may state: “Powered by advanced language models”
+* No claim of proprietary LLM tech
+* System is API-compliant with all integrated providers
+
+---
+
+**6. Use Cases and Audience:**
+This is not a novelty app or corporate productivity toy. It is for anyone — intellectuals, writers, developers, therapists, coaches, independent professionals — who want serious, high-resolution insight into their thinking, language, and self-development over time.
+
+---
+
+**7. Closing Statement:**
+This app is the execution layer for serious thought. It eliminates artificial constraints, supports extreme-scale generation and interpretation, and reflects the user back to himself with forensic precision. It doesn’t pretend to be a mind. It holds up a mirror to yours.
