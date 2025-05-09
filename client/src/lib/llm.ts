@@ -50,8 +50,8 @@ export interface Document {
   excerpt: string;
   content: string;
   model: LLMModel;
-  date: Date;
-  wordCount: number;
+  date: Date | string;
+  wordCount?: number;
 }
 
 export interface UploadedFile {

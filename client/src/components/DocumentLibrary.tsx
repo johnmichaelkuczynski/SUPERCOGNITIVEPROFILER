@@ -40,8 +40,8 @@ export default function DocumentLibrary({ documents, isLoading }: DocumentLibrar
                 </div>
                 <p className="text-sm text-slate-600 line-clamp-2">{doc.excerpt}</p>
                 <div className="mt-4 flex justify-between items-center text-xs text-slate-500">
-                  <span>{formatDate(doc.date)}</span>
-                  <span>{countWords(doc.content)} words</span>
+                  <span>{typeof doc.date === 'string' ? new Date(doc.date).toLocaleDateString() : formatDate(doc.date)}</span>
+                  <span>{doc.wordCount || countWords(doc.content)} words</span>
                 </div>
               </div>
             </div>
