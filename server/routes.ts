@@ -102,7 +102,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const file = req.file;
       const extractedText = await processDocument(file);
       
-      res.json({ content: extractedText });
+      // Save the document to the database
+      const userId = 1; // Mock user ID for now
+      
+      // Generate a title based on the content or use filename
+      const filename = file.originalname.split('.')[0];
+      const title = filename || extractedText.slice(0, 50).replace(/\n/g, ' ') + (extractedText.length > 50 ? '...' : '');
+      
+      // Store the document
+      await storage.createDocument({
+        userId,
+        title,
+        content: extractedText,
+        model: 'claude', // Default model for file uploads
+        excerpt: extractedText.slice(0, 150) + (extractedText.length > 150 ? '...' : ''),
+        date: new Date(),
+      });
+      
+      res.json({ 
+        content: extractedText,
+        message: 'Document successfully processed and saved'
+      });
     } catch (error) {
       console.error('Error processing document:', error);
       res.status(500).json({ message: 'Failed to process document', error: (error as Error).message });

@@ -77,25 +77,45 @@ export default function Documents() {
 
   return (
     <main className="container mx-auto px-4 py-6">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Documents</h1>
-          <p className="text-slate-600">Manage your processed texts and generated content</p>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 mb-2">Documents</h1>
+            <p className="text-slate-600">Manage your processed texts and generated content</p>
+          </div>
+          <Button 
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 text-lg shadow-lg"
+          >
+            <FileText className="h-5 w-5 mr-2" />
+            Upload Document
+          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            className="hidden"
+            accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+          />
         </div>
-        <Button 
-          onClick={() => fileInputRef.current?.click()}
-          className="bg-primary-600 hover:bg-primary-700 text-white"
-        >
-          <FileText className="h-4 w-4 mr-2" />
-          Upload Document
-        </Button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          className="hidden"
-          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-        />
+        
+        {/* Upload instructions for better visibility */}
+        {!selectedFile && filteredDocs.length === 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 text-center">
+            <FileText className="h-12 w-12 mx-auto mb-3 text-blue-500" />
+            <h3 className="text-lg font-medium text-blue-800 mb-2">Upload Your First Document</h3>
+            <p className="text-blue-600 mb-4">
+              Click the "Upload Document" button to upload PDF, Word, text, or image files for processing
+            </p>
+            <Button 
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-blue-600 hover:bg-blue-700 text-white py-6 px-8 text-lg"
+            >
+              <Upload className="h-5 w-5 mr-2" />
+              Select File to Upload
+            </Button>
+          </div>
+        )}
       </div>
       
       {/* File upload preview */}
