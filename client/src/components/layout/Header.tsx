@@ -1,0 +1,96 @@
+import React from 'react';
+import { Link } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { MenuIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface HeaderProps {
+  currentPath: string;
+}
+
+export default function Header({ currentPath }: HeaderProps) {
+  const navItems = [
+    { label: 'Documents', path: '/documents' },
+    { label: 'Analytics', path: '/analytics' },
+    { label: 'Settings', path: '/settings' },
+  ];
+
+  // Mock user data - in a real app, this would come from an auth system
+  const user = {
+    initials: 'JS',
+    name: 'John Smith',
+  };
+
+  return (
+    <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <Link href="/">
+          <a className="flex items-center gap-2">
+            <div className="text-primary-600 text-2xl font-bold">TextMind</div>
+            <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">Beta</span>
+          </a>
+        </Link>
+        
+        <div className="hidden md:flex items-center gap-6">
+          {navItems.map((item) => (
+            <Link key={item.path} href={item.path}>
+              <a className={cn(
+                "text-slate-600 hover:text-slate-900 transition-colors",
+                currentPath === item.path && "font-medium text-slate-900"
+              )}>
+                {item.label}
+              </a>
+            </Link>
+          ))}
+          <div className="h-6 w-px bg-slate-200"></div>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium">
+              {user.initials}
+            </div>
+            <span className="text-sm font-medium text-slate-700">{user.name}</span>
+          </div>
+        </div>
+        
+        {/* Mobile Menu */}
+        <Sheet>
+          <SheetTrigger asChild className="md:hidden">
+            <Button variant="ghost" size="icon">
+              <MenuIcon className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <div className="flex flex-col space-y-4 mt-8">
+              <Link href="/">
+                <a className={cn(
+                  "px-2 py-1 rounded-md text-slate-600 hover:bg-slate-100",
+                  currentPath === "/" && "bg-primary-50 text-primary-700 font-medium"
+                )}>
+                  Home
+                </a>
+              </Link>
+              {navItems.map((item) => (
+                <Link key={item.path} href={item.path}>
+                  <a className={cn(
+                    "px-2 py-1 rounded-md text-slate-600 hover:bg-slate-100",
+                    currentPath === item.path && "bg-primary-50 text-primary-700 font-medium"
+                  )}>
+                    {item.label}
+                  </a>
+                </Link>
+              ))}
+              <div className="h-px bg-slate-200 my-2"></div>
+              <div className="flex items-center gap-2 px-2 py-1">
+                <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium">
+                  {user.initials}
+                </div>
+                <span className="text-sm font-medium text-slate-700">{user.name}</span>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </header>
+  );
+}
