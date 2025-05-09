@@ -11,6 +11,7 @@ interface HeaderProps {
 
 export default function Header({ currentPath }: HeaderProps) {
   const navItems = [
+    { label: 'Chat', path: '/' },
     { label: 'Documents', path: '/documents' },
     { label: 'Analytics', path: '/analytics' },
     { label: 'Settings', path: '/settings' },
