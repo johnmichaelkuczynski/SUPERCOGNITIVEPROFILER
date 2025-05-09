@@ -26,10 +26,8 @@ export function generateAnalytics(documents: Document[], timeframe: string): Ana
   // Filter documents based on timeframe
   const filteredDocuments = filterDocumentsByTimeframe(documents, timeframe);
   
-  // Skip processing if no documents available
-  if (filteredDocuments.length === 0) {
-    return createEmptyAnalytics();
-  }
+  // Even with no documents, create an initial baseline profile
+  // This ensures users get immediate feedback and analysis
   
   // Generate real analytics based on document content
   const writingStyle = analyzeWritingStyle(filteredDocuments);

@@ -48,7 +48,11 @@ export function useDocuments() {
   const getRecentDocuments = (limit: number = 3): Document[] => {
     // Sort by date (newest first) and limit
     return [...documents]
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      })
       .slice(0, limit);
   };
 

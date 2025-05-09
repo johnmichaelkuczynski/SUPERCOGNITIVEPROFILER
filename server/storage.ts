@@ -171,7 +171,7 @@ export class DatabaseStorage implements IStorage {
         .update(documents)
         .set({
           ...documentUpdate,
-          updatedAt: new Date()
+          // updatedAt field is not in the schema, so we remove it
         })
         .where(eq(documents.id, id))
         .returning();
