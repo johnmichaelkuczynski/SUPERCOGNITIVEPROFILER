@@ -1,17 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { countWords } from '@/lib/utils';
-import { Bold, Italic, List, Link, Code } from 'lucide-react';
+import { Bold, Italic, List, Link, Code, Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface EditorProps {
   value: string;
   onChange: (value: string) => void;
   contextDocuments: string[];
+  onSubmit?: () => void; // Add onSubmit prop for Enter key functionality
 }
 
-export default function Editor({ value, onChange, contextDocuments }: EditorProps) {
+export default function Editor({ value, onChange, contextDocuments, onSubmit }: EditorProps) {
   const [activeTab, setActiveTab] = useState('input');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Handle key down events for Enter key submission
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Submit on Ctrl+Enter or Cmd+Enter (for Mac)
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault();
+      if (onSubmit) onSubmit();
+    }
+  };
   
   // Auto-resize textarea as content grows
   useEffect(() => {
@@ -99,9 +110,10 @@ export default function Editor({ value, onChange, contextDocuments }: EditorProp
             <textarea 
               ref={textareaRef}
               className="w-full border-0 focus:ring-0 p-0 text-slate-800 placeholder-slate-400 resize-none min-h-[250px]" 
-              placeholder="Type your prompt or paste your text here..."
+              placeholder="Type your prompt or paste your text here... (Press Ctrl+Enter to send)"
               value={value}
               onChange={(e) => onChange(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
           
@@ -123,7 +135,19 @@ export default function Editor({ value, onChange, contextDocuments }: EditorProp
                 <Code className="h-4 w-4" />
               </button>
             </div>
-            <div className="text-xs text-slate-500">{countWords(value)} words</div>
+            <div className="flex items-center gap-4">
+              <div className="text-xs text-slate-500">{countWords(value)} words</div>
+              {onSubmit && (
+                <Button 
+                  onClick={onSubmit} 
+                  className="bg-primary-600 hover:bg-primary-700 text-white"
+                  size="sm"
+                >
+                  <Send className="h-3.5 w-3.5 mr-1" />
+                  Send
+                </Button>
+              )}
+            </div>
           </div>
         </TabsContent>
         

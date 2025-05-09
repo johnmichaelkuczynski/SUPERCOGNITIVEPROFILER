@@ -72,6 +72,7 @@ export default function Home() {
             value={prompt}
             onChange={setPrompt}
             contextDocuments={processedContent}
+            onSubmit={handleProcessRequest}
           />
           
           <OutputContainer 
