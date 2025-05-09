@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { LLMPrompt, LLMResponse, sendPrompt } from '@/lib/llm';
+import { LLMPrompt, LLMResponse, sendPrompt, processFile as apiProcessFile } from '@/lib/llm';
 import { LLMModel, countWords } from '@/lib/utils';
 
 export function useLLM() {
@@ -87,10 +87,25 @@ export function useLLM() {
     });
   };
 
+  // Method to handle file processing
+  const processFile = async (file: File): Promise<string> => {
+    try {
+      return await apiProcessFile(file);
+    } catch (error) {
+      toast({
+        title: 'Error processing file',
+        description: error instanceof Error ? error.message : 'Failed to process file',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   return {
     generateText,
     response,
     isProcessing: isPending,
     error,
+    processFile,
   };
 }

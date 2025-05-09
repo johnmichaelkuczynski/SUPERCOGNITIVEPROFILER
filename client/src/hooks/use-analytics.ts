@@ -10,7 +10,8 @@ export function useAnalytics() {
   const { data: analyticsData, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/analytics', timeframe],
     queryFn: () => getAnalytics(timeframe),
-    enabled: false, // We don't want to auto-fetch analytics by default
+    enabled: true, // Auto-fetch analytics on load
+    refetchOnWindowFocus: false,
   });
 
   const generateReport = async () => {
