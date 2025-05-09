@@ -17,11 +17,45 @@ export default function Header({ currentPath }: HeaderProps) {
     { label: 'Settings', path: '/settings' },
   ];
 
-  // Mock user data - in a real app, this would come from an auth system
-  const user = {
-    initials: 'JS',
-    name: 'John Smith',
-  };
+  // Get user data from localStorage or use default
+  const [user, setUser] = React.useState(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch (e) {
+        // Fall back to defaults if parse fails
+      }
+    }
+    return {
+      initials: 'U',
+      name: 'User',
+    };
+  });
+  
+  // Update user data if it changes
+  React.useEffect(() => {
+    const handleUserUpdate = () => {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    };
+    
+    // Listen for user data updates
+    window.addEventListener('user-updated', handleUserUpdate);
+    
+    // Initial check
+    handleUserUpdate();
+    
+    return () => {
+      window.removeEventListener('user-updated', handleUserUpdate);
+    };
+  }, []);
 
   return (
     <header className="border-b border-slate-200 bg-white sticky top-0 z-50">

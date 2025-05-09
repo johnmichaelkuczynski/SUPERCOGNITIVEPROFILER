@@ -9,8 +9,28 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
   const { toast } = useToast();
-  const [name, setName] = useState('');  
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser).name || '';
+      } catch (e) {
+        return '';
+      }
+    }
+    return '';
+  });  
+  const [email, setEmail] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser).email || '';
+      } catch (e) {
+        return '';
+      }
+    }
+    return '';
+  });
   const [isLoading, setIsLoading] = useState(false);
   
   const handleSaveUserProfile = async () => {
@@ -26,16 +46,31 @@ export default function Settings() {
     setIsLoading(true);
     
     try {
-      // Save to database would go here
+      // Extract initials from name (first letter of first name and first letter of last name)
+      const nameParts = name.split(' ');
+      const initials = nameParts.length > 1 
+        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+        : name[0].toUpperCase();
+      
+      // Save user data to localStorage
+      const userData = {
+        name,
+        email,
+        initials
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event('user-updated'));
+      
+      // In a real app, this would save to a database as well
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
       
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated"
       });
-      
-      // Here we would make an API call to update user settings
-      
     } catch (error) {
       toast({
         title: "Failed to update profile",

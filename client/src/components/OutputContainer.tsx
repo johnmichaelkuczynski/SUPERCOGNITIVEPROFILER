@@ -127,10 +127,13 @@ export default function OutputContainer({
                 ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
                 li: ({node, ...props}) => <li className="my-1" {...props} />,
                 blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-slate-300 pl-4 italic my-3" {...props} />,
-                code: ({node, inline, ...props}) => 
-                  inline ? 
+                code: ({node, className, ...props}: any) => {
+                  const match = /language-(\w+)/.exec(className || '');
+                  const isInline = !match && props.children?.length === 1 && typeof props.children[0] === 'string';
+                  return isInline ? 
                     <code className="bg-slate-100 text-primary-700 px-1 py-0.5 rounded" {...props} /> : 
-                    <code className="block bg-slate-100 p-2 rounded overflow-x-auto my-3" {...props} />
+                    <code className="block bg-slate-100 p-2 rounded overflow-x-auto my-3" {...props} />;
+                }
               }}
             >
               {content}

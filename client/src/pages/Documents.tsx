@@ -82,7 +82,7 @@ export default function Documents() {
                 <p className="text-sm text-slate-600 mb-3">{doc.excerpt}</p>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4 text-xs text-slate-500">
-                    <span>{formatDate(doc.date)}</span>
+                    <span>{typeof doc.date === 'string' ? doc.date : formatDate(doc.date as Date)}</span>
                     <span>{countWords(doc.content)} words</span>
                   </div>
                   <div className="flex gap-2">

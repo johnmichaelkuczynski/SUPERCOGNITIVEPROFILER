@@ -83,4 +83,65 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { db } from './db';
+import { eq } from 'drizzle-orm';
+
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+  
+  async getDocument(id: string): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document;
+  }
+
+  async getDocumentsByUserId(userId: number): Promise<Document[]> {
+    const results = await db.select().from(documents).where(eq(documents.userId, userId));
+    return results;
+  }
+
+  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+    const [document] = await db
+      .insert(documents)
+      .values(insertDocument)
+      .returning();
+    return document;
+  }
+
+  async updateDocument(id: string, documentUpdate: Partial<Document>): Promise<Document | undefined> {
+    const [document] = await db
+      .update(documents)
+      .set({
+        ...documentUpdate,
+        updatedAt: new Date()
+      })
+      .where(eq(documents.id, id))
+      .returning();
+    return document;
+  }
+
+  async deleteDocument(id: string): Promise<boolean> {
+    const result = await db
+      .delete(documents)
+      .where(eq(documents.id, id));
+    return !!result;
+  }
+}
+
+// Switch to database storage
+export const storage = new DatabaseStorage();
