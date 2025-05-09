@@ -6,6 +6,7 @@ import { useDocuments } from '@/hooks/use-documents';
 import { modelColorMap, formatDate, countWords } from '@/lib/utils';
 import { useLLM } from '@/hooks/use-llm';
 import { useToast } from '@/hooks/use-toast';
+import { downloadOutput } from '@/lib/llm';
 
 export default function Documents() {
   const { documents, isLoading, refetch } = useDocuments();
@@ -215,7 +216,12 @@ export default function Documents() {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" className="text-xs">View</Button>
-                    <Button variant="ghost" size="sm" className="text-xs flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs flex items-center gap-1"
+                      onClick={() => downloadOutput(doc.content, 'txt', doc.title)}
+                    >
                       <Download className="h-3 w-3" />
                       <span>Download</span>
                     </Button>
