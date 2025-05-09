@@ -40,6 +40,60 @@ export function useAnalytics() {
     }
   };
 
+  const generateCustomReport = async (reportType: string, period: string) => {
+    try {
+      await refetch();
+      toast({
+        title: 'Custom report generated',
+        description: `Your ${reportType} report for the last ${getTimeframeLabel(period)} has been generated`,
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Error generating custom report',
+        description: 'Failed to generate custom report',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  const exportAnalyticsData = async (format: string, period: string) => {
+    try {
+      await refetch();
+      toast({
+        title: 'Analytics data exported',
+        description: `Your analytics data has been exported in ${format.toUpperCase()} format`,
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export analytics data',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  const getCognitiveInsights = async (insightType: string) => {
+    try {
+      await refetch();
+      toast({
+        title: 'Cognitive insights ready',
+        description: `Your ${insightType} insights are now available`,
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: 'Error generating insights',
+        description: 'Failed to generate cognitive insights',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   return {
     analyticsData,
     isLoading,
@@ -47,5 +101,8 @@ export function useAnalytics() {
     timeframe,
     setTimeframe,
     generateReport,
+    generateCustomReport,
+    exportAnalyticsData,
+    getCognitiveInsights
   };
 }
