@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, Download, Upload, Plus, FileText } from 'lucide-react';
+import { Search, Filter, Download, Upload, Plus, FileText, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/use-documents';
 import { modelColorMap, formatDate, countWords } from '@/lib/utils';
 import { useLLM } from '@/hooks/use-llm';
@@ -14,6 +14,7 @@ export default function Documents() {
   const [sortBy, setSortBy] = useState('date');
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [viewingDocument, setViewingDocument] = useState<{id: string, title: string, content: string} | null>(null);
   const { toast } = useToast();
   const { processFile } = useLLM();
   
@@ -215,16 +216,50 @@ export default function Documents() {
                     <span>{countWords(doc.content)} words</span>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="text-xs">View</Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-xs flex items-center gap-1"
-                      onClick={() => downloadOutput(doc.content, 'txt', doc.title)}
+                      className="text-xs"
+                      onClick={() => setViewingDocument({
+                        id: doc.id,
+                        title: doc.title,
+                        content: doc.content
+                      })}
                     >
-                      <Download className="h-3 w-3" />
-                      <span>Download</span>
+                      View
                     </Button>
+                    <div className="relative group">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs flex items-center gap-1"
+                      >
+                        <Download className="h-3 w-3" />
+                        <span>Download</span>
+                      </Button>
+                      <div className="absolute right-0 mt-1 w-28 bg-white rounded-md shadow-lg border border-slate-200 hidden group-hover:block z-10">
+                        <div className="py-1">
+                          <button 
+                            onClick={() => downloadOutput(doc.content, 'txt', doc.title)}
+                            className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100"
+                          >
+                            Text (.txt)
+                          </button>
+                          <button 
+                            onClick={() => downloadOutput(doc.content, 'docx', doc.title)}
+                            className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100"
+                          >
+                            Word (.docx)
+                          </button>
+                          <button 
+                            onClick={() => downloadOutput(doc.content, 'pdf', doc.title)}
+                            className="block w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-100"
+                          >
+                            PDF (.pdf)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -237,6 +272,73 @@ export default function Documents() {
           </div>
         )}
       </div>
+      
+      {/* Document Viewer Dialog */}
+      {viewingDocument && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl overflow-hidden w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center">
+              <h3 className="font-semibold text-lg">{viewingDocument.title}</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setViewingDocument(null)}
+                className="h-8 w-8 p-0"
+              >
+                <span className="sr-only">Close</span>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto p-6">
+              <div className="prose max-w-none">
+                {viewingDocument.content.split('\n').map((paragraph, index) => (
+                  paragraph.trim() ? <p key={index}>{paragraph}</p> : <br key={index} />
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-slate-200 p-4 flex justify-between">
+              <div>
+                <span className="text-sm text-slate-500">
+                  {countWords(viewingDocument.content)} words
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => downloadOutput(viewingDocument.content, 'txt', viewingDocument.title)}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Text
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => downloadOutput(viewingDocument.content, 'docx', viewingDocument.title)}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Word
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => downloadOutput(viewingDocument.content, 'pdf', viewingDocument.title)}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  PDF
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={() => setViewingDocument(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
