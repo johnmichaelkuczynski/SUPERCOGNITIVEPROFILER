@@ -2,6 +2,7 @@
 import fetch from 'node-fetch';
 
 // Default to the smallest model unless specified otherwise
+// the newest Perplexity model is "llama-3.1-sonar-small-128k-online" which was released February 24, 2025
 const DEFAULT_MODEL = "llama-3.1-sonar-small-128k-online";
 
 export async function processPerplexity(
@@ -12,14 +13,19 @@ export async function processPerplexity(
   maxTokens?: number
 ): Promise<string> {
   try {
+    console.log("Processing with Perplexity...");
+    
     // API key validation
     const apiKey = process.env.PERPLEXITY_API_KEY;
     if (!apiKey) {
       throw new Error("PERPLEXITY_API_KEY not found in environment variables");
     }
+    
+    console.log(`API key available: ${apiKey.substring(0, 3)}...${apiKey.substring(apiKey.length - 3)}`);
 
     // Implement chunking strategy if needed
     if (chunkSize && content.length > 10000) {
+      console.log(`Content length (${content.length}) exceeds threshold, using chunking strategy: ${chunkSize}`);
       return await processWithChunking(content, temperature, chunkSize, maxTokens);
     }
 
@@ -37,7 +43,7 @@ export async function processPerplexity(
         }
       ],
       temperature,
-      max_tokens: maxTokens,
+      max_tokens: maxTokens || 2048,
       search_domain_filter: ["perplexity.ai"],
       return_images: false,
       return_related_questions: false,
@@ -48,7 +54,15 @@ export async function processPerplexity(
       frequency_penalty: 1
     };
 
+    console.log("Perplexity request payload:", JSON.stringify({
+      model: requestBody.model,
+      temperature: requestBody.temperature,
+      max_tokens: requestBody.max_tokens,
+      message_count: requestBody.messages.length
+    }));
+
     // Make the API request
+    console.log("Sending request to Perplexity API...");
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -58,14 +72,30 @@ export async function processPerplexity(
       body: JSON.stringify(requestBody)
     });
 
+    // Log response status
+    console.log(`Perplexity API response status: ${response.status} ${response.statusText}`);
+
     // Check for errors
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("Perplexity API error details:", errorText);
       throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
     }
 
     // Parse the response
     const data = await response.json();
+    console.log("Perplexity API response:", JSON.stringify({
+      id: data.id,
+      model: data.model,
+      completion_tokens: data.usage?.completion_tokens,
+      total_tokens: data.usage?.total_tokens,
+      choices_count: data.choices?.length
+    }));
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error("Invalid response structure from Perplexity API:", JSON.stringify(data));
+      throw new Error("Invalid response structure from Perplexity API");
+    }
     
     return data.choices[0].message.content || "";
   } catch (error) {
