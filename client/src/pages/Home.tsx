@@ -14,13 +14,19 @@ export default function Home() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const handleProcessRequest = async () => {
-    if (!prompt.trim()) return;
+    // Allow empty prompts if files are uploaded
+    if (!prompt.trim() && files.length === 0) return;
     
     setIsLoading(true);
     
     try {
       const formData = new FormData();
-      formData.append('content', prompt);
+      // If prompt is empty but files are present, create a default prompt
+      if (!prompt.trim() && files.length > 0) {
+        formData.append('content', 'Please analyze this document and provide a summary and your initial thoughts. How can you help me with this document?');
+      } else {
+        formData.append('content', prompt);
+      }
       formData.append('model', selectedModel);
       formData.append('stream', 'false');
       formData.append('temperature', '0.7');
@@ -53,7 +59,8 @@ export default function Home() {
 
   // Handle Enter key press
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Allow submission on Enter if either there's text OR files have been uploaded
+    if (e.key === 'Enter' && !e.shiftKey && (prompt.trim() || files.length > 0)) {
       e.preventDefault();
       handleProcessRequest();
     }
@@ -172,7 +179,7 @@ export default function Home() {
                 <Button 
                   onClick={handleProcessRequest} 
                   className="flex-grow"
-                  disabled={isLoading || !prompt.trim()}
+                  disabled={isLoading || (!prompt.trim() && files.length === 0)}
                 >
                   {isLoading ? (
                     <>
