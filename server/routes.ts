@@ -100,7 +100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const file = req.file;
-      const extractedText = await processDocument(file);
+      const processed = await processDocument(file);
+      const extractedText = processed.text;
       
       // Save the document to the database
       const userId = 1; // Mock user ID for now
@@ -109,14 +110,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filename = file.originalname.split('.')[0];
       const title = filename || extractedText.slice(0, 50).replace(/\n/g, ' ') + (extractedText.length > 50 ? '...' : '');
       
+      // Add AI detection information
+      let excerpt = extractedText.slice(0, 150) + (extractedText.length > 150 ? '...' : '');
+      let aiMetadata = {};
+      
+      if (processed.aiDetection) {
+        // Add AI detection info to the document metadata
+        aiMetadata = {
+          aiProbability: processed.aiDetection.aiProbability,
+          humanProbability: processed.aiDetection.humanProbability,
+          averageProbability: processed.aiDetection.averageProbability
+        };
+        
+        // Add AI detection notice to the excerpt if high probability
+        if (processed.aiDetection.aiProbability > 0.7) {
+          excerpt = `[AI CONTENT DETECTED - ${Math.round(processed.aiDetection.aiProbability * 100)}% probability] ` + excerpt;
+        }
+      }
+      
       // Store the document
       await storage.createDocument({
         userId,
         title,
         content: extractedText,
         model: 'claude', // Default model for file uploads
-        excerpt: extractedText.slice(0, 150) + (extractedText.length > 150 ? '...' : ''),
+        excerpt,
         date: new Date(),
+        metadata: JSON.stringify(aiMetadata)
       });
       
       res.json({ 

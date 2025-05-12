@@ -16,6 +16,7 @@ export const documents = pgTable("documents", {
   excerpt: text("excerpt").notNull(),
   model: text("model").notNull(),
   date: timestamp("date").notNull(),
+  metadata: text("metadata"), // For AI detection and other metadata (JSON formatted)
 });
 
 export const analytics = pgTable("analytics", {
