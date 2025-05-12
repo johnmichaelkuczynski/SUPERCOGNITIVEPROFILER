@@ -8,26 +8,51 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
 
+interface LLMOptions {
+  temperature?: number;
+  stream?: boolean;
+  chunkSize?: string;
+  maxTokens?: number;
+  previousMessages?: Array<{role: string; content: string}>;
+}
+
 export async function processClaude(
-  content: string, 
-  temperature: number = 0.7, 
-  stream: boolean = false,
-  chunkSize?: string,
-  maxTokens?: number
+  content: string,
+  options: LLMOptions = {}
 ): Promise<string> {
+  const {
+    temperature = 0.7,
+    stream = false,
+    chunkSize,
+    maxTokens = 2048,
+    previousMessages = []
+  } = options;
   try {
     // Implement chunking strategy if needed
     if (chunkSize && content.length > 10000) {
-      return await processWithChunking(content, temperature, chunkSize, maxTokens);
+      return await processWithChunking(content, temperature, chunkSize, maxTokens, previousMessages);
     }
+    
+    // Format messages array with conversation history
+    let messages = [];
+    
+    // Add previous messages if available
+    if (previousMessages && previousMessages.length > 0) {
+      // Ensure roles are valid for Anthropic (only 'user' and 'assistant' are allowed)
+      messages = previousMessages.map(msg => ({
+        role: msg.role === 'system' ? 'user' : msg.role,
+        content: msg.content
+      }));
+    }
+    
+    // Add the current message
+    messages.push({ role: 'user', content });
     
     const response = await anthropic.messages.create({
       model: MODEL,
-      messages: [
-        { role: 'user', content }
-      ],
+      messages,
       temperature,
-      max_tokens: maxTokens || 4000,
+      max_tokens: maxTokens,
     });
     
     return response.content[0].text;
