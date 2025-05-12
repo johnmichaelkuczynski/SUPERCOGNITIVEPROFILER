@@ -108,6 +108,109 @@ export class MemStorage implements IStorage {
   async deleteDocument(id: string): Promise<boolean> {
     return this.documents.delete(id);
   }
+  
+  // Conversation Methods
+  async getConversation(id: number): Promise<Conversation | undefined> {
+    return this.conversations.get(id);
+  }
+  
+  async getConversationsByUserId(userId: number): Promise<Conversation[]> {
+    return Array.from(this.conversations.values()).filter(
+      (conversation) => conversation.userId === userId,
+    );
+  }
+  
+  async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
+    const id = this.conversationId++;
+    const conversation: Conversation = { 
+      ...insertConversation, 
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.conversations.set(id, conversation);
+    return conversation;
+  }
+  
+  async updateConversation(id: number, conversationUpdate: Partial<Conversation>): Promise<Conversation | undefined> {
+    const conversation = this.conversations.get(id);
+    if (!conversation) {
+      return undefined;
+    }
+    
+    const updatedConversation: Conversation = {
+      ...conversation,
+      ...conversationUpdate,
+      updatedAt: new Date()
+    };
+    this.conversations.set(id, updatedConversation);
+    return updatedConversation;
+  }
+  
+  async deleteConversation(id: number): Promise<boolean> {
+    const exists = this.conversations.has(id);
+    if (exists) {
+      this.conversations.delete(id);
+      
+      // Delete all messages associated with this conversation
+      for (const [messageId, message] of this.messages.entries()) {
+        if (message.conversationId === id) {
+          this.messages.delete(messageId);
+        }
+      }
+    }
+    return exists;
+  }
+  
+  // Message Methods
+  async getMessage(id: number): Promise<Message | undefined> {
+    return this.messages.get(id);
+  }
+  
+  async getMessagesByConversationId(conversationId: number): Promise<Message[]> {
+    return Array.from(this.messages.values())
+      .filter(message => message.conversationId === conversationId)
+      .sort((a, b) => {
+        const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+        const timeB = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+        return timeA - timeB;
+      });
+  }
+  
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const id = this.messageId++;
+    const message: Message = {
+      ...insertMessage,
+      id,
+      timestamp: new Date()
+    };
+    this.messages.set(id, message);
+    
+    // Also update the conversation's updatedAt timestamp
+    if (this.conversations.has(insertMessage.conversationId)) {
+      const conversation = this.conversations.get(insertMessage.conversationId)!;
+      this.conversations.set(insertMessage.conversationId, {
+        ...conversation,
+        updatedAt: new Date()
+      });
+    }
+    
+    return message;
+  }
+  
+  async updateMessage(id: number, messageUpdate: Partial<Message>): Promise<Message | undefined> {
+    const message = this.messages.get(id);
+    if (!message) {
+      return undefined;
+    }
+    
+    const updatedMessage: Message = {
+      ...message,
+      ...messageUpdate
+    };
+    this.messages.set(id, updatedMessage);
+    return updatedMessage;
+  }
 }
 
 import { db } from './db';
@@ -218,6 +321,121 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Database error in deleteDocument, falling back to memory storage:", error);
       return this.memStorage.deleteDocument(id);
+    }
+  }
+  
+  // Conversation Methods
+  async getConversation(id: number): Promise<Conversation | undefined> {
+    try {
+      const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
+      return conversation;
+    } catch (error) {
+      console.error("Database error in getConversation, falling back to memory storage:", error);
+      return this.memStorage.getConversation(id);
+    }
+  }
+  
+  async getConversationsByUserId(userId: number): Promise<Conversation[]> {
+    try {
+      const result = await db.select().from(conversations).where(eq(conversations.userId, userId));
+      return result;
+    } catch (error) {
+      console.error("Database error in getConversationsByUserId, falling back to memory storage:", error);
+      return this.memStorage.getConversationsByUserId(userId);
+    }
+  }
+  
+  async createConversation(conversation: InsertConversation): Promise<Conversation> {
+    try {
+      const [result] = await db.insert(conversations).values(conversation).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createConversation, falling back to memory storage:", error);
+      return this.memStorage.createConversation(conversation);
+    }
+  }
+  
+  async updateConversation(id: number, conversationUpdate: Partial<Conversation>): Promise<Conversation | undefined> {
+    try {
+      const [result] = await db
+        .update(conversations)
+        .set({ ...conversationUpdate, updatedAt: new Date() })
+        .where(eq(conversations.id, id))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in updateConversation, falling back to memory storage:", error);
+      return this.memStorage.updateConversation(id, conversationUpdate);
+    }
+  }
+  
+  async deleteConversation(id: number): Promise<boolean> {
+    try {
+      // First delete all messages in the conversation
+      await db.delete(messages).where(eq(messages.conversationId, id));
+      
+      // Then delete the conversation
+      const result = await db.delete(conversations).where(eq(conversations.id, id)).returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Database error in deleteConversation, falling back to memory storage:", error);
+      return this.memStorage.deleteConversation(id);
+    }
+  }
+  
+  // Message Methods
+  async getMessage(id: number): Promise<Message | undefined> {
+    try {
+      const [message] = await db.select().from(messages).where(eq(messages.id, id));
+      return message;
+    } catch (error) {
+      console.error("Database error in getMessage, falling back to memory storage:", error);
+      return this.memStorage.getMessage(id);
+    }
+  }
+  
+  async getMessagesByConversationId(conversationId: number): Promise<Message[]> {
+    try {
+      const result = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.conversationId, conversationId))
+        .orderBy(messages.timestamp);
+      return result;
+    } catch (error) {
+      console.error("Database error in getMessagesByConversationId, falling back to memory storage:", error);
+      return this.memStorage.getMessagesByConversationId(conversationId);
+    }
+  }
+  
+  async createMessage(message: InsertMessage): Promise<Message> {
+    try {
+      const [result] = await db.insert(messages).values(message).returning();
+      
+      // Update the conversation's updatedAt timestamp
+      await db
+        .update(conversations)
+        .set({ updatedAt: new Date() })
+        .where(eq(conversations.id, message.conversationId));
+        
+      return result;
+    } catch (error) {
+      console.error("Database error in createMessage, falling back to memory storage:", error);
+      return this.memStorage.createMessage(message);
+    }
+  }
+  
+  async updateMessage(id: number, messageUpdate: Partial<Message>): Promise<Message | undefined> {
+    try {
+      const [result] = await db
+        .update(messages)
+        .set(messageUpdate)
+        .where(eq(messages.id, id))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in updateMessage, falling back to memory storage:", error);
+      return this.memStorage.updateMessage(id, messageUpdate);
     }
   }
 }
