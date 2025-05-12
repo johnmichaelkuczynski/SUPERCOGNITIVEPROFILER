@@ -34,13 +34,13 @@ export async function processClaude(
     }
     
     // Format messages array with conversation history
-    let messages = [];
+    let messages: Array<{role: string, content: string}> = [];
     
     // Add previous messages if available
     if (previousMessages && previousMessages.length > 0) {
       // Ensure roles are valid for Anthropic (only 'user' and 'assistant' are allowed)
       messages = previousMessages.map(msg => ({
-        role: msg.role === 'system' ? 'user' : msg.role,
+        role: (msg.role === 'system' || msg.role === 'user') ? 'user' : 'assistant',
         content: msg.content
       }));
     }
@@ -55,7 +55,8 @@ export async function processClaude(
       max_tokens: maxTokens,
     });
     
-    return response.content[0].text;
+    // Get the response content and handle the different types
+    return ('text' in response.content[0]) ? response.content[0].text : JSON.stringify(response.content[0]);
   } catch (error) {
     console.error("Error calling Anthropic API:", error);
     throw new Error(`Claude processing failed: ${(error as Error).message}`);
@@ -66,7 +67,8 @@ async function processWithChunking(
   content: string, 
   temperature: number,
   chunkSize: string,
-  maxTokens?: number
+  maxTokens?: number,
+  previousMessages: Array<{role: string; content: string}> = []
 ): Promise<string> {
   // Determine chunk size based on the strategy
   let chunkTokens: number;
@@ -126,16 +128,29 @@ async function processWithChunking(
       prompt += "\n\nNote: This is not the end of the document. More content follows in subsequent chunks.";
     }
     
+    // Format messages array including previous messages
+    let messages: Array<{role: string, content: string}> = [];
+    
+    // Add previous messages if this is the first chunk
+    if (isFirstChunk && previousMessages && previousMessages.length > 0) {
+      messages = previousMessages.map(msg => ({
+        role: (msg.role === 'system' || msg.role === 'user') ? 'user' : 'assistant',
+        content: msg.content
+      }));
+    }
+    
+    // Add the current prompt
+    messages.push({ role: 'user', content: prompt });
+    
     const response = await anthropic.messages.create({
       model: MODEL,
-      messages: [
-        { role: 'user', content: prompt }
-      ],
+      messages,
       temperature,
       max_tokens: maxTokens || 4000,
     });
     
-    const result = response.content[0].text;
+    // Get the response content and handle different types
+    const result = ('text' in response.content[0]) ? response.content[0].text : JSON.stringify(response.content[0]);
     results.push(result);
     
     // Update context with a summary of what was processed so far
