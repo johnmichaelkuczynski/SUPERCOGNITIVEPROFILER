@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Analytics from "@/pages/Analytics";
 import Documents from "@/pages/Documents";
+import Conversations from "@/pages/Conversations";
 import Settings from "@/pages/Settings";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -22,6 +23,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/documents" component={Documents} />
+          <Route path="/conversations" component={Conversations} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
