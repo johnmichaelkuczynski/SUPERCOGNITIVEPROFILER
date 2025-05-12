@@ -15,7 +15,7 @@ export default function Documents() {
   const [sortBy, setSortBy] = useState('date');
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [viewingDocument, setViewingDocument] = useState<{id: string, title: string, content: string} | null>(null);
+  const [viewingDocument, setViewingDocument] = useState<{id: string, title: string, content: string, metadata?: string} | null>(null);
   const { toast } = useToast();
   const { processFile } = useLLM();
   
@@ -215,6 +215,7 @@ export default function Documents() {
                   <div className="flex items-center gap-4 text-xs text-slate-500">
                     <span>{typeof doc.date === 'string' ? doc.date : formatDate(doc.date as Date)}</span>
                     <span>{countWords(doc.content)} words</span>
+                    {doc.metadata && <AIDetectionBadge metadata={doc.metadata} />}
                   </div>
                   <div className="flex gap-2">
                     <Button 
@@ -224,7 +225,8 @@ export default function Documents() {
                       onClick={() => setViewingDocument({
                         id: doc.id,
                         title: doc.title,
-                        content: doc.content
+                        content: doc.content,
+                        metadata: doc.metadata
                       })}
                     >
                       View
@@ -299,9 +301,14 @@ export default function Documents() {
             </div>
             <div className="border-t border-slate-200 p-4 flex justify-between">
               <div>
-                <span className="text-sm text-slate-500">
-                  {countWords(viewingDocument.content)} words
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-500">
+                    {countWords(viewingDocument.content)} words
+                  </span>
+                  {viewingDocument.metadata && (
+                    <AIDetectionBadge metadata={viewingDocument.metadata} showDetails={true} />
+                  )}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button 
