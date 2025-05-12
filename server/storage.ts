@@ -1,4 +1,10 @@
-import { users, documents, type User, type InsertUser, type Document, type InsertDocument } from "@shared/schema";
+import { 
+  users, documents, conversations, messages, 
+  type User, type InsertUser, 
+  type Document, type InsertDocument,
+  type Conversation, type InsertConversation,
+  type Message, type InsertMessage
+} from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -32,14 +38,22 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private documents: Map<string, Document>;
+  private conversations: Map<number, Conversation>;
+  private messages: Map<number, Message>;
   private userId: number;
   private documentId: number;
+  private conversationId: number;
+  private messageId: number;
 
   constructor() {
     this.users = new Map();
     this.documents = new Map();
+    this.conversations = new Map();
+    this.messages = new Map();
     this.userId = 1;
     this.documentId = 1;
+    this.conversationId = 1;
+    this.messageId = 1;
     
     // Add a default user for testing
     this.createUser({
