@@ -7,6 +7,7 @@ import { modelColorMap, formatDate, countWords } from '@/lib/utils';
 import { useLLM } from '@/hooks/use-llm';
 import { useToast } from '@/hooks/use-toast';
 import { downloadOutput } from '@/lib/llm';
+import AIDetectionBadge from '@/components/AIDetectionBadge';
 
 export default function Documents() {
   const { documents, isLoading, refetch } = useDocuments();

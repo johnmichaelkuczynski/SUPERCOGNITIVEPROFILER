@@ -52,6 +52,7 @@ export interface Document {
   model: LLMModel;
   date: Date | string;
   wordCount?: number;
+  metadata?: string; // JSON string containing AI detection results and other metadata
 }
 
 export interface UploadedFile {
