@@ -9,6 +9,7 @@ import { processClaude } from "./services/anthropic";
 import { processPerplexity } from "./services/perplexity";
 import { processDocument, extractText } from "./services/documentProcessor";
 import { generateAnalytics } from "./services/analytics";
+import { WebSocketServer } from 'ws';
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -223,7 +224,260 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Conversation routes
+  app.get('/api/conversations', async (req: Request, res: Response) => {
+    try {
+      const userId = 1; // Mock user ID for now
+      const conversations = await storage.getConversationsByUserId(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      res.status(500).json({ message: 'Failed to fetch conversations', error: (error as Error).message });
+    }
+  });
+
+  app.post('/api/conversations', async (req: Request, res: Response) => {
+    try {
+      const { title, model, contextDocumentIds } = req.body;
+      const userId = 1; // Mock user ID for now
+      
+      if (!title) {
+        return res.status(400).json({ message: 'Title is required' });
+      }
+      
+      const conversation = await storage.createConversation({
+        userId,
+        title,
+        model: model || 'claude',
+        contextDocumentIds: contextDocumentIds ? JSON.stringify(contextDocumentIds) : null,
+        metadata: null
+      });
+      
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      res.status(500).json({ message: 'Failed to create conversation', error: (error as Error).message });
+    }
+  });
+
+  app.get('/api/conversations/:id', async (req: Request, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const conversation = await storage.getConversation(conversationId);
+      
+      if (!conversation) {
+        return res.status(404).json({ message: 'Conversation not found' });
+      }
+      
+      res.json(conversation);
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+      res.status(500).json({ message: 'Failed to fetch conversation', error: (error as Error).message });
+    }
+  });
+
+  app.delete('/api/conversations/:id', async (req: Request, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const success = await storage.deleteConversation(conversationId);
+      
+      if (!success) {
+        return res.status(404).json({ message: 'Conversation not found' });
+      }
+      
+      res.json({ message: 'Conversation deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      res.status(500).json({ message: 'Failed to delete conversation', error: (error as Error).message });
+    }
+  });
+
+  app.get('/api/conversations/:id/messages', async (req: Request, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const messages = await storage.getMessagesByConversationId(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      res.status(500).json({ message: 'Failed to fetch messages', error: (error as Error).message });
+    }
+  });
+
+  app.post('/api/conversations/:id/messages', async (req: Request, res: Response) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const { content, role } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: 'Content is required' });
+      }
+      
+      if (!role || (role !== 'user' && role !== 'assistant')) {
+        return res.status(400).json({ message: 'Valid role is required (user or assistant)' });
+      }
+      
+      const message = await storage.createMessage({
+        conversationId,
+        content,
+        role,
+        metadata: null,
+        documentReferences: null
+      });
+      
+      res.status(201).json(message);
+    } catch (error) {
+      console.error('Error creating message:', error);
+      res.status(500).json({ message: 'Failed to create message', error: (error as Error).message });
+    }
+  });
+
+  // Setup HTTP server and WebSocket
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // WebSocket connection handling
+  wss.on('connection', (socket) => {
+    console.log('Client connected to WebSocket');
+    
+    // Handle messages from client
+    socket.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        // Handle different message types
+        if (data.type === 'chat_message') {
+          // Store user message
+          const userMessage = await storage.createMessage({
+            conversationId: data.conversationId,
+            role: 'user',
+            content: data.content,
+            metadata: null,
+            documentReferences: null
+          });
+          
+          // Send confirmation to client
+          if (socket.readyState === 1) { // WebSocket.OPEN
+            socket.send(JSON.stringify({
+              type: 'message_received',
+              messageId: userMessage.id
+            }));
+          }
+          
+          // Process with the appropriate model
+          let responseContent = '';
+          
+          // Get conversation to determine model and context
+          const conversation = await storage.getConversation(data.conversationId);
+          if (!conversation) {
+            throw new Error('Conversation not found');
+          }
+          
+          // Get previous messages for context
+          const messages = await storage.getMessagesByConversationId(data.conversationId);
+          
+          // Format messages for LLM context
+          const context = messages.map(msg => ({ role: msg.role, content: msg.content }));
+          
+          // Get referenced documents if any
+          let documentContext = '';
+          if (conversation.contextDocumentIds) {
+            try {
+              const docIds = JSON.parse(conversation.contextDocumentIds);
+              for (const docId of docIds) {
+                const doc = await storage.getDocument(docId);
+                if (doc) {
+                  documentContext += `Document: ${doc.title}\n\n${doc.content}\n\n`;
+                }
+              }
+            } catch (error) {
+              console.error('Error parsing contextDocumentIds:', error);
+            }
+          }
+          
+          // Add document context if available
+          let systemMessage = null;
+          if (documentContext) {
+            systemMessage = {
+              role: 'system',
+              content: `You have access to the following document(s):\n\n${documentContext}\nPlease use this information to provide accurate answers.`
+            };
+          }
+          
+          // Process with model
+          const model = conversation.model || 'claude';
+          const streamMode = data.stream !== false;
+          
+          try {
+            // Common options
+            const options = {
+              temperature: parseFloat(data.temperature) || 0.7,
+              stream: streamMode,
+              chunkSize: data.chunkSize || 'auto',
+              maxTokens: parseInt(data.maxTokens) || 2048
+            };
+            
+            // Add previous messages as context
+            if (systemMessage) {
+              options.previousMessages = [systemMessage, ...context];
+            } else {
+              options.previousMessages = context;
+            }
+            
+            switch (model) {
+              case 'claude':
+                responseContent = await processClaude(data.content, options);
+                break;
+              case 'gpt4':
+                responseContent = await processGPT4(data.content, options);
+                break;
+              case 'perplexity':
+                responseContent = await processPerplexity(data.content, options);
+                break;
+              default:
+                responseContent = await processClaude(data.content, options);
+            }
+          } catch (error) {
+            console.error('LLM processing error:', error);
+            responseContent = "I'm sorry, I encountered an error processing your request. Please try again.";
+          }
+          
+          // Store assistant message
+          const assistantMessage = await storage.createMessage({
+            conversationId: data.conversationId,
+            role: 'assistant',
+            content: responseContent,
+            metadata: null,
+            documentReferences: null
+          });
+          
+          // Send response to client
+          if (socket.readyState === 1) { // WebSocket.OPEN
+            socket.send(JSON.stringify({
+              type: 'chat_response',
+              messageId: assistantMessage.id,
+              conversationId: data.conversationId,
+              content: responseContent
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+        if (socket.readyState === 1) { // WebSocket.OPEN
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Failed to process message'
+          }));
+        }
+      }
+    });
+    
+    // Handle disconnection
+    socket.on('close', () => {
+      console.log('Client disconnected from WebSocket');
+    });
+  });
 
   return httpServer;
 }
