@@ -148,13 +148,14 @@ export default function Home() {
   
   const renderMessageContent = (content: string) => {
     return (
-      <ReactMarkdown
-        rehypePlugins={[rehypeKatex]}
-        remarkPlugins={[remarkMath]}
-        className="prose dark:prose-invert prose-sm max-w-none"
-      >
-        {content}
-      </ReactMarkdown>
+      <div className="prose dark:prose-invert prose-sm max-w-none">
+        <ReactMarkdown
+          rehypePlugins={[rehypeKatex]}
+          remarkPlugins={[remarkMath]}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
     );
   };
 
@@ -288,10 +289,10 @@ export default function Home() {
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 min-h-[60px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 min-h-[100px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Type your question or prompt here and press Enter to send..."
                   disabled={isLoading}
-                  rows={1}
+                  rows={3}
                 />
                 <Button 
                   onClick={handleProcessRequest} 
