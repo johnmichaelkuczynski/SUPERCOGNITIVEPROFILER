@@ -1,32 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import ReactMarkdown from 'react-markdown';
+import rehypeKatex from 'rehype-katex';
+import remarkMath from 'remark-math';
+import 'katex/dist/katex.min.css';
+
+interface Message {
+  id: number;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
+  files?: File[];
+}
 
 export default function Home() {
   // Basic state
   const [selectedModel, setSelectedModel] = useState<LLMModel>('claude');
   const [prompt, setPrompt] = useState('');
-  const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  // Auto-resize textarea as content grows
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [prompt]);
   
   const handleProcessRequest = async () => {
     // Allow empty prompts if files are uploaded
     if (!prompt.trim() && files.length === 0) return;
     
+    // Save user message
+    const userContent = prompt.trim() || "Please analyze these documents";
+    const userMessage: Message = {
+      id: Date.now(),
+      content: userContent,
+      role: 'user',
+      timestamp: new Date(),
+      files: files.length > 0 ? [...files] : undefined
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    setPrompt(''); // Clear the input immediately
     
     try {
       const formData = new FormData();
-      // If prompt is empty but files are present, create a default prompt
-      if (!prompt.trim() && files.length > 0) {
-        formData.append('content', 'Please analyze this document and provide a summary and your initial thoughts. How can you help me with this document?');
-      } else {
-        formData.append('content', prompt);
-      }
+      formData.append('content', userContent);
       formData.append('model', selectedModel);
       formData.append('stream', 'false');
       formData.append('temperature', '0.7');
@@ -48,10 +84,29 @@ export default function Home() {
       }
       
       const data = await res.json();
-      setResponse(data.content);
+      
+      // Add AI response to messages
+      const aiMessage: Message = {
+        id: Date.now(),
+        content: data.content,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      setFiles([]); // Clear files after successful response
     } catch (error) {
       console.error('Error processing request:', error);
-      setResponse('Error: Failed to get a response. Please try again.');
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: Date.now(),
+        content: 'Error: Failed to get a response. Please try again.',
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +139,24 @@ export default function Home() {
     newFiles.splice(index, 1);
     setFiles(newFiles);
   };
+  
+  const clearChat = () => {
+    setPrompt('');
+    setMessages([]);
+    setFiles([]);
+  };
+  
+  const renderMessageContent = (content: string) => {
+    return (
+      <ReactMarkdown
+        rehypePlugins={[rehypeKatex]}
+        remarkPlugins={[remarkMath]}
+        className="prose dark:prose-invert prose-sm max-w-none"
+      >
+        {content}
+      </ReactMarkdown>
+    );
+  };
 
   return (
     <main className="container mx-auto px-4 py-6">
@@ -92,7 +165,20 @@ export default function Home() {
       <div className="grid grid-cols-1 gap-6">
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Model Selection</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg">Model Selection</CardTitle>
+              {messages.length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearChat}
+                  className="text-muted-foreground hover:text-red-500"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Clear Chat
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -118,29 +204,117 @@ export default function Home() {
           </CardContent>
         </Card>
         
-        <Card className="shadow-sm">
+        <Card className="shadow-sm flex flex-col" style={{ minHeight: '600px' }}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Your Message</CardTitle>
+            <CardTitle className="text-lg">Conversation</CardTitle>
           </CardHeader>
-          <CardContent>
+          
+          <ScrollArea className="flex-1 p-4 pb-0">
+            <div className="space-y-6">
+              {messages.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Your conversation will appear here</p>
+                  <p className="text-sm">Start typing below to chat with the AI</p>
+                </div>
+              ) : (
+                messages.map((message) => (
+                  <div key={message.id} className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">
+                        {message.role === "user" ? "You" : "AI"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    
+                    <Card className={`${
+                      message.role === "user" 
+                        ? "bg-primary-foreground" 
+                        : "bg-card"
+                    }`}>
+                      <CardContent className="p-4">
+                        {renderMessageContent(message.content)}
+                        
+                        {/* Display files attached to user messages */}
+                        {message.files && message.files.length > 0 && (
+                          <div className="mt-3 border-t pt-3">
+                            <p className="text-xs font-medium mb-2">Attached files:</p>
+                            <div className="space-y-1">
+                              {message.files.map((file, index) => (
+                                <div key={index} className="flex items-center text-xs">
+                                  <FileText className="h-3 w-3 mr-1 text-blue-500" />
+                                  <span className="truncate">{file.name}</span>
+                                  <span className="ml-1 text-muted-foreground">({formatBytes(file.size)})</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))
+              )}
+              
+              {isLoading && (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">AI</span>
+                  </div>
+                  
+                  <Card>
+                    <CardContent className="p-4 flex items-center justify-center py-12">
+                      <div className="flex flex-col items-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"></div>
+                        <p className="text-muted-foreground">AI is thinking...</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+          
+          <Separator className="mt-auto" />
+          
+          <div className="p-4">
             <div className="space-y-4">
-              <textarea 
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Type your question or prompt here and press Enter to send..."
-              />
+              <div className="flex space-x-4">
+                <textarea 
+                  ref={textareaRef}
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1 min-h-[60px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Type your question or prompt here and press Enter to send..."
+                  disabled={isLoading}
+                  rows={1}
+                />
+                <Button 
+                  onClick={handleProcessRequest} 
+                  size="icon"
+                  disabled={isLoading || (!prompt.trim() && files.length === 0)}
+                >
+                  {isLoading ? (
+                    <div className="animate-spin h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               
               {/* File Upload UI */}
-              <div className="space-y-2">
+              <div>
                 <div 
-                  className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-slate-50"
+                  className="border-2 border-dashed rounded-lg p-3 text-center cursor-pointer hover:bg-slate-50"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload className="h-6 w-6 mx-auto text-slate-400 mb-2" />
-                  <p className="text-sm text-slate-600">Upload files for context</p>
-                  <p className="text-xs text-slate-500 mt-1">PDF, DOCX, TXT, JPG, PNG</p>
+                  <Upload className="h-4 w-4 mx-auto text-slate-400 mb-1" />
+                  <p className="text-xs text-slate-600">Upload files for context</p>
+                  <p className="text-xs text-slate-500">PDF, DOCX, TXT, JPG, PNG</p>
                   <input 
                     type="file" 
                     className="hidden" 
@@ -152,11 +326,11 @@ export default function Home() {
                 </div>
                 
                 {files.length > 0 && (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-2 space-y-1">
                     {files.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-slate-100 rounded-lg px-3 py-2 text-sm">
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <FileText className="h-4 w-4 text-blue-500" />
+                      <div key={index} className="flex items-center justify-between bg-slate-100 rounded-lg px-2 py-1 text-xs">
+                        <div className="flex items-center gap-1 overflow-hidden">
+                          <FileText className="h-3 w-3 text-blue-500" />
                           <span className="truncate">{file.name}</span>
                           <span className="text-xs text-slate-500 whitespace-nowrap">({formatBytes(file.size)})</span>
                         </div>
@@ -167,7 +341,7 @@ export default function Home() {
                             handleRemoveFile(index);
                           }}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-3 w-3" />
                         </button>
                       </div>
                     ))}
@@ -175,59 +349,11 @@ export default function Home() {
                 )}
               </div>
               
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleProcessRequest} 
-                  className="flex-grow"
-                  disabled={isLoading || (!prompt.trim() && files.length === 0)}
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Message
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setPrompt('');
-                    setResponse('');
-                    setFiles([]);
-                  }}
-                >
-                  Clear Chat
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">AI Response</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-3"></div>
-                <p className="text-slate-500">AI is thinking...</p>
-              </div>
-            ) : response ? (
-              <div className="p-3 whitespace-pre-wrap">
-                {response}
-              </div>
-            ) : (
-              <p className="text-center py-8 text-slate-500">
-                The AI will respond here after you send a message.
+              <p className="text-xs text-muted-foreground">
+                Press Enter to send, Shift+Enter for new line
               </p>
-            )}
-          </CardContent>
+            </div>
+          </div>
         </Card>
       </div>
     </main>
