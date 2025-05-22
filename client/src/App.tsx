@@ -14,6 +14,7 @@ import Login from "@/pages/Login";
 import Profile from "@/pages/Profile";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import TextSelectionToolbar from "@/components/TextSelectionToolbar";
 
 // Protected route component that redirects to login if not authenticated
 function ProtectedRoute({ component: Component, ...rest }: any) {
@@ -74,6 +75,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <TextSelectionToolbar />
       </TooltipProvider>
     </QueryClientProvider>
   );
