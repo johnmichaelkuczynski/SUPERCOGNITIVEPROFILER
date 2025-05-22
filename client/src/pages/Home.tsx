@@ -10,6 +10,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 import DocumentExportButtons from '@/components/DocumentExportButtons';
+import LargeDocumentRewrite from '@/components/LargeDocumentRewrite';
 
 interface Message {
   id: number;
@@ -609,9 +610,18 @@ export default function Home() {
                 )}
               </div>
               
-              <p className="text-xs text-muted-foreground">
-                Press Enter to send, Shift+Enter for new line
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Press Enter to send, Shift+Enter for new line
+                </p>
+                
+                {/* Large Document Rewrite Button */}
+                <LargeDocumentRewrite 
+                  lastUploadedDocument={getLastUploadedDocument()}
+                  selectedModel={selectedModel}
+                  conversationInsights={getConversationInsights()}
+                />
+              </div>
             </div>
           </div>
         </Card>
