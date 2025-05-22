@@ -28,16 +28,60 @@ export default function AIDetectionButton() {
   const [result, setResult] = useState<AIDetectionResult | null>(null);
   const { toast } = useToast();
 
-  const handleOpenDialog = () => {
-    setShowDialog(true);
-    setResult(null);
-    
+  const handleOpenDialog = async () => {
     // Get the selected text if any
     const selection = window.getSelection();
-    if (selection && selection.toString().trim().length > 0) {
-      setSelectedText(selection.toString().trim());
+    const selectedStr = selection ? selection.toString().trim() : '';
+    setSelectedText(selectedStr);
+    
+    // If there's selected text, immediately analyze it
+    if (selectedStr.length >= 100) {
+      setShowDialog(true);
+      setResult(null);
+      setIsAnalyzing(true);
+      
+      try {
+        const response = await fetch('/api/ai-detection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: selectedStr }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setResult(data);
+      } catch (error) {
+        console.error('Error detecting AI content:', error);
+        setResult({
+          aiProbability: 0,
+          humanProbability: 0,
+          error: error instanceof Error ? error.message : 'Failed to analyze text'
+        });
+        
+        toast({
+          title: "Detection Failed",
+          description: "There was an error analyzing the text. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsAnalyzing(false);
+      }
+    } else if (selectedStr.length > 0 && selectedStr.length < 100) {
+      // If text is selected but too short
+      toast({
+        title: "Text too short",
+        description: "Please select at least 100 characters to analyze.",
+        variant: "destructive"
+      });
     } else {
-      setSelectedText('');
+      // No text selected, just open dialog for manual entry
+      setShowDialog(true);
+      setResult(null);
     }
   };
 
