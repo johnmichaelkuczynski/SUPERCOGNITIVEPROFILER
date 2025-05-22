@@ -7,11 +7,14 @@ const DEFAULT_MODEL = "llama-3.1-sonar-small-128k-online";
 
 export async function processPerplexity(
   content: string, 
-  temperature: number = 0.7, 
-  stream: boolean = false,
-  chunkSize?: string,
-  maxTokens?: number
+  options: any = {}
 ): Promise<string> {
+  // Extract options with defaults
+  const temperature = typeof options === 'object' ? (options.temperature || 0.7) : 0.7;
+  const stream = typeof options === 'object' ? (options.stream || false) : false;
+  const chunkSize = typeof options === 'object' ? options.chunkSize : undefined;
+  const maxTokens = typeof options === 'object' ? options.maxTokens : undefined;
+  const previousMessages = typeof options === 'object' ? options.previousMessages : [];
   try {
     console.log("Processing with Perplexity...");
     
@@ -30,19 +33,30 @@ export async function processPerplexity(
     }
 
     // Prepare the request payload
+    // Build messages array including conversation history
+    let messages = [];
+    
+    // Add system message first
+    messages.push({
+      role: "system",
+      content: "You are an advanced text processing assistant. Provide thoughtful, comprehensive, and well-structured responses."
+    });
+    
+    // Add previous messages if provided
+    if (previousMessages && previousMessages.length > 0) {
+      messages.push(...previousMessages.map(msg => ({
+        role: msg.role === 'system' ? 'system' : (msg.role === 'user' ? 'user' : 'assistant'),
+        content: msg.content
+      })));
+    }
+    
+    // Add current message
+    messages.push({ role: "user", content });
+    
     const requestBody = {
       model: DEFAULT_MODEL,
-      messages: [
-        {
-          role: "system",
-          content: "You are an advanced text processing assistant. Provide thoughtful, comprehensive, and well-structured responses."
-        },
-        {
-          role: "user",
-          content
-        }
-      ],
-      temperature,
+      messages: messages,
+      temperature: temperature,
       max_tokens: maxTokens || 2048,
       search_domain_filter: ["perplexity.ai"],
       return_images: false,
