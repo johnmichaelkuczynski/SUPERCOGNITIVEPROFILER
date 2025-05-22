@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { MenuIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import AIDetectionButton from '@/components/AIDetectionButton';
 
 interface HeaderProps {
   currentPath: string;
@@ -61,12 +62,15 @@ export default function Header({ currentPath }: HeaderProps) {
   return (
     <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/">
-          <div className="flex items-center gap-2 cursor-pointer">
-            <div className="text-primary-600 text-2xl font-bold">TextMind</div>
-            <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">Beta</span>
-          </div>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="text-primary-600 text-2xl font-bold">TextMind</div>
+              <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">Beta</span>
+            </div>
+          </Link>
+          <AIDetectionButton />
+        </div>
         
         <div className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (
@@ -79,6 +83,8 @@ export default function Header({ currentPath }: HeaderProps) {
               </div>
             </Link>
           ))}
+          <div className="h-6 w-px bg-slate-200"></div>
+          <AIDetectionButton />
           <div className="h-6 w-px bg-slate-200"></div>
           <Link href="/profile">
             <div className="flex items-center gap-2 cursor-pointer hover:opacity-80">
