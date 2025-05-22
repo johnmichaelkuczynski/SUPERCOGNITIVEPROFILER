@@ -357,6 +357,39 @@ export default function Home() {
     );
   };
 
+  // Get the current state of files and document for the document rewriter
+  const getLastUploadedDocument = () => {
+    if (files.length > 0) {
+      // Return the first file in the current files array
+      return {
+        name: files[0].name,
+        content: "Loading..." // This will be read by the component on upload
+      };
+    }
+    
+    // Look for the last document in the conversation
+    const lastDocMessage = [...messages].reverse().find(msg => msg.files && msg.files.length > 0);
+    if (lastDocMessage?.files && lastDocMessage.files.length > 0) {
+      return {
+        name: lastDocMessage.files[0].name,
+        content: "Loading..." // This will be read by the component on upload
+      };
+    }
+    
+    return undefined;
+  };
+  
+  // Get conversation insights for document rewriting
+  const getConversationInsights = () => {
+    // Filter for assistant responses that might contain insights
+    const assistantMessages = messages.filter(msg => msg.role === 'assistant');
+    if (assistantMessages.length === 0) return '';
+    
+    // Get the last 3 assistant messages for insights
+    const recentMessages = assistantMessages.slice(-3);
+    return recentMessages.map(msg => msg.content).join('\n\n');
+  };
+
   return (
     <main className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
