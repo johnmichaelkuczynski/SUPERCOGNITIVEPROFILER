@@ -53,8 +53,8 @@ export default function Profile() {
         .toUpperCase()
         .slice(0, 2);
       
-      const updatedUserData = {
-        ...userData,
+      const updatedUserData: UserData = {
+        id: userData?.id || 1,
         name,
         email,
         initials: initials || 'U',
@@ -63,8 +63,8 @@ export default function Profile() {
       // Save to localStorage
       localStorage.setItem('user', JSON.stringify(updatedUserData));
       
-      // Update state
-      setUserData(updatedUserData);
+      // Update state 
+      setUserData(updatedUserData as UserData);
       
       // Dispatch event to notify other components
       window.dispatchEvent(new Event('user-updated'));
