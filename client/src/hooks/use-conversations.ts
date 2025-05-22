@@ -84,13 +84,20 @@ export function useConversations() {
     };
   }, [queryClient]);
   
-  // Get all conversations
+  // Get all conversations - force enabled and refetch on mount
   const { data: conversations, isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['/api/conversations'],
     retry: 3,
     refetchOnWindowFocus: true,
-    refetchInterval: 30000 // Refetch every 30 seconds
+    refetchOnMount: true,
+    staleTime: 0,
+    enabled: true
   });
+  
+  // Force refetch conversations on initial load
+  useEffect(() => {
+    refetchConversations();
+  }, [refetchConversations]);
   
   // Get messages for the current conversation
   const { data: messages, isLoading: messagesLoading, error: messagesError } = useQuery({
