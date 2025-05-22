@@ -315,6 +315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = 1; // Mock user ID for now
       const conversations = await storage.getConversationsByUserId(userId);
+      console.log(`Fetched ${conversations.length} conversations for user`, conversations);
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);

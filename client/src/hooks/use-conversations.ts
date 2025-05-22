@@ -85,9 +85,11 @@ export function useConversations() {
   }, [queryClient]);
   
   // Get all conversations
-  const { data: conversations, isLoading: conversationsLoading, error: conversationsError } = useQuery({
+  const { data: conversations, isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
     queryKey: ['/api/conversations'],
-    retry: false
+    retry: 3,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000 // Refetch every 30 seconds
   });
   
   // Get messages for the current conversation
