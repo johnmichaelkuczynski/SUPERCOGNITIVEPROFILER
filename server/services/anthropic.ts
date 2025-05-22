@@ -31,7 +31,10 @@ export async function processClaude(
     // Implement chunking strategy for all documents over 3000 characters
     // Essential for processing very large documents up to 400k words
     if (content.length > 3000) {
-      return await processWithChunking(content, temperature, chunkSize || 'auto', maxTokens, previousMessages);
+      console.log(`Processing document of length ${content.length} characters with enhanced chunking`);
+      // Set a higher max token limit for large documents to ensure complete processing
+      const enhancedMaxTokens = content.length > 100000 ? 8000 : maxTokens;
+      return await processWithChunking(content, temperature, chunkSize || 'auto', enhancedMaxTokens, previousMessages);
     }
     
     // Format messages array with conversation history
@@ -91,10 +94,13 @@ async function processWithChunking(
       wordsPerChunk = 1200; // Approx 2400-3600 tokens
       break;
     default: // auto - adapt based on document size
+      // Use smaller chunks for large documents to ensure all sections get processed
       if (content.length > 2000000) { // ~2M chars ≈ 400k words
-        wordsPerChunk = 500; // Smaller chunks for very large docs to ensure reliability
+        wordsPerChunk = 400; // Smaller chunks for very large docs to ensure reliability
       } else if (content.length > 500000) { // ~500k chars ≈ 100k words
-        wordsPerChunk = 600;
+        wordsPerChunk = 450;
+      } else if (content.length > 100000) { // ~100k chars
+        wordsPerChunk = 500; // Reduced size for documents with multiple sections
       } else {
         wordsPerChunk = 700; // Default for medium-sized docs
       }
@@ -102,7 +108,39 @@ async function processWithChunking(
   
   console.log(`Using chunks of approximately ${wordsPerChunk} words for document processing`);
   
-  // Improved chunking that respects paragraph and sentence boundaries
+  // Enhanced chunking that respects document structure with improved section handling
+  
+  // Check if this is a structured document with multiple sections
+  const sectionDelimiters = [
+    /#+\s+.+/gm,                       // Markdown headings (e.g., # Section 1)
+    /Section\s+\d+[.:]/gi,             // Section labels (e.g., "Section 1:")  
+    /Chapter\s+\d+[.:]/gi,             // Chapter labels
+    /Part\s+\d+[.:]/gi,                // Part labels
+    /\b(?:I|II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV)\.\s+/g, // Roman numeral sections
+    /\[\d+\]/g,                        // Numbered references like [1]
+    /\d+\.\s+[A-Z]/g                   // Numbered lists starting with capital letters
+  ];
+  
+  // Count potential section breaks
+  let sectionMatches = 0;
+  for (const pattern of sectionDelimiters) {
+    const matches = content.match(pattern);
+    if (matches) {
+      sectionMatches += matches.length;
+    }
+  }
+  
+  // Log if we detect a structured document
+  if (sectionMatches > 2) {
+    console.log(`Detected structured document with approximately ${sectionMatches} sections`);
+    
+    // For heavily sectioned documents, use smaller chunks to ensure all sections are processed
+    if (sectionMatches > 10 && wordsPerChunk > 400) {
+      wordsPerChunk = Math.max(300, Math.min(wordsPerChunk, 500));
+      console.log(`Adjusted chunk size to ${wordsPerChunk} words for multi-section document`);
+    }
+  }
+  
   // First split into paragraphs
   const paragraphs = content.split(/\n\s*\n/);
   

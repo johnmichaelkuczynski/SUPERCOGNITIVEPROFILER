@@ -236,14 +236,43 @@ export default function Home() {
   };
   
   const renderMessageContent = (content: string) => {
+    // If content is extremely large (over 50,000 characters), truncate it for display
+    const isVeryLarge = content.length > 50000;
+    const displayContent = isVeryLarge 
+      ? content.substring(0, 50000) + "...\n\n**Note:** This document is very large ("+content.length+" characters). The full content is available for download."
+      : content;
+      
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
         <ReactMarkdown
           rehypePlugins={[rehypeKatex]}
           remarkPlugins={[remarkMath]}
         >
-          {content}
+          {displayContent}
         </ReactMarkdown>
+        
+        {isVeryLarge && (
+          <div className="mt-4 flex space-x-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => {
+                // Create and download text file with full content
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'full_document.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }}
+            >
+              Download Full Document
+            </Button>
+          </div>
+        )}
       </div>
     );
   };
