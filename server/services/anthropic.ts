@@ -185,13 +185,20 @@ async function processWithChunking(
     let currentChunk = chunks[i];
     let promptContent = '';
     
-    // Build prompt based on chunk position
+    // Build prompt based on chunk position, adding instruction to make output slightly longer
     if (isFirstChunk) {
-      promptContent = `You are processing the first part of a large document that will be divided into ${chunks.length} sequential chunks.\n\n${currentChunk}`;
+      promptContent = `You are processing the first part of a large document that will be divided into ${chunks.length} sequential chunks. 
+When rewriting, make your output slightly more detailed and approximately 10-15% longer than the original text by expanding on concepts, adding relevant examples, or including additional context where appropriate.\n\n${currentChunk}`;
     } else if (isLastChunk) {
-      promptContent = `You are processing the final part (${i+1} of ${chunks.length}) of a large document.\n\nContext from previous sections:\n${runningContext}\n\nFinal section to process:\n\n${currentChunk}`;
+      promptContent = `You are processing the final part (${i+1} of ${chunks.length}) of a large document. 
+Make your output slightly more detailed and approximately 10-15% longer than the original text by expanding on concepts, adding relevant examples, or elaborating on important points.
+
+Context from previous sections:\n${runningContext}\n\nFinal section to process:\n\n${currentChunk}`;
     } else {
-      promptContent = `You are processing part ${i+1} of ${chunks.length} of a large document.\n\nContext from previous sections:\n${runningContext}\n\nContinue processing with this section:\n\n${currentChunk}`;
+      promptContent = `You are processing part ${i+1} of ${chunks.length} of a large document. 
+Make your output slightly more detailed and approximately 10-15% longer than the original text by expanding on concepts, adding relevant examples, or elaborating on key ideas.
+
+Context from previous sections:\n${runningContext}\n\nContinue processing with this section:\n\n${currentChunk}`;
     }
     
     // Add processing instructions
@@ -284,7 +291,7 @@ Create a coherent final version by combining these processed sections, ensuring 
 
 ${results.join("\n\n=== SECTION BREAK ===\n\n")}
 
-Produce a polished, continuous document that flows naturally between sections.`;
+Produce a polished, continuous document that flows naturally between sections and is approximately 10-15% longer than the original through additional details, examples, and context. Maintain the expanded length while ensuring readability and coherence.`;
       
       const consolidationResponse = await anthropic.messages.create({
         model: MODEL,
