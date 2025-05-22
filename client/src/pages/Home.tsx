@@ -137,14 +137,8 @@ export default function Home() {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFiles = Array.from(e.target.files);
       
-      // Process each file individually
-      selectedFiles.forEach(file => {
-        // Add the file to the state
-        setFiles(prevFiles => [...prevFiles, file]);
-        
-        // Process this individual file immediately
-        processIndividualFile(file);
-      });
+      // Just add files to state, don't process immediately
+      setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
       
       // Reset the input
       if (fileInputRef.current) {
