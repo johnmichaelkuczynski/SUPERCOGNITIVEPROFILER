@@ -11,6 +11,8 @@ import { processDocument, extractText } from "./services/documentProcessor";
 import { generateAnalytics } from "./services/analytics";
 import { detectAIContent } from "./services/aiDetection";
 import { WebSocketServer } from 'ws';
+import { generateDocument } from "./services/documentExport";
+import { sendDocumentByEmail } from "./services/sendgrid";
 
 // Configure multer for file uploads
 const upload = multer({ 
