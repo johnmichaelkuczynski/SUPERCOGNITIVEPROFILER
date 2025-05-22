@@ -137,6 +137,9 @@ export default function Home() {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFiles = Array.from(e.target.files);
       
+      // Clear any previously staged files since we're processing immediately
+      setFiles([]);
+      
       // Process each file individually immediately upon upload
       selectedFiles.forEach(file => {
         // Process this individual file immediately
