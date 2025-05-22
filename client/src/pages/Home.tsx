@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
+import DocumentExportButtons from '@/components/DocumentExportButtons';
 
 interface Message {
   id: number;
@@ -251,26 +252,35 @@ export default function Home() {
           {displayContent}
         </ReactMarkdown>
         
-        {isVeryLarge && (
-          <div className="mt-4 flex space-x-2">
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => {
-                // Create and download text file with full content
-                const blob = new Blob([content], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'full_document.txt';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Download Full Document
-            </Button>
+        {/* Document export options - show for all messages over 1000 characters or very large documents */}
+        {(isVeryLarge || content.length > 1000) && (
+          <div className="mt-4 flex space-x-2 items-center">
+            {isVeryLarge && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => {
+                  // Create and download text file with full content
+                  const blob = new Blob([content], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'full_document.txt';
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                Download Full Document
+              </Button>
+            )}
+            
+            {/* Advanced export and email options */}
+            <DocumentExportButtons 
+              content={content} 
+              filename={`document_${new Date().toISOString().split('T')[0]}`} 
+            />
           </div>
         )}
       </div>
