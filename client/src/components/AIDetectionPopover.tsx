@@ -25,7 +25,7 @@ interface AIDetectionResult {
   error?: string;
 }
 
-export function AIDetectionPopover({ onDetectionRequest }: AIDetectionPopoverProps) {
+export default function AIDetectionPopover({ onDetectionRequest }: AIDetectionPopoverProps) {
   const [selectedText, setSelectedText] = useState('');
   const [isDetecting, setIsDetecting] = useState(false);
   const [result, setResult] = useState<AIDetectionResult | null>(null);

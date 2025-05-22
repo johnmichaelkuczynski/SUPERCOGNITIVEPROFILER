@@ -205,6 +205,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // AI detection route for analyzing highlighted text
+  app.post('/api/ai-detection', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ message: 'Text is required and must be a string' });
+      }
+      
+      if (text.length < 100) {
+        return res.status(400).json({ 
+          message: 'Text is too short for accurate AI detection. Please provide at least 100 characters.' 
+        });
+      }
+      
+      console.log(`Running AI detection on text of length ${text.length}`);
+      
+      const result = await detectAIContent(text);
+      
+      if (result.error) {
+        console.error('AI detection error:', result.error);
+        return res.status(500).json({ message: result.error });
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error in AI detection:', error);
+      res.status(500).json({ 
+        message: 'Failed to analyze text',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Download formatted output route
   app.post('/api/llm/download', async (req: Request, res: Response) => {
     try {
