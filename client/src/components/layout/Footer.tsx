@@ -12,13 +12,13 @@ export default function Footer() {
           </div>
           <div className="flex gap-6 text-sm text-slate-600">
             <Link href="/privacy">
-              <a className="hover:text-primary-600">Privacy Policy</a>
+              <div className="hover:text-primary-600 cursor-pointer">Privacy Policy</div>
             </Link>
             <Link href="/terms">
-              <a className="hover:text-primary-600">Terms of Service</a>
+              <div className="hover:text-primary-600 cursor-pointer">Terms of Service</div>
             </Link>
             <Link href="/help">
-              <a className="hover:text-primary-600">Help & Support</a>
+              <div className="hover:text-primary-600 cursor-pointer">Help & Support</div>
             </Link>
           </div>
         </div>

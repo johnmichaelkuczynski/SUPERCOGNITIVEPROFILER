@@ -136,20 +136,90 @@ export default function Home() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFiles = Array.from(e.target.files);
-      setFiles([...files, ...selectedFiles]);
+      
+      // Process each file individually
+      selectedFiles.forEach(file => {
+        // Add the file to the state
+        setFiles(prevFiles => [...prevFiles, file]);
+        
+        // Process this individual file immediately
+        processIndividualFile(file);
+      });
       
       // Reset the input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+  
+  // Process a single file with AI
+  const processIndividualFile = async (file: File) => {
+    try {
+      setIsLoading(true);
       
-      // Automatically process the request if files are uploaded and we're not already loading
-      if (!isLoading) {
-        // Add a slight delay to allow UI to update with new files
-        setTimeout(() => {
-          handleProcessRequest();
-        }, 300);
+      // Create a message showing we're processing this file
+      const userMessage: Message = {
+        id: Date.now(),
+        content: `Please analyze this document: ${file.name}`,
+        role: 'user',
+        timestamp: new Date(),
+        files: [file]
+      };
+      
+      setMessages(prev => [...prev, userMessage]);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('content', `Please analyze this document: ${file.name}`);
+      formData.append('model', selectedModel);
+      formData.append('stream', 'false');
+      formData.append('temperature', '0.7');
+      formData.append('files', file);
+      
+      // Add conversation history to keep context
+      const conversationContext = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      formData.append('conversation_history', JSON.stringify(conversationContext));
+      
+      // Make the API call
+      const res = await fetch('/api/llm/prompt', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to process document');
       }
+      
+      const data = await res.json();
+      
+      // Add AI response to messages
+      const aiMessage: Message = {
+        id: Date.now() + 1,
+        content: data.content,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error processing file:', error);
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: Date.now() + 1,
+        content: `Error processing document: ${file.name}. Please try again.`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
   
