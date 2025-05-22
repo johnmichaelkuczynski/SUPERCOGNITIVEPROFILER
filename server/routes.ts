@@ -92,6 +92,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate a title based on the content
         const title = content.split('\n')[0].slice(0, 50) + (content.split('\n')[0].length > 50 ? '...' : '');
         
+        // Create a conversation to store this interaction
+        const conversation = await storage.createConversation({
+          userId,
+          title,
+          model,
+          contextDocumentIds: null,
+          metadata: null
+        });
+        
+        // Add user message to conversation
+        await storage.createMessage({
+          conversationId: conversation.id,
+          role: 'user',
+          content,
+          metadata: null,
+          documentReferences: null
+        });
+        
+        // Add AI response to conversation
+        await storage.createMessage({
+          conversationId: conversation.id,
+          role: 'assistant',
+          content: result,
+          metadata: null,
+          documentReferences: null
+        });
+        
+        // Also save as document for backwards compatibility
         await storage.createDocument({
           userId,
           title,
