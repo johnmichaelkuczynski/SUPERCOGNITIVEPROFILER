@@ -56,6 +56,7 @@ export default function Home() {
       files: files.length > 0 ? [...files] : undefined
     };
     
+    // Add user message to message history
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     setPrompt(''); // Clear the input immediately
@@ -66,6 +67,16 @@ export default function Home() {
       formData.append('model', selectedModel);
       formData.append('stream', 'false');
       formData.append('temperature', '0.7');
+      
+      // Create context from previous messages for conversation memory
+      // This helps the model remember previous interactions
+      const conversationContext = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      // Add conversation history to the request
+      formData.append('conversation_history', JSON.stringify(conversationContext));
       
       // Add any uploaded files to the request
       if (files.length > 0) {

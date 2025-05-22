@@ -21,7 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // LLM prompt processing route
   app.post('/api/llm/prompt', upload.array('files'), async (req: Request, res: Response) => {
     try {
-      const { content, model, stream, temperature, chunkSize, maxTokens } = req.body;
+      const { content, model, stream, temperature, chunkSize, maxTokens, conversation_history } = req.body;
       const files = req.files as Express.Multer.File[];
       
       // Validate required fields
@@ -46,15 +46,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tempValue = temperature ? parseFloat(temperature) : 0.7;
       const maxTokenValue = maxTokens ? parseInt(maxTokens) : undefined;
       
+      // Parse conversation history if provided
+      let previousMessages = undefined;
+      if (conversation_history) {
+        try {
+          previousMessages = JSON.parse(conversation_history);
+          console.log("Using conversation history with " + previousMessages.length + " messages");
+        } catch (error) {
+          console.error("Error parsing conversation history:", error);
+        }
+      }
+      
+      // Create options including conversation history
+      const options: any = {
+        temperature: tempValue,
+        stream: shouldStream,
+        chunkSize,
+        maxTokens: maxTokenValue
+      };
+      
+      if (previousMessages && previousMessages.length > 0) {
+        options.previousMessages = previousMessages;
+      }
+      
       switch (model) {
         case 'claude':
-          result = await processClaude(processedContent, tempValue, shouldStream, chunkSize, maxTokenValue);
+          result = await processClaude(processedContent, options);
           break;
         case 'gpt4':
-          result = await processGPT4(processedContent, tempValue, shouldStream, chunkSize, maxTokenValue);
+          result = await processGPT4(processedContent, options);
           break;
         case 'perplexity':
-          result = await processPerplexity(processedContent, tempValue, shouldStream, chunkSize, maxTokenValue);
+          result = await processPerplexity(processedContent, options);
           break;
         default:
           return res.status(400).json({ message: 'Invalid model' });
