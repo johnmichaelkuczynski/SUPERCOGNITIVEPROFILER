@@ -310,19 +310,13 @@ export default function Home() {
               ) : (
                 messages.map((message) => (
                   <div key={message.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">
-                          {message.role === "user" ? "You" : "AI"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      
-                      {message.role === "assistant" && (
-                        <AIDetectionPopover />
-                      )}
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">
+                        {message.role === "user" ? "You" : "AI"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
                     
                     <Card className={`${
