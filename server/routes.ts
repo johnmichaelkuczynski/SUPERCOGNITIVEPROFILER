@@ -568,5 +568,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Email document sharing route
+  app.post('/api/document/email', async (req: Request, res: Response) => {
+    try {
+      const { content, recipient, subject, format = 'txt' } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: 'Document content is required' });
+      }
+      
+      if (!recipient) {
+        return res.status(400).json({ message: 'Recipient email is required' });
+      }
+      
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ message: 'Email service is not configured' });
+      }
+      
+      // Default email settings
+      const fromEmail = 'noreply@textmind.app';
+      const documentTitle = subject || 'Your AI-Generated Document';
+      
+      // Send email with document attachment
+      await sendDocumentByEmail(
+        recipient,
+        fromEmail,
+        documentTitle,
+        content,
+        format as 'txt' | 'html'
+      );
+      
+      res.status(200).json({ 
+        message: 'Document sent successfully', 
+        recipient,
+        format 
+      });
+      
+    } catch (error) {
+      console.error('Error sending document via email:', error);
+      res.status(500).json({ message: 'Failed to send document via email' });
+    }
+  });
+  
+  // Enhanced document export route
+  app.post('/api/document/export', async (req: Request, res: Response) => {
+    try {
+      const { content, format = 'txt', filename = 'document' } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: 'Content is required' });
+      }
+      
+      // Generate document in requested format
+      const document = generateDocument(content, format as 'txt' | 'html' | 'docx');
+      
+      // Create appropriate filename with extension
+      const finalFilename = filename.includes(`.${format}`) ? filename : `${filename}.${format}`;
+      
+      // Set headers for file download
+      res.setHeader('Content-Type', document.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
+      
+      // Send the formatted document as the response
+      res.send(document.content);
+      
+    } catch (error) {
+      console.error('Error generating document export:', error);
+      res.status(500).json({ message: 'Failed to export document' });
+    }
+  });
+
   return httpServer;
 }
