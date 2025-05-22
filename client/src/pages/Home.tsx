@@ -258,6 +258,17 @@ export default function Home() {
     setPrompt('');
     setMessages([]);
     setFiles([]);
+    setIsLoading(false);
+    setIsProcessing(false);
+    // Cancel any ongoing request
+    if (currentRequest) {
+      try {
+        currentRequest.abort();
+      } catch (e) {
+        console.error("Error aborting request:", e);
+      }
+      setCurrentRequest(null);
+    }
   };
   
   const renderMessageContent = (content: string) => {
@@ -320,17 +331,39 @@ export default function Home() {
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg">Model Selection</CardTitle>
-              {messages.length > 0 && (
+              <div className="flex space-x-2">
+                {isProcessing && (
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={cancelRequest}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Cancel Processing
+                  </Button>
+                )}
+                
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="sm" 
                   onClick={clearChat}
-                  className="text-muted-foreground hover:text-red-500"
+                  className="hover:bg-blue-100"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Clear Chat
+                  New Chat
                 </Button>
-              )}
+                
+                {messages.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={clearChat}
+                    className="text-muted-foreground hover:text-red-500"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Clear Chat
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
