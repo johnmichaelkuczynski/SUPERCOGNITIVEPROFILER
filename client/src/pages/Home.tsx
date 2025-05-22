@@ -131,6 +131,14 @@ export default function Home() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      
+      // Automatically process the request if files are uploaded and we're not already loading
+      if (!isLoading) {
+        // Add a slight delay to allow UI to update with new files
+        setTimeout(() => {
+          handleProcessRequest();
+        }, 300);
+      }
     }
   };
   
