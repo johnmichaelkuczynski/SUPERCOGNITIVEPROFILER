@@ -137,8 +137,11 @@ export default function Home() {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFiles = Array.from(e.target.files);
       
-      // Just add files to state, don't process immediately
-      setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
+      // Process each file individually immediately upon upload
+      selectedFiles.forEach(file => {
+        // Process this individual file immediately
+        processIndividualFile(file);
+      });
       
       // Reset the input
       if (fileInputRef.current) {
