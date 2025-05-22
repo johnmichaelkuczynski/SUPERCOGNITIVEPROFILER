@@ -62,7 +62,12 @@ export default function Home() {
     // Add user message to message history
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    setIsProcessing(true); // Set processing flag for cancel button
     setPrompt(''); // Clear the input immediately
+    
+    // Create abort controller for cancellation
+    const controller = new AbortController();
+    setCurrentRequest(controller);
     
     try {
       const formData = new FormData();
@@ -88,9 +93,20 @@ export default function Home() {
         });
       }
       
+      // Start a loading message that shows while processing
+      const loadingMessageId = Date.now() + 1;
+      const loadingMessage: Message = {
+        id: loadingMessageId,
+        content: `Processing your request... ${files.length > 0 ? 'This document may take some time to process. You can cancel at any time using the Cancel button above.' : ''}`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, loadingMessage]);
+      
       const res = await fetch('/api/llm/prompt', {
         method: 'POST',
         body: formData,
+        signal: controller.signal // Add abort signal
       });
       
       if (!res.ok) {
@@ -99,9 +115,12 @@ export default function Home() {
       
       const data = await res.json();
       
+      // Replace loading message with actual response
+      setMessages(prev => prev.filter(msg => msg.id !== loadingMessageId));
+      
       // Add AI response to messages
       const aiMessage: Message = {
-        id: Date.now(),
+        id: Date.now() + 2,
         content: data.content,
         role: 'assistant',
         timestamp: new Date()
@@ -112,35 +131,51 @@ export default function Home() {
     } catch (error) {
       console.error('Error processing request:', error);
       
-      // Add error message
-      const errorMessage: Message = {
-        id: Date.now(),
-        content: 'Error: Failed to get a response. Please try again.',
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
+      // Check if this was an abort error
+      if ((error as Error).name === 'AbortError') {
+        // Don't add an error message for user-initiated cancellations
+        console.log('Request was cancelled by user');
+      } else {
+        // Add error message for real errors
+        const errorMessage: Message = {
+          id: Date.now() + 3,
+          content: 'Error: Failed to get a response. Please try again.',
+          role: 'assistant',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
+      setIsProcessing(false);
+      setCurrentRequest(null);
     }
   };
 
   // Cancel any ongoing request
   const cancelRequest = () => {
-    // Create a new AbortController and abort the current request
-    const controller = new AbortController();
-    setCurrentRequest(controller);
-    controller.abort();
+    console.log("Cancelling request...");
     
-    // Reset loading states
+    // Only try to abort if there's an active request
+    if (currentRequest) {
+      try {
+        currentRequest.abort();
+        console.log("Request aborted successfully");
+      } catch (e) {
+        console.error("Error aborting request:", e);
+      }
+    }
+    
+    // Reset all state related to processing
     setIsLoading(false);
     setIsProcessing(false);
+    setCurrentRequest(null);
     
     // Add cancellation message
     const cancelMessage: Message = {
       id: Date.now(),
-      content: 'Request was cancelled. Start a new chat or upload another document.',
+      content: '⚠️ Processing cancelled. You can start a new chat or upload another document.',
       role: 'assistant',
       timestamp: new Date()
     };
@@ -326,23 +361,29 @@ export default function Home() {
     <main className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
       
+      {/* Add a prominent cancellation bar at the top when processing */}
+      {isProcessing && (
+        <div className="bg-red-100 p-3 mb-4 rounded-lg flex justify-between items-center">
+          <div className="flex items-center">
+            <div className="animate-spin mr-2">⏳</div>
+            <span className="font-medium">Processing document... This may take some time.</span>
+          </div>
+          <Button 
+            variant="destructive" 
+            onClick={cancelRequest}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Cancel Processing
+          </Button>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 gap-6">
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg">Model Selection</CardTitle>
               <div className="flex space-x-2">
-                {isProcessing && (
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    onClick={cancelRequest}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Cancel Processing
-                  </Button>
-                )}
-                
                 <Button 
                   variant="outline" 
                   size="sm" 
