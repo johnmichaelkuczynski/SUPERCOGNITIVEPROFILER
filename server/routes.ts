@@ -9,6 +9,7 @@ import { processClaude } from "./services/anthropic";
 import { processPerplexity } from "./services/perplexity";
 import { processDocument, extractText } from "./services/documentProcessor";
 import { generateAnalytics } from "./services/analytics";
+import { detectAIContent } from "./services/aiDetection";
 import { WebSocketServer } from 'ws';
 
 // Configure multer for file uploads
