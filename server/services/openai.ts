@@ -10,23 +10,38 @@ const openai = new OpenAI({
 
 export async function processGPT4(
   content: string, 
-  temperature: number = 0.7, 
-  stream: boolean = false,
-  chunkSize?: string,
-  maxTokens?: number
+  options: any = {}
 ): Promise<string> {
+  // Extract options with defaults
+  const temperature = typeof options === 'object' ? (options.temperature || 0.7) : 0.7;
+  const stream = typeof options === 'object' ? (options.stream || false) : false;
+  const chunkSize = typeof options === 'object' ? options.chunkSize : undefined;
+  const maxTokens = typeof options === 'object' ? options.maxTokens : undefined;
+  const previousMessages = typeof options === 'object' ? options.previousMessages : [];
   try {
     // Implement chunking strategy if needed
     if (chunkSize && content.length > 10000) {
       return await processWithChunking(content, temperature, chunkSize, maxTokens);
     }
     
+    // Build messages array including conversation history
+    let messages = [];
+    
+    // Add previous messages if provided
+    if (previousMessages && previousMessages.length > 0) {
+      messages = previousMessages.map(msg => ({
+        role: msg.role === 'system' ? 'system' : (msg.role === 'user' ? 'user' : 'assistant'),
+        content: msg.content
+      }));
+    }
+    
+    // Add current message
+    messages.push({ role: "user", content });
+    
     const response = await openai.chat.completions.create({
       model: MODEL,
-      messages: [
-        { role: "user", content }
-      ],
-      temperature,
+      messages: messages,
+      temperature: temperature,
       max_tokens: maxTokens,
       stream: false // We manually handle streaming for consistent API
     });
