@@ -24,6 +24,8 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState<LLMModel>('claude');
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentRequest, setCurrentRequest] = useState<AbortController | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +126,28 @@ export default function Home() {
     }
   };
 
+  // Cancel any ongoing request
+  const cancelRequest = () => {
+    // Create a new AbortController and abort the current request
+    const controller = new AbortController();
+    setCurrentRequest(controller);
+    controller.abort();
+    
+    // Reset loading states
+    setIsLoading(false);
+    setIsProcessing(false);
+    
+    // Add cancellation message
+    const cancelMessage: Message = {
+      id: Date.now(),
+      content: 'Request was cancelled. Start a new chat or upload another document.',
+      role: 'assistant',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, cancelMessage]);
+  };
+  
   // Handle Enter key press
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Allow submission on Enter if either there's text OR files have been uploaded
