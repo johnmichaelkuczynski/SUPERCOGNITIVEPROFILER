@@ -613,7 +613,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Document rewrite endpoint - dedicated for large document rewrites
   app.post('/api/document/rewrite', async (req: Request, res: Response) => {
     try {
-      const { content, instructions, model, documentName, insights } = req.body;
+      console.log("Document rewrite request received, body type:", typeof req.body);
+      
+      // Ensure we have a properly parsed JSON body
+      let content, instructions, model, documentName, insights;
+      
+      if (typeof req.body === 'string') {
+        // If the body comes as a string, parse it
+        try {
+          const parsedBody = JSON.parse(req.body);
+          content = parsedBody.content;
+          instructions = parsedBody.instructions;
+          model = parsedBody.model;
+          documentName = parsedBody.documentName;
+          insights = parsedBody.insights;
+        } catch (e) {
+          console.error("Failed to parse request body:", e);
+          return res.status(400).json({ error: 'Invalid JSON in request body' });
+        }
+      } else {
+        // Normal JSON body
+        content = req.body.content;
+        instructions = req.body.instructions;
+        model = req.body.model;
+        documentName = req.body.documentName;
+        insights = req.body.insights;
+      }
+      
+      console.log("Document rewrite parameters:", { 
+        hasContent: !!content, 
+        contentLength: content ? content.length : 0,
+        hasInstructions: !!instructions 
+      });
       
       if (!content) {
         return res.status(400).json({ error: 'Document content is required' });
