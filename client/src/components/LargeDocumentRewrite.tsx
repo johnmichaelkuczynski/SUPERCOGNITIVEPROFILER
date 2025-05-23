@@ -57,28 +57,63 @@ export default function LargeDocumentRewrite({
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Handle file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setDocumentName(file.name);
       
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const content = event.target.result as string;
-          setDocumentContent(content);
-          console.log("Document loaded successfully:", file.name, "Content length:", content.length);
+      // For Word or PDF, we need to send to the server for processing
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      
+      if (fileExt === 'docx' || fileExt === 'pdf' || fileExt === 'doc') {
+        // Create form data for upload
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+          setIsProcessing(true);
+          const response = await fetch('/api/documents/process', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to process document');
+          }
+          
+          const data = await response.json();
+          setDocumentContent(data.text);
+          console.log("Document processed successfully:", file.name, "Content length:", data.text.length);
+          setIsProcessing(false);
+        } catch (error) {
+          console.error("Error processing document:", error);
+          toast({
+            title: "Error processing document",
+            description: "Could not extract text from the document. Please try a different format.",
+            variant: "destructive"
+          });
+          setIsProcessing(false);
         }
-      };
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-        toast({
-          title: "Error reading file",
-          description: "Could not read the uploaded file. Please try again.",
-          variant: "destructive"
-        });
-      };
-      reader.readAsText(file);
+      } else {
+        // For text files, use the FileReader directly
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            const content = event.target.result as string;
+            setDocumentContent(content);
+            console.log("Document loaded successfully:", file.name, "Content length:", content.length);
+          }
+        };
+        reader.onerror = (error) => {
+          console.error("Error reading file:", error);
+          toast({
+            title: "Error reading file",
+            description: "Could not read the uploaded file. Please try again.",
+            variant: "destructive"
+          });
+        };
+        reader.readAsText(file);
+      }
     }
   };
   
@@ -274,7 +309,7 @@ export default function LargeDocumentRewrite({
                     type="file"
                     ref={fileInputRef}
                     className="hidden"
-                    accept=".txt,.md,.doc,.docx"
+                    accept=".txt,.md,.doc,.docx,.pdf"
                     onChange={handleFileUpload}
                   />
                 </div>
