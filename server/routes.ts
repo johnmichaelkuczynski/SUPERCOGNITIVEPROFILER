@@ -726,26 +726,15 @@ Do not include any commentary or explanations about the rewriting process in you
       
       console.log(`Exporting document in ${format} format as: ${finalFilename}`);
       
-      // Generate document in requested format using proper libraries
-      try {
-        const document = await generateDocument(content, format as 'txt' | 'html' | 'docx' | 'pdf', cleanFilename);
-        
-        // Set headers for file download
-        res.setHeader('Content-Type', document.mimeType);
-        res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
-        
-        // Send the formatted document as the response (either as string or buffer)
-        if (document.isBuffer) {
-          // Send as binary buffer for Word/PDF
-          res.end(document.content);
-        } else {
-          // Send as string for TXT/HTML
-          res.send(document.content);
-        }
-      } catch (error) {
-        console.error('Error generating document:', error);
-        throw error;
-      }
+      // Generate document in requested format
+      const document = generateDocument(content, format as 'txt' | 'html' | 'docx' | 'pdf');
+      
+      // Set headers for file download for other formats
+      res.setHeader('Content-Type', document.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
+      
+      // Send the formatted document as the response
+      res.send(document.content);
       
     } catch (error) {
       console.error('Error generating document export:', error);

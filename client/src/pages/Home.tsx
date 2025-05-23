@@ -414,6 +414,16 @@ export default function Home() {
                   <p className="text-xs text-muted-foreground">
                     Press Enter to send, Shift+Enter for new line
                   </p>
+                  
+                  {/* Document Rewrite Button */}
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    onClick={() => setActiveTab('rewrite')}
+                  >
+                    <FileText className="h-4 w-4" />
+                    Rewrite Large Document
+                  </Button>
                 </div>
               </div>
             </CardContent>
