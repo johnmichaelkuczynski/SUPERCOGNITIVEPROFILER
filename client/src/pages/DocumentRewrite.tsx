@@ -580,6 +580,73 @@ export default function DocumentRewrite() {
           </Card>
         </TabsContent>
         
+        {/* Document Edit Tab */}
+        <TabsContent value="edit" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Edit Document Content
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {document ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">{document.name}</div>
+                      <div className="text-sm text-slate-500 mt-1">{formatBytes(document.size)}</div>
+                    </div>
+                  </div>
+                  
+                  <Textarea 
+                    value={document.content}
+                    onChange={(e) => setDocument({
+                      ...document,
+                      content: e.target.value
+                    })}
+                    className="min-h-[500px] font-mono text-sm"
+                    placeholder="Document content"
+                  />
+                  
+                  <div className="flex justify-between">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setActiveTab('rewrite')}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        toast({
+                          title: "Document Updated",
+                          description: "Your changes have been saved. You can now proceed with rewriting.",
+                        });
+                        setActiveTab('rewrite');
+                      }}
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-slate-600">No document uploaded yet. Please upload a document first.</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setActiveTab('rewrite')}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back to Upload
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         {/* Review Tab */}
         <TabsContent value="review" className="space-y-6">
           <Card>
