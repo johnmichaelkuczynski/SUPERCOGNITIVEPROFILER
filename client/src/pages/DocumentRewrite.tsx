@@ -747,17 +747,42 @@ export default function DocumentRewrite() {
                       <ArrowLeft className="h-4 w-4 mr-2" />
                       Back
                     </Button>
-                    <Button 
-                      onClick={() => {
-                        toast({
-                          title: "Document Updated",
-                          description: "Your changes have been saved. You can now proceed with rewriting.",
-                        });
-                        setActiveTab('rewrite');
-                      }}
-                    >
-                      Save Changes
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          if (originalDocument) {
+                            setDocument(originalDocument);
+                            toast({
+                              title: "Changes Discarded",
+                              description: "Document restored to original version.",
+                            });
+                          }
+                        }}
+                      >
+                        Reset to Original
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          // Save document to session storage to make it persistent
+                          if (document) {
+                            try {
+                              sessionStorage.setItem('recentlyUploadedFile', JSON.stringify(document));
+                            } catch (err) {
+                              console.warn('Failed to save to session storage:', err);
+                            }
+                          }
+                          
+                          toast({
+                            title: "Document Updated",
+                            description: "Your changes have been saved. You can now proceed with rewriting.",
+                          });
+                          setActiveTab('rewrite');
+                        }}
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -949,7 +974,18 @@ export default function DocumentRewrite() {
                   Back to Review
                 </Button>
                 <Button 
-                  onClick={() => setLocation('/')}
+                  onClick={() => {
+                    if (previousConversationId) {
+                      // Set the current conversation ID before navigating
+                      localStorage.setItem('currentConversationId', previousConversationId);
+                      
+                      // Go to specific conversation
+                      setLocation(`/conversation/${previousConversationId}`);
+                    } else {
+                      // Otherwise return to home
+                      setLocation('/');
+                    }
+                  }}
                 >
                   Return to Chat
                 </Button>
