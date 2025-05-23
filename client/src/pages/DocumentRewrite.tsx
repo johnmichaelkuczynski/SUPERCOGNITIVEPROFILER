@@ -534,8 +534,8 @@ export default function DocumentRewrite() {
               // Set the current conversation ID before navigating
               localStorage.setItem('currentConversationId', previousConversationId);
               
-              // If we have a conversation ID, go to that specific conversation
-              setLocation(`/conversation/${previousConversationId}`);
+              // Navigate to the home page, which will load the current conversation
+              setLocation('/');
             } else {
               // Otherwise just go to the home page
               setLocation('/');

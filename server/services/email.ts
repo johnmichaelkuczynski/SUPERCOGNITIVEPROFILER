@@ -35,18 +35,26 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
+    // Log the email attempt for debugging
+    console.log(`Attempting to send email from ${params.from} to ${params.to}`);
+    
+    // Make sure from is never undefined
+    const from = params.from || "noreply@example.com";
+    
     await mailService.send({
       to: params.to,
-      from: params.from,
+      from: from,
       subject: params.subject,
-      text: params.text,
-      html: params.html,
+      text: params.text || "",
+      html: params.html || "",
       attachments: params.attachments
     });
+    
     console.log(`Email sent successfully to ${params.to}`);
     return true;
   } catch (error) {
-    console.error('SendGrid email error:', error);
-    return false;
+    // More detailed error logging
+    console.error('Error sharing document via email:', error);
+    throw error; // Rethrow to see the full error in logs
   }
 }
