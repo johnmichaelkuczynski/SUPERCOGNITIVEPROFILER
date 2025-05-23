@@ -397,6 +397,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { content, model, documentContent, documentName, detectionProtection } = req.body;
       
       if (!documentContent || !documentName || !model) {
+        console.error('Missing required parameters:', { 
+          hasContent: !!content, 
+          hasModel: !!model, 
+          hasDocumentContent: !!documentContent, 
+          hasDocumentName: !!documentName 
+        });
         return res.status(400).json({ error: 'Missing required parameters' });
       }
       
@@ -404,75 +410,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Limit content length for very large documents
       let processableContent = documentContent;
-      const MAX_CONTENT_LENGTH = 40000;
+      const MAX_CONTENT_LENGTH = 30000;
       
       if (documentContent.length > MAX_CONTENT_LENGTH) {
         console.log(`Document is very large (${documentContent.length} chars), truncating to ${MAX_CONTENT_LENGTH} chars`);
         processableContent = documentContent.substring(0, MAX_CONTENT_LENGTH);
       }
       
-      const rewriteOptions = {
-        model: model as 'claude' | 'gpt4' | 'perplexity',
-        instructions: content.replace('Please rewrite the following document according to these instructions: ', ''),
-        detectionProtection: detectionProtection === 'true'
-      };
+      // Extract just the instructions part
+      const instructions = content.includes('Please rewrite the following document according to these instructions:') 
+        ? content.replace('Please rewrite the following document according to these instructions:', '').trim()
+        : content;
       
-      // Use a simpler approach for direct processing with the LLM
-      let rewrittenContent;
+      console.log(`Using instructions: "${instructions.substring(0, 100)}${instructions.length > 100 ? '...' : ''}"`);
+
+      let rewrittenContent = '';
       
       try {
         if (model === 'claude') {
-          const response = await processClaude(`
-Rewrite the following document according to these instructions: ${rewriteOptions.instructions}
+          console.log('Using Claude for rewriting');
+          const prompt = `
+You are an expert document editor. Please rewrite the following document according to these instructions:
+${instructions}
 
-${rewriteOptions.detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use conversational language, and avoid repetitive patterns.' : ''}
+${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
 
-Document to rewrite:
+DOCUMENT TO REWRITE:
 ${processableContent}
-          `, {
+
+INSTRUCTIONS AGAIN:
+${instructions}
+
+YOUR REWRITTEN DOCUMENT:`;
+
+          const response = await processClaude(prompt, {
             temperature: 0.7,
             stream: false,
             maxTokens: 4000
           });
           
-          rewrittenContent = typeof response === 'string' ? response : response.content;
+          if (typeof response === 'string') {
+            rewrittenContent = response;
+          } else if (response && typeof response === 'object' && 'content' in response) {
+            rewrittenContent = response.content;
+          } else {
+            throw new Error('Invalid response structure from Claude');
+          }
           
         } else if (model === 'gpt4') {
-          const response = await processGPT4(`
-Rewrite the following document according to these instructions: ${rewriteOptions.instructions}
+          console.log('Using GPT-4 for rewriting');
+          const prompt = `
+You are an expert document editor. Please rewrite the following document according to these instructions:
+${instructions}
 
-${rewriteOptions.detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use conversational language, and avoid repetitive patterns.' : ''}
+${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
 
-Document to rewrite:
+DOCUMENT TO REWRITE:
 ${processableContent}
-          `, {
+
+INSTRUCTIONS AGAIN:
+${instructions}
+
+YOUR REWRITTEN DOCUMENT:`;
+
+          const response = await processGPT4(prompt, {
             temperature: 0.7,
             stream: false,
             maxTokens: 4000
           });
           
-          rewrittenContent = typeof response === 'string' ? response : response.content;
+          if (typeof response === 'string') {
+            rewrittenContent = response;
+          } else if (response && typeof response === 'object' && 'content' in response) {
+            rewrittenContent = response.content;
+          } else {
+            throw new Error('Invalid response structure from GPT-4');
+          }
           
         } else {
-          const response = await processPerplexity(`
-Rewrite the following document according to these instructions: ${rewriteOptions.instructions}
+          console.log('Using Perplexity for rewriting');
+          const prompt = `
+You are an expert document editor. Please rewrite the following document according to these instructions:
+${instructions}
 
-${rewriteOptions.detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use conversational language, and avoid repetitive patterns.' : ''}
+${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
 
-Document to rewrite:
+DOCUMENT TO REWRITE:
 ${processableContent}
-          `, {
+
+INSTRUCTIONS AGAIN:
+${instructions}
+
+YOUR REWRITTEN DOCUMENT:`;
+
+          const response = await processPerplexity(prompt, {
             temperature: 0.7,
             stream: false,
             maxTokens: 4000
           });
           
-          rewrittenContent = typeof response === 'string' ? response : response.content;
+          if (typeof response === 'string') {
+            rewrittenContent = response;
+          } else if (response && typeof response === 'object' && 'content' in response) {
+            rewrittenContent = response.content;
+          } else {
+            throw new Error('Invalid response structure from Perplexity');
+          }
         }
+        
+        // Ensure the result is not empty
+        if (!rewrittenContent || rewrittenContent.trim() === '') {
+          throw new Error(`Empty response from ${model}`);
+        }
+        
+        console.log(`Successfully rewrote document with ${model}, result length: ${rewrittenContent.length}`);
       } catch (llmError) {
         console.error('LLM processing error:', llmError);
-        // Fallback to a simpler approach
-        rewrittenContent = `Error processing document with ${model}. Please try a different model or reduce document size.`;
+        return res.status(500).json({ 
+          error: 'Failed to process with AI', 
+          details: llmError instanceof Error ? llmError.message : String(llmError)
+        });
       }
       
       res.json({ 
@@ -482,7 +539,10 @@ ${processableContent}
       });
     } catch (error) {
       console.error('Error rewriting document:', error);
-      res.status(500).json({ error: 'Failed to rewrite document', details: error instanceof Error ? error.message : String(error) });
+      res.status(500).json({ 
+        error: 'Failed to rewrite document', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 
