@@ -194,8 +194,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: JSON.stringify(aiMetadata)
       });
       
+      // Return both content and text for maximum compatibility
       res.json({ 
         content: extractedText,
+        text: extractedText,
         message: 'Document successfully processed and saved'
       });
     } catch (error) {

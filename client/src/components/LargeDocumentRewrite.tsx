@@ -56,63 +56,50 @@ export default function LargeDocumentRewrite({
   // File upload ref
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Handle file upload
+  // Handle file upload - simplified method that just uses the document upload API
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setDocumentName(file.name);
+      setIsProcessing(true);
       
-      // For Word or PDF, we need to send to the server for processing
-      const fileExt = file.name.split('.').pop()?.toLowerCase();
-      
-      if (fileExt === 'docx' || fileExt === 'pdf' || fileExt === 'doc') {
-        // Create form data for upload
+      try {
+        // Create form data for upload - always use the same API endpoint that works correctly in the main application
         const formData = new FormData();
         formData.append('file', file);
         
-        try {
-          setIsProcessing(true);
-          const response = await fetch('/api/documents/process', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (!response.ok) {
-            throw new Error('Failed to process document');
-          }
-          
-          const data = await response.json();
+        // Use the existing /api/llm/prompt endpoint which already handles document processing correctly
+        const response = await fetch('/api/documents/process', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to process document');
+        }
+        
+        const data = await response.json();
+        
+        // Check if the text property exists and is not empty
+        if (data.text && data.text.length > 0) {
           setDocumentContent(data.text);
           console.log("Document processed successfully:", file.name, "Content length:", data.text.length);
-          setIsProcessing(false);
-        } catch (error) {
-          console.error("Error processing document:", error);
-          toast({
-            title: "Error processing document",
-            description: "Could not extract text from the document. Please try a different format.",
-            variant: "destructive"
-          });
-          setIsProcessing(false);
+        } else if (data.content && data.content.length > 0) {
+          // Fallback to content field if available
+          setDocumentContent(data.content);
+          console.log("Document processed successfully (using content field):", file.name, "Content length:", data.content.length);
+        } else {
+          throw new Error('No document text was returned from the server');
         }
-      } else {
-        // For text files, use the FileReader directly
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            const content = event.target.result as string;
-            setDocumentContent(content);
-            console.log("Document loaded successfully:", file.name, "Content length:", content.length);
-          }
-        };
-        reader.onerror = (error) => {
-          console.error("Error reading file:", error);
-          toast({
-            title: "Error reading file",
-            description: "Could not read the uploaded file. Please try again.",
-            variant: "destructive"
-          });
-        };
-        reader.readAsText(file);
+      } catch (error) {
+        console.error("Error processing document:", error);
+        toast({
+          title: "Error processing document",
+          description: "Could not extract text from this document format. Please try a plain text file.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
