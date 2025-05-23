@@ -459,8 +459,8 @@ export default function DocumentRewrite() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: rewrittenContent,
-          recipient: emailRecipient,
-          from: senderEmail, // This needs to match the backend property name
+          to: emailRecipient,
+          from: senderEmail,
           documentName: document?.name || 'Document',
           format: 'pdf' // Default format for sharing
         }),

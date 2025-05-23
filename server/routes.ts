@@ -12,7 +12,7 @@ import { generateAnalytics } from "./services/analytics";
 import { detectAIContent } from "./services/aiDetection";
 import { rewriteDocument } from "./services/documentRewriter";
 import { WebSocketServer } from 'ws';
-import sgMail from '@sendgrid/mail';
+import { sendEmail } from './services/email';
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -638,17 +638,21 @@ YOUR REWRITTEN DOCUMENT:`;
   app.post('/api/share-document', async (req: Request, res: Response) => {
     try {
       // Get parameters from request
-      const { content, recipient, documentName, format = 'pdf', senderEmail } = req.body;
+      const { content, recipient, to, documentName, format = 'pdf', senderEmail, from } = req.body;
       
-      if (!content || !recipient || !documentName) {
+      // Support multiple parameter names for compatibility
+      const recipientEmail = to || recipient;
+      const senderEmailAddress = from || senderEmail;
+      
+      if (!content || !recipientEmail || !documentName) {
         return res.status(400).json({ error: 'Missing required parameters' });
       }
       
-      if (!senderEmail) {
+      if (!senderEmailAddress) {
         return res.status(400).json({ error: 'Sender email is required' });
       }
       
-      console.log(`Preparing to share document "${documentName}" to ${recipient} from ${senderEmail}`);
+      console.log(`Preparing to share document "${documentName}" to ${recipientEmail} from ${senderEmailAddress}`);
       
       // Generate proper document attachment based on format
       let fileContent = '';
@@ -732,8 +736,8 @@ YOUR REWRITTEN DOCUMENT:`;
       
       // Use the email service
       const emailSent = await sendEmail({
-        to: recipient,
-        from: senderEmail, // Use the provided sender email
+        to: recipientEmail,
+        from: senderEmailAddress, // Use the provided sender email
         subject: `Rewritten Document: ${documentName}`,
         html: html,
         attachments: [{
