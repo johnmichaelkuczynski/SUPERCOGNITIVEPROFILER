@@ -48,14 +48,19 @@ export async function processClaude(
     // Add the current message
     messages.push({ role: 'user', content });
     
+    // Always use non-streaming for consistency
     const response = await anthropic.messages.create({
       model: MODEL,
-      messages,
+      messages: messages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      })),
       temperature,
       max_tokens: maxTokens,
+      stream: false
     });
     
-    // Get the response content and handle the different types
+    // Return the content 
     return ('text' in response.content[0]) ? response.content[0].text : JSON.stringify(response.content[0]);
   } catch (error) {
     console.error("Error calling Anthropic API:", error);

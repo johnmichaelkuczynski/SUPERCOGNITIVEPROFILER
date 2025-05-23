@@ -404,10 +404,14 @@ export default function DocumentRewrite() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="rewrite">
             <RefreshCw className="h-4 w-4 mr-2" />
             Rewrite
+          </TabsTrigger>
+          <TabsTrigger value="edit">
+            <FileText className="h-4 w-4 mr-2" />
+            Edit Document
           </TabsTrigger>
           <TabsTrigger value="review" disabled={!rewrittenContent}>
             <FileText className="h-4 w-4 mr-2" />
@@ -448,9 +452,17 @@ export default function DocumentRewrite() {
                     </Button>
                   </div>
                   <div className="mt-3">
-                    <div className="text-sm text-slate-700 max-h-40 overflow-y-auto border rounded-md p-3 bg-white">
-                      {document.content.substring(0, 400)}
-                      {document.content.length > 400 && '...'}
+                    <div className="text-sm text-slate-700 max-h-96 overflow-y-auto border rounded-md p-3 bg-white">
+                      {document.content}
+                    </div>
+                    <div className="mt-2 flex justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setActiveTab('edit')}
+                      >
+                        Edit Document Before Rewriting
+                      </Button>
                     </div>
                   </div>
                 </div>

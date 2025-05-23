@@ -42,12 +42,21 @@ export async function rewriteDocument(
     // Choose the model to use for rewriting
     let result: string;
     
+    // For large documents, we need a different approach
+    const documentLength = documentContent.length;
+    
+    // Let's use GPT-4 as default for large documents since it handles long context better
+    if (documentLength > 30000 && options.model === 'claude') {
+      console.log(`Document is large (${documentLength} chars), using GPT-4 instead of Claude`);
+      options.model = 'gpt4';
+    }
+    
     switch (options.model) {
       case 'claude':
         const claudeResponse = await processClaude(prompt, {
           temperature: 0.7,
           stream: false,
-          maxTokens: 100000, // Set a high token limit for long documents
+          maxTokens: 4000, // Limit token output for Claude
         });
         result = typeof claudeResponse === 'string' ? claudeResponse : claudeResponse.content;
         break;
@@ -56,7 +65,7 @@ export async function rewriteDocument(
         const gpt4Response = await processGPT4(prompt, {
           temperature: 0.7, 
           stream: false,
-          maxTokens: 32000, // GPT-4's max token context
+          maxTokens: 4000, // Limit to prevent timeouts
         });
         result = typeof gpt4Response === 'string' ? gpt4Response : gpt4Response.content;
         break;
@@ -65,7 +74,7 @@ export async function rewriteDocument(
         const perplexityResponse = await processPerplexity(prompt, {
           temperature: 0.7,
           stream: false,
-          maxTokens: 20000,
+          maxTokens: 4000, // Standard limit
         });
         result = typeof perplexityResponse === 'string' ? perplexityResponse : perplexityResponse.content;
         break;
