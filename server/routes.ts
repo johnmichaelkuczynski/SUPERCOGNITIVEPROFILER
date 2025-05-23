@@ -726,9 +726,15 @@ Do not include any commentary or explanations about the rewriting process in you
       // Create appropriate filename with extension
       const finalFilename = filename.includes(`.${format}`) ? filename : `${filename}.${format}`;
       
-      // Set headers for file download
-      res.setHeader('Content-Type', document.mimeType);
-      res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
+      // Special case for DOCX files - serve as plain text but with docx extension
+      if (format === 'docx') {
+        res.setHeader('Content-Type', 'application/msword');
+        res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
+      } else {
+        // Set headers for file download for other formats
+        res.setHeader('Content-Type', document.mimeType);
+        res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
+      }
       
       // Send the formatted document as the response
       res.send(document.content);

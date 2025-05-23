@@ -51,57 +51,24 @@ export function markdownToHtml(markdown: string): string {
 </html>`;
 }
 
-// Create HTML document that can be opened in Word
+// Create plain text for Word document
 export function generateWordDocument(content: string): string {
-  // Convert markdown to HTML first
-  let htmlContent = markdownToHtml(content);
+  // Convert markdown to plain text first, removing any special formatting
+  const plainText = content
+    // Remove markdown headers
+    .replace(/^#+\s+(.*$)/gim, '$1')
+    // Remove bold/italic markers
+    .replace(/\*\*(.*?)\*\*/gim, '$1')
+    .replace(/\*(.*?)\*/gim, '$1')
+    // Remove code blocks
+    .replace(/```([\s\S]*?)```/gim, '$1')
+    // Remove inline code
+    .replace(/`(.*?)`/gim, '$1')
+    // Convert line breaks to Windows-style
+    .replace(/\n/g, '\r\n');
   
-  // Strip the doctype and html wrappers to get just the body content
-  htmlContent = htmlContent.replace(/<!DOCTYPE[^>]*>/, '')
-                         .replace(/<html[^>]*>([\s\S]*)<\/html>/, '$1')
-                         .replace(/<head>[\s\S]*<\/head>/, '')
-                         .replace(/<body[^>]*>([\s\S]*)<\/body>/, '$1');
-  
-  // Create a Word-compatible HTML document
-  return `<html xmlns:o="urn:schemas-microsoft-com:office:office"
-xmlns:w="urn:schemas-microsoft-com:office:word"
-xmlns="http://www.w3.org/TR/REC-html40">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="ProgId" content="Word.Document">
-<meta name="Generator" content="Microsoft Word 15">
-<meta name="Originator" content="Microsoft Word 15">
-<!--[if gte mso 9]>
-<xml>
-<w:WordDocument>
-<w:View>Print</w:View>
-<w:Zoom>100</w:Zoom>
-<w:DoNotOptimizeForBrowser/>
-</w:WordDocument>
-</xml>
-<![endif]-->
-<style>
-body {
-  font-family: 'Calibri', sans-serif;
-  font-size: 11pt;
-  line-height: 1.5;
-}
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Calibri', sans-serif;
-  font-weight: bold;
-  margin-top: 12pt;
-  margin-bottom: 6pt;
-}
-h1 { font-size: 16pt; }
-h2 { font-size: 14pt; }
-h3 { font-size: 12pt; }
-p { margin-bottom: 10pt; }
-</style>
-</head>
-<body>
-${htmlContent}
-</body>
-</html>`;
+  // Return plain text which Word can open safely
+  return plainText;
 }
 
 /**
