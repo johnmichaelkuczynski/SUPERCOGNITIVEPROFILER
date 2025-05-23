@@ -711,7 +711,7 @@ Do not include any commentary or explanations about the rewriting process in you
     }
   });
   
-  // Enhanced document export route
+  // Enhanced document export route with proper PDF and Word document generation
   app.post('/api/document/export', async (req: Request, res: Response) => {
     try {
       const { content, format = 'txt', filename = 'document' } = req.body;
@@ -720,28 +720,39 @@ Do not include any commentary or explanations about the rewriting process in you
         return res.status(400).json({ message: 'Content is required' });
       }
       
-      // Generate document in requested format
-      const document = generateDocument(content, format as 'txt' | 'html' | 'docx');
+      // Clean filename to avoid issues
+      const cleanFilename = filename.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+      const finalFilename = cleanFilename.includes(`.${format}`) ? cleanFilename : `${cleanFilename}.${format}`;
       
-      // Create appropriate filename with extension
-      const finalFilename = filename.includes(`.${format}`) ? filename : `${filename}.${format}`;
+      console.log(`Exporting document in ${format} format as: ${finalFilename}`);
       
-      // Special case for DOCX files - serve as plain text but with docx extension
-      if (format === 'docx') {
-        res.setHeader('Content-Type', 'application/msword');
-        res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
-      } else {
-        // Set headers for file download for other formats
+      // Generate document in requested format using proper libraries
+      try {
+        const document = await generateDocument(content, format as 'txt' | 'html' | 'docx' | 'pdf', cleanFilename);
+        
+        // Set headers for file download
         res.setHeader('Content-Type', document.mimeType);
         res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
+        
+        // Send the formatted document as the response (either as string or buffer)
+        if (document.isBuffer) {
+          // Send as binary buffer for Word/PDF
+          res.end(document.content);
+        } else {
+          // Send as string for TXT/HTML
+          res.send(document.content);
+        }
+      } catch (error) {
+        console.error('Error generating document:', error);
+        throw error;
       }
-      
-      // Send the formatted document as the response
-      res.send(document.content);
       
     } catch (error) {
       console.error('Error generating document export:', error);
-      res.status(500).json({ message: 'Failed to export document' });
+      res.status(500).json({ 
+        message: 'Failed to export document',
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

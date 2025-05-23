@@ -124,8 +124,8 @@ export async function generateWordDocument(content: string, documentName: string
  * @param content Markdown content to convert to PDF
  * @returns Buffer containing the PDF document
  */
-export function generatePDFDocument(content: string): Buffer {
-  return new Promise((resolve, reject) => {
+export async function generatePDFDocument(content: string): Promise<Buffer> {
+  return new Promise<Buffer>((resolve, reject) => {
     try {
       // Create a PDF document
       const doc = new PDFDocument({
@@ -135,7 +135,7 @@ export function generatePDFDocument(content: string): Buffer {
       
       // Collect PDF data in a buffer
       const chunks: Buffer[] = [];
-      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       
       // Add a title
@@ -210,40 +210,35 @@ export function createPlainText(markdown: string): string {
  * @returns Promise resolving to Buffer or string content and mime type
  */
 export async function generateDocument(content: string, format: 'txt' | 'html' | 'docx' | 'pdf', documentName: string = 'document'): Promise<{content: string | Buffer, mimeType: string, isBuffer: boolean}> {
-  try {
-    switch (format) {
-      case 'html':
-        return {
-          content: markdownToHtml(content),
-          mimeType: 'text/html',
-          isBuffer: false
-        };
-      case 'docx':
-        // Generate proper Word document as binary buffer
-        const wordBuffer = await generateWordDocument(content, documentName);
-        return {
-          content: wordBuffer,
-          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          isBuffer: true
-        };
-      case 'pdf':
-        // Generate proper PDF as binary buffer
-        const pdfBuffer = await generatePDFDocument(content);
-        return {
-          content: pdfBuffer,
-          mimeType: 'application/pdf',
-          isBuffer: true
-        };
-      case 'txt':
-      default:
-        return {
-          content: createPlainText(content),
-          mimeType: 'text/plain',
-          isBuffer: false
-        };
-    }
-  } catch (error) {
-    console.error(`Error generating ${format} document:`, error);
-    throw error;
+  switch (format) {
+    case 'html':
+      return {
+        content: markdownToHtml(content),
+        mimeType: 'text/html',
+        isBuffer: false
+      };
+    case 'docx':
+      // Generate proper Word document as binary buffer
+      const wordBuffer = await generateWordDocument(content, documentName);
+      return {
+        content: wordBuffer,
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        isBuffer: true
+      };
+    case 'pdf':
+      // Generate proper PDF as binary buffer
+      const pdfBuffer = await generatePDFDocument(content);
+      return {
+        content: pdfBuffer,
+        mimeType: 'application/pdf',
+        isBuffer: true
+      };
+    case 'txt':
+    default:
+      return {
+        content: createPlainText(content),
+        mimeType: 'text/plain',
+        isBuffer: false
+      };
   }
 }
