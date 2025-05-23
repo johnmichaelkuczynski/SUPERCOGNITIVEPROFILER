@@ -358,25 +358,25 @@ export default function Home() {
     );
   };
 
-  // Get the current state of files and document for the document rewriter
+  // Get the actual document contents to use in the document rewriter
   const getLastUploadedDocument = () => {
-    if (files.length > 0) {
-      // Return the first file in the current files array
-      return {
-        name: files[0].name,
-        content: "Loading..." // This will be read by the component on upload
-      };
+    // If we have files and the last message has content, use that
+    if (files.length > 0 && messages.length > 0) {
+      // Get the last assistant message which should have the processed content
+      const lastAssistantMessage = [...messages]
+        .reverse()
+        .find(msg => msg.role === 'assistant' && msg.content && msg.content.length > 100);
+      
+      if (lastAssistantMessage && lastAssistantMessage.content) {
+        // Return the file with the assistant's processed content
+        return {
+          name: files[0].name,
+          content: lastAssistantMessage.content
+        };
+      }
     }
     
-    // Look for the last document in the conversation
-    const lastDocMessage = [...messages].reverse().find(msg => msg.files && msg.files.length > 0);
-    if (lastDocMessage?.files && lastDocMessage.files.length > 0) {
-      return {
-        name: lastDocMessage.files[0].name,
-        content: "Loading..." // This will be read by the component on upload
-      };
-    }
-    
+    // If no suitable document is found, return undefined
     return undefined;
   };
   

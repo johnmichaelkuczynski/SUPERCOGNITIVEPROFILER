@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,8 +26,18 @@ export default function LargeDocumentRewrite({
   conversationInsights = ''
 }: LargeDocumentRewriteProps) {
   // State for document content
-  const [documentContent, setDocumentContent] = useState<string>(lastUploadedDocument?.content || '');
-  const [documentName, setDocumentName] = useState<string>(lastUploadedDocument?.name || 'Document');
+  const [documentContent, setDocumentContent] = useState<string>('');
+  const [documentName, setDocumentName] = useState<string>('');
+  
+  // Initialize with last uploaded document if available
+  useEffect(() => {
+    if (lastUploadedDocument) {
+      setDocumentContent(lastUploadedDocument.content);
+      setDocumentName(lastUploadedDocument.name);
+      console.log("Loaded document from props:", lastUploadedDocument.name, 
+                 "with content length:", lastUploadedDocument.content.length);
+    }
+  }, [lastUploadedDocument]);
   
   // State for rewrite instructions
   const [rewriteInstructions, setRewriteInstructions] = useState<string>('');
@@ -225,14 +235,24 @@ export default function LargeDocumentRewrite({
                         <FileText className="h-5 w-5 text-blue-500" />
                         <span className="font-medium">{lastUploadedDocument.name}</span>
                         <span className="text-sm text-muted-foreground">
-                          {lastUploadedDocument.content.length} characters
+                          {lastUploadedDocument.content ? lastUploadedDocument.content.length : '0'} characters
                         </span>
                       </div>
                       <Button 
                         variant="outline" 
                         onClick={() => {
-                          setDocumentContent(lastUploadedDocument.content);
-                          setDocumentName(lastUploadedDocument.name);
+                          if (lastUploadedDocument.content && lastUploadedDocument.content !== "Loading...") {
+                            console.log("Using document:", lastUploadedDocument.name);
+                            setDocumentContent(lastUploadedDocument.content);
+                            setDocumentName(lastUploadedDocument.name);
+                          } else {
+                            // Alert user that content is not available
+                            toast({
+                              title: "Document content not available",
+                              description: "Unable to load document content. Please upload the document directly.",
+                              variant: "destructive"
+                            });
+                          }
                         }}
                       >
                         Use This Document
