@@ -1,10 +1,6 @@
 /**
  * Document export service for converting text content to different document formats
  */
-import * as fs from 'fs';
-import * as path from 'path';
-import PDFDocument from 'pdfkit';
-import { Document, Packer, Paragraph, HeadingLevel, TextRun } from 'docx';
 
 // Convert markdown content to HTML
 export function markdownToHtml(markdown: string): string {
@@ -55,135 +51,24 @@ export function markdownToHtml(markdown: string): string {
 </html>`;
 }
 
-/**
- * Generate a proper Word document using docx library
- * @param content Markdown content to convert to Word format
- * @returns Buffer containing the Word document
- */
-export async function generateWordDocument(content: string, documentName: string = 'document'): Promise<Buffer> {
-  try {
-    // Parse markdown into structured content for Word
-    const lines = content.split('\n');
-    const docElements = [];
-    
-    // Process each line and convert to Word document elements
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      
-      // Skip empty lines
-      if (!line) continue;
-      
-      // Handle headers
-      if (line.startsWith('# ')) {
-        docElements.push(new Paragraph({
-          text: line.substring(2),
-          heading: HeadingLevel.HEADING_1
-        }));
-      } else if (line.startsWith('## ')) {
-        docElements.push(new Paragraph({
-          text: line.substring(3),
-          heading: HeadingLevel.HEADING_2
-        }));
-      } else if (line.startsWith('### ')) {
-        docElements.push(new Paragraph({
-          text: line.substring(4),
-          heading: HeadingLevel.HEADING_3
-        }));
-      } else {
-        // Handle regular paragraphs
-        // Remove markdown formatting
-        let textContent = line
-          .replace(/\*\*(.*?)\*\*/g, '$1')  // Bold
-          .replace(/\*(.*?)\*/g, '$1')      // Italic
-          .replace(/`(.*?)`/g, '$1');       // Code
-          
-        docElements.push(new Paragraph({
-          children: [new TextRun(textContent)]
-        }));
-      }
-    }
-    
-    // Create the document with the elements
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: docElements
-      }]
-    });
-    
-    // Generate the Word document buffer
-    return await Packer.toBuffer(doc);
-  } catch (error) {
-    console.error('Error generating Word document:', error);
-    throw error;
-  }
-}
-
-/**
- * Generate a proper PDF document using PDFKit
- * @param content Markdown content to convert to PDF
- * @returns Buffer containing the PDF document
- */
-export async function generatePDFDocument(content: string): Promise<Buffer> {
-  return new Promise<Buffer>((resolve, reject) => {
-    try {
-      // Create a PDF document
-      const doc = new PDFDocument({
-        margin: 50,
-        size: 'letter'
-      });
-      
-      // Collect PDF data in a buffer
-      const chunks: Buffer[] = [];
-      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      
-      // Add a title
-      doc.fontSize(18).text('Document Export', { align: 'center' });
-      doc.moveDown();
-      
-      // Process the markdown content
-      const lines = content.split('\n');
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        
-        // Skip empty lines but add space
-        if (!line) {
-          doc.moveDown(0.5);
-          continue;
-        }
-        
-        // Handle headers
-        if (line.startsWith('# ')) {
-          doc.fontSize(16).text(line.substring(2));
-          doc.moveDown();
-        } else if (line.startsWith('## ')) {
-          doc.fontSize(14).text(line.substring(3));
-          doc.moveDown();
-        } else if (line.startsWith('### ')) {
-          doc.fontSize(12).text(line.substring(4), { underline: true });
-          doc.moveDown();
-        } else {
-          // Regular text - clean up markdown
-          let textContent = line
-            .replace(/\*\*(.*?)\*\*/g, '$1')  // Bold
-            .replace(/\*(.*?)\*/g, '$1')      // Italic
-            .replace(/`(.*?)`/g, '$1');       // Code
-            
-          doc.fontSize(10).text(textContent);
-          doc.moveDown(0.5);
-        }
-      }
-      
-      // Finalize the PDF
-      doc.end();
-      
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      reject(error);
-    }
-  });
+// Create plain text for Word document
+export function generateWordDocument(content: string): string {
+  // Convert markdown to plain text first, removing any special formatting
+  const plainText = content
+    // Remove markdown headers
+    .replace(/^#+\s+(.*$)/gim, '$1')
+    // Remove bold/italic markers
+    .replace(/\*\*(.*?)\*\*/gim, '$1')
+    .replace(/\*(.*?)\*/gim, '$1')
+    // Remove code blocks
+    .replace(/```([\s\S]*?)```/gim, '$1')
+    // Remove inline code
+    .replace(/`(.*?)`/gim, '$1')
+    // Convert line breaks to Windows-style
+    .replace(/\n/g, '\r\n');
+  
+  // Return plain text which Word can open safely
+  return plainText;
 }
 
 /**
@@ -206,39 +91,77 @@ export function createPlainText(markdown: string): string {
 /**
  * Generate document in requested format
  * @param content Document content (markdown format)
- * @param format Output format (txt, html, docx, pdf)
- * @returns Promise resolving to Buffer or string content and mime type
+ * @param format Output format (txt, html, docx)
+ * @returns Formatted document content
  */
-export async function generateDocument(content: string, format: 'txt' | 'html' | 'docx' | 'pdf', documentName: string = 'document'): Promise<{content: string | Buffer, mimeType: string, isBuffer: boolean}> {
+export function generateDocument(content: string, format: 'txt' | 'html' | 'docx' | 'pdf'): {content: string, mimeType: string} {
   switch (format) {
     case 'html':
       return {
         content: markdownToHtml(content),
-        mimeType: 'text/html',
-        isBuffer: false
+        mimeType: 'text/html'
       };
     case 'docx':
-      // Generate proper Word document as binary buffer
-      const wordBuffer = await generateWordDocument(content, documentName);
       return {
-        content: wordBuffer,
-        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        isBuffer: true
+        content: generateWordDocument(content),
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       };
     case 'pdf':
-      // Generate proper PDF as binary buffer
-      const pdfBuffer = await generatePDFDocument(content);
+      // For PDF, we generate an HTML document optimized for printing
+      // Most browsers will download this as HTML, but when opened
+      // it will be set up for clean printing to PDF
+      const htmlForPrint = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Export</title>
+  <style>
+    @page { size: 8.5in 11in; margin: 1in; }
+    body { 
+      font-family: 'Calibri', Arial, sans-serif; 
+      line-height: 1.6;
+      font-size: 12pt;
+      max-width: 8.5in;
+      margin: 0 auto;
+      padding: 0.25in;
+    }
+    h1, h2, h3, h4, h5, h6 { margin-top: 1.5em; margin-bottom: 0.5em; page-break-after: avoid; }
+    p { margin-bottom: 1em; }
+    pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; page-break-inside: avoid; }
+    code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+    ul, ol { margin-bottom: 1em; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 1em; page-break-inside: avoid; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    @media print {
+      body { font-size: 12pt; color: black; }
+      a { color: black; text-decoration: none; }
+      @page { margin: 1in; }
+    }
+  </style>
+  <script>
+    window.onload = function() {
+      // Auto-trigger print dialog when opened
+      window.print();
+    }
+  </script>
+</head>
+<body>
+  ${markdownToHtml(content).replace(/<!DOCTYPE[^>]*>/, '')
+                           .replace(/<html[^>]*>([\s\S]*)<\/html>/, '$1')
+                           .replace(/<head>[\s\S]*<\/head>/, '')
+                           .replace(/<body[^>]*>([\s\S]*)<\/body>/, '$1')}
+</body>
+</html>`;
       return {
-        content: pdfBuffer,
-        mimeType: 'application/pdf',
-        isBuffer: true
+        content: htmlForPrint,
+        mimeType: 'text/html'
       };
     case 'txt':
     default:
       return {
         content: createPlainText(content),
-        mimeType: 'text/plain',
-        isBuffer: false
+        mimeType: 'text/plain'
       };
   }
 }
