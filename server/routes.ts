@@ -555,36 +555,82 @@ YOUR REWRITTEN DOCUMENT:`;
         return res.status(400).json({ error: 'Missing required parameters' });
       }
       
-      // For simplicity, we'll just return the content as plain text for now
-      // In a production app, we would use libraries like docx or pdfkit to create
-      // proper document formats
-      
-      let contentType = 'text/plain';
-      let fileExtension = 'txt';
+      console.log(`Creating ${format} document: ${filename}, content length: ${content.length}`);
       
       if (format === 'docx') {
-        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        fileExtension = 'docx';
+        // Generate Word document
+        const { Document, Packer, Paragraph, TextRun } = await import('docx');
         
-        // Here we would use a library like docx to create a Word document
-        // For now, we'll just set the content type
+        // Create document with paragraphs
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: content.split('\n').map(line => 
+              new Paragraph({
+                children: [new TextRun(line || ' ')],
+              })
+            ),
+          }],
+        });
+        
+        // Generate buffer
+        const buffer = await Packer.toBuffer(doc);
+        
+        // Set headers
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}.docx`);
+        res.setHeader('Content-Length', buffer.length);
+        
+        // Send buffer
+        res.send(buffer);
+        console.log('Word document generated successfully');
+        
       } else if (format === 'pdf') {
-        contentType = 'application/pdf';
-        fileExtension = 'pdf';
+        // Generate PDF
+        const PDFDocument = await import('pdfkit');
+        const doc = new PDFDocument.default();
         
-        // Here we would use a library like pdfkit to create a PDF document
-        // For now, we'll just set the content type
+        // Create a buffer to store PDF
+        const chunks: Buffer[] = [];
+        let result: Buffer;
+        
+        // Capture PDF data chunks
+        doc.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
+        
+        // When document is done, create buffer and send response
+        doc.on('end', () => {
+          result = Buffer.concat(chunks);
+          
+          // Set headers
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
+          res.setHeader('Content-Length', result.length);
+          
+          // Send buffer
+          res.send(result);
+          console.log('PDF document generated successfully');
+        });
+        
+        // Add content to PDF
+        const lines = content.split('\n');
+        for (const line of lines) {
+          doc.text(line || ' ');
+        }
+        
+        // Finalize PDF
+        doc.end();
+        
+      } else {
+        // Default to plain text
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}.txt`);
+        res.send(content);
       }
-      
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Disposition', `attachment; filename=${filename}.${fileExtension}`);
-      
-      // For now, just return the plain text content
-      // In a production app, we would convert to the actual format requested
-      res.send(content);
     } catch (error) {
       console.error('Error generating document for download:', error);
-      res.status(500).json({ error: 'Failed to generate downloadable document' });
+      res.status(500).json({ error: 'Failed to generate downloadable document', details: error instanceof Error ? error.message : String(error) });
     }
   });
 
