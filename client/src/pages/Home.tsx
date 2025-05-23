@@ -360,20 +360,52 @@ export default function Home() {
 
   // Get the actual document contents to use in the document rewriter
   const getLastUploadedDocument = () => {
-    // If we have files and the last message has content, use that
-    if (files.length > 0 && messages.length > 0) {
-      // Get the last assistant message which should have the processed content
+    // If there's uploaded files and message content, use the most recently uploaded document
+    if (files.length > 0) {
+      // Get the most recent assistant message that corresponds to the file
+      const fileRelatedMessages = messages.filter(
+        msg => msg.role === 'assistant' && 
+               msg.content && 
+               msg.content.length > 100 && 
+               (!msg.files || msg.files.some(f => f.name === files[0].name))
+      );
+      
+      if (fileRelatedMessages.length > 0) {
+        const latestMessage = fileRelatedMessages[fileRelatedMessages.length - 1];
+        console.log("Found document in conversation:", files[0].name);
+        return {
+          name: files[0].name,
+          content: latestMessage.content
+        };
+      }
+      
+      // If we couldn't find a message with this specific file 
+      // but have assistant messages, use the latest substantial one
       const lastAssistantMessage = [...messages]
         .reverse()
         .find(msg => msg.role === 'assistant' && msg.content && msg.content.length > 100);
       
-      if (lastAssistantMessage && lastAssistantMessage.content) {
-        // Return the file with the assistant's processed content
+      if (lastAssistantMessage) {
+        console.log("Using latest assistant message with file:", files[0].name);
         return {
           name: files[0].name,
           content: lastAssistantMessage.content
         };
       }
+    }
+    
+    // Try to find the last message that had files attached
+    const lastMessageWithFiles = [...messages]
+      .reverse()
+      .find(msg => msg.files && msg.files.length > 0 && msg.content && msg.content.length > 100);
+    
+    if (lastMessageWithFiles) {
+      console.log("Using content from last message with files:", 
+                 lastMessageWithFiles.files ? lastMessageWithFiles.files[0].name : "unknown");
+      return {
+        name: lastMessageWithFiles.files ? lastMessageWithFiles.files[0].name : "document.txt",
+        content: lastMessageWithFiles.content
+      };
     }
     
     // If no suitable document is found, return undefined

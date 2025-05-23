@@ -51,29 +51,57 @@ export function markdownToHtml(markdown: string): string {
 </html>`;
 }
 
-// Create basic Word XML format (simplified .docx format)
+// Create HTML document that can be opened in Word
 export function generateWordDocument(content: string): string {
-  // Basic conversion from markdown to Word-compatible HTML
-  const sanitizedContent = content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-    .replace(/\n/g, '<w:br/>');
+  // Convert markdown to HTML first
+  let htmlContent = markdownToHtml(content);
   
-  // Create minimal Word XML structure (simplified)
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<?mso-application progid="Word.Document"?>
-<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml">
-  <w:body>
-    <w:p>
-      <w:r>
-        <w:t>${sanitizedContent}</w:t>
-      </w:r>
-    </w:p>
-  </w:body>
-</w:wordDocument>`;
+  // Strip the doctype and html wrappers to get just the body content
+  htmlContent = htmlContent.replace(/<!DOCTYPE[^>]*>/, '')
+                         .replace(/<html[^>]*>([\s\S]*)<\/html>/, '$1')
+                         .replace(/<head>[\s\S]*<\/head>/, '')
+                         .replace(/<body[^>]*>([\s\S]*)<\/body>/, '$1');
+  
+  // Create a Word-compatible HTML document
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="ProgId" content="Word.Document">
+<meta name="Generator" content="Microsoft Word 15">
+<meta name="Originator" content="Microsoft Word 15">
+<!--[if gte mso 9]>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+<w:DoNotOptimizeForBrowser/>
+</w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+body {
+  font-family: 'Calibri', sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Calibri', sans-serif;
+  font-weight: bold;
+  margin-top: 12pt;
+  margin-bottom: 6pt;
+}
+h1 { font-size: 16pt; }
+h2 { font-size: 14pt; }
+h3 { font-size: 12pt; }
+p { margin-bottom: 10pt; }
+</style>
+</head>
+<body>
+${htmlContent}
+</body>
+</html>`;
 }
 
 /**
@@ -99,7 +127,7 @@ export function createPlainText(markdown: string): string {
  * @param format Output format (txt, html, docx)
  * @returns Formatted document content
  */
-export function generateDocument(content: string, format: 'txt' | 'html' | 'docx'): {content: string, mimeType: string} {
+export function generateDocument(content: string, format: 'txt' | 'html' | 'docx' | 'pdf'): {content: string, mimeType: string} {
   switch (format) {
     case 'html':
       return {
@@ -110,6 +138,57 @@ export function generateDocument(content: string, format: 'txt' | 'html' | 'docx
       return {
         content: generateWordDocument(content),
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      };
+    case 'pdf':
+      // For PDF, we generate an HTML document optimized for printing
+      // Most browsers will download this as HTML, but when opened
+      // it will be set up for clean printing to PDF
+      const htmlForPrint = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Export</title>
+  <style>
+    @page { size: 8.5in 11in; margin: 1in; }
+    body { 
+      font-family: 'Calibri', Arial, sans-serif; 
+      line-height: 1.6;
+      font-size: 12pt;
+      max-width: 8.5in;
+      margin: 0 auto;
+      padding: 0.25in;
+    }
+    h1, h2, h3, h4, h5, h6 { margin-top: 1.5em; margin-bottom: 0.5em; page-break-after: avoid; }
+    p { margin-bottom: 1em; }
+    pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; page-break-inside: avoid; }
+    code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+    ul, ol { margin-bottom: 1em; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 1em; page-break-inside: avoid; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    @media print {
+      body { font-size: 12pt; color: black; }
+      a { color: black; text-decoration: none; }
+      @page { margin: 1in; }
+    }
+  </style>
+  <script>
+    window.onload = function() {
+      // Auto-trigger print dialog when opened
+      window.print();
+    }
+  </script>
+</head>
+<body>
+  ${markdownToHtml(content).replace(/<!DOCTYPE[^>]*>/, '')
+                           .replace(/<html[^>]*>([\s\S]*)<\/html>/, '$1')
+                           .replace(/<head>[\s\S]*<\/head>/, '')
+                           .replace(/<body[^>]*>([\s\S]*)<\/body>/, '$1')}
+</body>
+</html>`;
+      return {
+        content: htmlForPrint,
+        mimeType: 'text/html'
       };
     case 'txt':
     default:
