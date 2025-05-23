@@ -637,41 +637,123 @@ YOUR REWRITTEN DOCUMENT:`;
   // Email Sharing API using SendGrid
   app.post('/api/share-document', async (req: Request, res: Response) => {
     try {
-      // Check if SendGrid API key is available
-      if (!process.env.SENDGRID_API_KEY) {
-        return res.status(500).json({ error: 'SendGrid API key is not configured' });
-      }
-      
-      // Set the API key
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      
-      const { content, recipient, documentName, format = 'pdf' } = req.body;
+      // Get parameters from request
+      const { content, recipient, documentName, format = 'pdf', senderEmail } = req.body;
       
       if (!content || !recipient || !documentName) {
         return res.status(400).json({ error: 'Missing required parameters' });
       }
       
-      // Create the email message
-      const msg = {
-        to: recipient,
-        from: 'document-rewriter@example.com', // Should be a verified sender in SendGrid
-        subject: `Rewritten Document: ${documentName}`,
-        text: `Hello,\n\nHere is the rewritten document "${documentName}" you requested.\n\nThe content is attached to this email.`,
-        html: `<p>Hello,</p><p>Here is the rewritten document <strong>${documentName}</strong> you requested.</p><p>The content is attached to this email.</p>`,
-        attachments: [
-          {
-            content: Buffer.from(content).toString('base64'),
-            filename: `${documentName.split('.')[0]}-rewritten.${format}`,
-            type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            disposition: 'attachment'
+      if (!senderEmail) {
+        return res.status(400).json({ error: 'Sender email is required' });
+      }
+      
+      console.log(`Preparing to share document "${documentName}" to ${recipient} from ${senderEmail}`);
+      
+      // Generate proper document attachment based on format
+      let fileContent = '';
+      let attachmentType = 'text/plain';
+      
+      if (format === 'docx') {
+        try {
+          // Generate Word document
+          const { Document, Packer, Paragraph, TextRun } = await import('docx');
+          
+          // Create document with paragraphs
+          const doc = new Document({
+            sections: [{
+              properties: {},
+              children: content.split('\n').map(line => 
+                new Paragraph({
+                  children: [new TextRun(line || ' ')],
+                })
+              ),
+            }],
+          });
+          
+          // Generate buffer
+          const buffer = await Packer.toBuffer(doc);
+          fileContent = buffer.toString('base64');
+          attachmentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        } catch (docxError) {
+          console.error('Error creating DOCX:', docxError);
+          // Fallback to plain text if docx creation fails
+          fileContent = Buffer.from(content).toString('base64');
+          attachmentType = 'text/plain';
+        }
+      } else if (format === 'pdf') {
+        try {
+          // Generate PDF
+          const PDFDocument = await import('pdfkit');
+          const doc = new PDFDocument.default();
+          
+          // Create a buffer to store PDF
+          const chunks: any[] = [];
+          
+          // Capture PDF data chunks
+          doc.on('data', (chunk: any) => {
+            chunks.push(chunk);
+          });
+          
+          // Add content to PDF
+          const lines = content.split('\n');
+          for (const line of lines) {
+            doc.text(line || ' ');
           }
-        ]
-      };
+          
+          // Finalize PDF and wait for it to complete
+          doc.end();
+          
+          await new Promise<void>((resolve) => {
+            doc.on('end', () => {
+              const pdfBuffer = Buffer.concat(chunks);
+              fileContent = pdfBuffer.toString('base64');
+              attachmentType = 'application/pdf';
+              resolve();
+            });
+          });
+        } catch (pdfError) {
+          console.error('Error creating PDF:', pdfError);
+          // Fallback to plain text if pdf creation fails
+          fileContent = Buffer.from(content).toString('base64');
+          attachmentType = 'text/plain';
+        }
+      } else {
+        // Plain text format
+        fileContent = Buffer.from(content).toString('base64');
+      }
       
-      // Send the email
-      await sgMail.send(msg);
+      // Create the email content
+      const html = `
+        <p>Hello,</p>
+        <p>Here is the rewritten document <strong>${documentName}</strong> you requested.</p>
+        <p>The content is attached to this email.</p>
+      `;
       
-      res.json({ success: true, message: 'Document shared successfully' });
+      // Use the email service
+      const emailSent = await sendEmail({
+        to: recipient,
+        from: senderEmail, // Use the provided sender email
+        subject: `Rewritten Document: ${documentName}`,
+        html: html,
+        attachments: [{
+          content: fileContent,
+          filename: `${documentName.split('.')[0]}-rewritten.${format}`,
+          type: attachmentType,
+          disposition: 'attachment'
+        }]
+      });
+      
+      if (emailSent) {
+        console.log('Document shared successfully via email');
+        return res.json({ success: true, message: 'Document shared successfully' });
+      } else {
+        console.error('Email service returned false');
+        return res.status(500).json({ 
+          error: 'Failed to share document',
+          details: 'Email service failed to send the email'
+        });
+      }
     } catch (error) {
       console.error('Error sharing document via email:', error);
       res.status(500).json({ 

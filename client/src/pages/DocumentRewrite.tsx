@@ -460,7 +460,7 @@ export default function DocumentRewrite() {
         body: JSON.stringify({
           content: rewrittenContent,
           recipient: emailRecipient,
-          senderEmail: senderEmail,
+          from: senderEmail, // This needs to match the backend property name
           documentName: document?.name || 'Document',
           format: 'pdf' // Default format for sharing
         }),
