@@ -28,13 +28,9 @@ export async function processClaude(
     previousMessages = []
   } = options;
   try {
-    // Implement chunking strategy for all documents over 3000 characters
-    // Essential for processing very large documents up to 400k words
-    if (content.length > 3000) {
-      console.log(`Processing document of length ${content.length} characters with enhanced chunking`);
-      // Set a higher max token limit for large documents to ensure complete processing
-      const enhancedMaxTokens = content.length > 100000 ? 8000 : maxTokens;
-      return await processWithChunking(content, temperature, chunkSize || 'auto', enhancedMaxTokens, previousMessages);
+    // Implement chunking strategy if needed
+    if (chunkSize && content.length > 10000) {
+      return await processWithChunking(content, temperature, chunkSize, maxTokens, previousMessages);
     }
     
     // Format messages array with conversation history
@@ -74,150 +70,123 @@ async function processWithChunking(
   maxTokens?: number,
   previousMessages: Array<{role: string; content: string}> = []
 ): Promise<string> {
-  console.log(`Processing large document (${content.length} characters) with chunking`);
-  
-  // MASSIVE SPEED OPTIMIZATION: Use much larger chunks to process ~10x faster
-  let wordsPerChunk: number;
-  
-  // Use the maximum possible chunk sizes for the model
+  // Determine chunk size based on the strategy
+  let chunkTokens: number;
   switch (chunkSize) {
     case 'small':
-      wordsPerChunk = 4000; // 8x larger than before
+      chunkTokens = 1000;
       break;
     case 'medium':
-      wordsPerChunk = 6000; // 6x larger than before
+      chunkTokens = 2000;
       break;
     case 'large':
-      wordsPerChunk = 8000; // 4x larger than before
+      chunkTokens = 4000;
       break;
-    case 'xlarge':
-      wordsPerChunk = 10000; // 3.3x larger than before
-      break;
-    default: // auto - use maximum effective sizes for ultra-fast processing
-      // For documents larger than 50k characters, use maximum chunks
-      wordsPerChunk = Math.min(10000, Math.max(4000, Math.floor(content.length / 50))); 
+    default: // auto
+      chunkTokens = 2000;
   }
   
-  console.log(`Using chunks of approximately ${wordsPerChunk} words for document processing`);
+  // Simple text chunking by paragraphs (in a real app, we would use a more sophisticated chunking strategy)
+  const paragraphs = content.split("\n\n");
   
-  // SPEED OPTIMIZATION: Strip out complex section detection
-  // Just do basic check for document structure
-  const hasHeadings = content.includes('##') || 
-                     content.includes('Chapter') || 
-                     content.includes('Section');
+  // Estimate tokens (rough approximation)
+  const estimatedTokensPerChar = 0.25;
   
-  // SPEED OPTIMIZATION: Simple chunking approach by character length
-  // This is much faster than complex paragraph/sentence parsing
-  const avgWordsPerChar = 1/5; // Approx 5 chars per word
-  const charsPerChunk = Math.floor(wordsPerChunk / avgWordsPerChar);
+  let chunks: string[] = [];
+  let currentChunk = "";
   
-  // Create chunks by simple character division for maximum speed
-  const chunks: string[] = [];
-  let currentPos = 0;
-  
-  while (currentPos < content.length) {
-    // Find a reasonable breakpoint near the target size
-    let endPos = Math.min(currentPos + charsPerChunk, content.length);
+  for (const paragraph of paragraphs) {
+    const paragraphTokens = paragraph.length * estimatedTokensPerChar;
     
-    // Try to break at paragraph if possible
-    if (endPos < content.length) {
-      const nextParaBreak = content.indexOf("\n\n", endPos - 200);
-      if (nextParaBreak !== -1 && nextParaBreak < endPos + 200) {
-        endPos = nextParaBreak;
-      } else {
-        // Otherwise break at a sentence
-        const nextSentenceBreak = content.indexOf(". ", endPos - 100);
-        if (nextSentenceBreak !== -1 && nextSentenceBreak < endPos + 100) {
-          endPos = nextSentenceBreak + 1;
-        }
-      }
-    }
-    
-    chunks.push(content.substring(currentPos, endPos));
-    currentPos = endPos;
-  }
-  
-  // Calculate estimated word count
-  const totalWords = Math.floor(content.length * avgWordsPerChar);
-  console.log(`Document divided into ${chunks.length} chunks for processing (estimated ${totalWords} total words)`);
-  
-  // SPEED OPTIMIZATION: Process chunks directly with minimal overhead
-  // Skip all the elaborate consolidation and context passing
-  if (chunks.length === 1) {
-    // Single chunk - just process directly with full context
-    try {
-      // Format messages
-      let messages: Array<{role: string, content: string}> = [];
-      
-      // Add previous conversation context if available
-      if (previousMessages && previousMessages.length > 0) {
-        messages = previousMessages.map(msg => ({
-          role: (msg.role === 'system' || msg.role === 'user') ? 'user' : 'assistant',
-          content: msg.content
-        }));
-      }
-      
-      // Add the document content
-      messages.push({ role: 'user', content });
-      
-      // Make a single call
-      const response = await anthropic.messages.create({
-        model: MODEL,
-        messages,
-        temperature,
-        max_tokens: maxTokens || 12000, // Maximum reasonable token limit
-      });
-      
-      return ('text' in response.content[0]) ? response.content[0].text : '';
-    } catch (error) {
-      console.error("Error processing document:", error);
-      throw new Error(`Processing failed: ${(error as Error).message}`);
+    if (currentChunk.length * estimatedTokensPerChar + paragraphTokens > chunkTokens && currentChunk.length > 0) {
+      chunks.push(currentChunk);
+      currentChunk = paragraph;
+    } else {
+      currentChunk += (currentChunk ? "\n\n" : "") + paragraph;
     }
   }
   
-  // For multi-chunk documents, process in a streamlined way
-  // Process and return just the last chunk
-  try {
-    const finalChunkIndex = chunks.length - 1;
-    const finalChunk = chunks[finalChunkIndex];
+  if (currentChunk) {
+    chunks.push(currentChunk);
+  }
+  
+  // Process each chunk
+  let results: string[] = [];
+  let context = "";
+  
+  for (let i = 0; i < chunks.length; i++) {
+    const isFirstChunk = i === 0;
+    const isLastChunk = i === chunks.length - 1;
     
-    console.log(`Processing chunk ${finalChunkIndex + 1}/${chunks.length} (100% complete)`);
+    let prompt = chunks[i];
     
-    // For multi-chunk documents, use a direct processing approach
-    // Skip all the context generation, summaries, etc. to save time
+    if (!isFirstChunk) {
+      prompt = `Previous context:\n${context}\n\nContinue processing with this chunk:\n${prompt}`;
+    }
+    
+    if (!isLastChunk) {
+      prompt += "\n\nNote: This is not the end of the document. More content follows in subsequent chunks.";
+    }
+    
+    // Format messages array including previous messages
     let messages: Array<{role: string, content: string}> = [];
     
-    // Add context from user request
-    if (previousMessages && previousMessages.length > 0) {
-      const userMessages = previousMessages.filter(msg => 
-        msg.role === 'user' || msg.role === 'system'
-      );
-      
-      if (userMessages.length > 0) {
-        // Just take the last user message for context
-        messages.push({
-          role: 'user',
-          content: userMessages[userMessages.length - 1].content
-        });
-      }
+    // Add previous messages if this is the first chunk
+    if (isFirstChunk && previousMessages && previousMessages.length > 0) {
+      messages = previousMessages.map(msg => ({
+        role: (msg.role === 'system' || msg.role === 'user') ? 'user' : 'assistant',
+        content: msg.content
+      }));
     }
     
-    // Add the document content directly without explanatory text
-    messages.push({ 
-      role: 'user', 
-      content: finalChunk
-    });
+    // Add the current prompt
+    messages.push({ role: 'user', content: prompt });
     
     const response = await anthropic.messages.create({
       model: MODEL,
       messages,
       temperature,
-      max_tokens: maxTokens || 12000, // Maximum reasonable token count
+      max_tokens: maxTokens || 4000,
     });
     
-    return ('text' in response.content[0]) ? response.content[0].text : '';
-  } catch (error) {
-    console.error("Error processing document:", error);
-    throw new Error(`Processing failed: ${(error as Error).message}`);
+    // Get the response content and handle different types
+    const result = ('text' in response.content[0]) ? response.content[0].text : JSON.stringify(response.content[0]);
+    results.push(result);
+    
+    // Update context with a summary of what was processed so far
+    if (chunks.length > 1 && !isLastChunk) {
+      const contextResponse = await anthropic.messages.create({
+        model: MODEL,
+        messages: [
+          { 
+            role: 'user', 
+            content: `Summarize the following content in 200 words or less to provide context for continuation:\n\n${chunks[i]}\n\n${result}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+      });
+      
+      context = contextResponse.content[0].text;
+    }
   }
+  
+  // For multiple chunks, ensure proper consolidation
+  if (chunks.length > 1) {
+    const consolidationResponse = await anthropic.messages.create({
+      model: MODEL,
+      messages: [
+        { 
+          role: 'user', 
+          content: `You have processed a document in ${chunks.length} chunks. Please combine and revise the following outputs to create a coherent whole:\n\n${results.join("\n\n===CHUNK BOUNDARY===\n\n")}`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: maxTokens || 4000,
+    });
+    
+    return consolidationResponse.content[0].text;
+  }
+  
+  return results.join("\n\n");
 }

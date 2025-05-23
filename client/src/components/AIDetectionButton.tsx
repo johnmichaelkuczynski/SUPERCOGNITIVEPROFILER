@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Fingerprint, Loader2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
-interface AIDetectionResult {
+interface AIDetectionButtonProps {
+  selectedText: string;
+  onDetectionResult: (result: AIDetectionResult) => void;
+}
+
+export interface AIDetectionResult {
   aiProbability: number;
   humanProbability: number;
+  detailedAnalysis?: Array<{
+    sentence: string;
+    aiProbability: number;
+  }>;
   mostAISentence?: {
     sentence: string;
     aiProbability: number;
@@ -18,85 +24,32 @@ interface AIDetectionResult {
     sentence: string;
     aiProbability: number;
   };
-  error?: string;
 }
 
-export default function AIDetectionButton() {
-  const [selectedText, setSelectedText] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showDialog, setShowDialog] = useState(false);
-  const [result, setResult] = useState<AIDetectionResult | null>(null);
+export default function AIDetectionButton({ selectedText, onDetectionResult }: AIDetectionButtonProps) {
+  const [isDetecting, setIsDetecting] = useState(false);
   const { toast } = useToast();
 
-  const handleOpenDialog = async () => {
-    // Get the selected text if any
-    const selection = window.getSelection();
-    const selectedStr = selection ? selection.toString().trim() : '';
-    setSelectedText(selectedStr);
-    
-    // If there's selected text, immediately analyze it
-    if (selectedStr.length >= 100) {
-      setShowDialog(true);
-      setResult(null);
-      setIsAnalyzing(true);
-      
-      try {
-        const response = await fetch('/api/ai-detection', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text: selectedStr }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        setResult(data);
-      } catch (error) {
-        console.error('Error detecting AI content:', error);
-        setResult({
-          aiProbability: 0,
-          humanProbability: 0,
-          error: error instanceof Error ? error.message : 'Failed to analyze text'
-        });
-        
-        toast({
-          title: "Detection Failed",
-          description: "There was an error analyzing the text. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsAnalyzing(false);
-      }
-    } else if (selectedStr.length > 0 && selectedStr.length < 100) {
-      // If text is selected but too short
+  const runAIDetection = async () => {
+    if (!selectedText.trim()) {
       toast({
-        title: "Text too short",
-        description: "Please select at least 100 characters to analyze.",
-        variant: "destructive"
-      });
-    } else {
-      // No text selected, just open dialog for manual entry
-      setShowDialog(true);
-      setResult(null);
-    }
-  };
-
-  const analyzeText = async () => {
-    if (selectedText.length < 100) {
-      toast({
-        title: "Text too short",
-        description: "Please enter at least 100 characters to analyze.",
+        title: "No text selected",
+        description: "Please select some text to analyze for AI detection.",
         variant: "destructive"
       });
       return;
     }
-    
-    setIsAnalyzing(true);
-    setResult(null);
+
+    if (selectedText.length < 100) {
+      toast({
+        title: "Text too short",
+        description: "Please select at least 100 characters for accurate AI detection.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsDetecting(true);
     
     try {
       const response = await fetch('/api/ai-detection', {
@@ -108,132 +61,60 @@ export default function AIDetectionButton() {
       });
 
       if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+        throw new Error(`Error: ${response.status}`);
       }
 
-      const data = await response.json();
-      setResult(data);
-    } catch (error) {
-      console.error('Error detecting AI content:', error);
-      setResult({
-        aiProbability: 0,
-        humanProbability: 0,
-        error: error instanceof Error ? error.message : 'Failed to analyze text'
-      });
+      const result = await response.json();
+      onDetectionResult(result);
       
       toast({
+        title: "AI Detection Complete",
+        description: `Analysis shows ${Math.round(result.aiProbability * 100)}% probability of AI-generated content.`,
+      });
+    } catch (error) {
+      console.error('Error detecting AI content:', error);
+      toast({
         title: "Detection Failed",
-        description: "There was an error analyzing the selected text. Please try again.",
+        description: "Failed to analyze the selected text. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setIsAnalyzing(false);
+      setIsDetecting(false);
     }
   };
 
-  const getAILabel = (probability: number) => {
-    if (probability >= 0.8) return 'Very likely AI';
-    if (probability >= 0.6) return 'Likely AI';
-    if (probability >= 0.4) return 'Uncertain';
-    if (probability >= 0.2) return 'Likely human';
-    return 'Very likely human';
-  };
-
   return (
-    <>
-      <Button 
-        size="default" 
-        variant="default" 
-        className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2"
-        onClick={handleOpenDialog}
-      >
-        <Fingerprint className="h-5 w-5" />
-        <span className="font-medium">Detect AI</span>
-      </Button>
-      
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>AI Content Detection</DialogTitle>
-            <DialogDescription>
-              Paste or type text to analyze if it was written by AI
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 mt-2">
-            <Textarea
-              placeholder="Paste text to analyze (minimum 100 characters)"
-              className="min-h-[120px]"
-              value={selectedText}
-              onChange={(e) => setSelectedText(e.target.value)}
-            />
-            
-            <div className="flex justify-end">
-              <Button 
-                onClick={analyzeText}
-                disabled={isAnalyzing || selectedText.length < 100}
-                className="flex items-center gap-1"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Analyzing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Fingerprint className="h-4 w-4" />
-                    <span>Analyze Text</span>
-                  </>
-                )}
-              </Button>
-            </div>
-            
-            {isAnalyzing && (
-              <div className="flex flex-col items-center justify-center py-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                <p className="text-sm text-slate-500">Analyzing text...</p>
-              </div>
-            )}
-            
-            {result && !result.error && !isAnalyzing && (
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm font-medium">
-                    <span>AI Probability</span>
-                    <span className="font-bold">{Math.round(result.aiProbability * 100)}%</span>
-                  </div>
-                  <Progress value={result.aiProbability * 100} className="h-2" />
-                  <div className="flex justify-end">
-                    <Badge variant={result.aiProbability > 0.5 ? "destructive" : "outline"}>
-                      {getAILabel(result.aiProbability)}
-                    </Badge>
-                  </div>
-                </div>
-                
-                {result.mostAISentence && (
-                  <div className="text-sm">
-                    <p className="font-medium text-red-600 mb-1">Most AI-like sentence:</p>
-                    <p className="italic text-slate-700 bg-slate-100 p-2 rounded">"{result.mostAISentence.sentence}"</p>
-                  </div>
-                )}
-                
-                {result.mostHumanSentence && (
-                  <div className="text-sm">
-                    <p className="font-medium text-green-600 mb-1">Most human-like sentence:</p>
-                    <p className="italic text-slate-700 bg-slate-100 p-2 rounded">"{result.mostHumanSentence.sentence}"</p>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {result?.error && !isAnalyzing && (
-              <div className="text-red-600 p-2 bg-red-50 rounded border border-red-200 text-sm">
-                <p className="font-medium">Error: {result.error}</p>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-1 h-8"
+          disabled={isDetecting || !selectedText.trim()}
+        >
+          {isDetecting ? (
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          ) : (
+            <Fingerprint className="h-4 w-4 mr-1" />
+          )}
+          {isDetecting ? "Analyzing..." : "Detect AI"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="space-y-3">
+          <h4 className="font-medium">AI Detection</h4>
+          <p className="text-sm text-muted-foreground">
+            Analyze selected text to determine if it was written by AI or a human.
+          </p>
+          <Button 
+            onClick={runAIDetection} 
+            className="w-full"
+            disabled={isDetecting || !selectedText.trim()}
+          >
+            {isDetecting ? "Analyzing..." : "Run Detection"}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

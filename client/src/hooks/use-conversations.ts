@@ -84,20 +84,11 @@ export function useConversations() {
     };
   }, [queryClient]);
   
-  // Get all conversations - force enabled and refetch on mount
-  const { data: conversations, isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useQuery({
+  // Get all conversations
+  const { data: conversations, isLoading: conversationsLoading, error: conversationsError } = useQuery({
     queryKey: ['/api/conversations'],
-    retry: 3,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    staleTime: 0,
-    enabled: true
+    retry: false
   });
-  
-  // Force refetch conversations on initial load
-  useEffect(() => {
-    refetchConversations();
-  }, [refetchConversations]);
   
   // Get messages for the current conversation
   const { data: messages, isLoading: messagesLoading, error: messagesError } = useQuery({

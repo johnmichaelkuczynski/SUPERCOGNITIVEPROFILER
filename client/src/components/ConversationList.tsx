@@ -40,7 +40,7 @@ interface Conversation {
   id: number;
   title: string;
   model: string | null;
-  createdAt: string | Date | null;
+  createdAt: Date | null;
 }
 
 interface ConversationListProps {

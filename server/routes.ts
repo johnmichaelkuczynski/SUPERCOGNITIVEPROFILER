@@ -11,8 +11,6 @@ import { processDocument, extractText } from "./services/documentProcessor";
 import { generateAnalytics } from "./services/analytics";
 import { detectAIContent } from "./services/aiDetection";
 import { WebSocketServer } from 'ws';
-import { generateDocument } from "./services/documentExport";
-import { sendDocumentByEmail } from "./services/sendgrid";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -94,34 +92,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate a title based on the content
         const title = content.split('\n')[0].slice(0, 50) + (content.split('\n')[0].length > 50 ? '...' : '');
         
-        // Create a conversation to store this interaction
-        const conversation = await storage.createConversation({
-          userId,
-          title,
-          model,
-          contextDocumentIds: null,
-          metadata: null
-        });
-        
-        // Add user message to conversation
-        await storage.createMessage({
-          conversationId: conversation.id,
-          role: 'user',
-          content,
-          metadata: null,
-          documentReferences: null
-        });
-        
-        // Add AI response to conversation
-        await storage.createMessage({
-          conversationId: conversation.id,
-          role: 'assistant',
-          content: result,
-          metadata: null,
-          documentReferences: null
-        });
-        
-        // Also save as document for backwards compatibility
         await storage.createDocument({
           userId,
           title,
@@ -194,10 +164,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: JSON.stringify(aiMetadata)
       });
       
-      // Return both content and text for maximum compatibility
       res.json({ 
         content: extractedText,
-        text: extractedText,
         message: 'Document successfully processed and saved'
       });
     } catch (error) {
@@ -319,7 +287,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = 1; // Mock user ID for now
       const conversations = await storage.getConversationsByUserId(userId);
-      console.log(`Fetched ${conversations.length} conversations for user`, conversations);
       res.json(conversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -568,180 +535,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     socket.on('close', () => {
       console.log('Client disconnected from WebSocket');
     });
-  });
-
-  // Email document sharing route
-  app.post('/api/document/email', async (req: Request, res: Response) => {
-    try {
-      const { content, recipient, subject, format = 'txt' } = req.body;
-      
-      if (!content) {
-        return res.status(400).json({ message: 'Document content is required' });
-      }
-      
-      if (!recipient) {
-        return res.status(400).json({ message: 'Recipient email is required' });
-      }
-      
-      if (!process.env.SENDGRID_API_KEY) {
-        return res.status(500).json({ message: 'Email service is not configured' });
-      }
-      
-      // Default email settings
-      const fromEmail = 'noreply@textmind.app';
-      const documentTitle = subject || 'Your AI-Generated Document';
-      
-      // Send email with document attachment
-      await sendDocumentByEmail(
-        recipient,
-        fromEmail,
-        documentTitle,
-        content,
-        format as 'txt' | 'html'
-      );
-      
-      res.status(200).json({ 
-        message: 'Document sent successfully', 
-        recipient,
-        format 
-      });
-      
-    } catch (error) {
-      console.error('Error sending document via email:', error);
-      res.status(500).json({ message: 'Failed to send document via email' });
-    }
-  });
-  
-  // Document rewrite endpoint - dedicated for large document rewrites
-  app.post('/api/document/rewrite', async (req: Request, res: Response) => {
-    try {
-      // Import and use the dedicated document rewrite handler
-      const { rewriteDocument } = await import('./api/documentRewrite');
-      return rewriteDocument(req, res);
-      
-      if (typeof req.body === 'string') {
-        // If the body comes as a string, parse it
-        try {
-          const parsedBody = JSON.parse(req.body);
-          content = parsedBody.content;
-          instructions = parsedBody.instructions;
-          model = parsedBody.model;
-          documentName = parsedBody.documentName;
-          insights = parsedBody.insights;
-        } catch (e) {
-          console.error("Failed to parse request body:", e);
-          return res.status(400).json({ error: 'Invalid JSON in request body' });
-        }
-      } else {
-        // Normal JSON body
-        content = req.body.content;
-        instructions = req.body.instructions;
-        model = req.body.model;
-        documentName = req.body.documentName;
-        insights = req.body.insights;
-      }
-      
-      console.log("Document rewrite parameters:", { 
-        hasContent: !!content, 
-        contentLength: content ? content.length : 0,
-        hasInstructions: !!instructions 
-      });
-      
-      if (!content) {
-        return res.status(400).json({ error: 'Document content is required' });
-      }
-      
-      if (!instructions) {
-        return res.status(400).json({ error: 'Rewrite instructions are required' });
-      }
-      
-      // Build the prompt with detailed instructions on how to rewrite the document
-      let prompt = `I need you to rewrite the following document according to these specific instructions:
-
-INSTRUCTIONS:
-${instructions}
-
-${insights ? `ADDITIONAL INSIGHTS TO INCORPORATE:
-${insights}
-
-` : ''}DOCUMENT TO REWRITE:
-${content}
-
-Please maintain the document's core information while applying the requested changes. 
-Format the output in a clean, well-structured way. 
-Do not include any commentary or explanations about the rewriting process in your response.
-`;
-
-      let rewrittenContent = '';
-      
-      // Process using the appropriate model
-      switch (model) {
-        case 'gpt4':
-          rewrittenContent = await processGPT4(prompt, {
-            temperature: 0.7,
-            maxTokens: 12000
-          });
-          break;
-        
-        case 'perplexity':
-          rewrittenContent = await processPerplexity(prompt, {
-            temperature: 0.7,
-            maxTokens: 12000
-          });
-          break;
-        
-        case 'claude':
-        default:
-          rewrittenContent = await processClaude(prompt, {
-            temperature: 0.7,
-            maxTokens: 12000
-          });
-          break;
-      }
-      
-      return res.status(200).json({
-        content: rewrittenContent,
-        documentName: documentName || 'rewritten-document'
-      });
-      
-    } catch (error) {
-      console.error('Error rewriting document:', error);
-      return res.status(500).json({ error: 'Failed to rewrite document' });
-    }
-  });
-  
-  // Enhanced document export route with proper PDF and Word document generation
-  app.post('/api/document/export', async (req: Request, res: Response) => {
-    try {
-      const { content, format = 'txt', filename = 'document' } = req.body;
-      
-      if (!content) {
-        return res.status(400).json({ message: 'Content is required' });
-      }
-      
-      // Clean filename to avoid issues
-      const cleanFilename = filename.replace(/[^a-zA-Z0-9-_\.]/g, '_');
-      const finalFilename = cleanFilename.includes(`.${format}`) ? cleanFilename : `${cleanFilename}.${format}`;
-      
-      console.log(`Exporting document in ${format} format as: ${finalFilename}`);
-      
-      // Generate document in requested format
-      const document = generateDocument(content, format as 'txt' | 'html' | 'docx' | 'pdf');
-      
-      // Set headers for file download for other formats
-      res.setHeader('Content-Type', document.mimeType);
-      res.setHeader('Content-Disposition', `attachment; filename="${finalFilename}"`);
-      
-      // Send the formatted document as the response
-      res.send(document.content);
-      
-    } catch (error) {
-      console.error('Error generating document export:', error);
-      res.status(500).json({ 
-        message: 'Failed to export document',
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
   });
 
   return httpServer;
