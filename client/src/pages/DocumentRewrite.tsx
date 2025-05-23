@@ -260,25 +260,35 @@ export default function DocumentRewrite() {
     setIsProcessing(true);
     
     try {
-      // Prepare the request
-      const formData = new FormData();
-      formData.append('content', `Please rewrite the following document according to these instructions: ${settings.instructions}`);
-      formData.append('model', settings.model);
-      formData.append('documentContent', document.content);
-      formData.append('documentName', document.name);
-      formData.append('detectionProtection', settings.detectionProtection.toString());
+      console.log("Sending rewrite request with document:", document.name, "content length:", document.content.length);
       
-      // Make API request to rewrite
+      // Make API request to rewrite using JSON instead of FormData
       const response = await fetch('/api/rewrite-document', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: `Please rewrite the following document according to these instructions: ${settings.instructions}`,
+          model: settings.model,
+          documentContent: document.content,
+          documentName: document.name,
+          detectionProtection: settings.detectionProtection
+        })
       });
       
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Server response:", response.status, errorData);
+        throw new Error(`Server error: ${errorData.error || response.statusText || response.status}`);
       }
       
       const data = await response.json();
+      
+      if (!data || !data.content) {
+        throw new Error("The server returned an empty response");
+      }
+      
       setRewrittenContent(data.content);
       
       // Automatically switch to the review tab
@@ -292,7 +302,7 @@ export default function DocumentRewrite() {
       console.error('Error rewriting document:', error);
       toast({
         title: "Rewrite Failed",
-        description: "Failed to rewrite the document. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to rewrite the document. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -542,15 +552,34 @@ export default function DocumentRewrite() {
                       <div className="font-medium">{document.name}</div>
                       <div className="text-sm text-slate-500 mt-1">{formatBytes(document.size)}</div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isProcessing || isUploading}
-                    >
-                      <FilePlus className="h-4 w-4 mr-1" />
-                      Change
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setDocument(null);
+                          setOriginalDocument(null);
+                          sessionStorage.removeItem('recentlyUploadedFile');
+                          toast({
+                            title: "Document Cleared",
+                            description: "You can now upload a new document."
+                          });
+                        }}
+                        disabled={isProcessing || isUploading}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Clear
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isProcessing || isUploading}
+                      >
+                        <FilePlus className="h-4 w-4 mr-1" />
+                        Change
+                      </Button>
+                    </div>
                   </div>
                   <div className="mt-3">
                     <div className="text-sm text-slate-700 max-h-96 overflow-y-auto border rounded-md p-3 bg-white">
