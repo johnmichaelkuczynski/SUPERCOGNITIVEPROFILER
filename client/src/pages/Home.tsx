@@ -33,6 +33,9 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
+  // Tabs state
+  const [activeTab, setActiveTab] = useState<string>('chat');
+  
   // Scroll to bottom whenever messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -102,50 +105,56 @@ export default function Home() {
         role: 'assistant',
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, loadingMessage]);
       
-      const res = await fetch('/api/llm/prompt', {
+      const response = await fetch('/api/llm/prompt', {
         method: 'POST',
         body: formData,
-        signal: controller.signal // Add abort signal
+        signal: controller.signal
       });
       
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error('Failed to process request');
       }
       
-      const data = await res.json();
+      const data = await response.json();
       
-      // Replace loading message with actual response
-      setMessages(prev => prev.filter(msg => msg.id !== loadingMessageId));
+      // Replace the loading message with the actual response
+      setMessages(prev => prev.map(msg => 
+        msg.id === loadingMessageId 
+          ? { ...msg, content: data.content } 
+          : msg
+      ));
       
-      // Add AI response to messages
-      const aiMessage: Message = {
-        id: Date.now() + 2,
-        content: data.content,
-        role: 'assistant',
-        timestamp: new Date()
-      };
+      // Clear uploaded files after processing
+      setFiles([]);
       
-      setMessages(prev => [...prev, aiMessage]);
-      setFiles([]); // Clear files after successful response
     } catch (error) {
-      console.error('Error processing request:', error);
-      
-      // Check if this was an abort error
       if ((error as Error).name === 'AbortError') {
-        // Don't add an error message for user-initiated cancellations
-        console.log('Request was cancelled by user');
-      } else {
-        // Add error message for real errors
-        const errorMessage: Message = {
-          id: Date.now() + 3,
-          content: 'Error: Failed to get a response. Please try again.',
+        console.log('Request was cancelled');
+        // Remove the loading message
+        setMessages(prev => prev.filter(msg => msg.id !== (Date.now() + 1)));
+        
+        // Add a cancellation message
+        setMessages(prev => [...prev, {
+          id: Date.now() + 2,
+          content: 'Request was cancelled.',
           role: 'assistant',
           timestamp: new Date()
-        };
+        }]);
+      } else {
+        console.error('Error processing request:', error);
         
-        setMessages(prev => [...prev, errorMessage]);
+        // Replace loading message with error message
+        setMessages(prev => prev.map(msg => 
+          msg.id === (Date.now() + 1)
+            ? { 
+                ...msg, 
+                content: 'Sorry, there was an error processing your request. Please try again.' 
+              } 
+            : msg
+        ));
       }
     } finally {
       setIsLoading(false);
@@ -153,215 +162,74 @@ export default function Home() {
       setCurrentRequest(null);
     }
   };
-
-  // Cancel any ongoing request
-  const cancelRequest = () => {
-    console.log("Cancelling request...");
-    
-    // Only try to abort if there's an active request
-    if (currentRequest) {
-      try {
-        currentRequest.abort();
-        console.log("Request aborted successfully");
-      } catch (e) {
-        console.error("Error aborting request:", e);
-      }
-    }
-    
-    // Reset all state related to processing
-    setIsLoading(false);
-    setIsProcessing(false);
-    setCurrentRequest(null);
-    
-    // Add cancellation message
-    const cancelMessage: Message = {
-      id: Date.now(),
-      content: '⚠️ Processing cancelled. You can start a new chat or upload another document.',
-      role: 'assistant',
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, cancelMessage]);
-  };
   
-  // Handle Enter key press
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Allow submission on Enter if either there's text OR files have been uploaded
-    if (e.key === 'Enter' && !e.shiftKey && (prompt.trim() || files.length > 0)) {
-      e.preventDefault();
-      handleProcessRequest();
-    }
-  };
-  
-  // File upload handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFiles = Array.from(e.target.files);
-      
-      // Clear any previously staged files since we're processing immediately
-      setFiles([]);
-      
-      // Process each file individually immediately upon upload
-      selectedFiles.forEach(file => {
-        // Process this individual file immediately
-        processIndividualFile(file);
-      });
-      
-      // Reset the input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-  
-  // Process a single file with AI
-  const processIndividualFile = async (file: File) => {
-    try {
-      setIsLoading(true);
-      
-      // Create a message showing we're processing this file
-      const userMessage: Message = {
-        id: Date.now(),
-        content: `Please analyze this document: ${file.name}`,
-        role: 'user',
-        timestamp: new Date(),
-        files: [file]
-      };
-      
-      setMessages(prev => [...prev, userMessage]);
-      
-      // Create form data
-      const formData = new FormData();
-      formData.append('content', `Please analyze this document: ${file.name}`);
-      formData.append('model', selectedModel);
-      formData.append('stream', 'false');
-      formData.append('temperature', '0.7');
-      formData.append('files', file);
-      
-      // Add conversation history to keep context
-      const conversationContext = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-      
-      formData.append('conversation_history', JSON.stringify(conversationContext));
-      
-      // Make the API call
-      const res = await fetch('/api/llm/prompt', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!res.ok) {
-        throw new Error('Failed to process document');
-      }
-      
-      const data = await res.json();
-      
-      // Add AI response to messages
-      const aiMessage: Message = {
-        id: Date.now() + 1,
-        content: data.content,
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error processing file:', error);
-      
-      // Add error message
-      const errorMessage: Message = {
-        id: Date.now() + 1,
-        content: `Error processing document: ${file.name}. Please try again.`,
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles(prev => [...prev, ...newFiles]);
     }
   };
   
   const handleRemoveFile = (index: number) => {
-    const newFiles = [...files];
-    newFiles.splice(index, 1);
-    setFiles(newFiles);
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
   
-  const clearChat = () => {
-    setPrompt('');
-    setMessages([]);
-    setFiles([]);
-    setIsLoading(false);
-    setIsProcessing(false);
-    // Cancel any ongoing request
+  const cancelRequest = () => {
     if (currentRequest) {
-      try {
-        currentRequest.abort();
-      } catch (e) {
-        console.error("Error aborting request:", e);
-      }
-      setCurrentRequest(null);
+      currentRequest.abort();
     }
   };
   
-  const renderMessageContent = (content: string) => {
-    // If content is extremely large (over 50,000 characters), truncate it for display
-    const isVeryLarge = content.length > 50000;
-    const displayContent = isVeryLarge 
-      ? content.substring(0, 50000) + "...\n\n**Note:** This document is very large ("+content.length+" characters). The full content is available for download."
-      : content;
-      
+  const clearChat = () => {
+    setMessages([]);
+    setFiles([]);
+    setPrompt('');
+  };
+  
+  // Render message bubble with optional file attachments
+  const renderMessage = (message: Message) => {
     return (
-      <div className="prose dark:prose-invert prose-sm max-w-none">
-        <ReactMarkdown
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkMath]}
+      <div 
+        key={message.id}
+        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+      >
+        <div 
+          className={`max-w-[80%] p-3 rounded-lg
+            ${message.role === 'user' 
+              ? 'bg-blue-600 text-white ml-12' 
+              : 'bg-gray-200 text-gray-800 mr-12'
+            }`}
         >
-          {displayContent}
-        </ReactMarkdown>
-        
-        {/* Document export options - show for all messages over 1000 characters or very large documents */}
-        {(isVeryLarge || content.length > 1000) && (
-          <div className="mt-4 flex space-x-2 items-center">
-            {isVeryLarge && (
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => {
-                  // Create and download text file with full content
-                  const blob = new Blob([content], { type: 'text/plain' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'full_document.txt';
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }}
+          {message.files && message.files.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {message.files.map((file, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center bg-white/10 text-xs rounded px-2 py-1"
+                >
+                  <FileText className="h-3 w-3 mr-1" />
+                  <span className="truncate max-w-[100px]">{file.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {message.role === 'assistant' ? (
+            <div className="prose prose-slate dark:prose-invert max-w-none">
+              <ReactMarkdown 
+                remarkPlugins={[remarkMath]}
+                rehypePlugins={[rehypeKatex]}
               >
-                Download Full Document
-              </Button>
-            )}
-            
-            {/* Advanced export and email options */}
-            <DocumentExportButtons 
-              content={content} 
-              filename={`document_${new Date().toISOString().split('T')[0]}`} 
-            />
-          </div>
-        )}
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          )}
+        </div>
       </div>
     );
   };
-
-  // Document rewrite functions removed
-
-  // State for document rewrite tab
-  const [activeTab, setActiveTab] = useState<string>('chat');
 
   return (
     <main className="container mx-auto px-4 py-6">
@@ -386,7 +254,7 @@ export default function Home() {
       </div>
       
       {/* Add a prominent cancellation bar at the top when processing */}
-      {isProcessing && (
+      {isProcessing && activeTab === 'chat' && (
         <div className="bg-red-100 p-3 mb-4 rounded-lg flex justify-between items-center">
           <div className="flex items-center">
             <div className="animate-spin mr-2">⏳</div>
@@ -402,215 +270,169 @@ export default function Home() {
         </div>
       )}
       
-      <div className="grid grid-cols-1 gap-6">
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">Model Selection</CardTitle>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={clearChat}
-                  className="hover:bg-blue-100"
-                >
-                  New Chat
-                </Button>
-                
-                {messages.length > 0 && (
+      {/* Tab content */}
+      {activeTab === 'chat' ? (
+        /* Chat Tab */
+        <div className="grid grid-cols-1 gap-6">
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg">Model Selection</CardTitle>
+                <div className="flex space-x-2">
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="sm" 
                     onClick={clearChat}
-                    className="text-muted-foreground hover:text-red-500"
+                    className="hover:bg-blue-100"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Clear Chat
+                    New Chat
                   </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                variant={selectedModel === 'claude' ? 'default' : 'outline'} 
-                onClick={() => setSelectedModel('claude')}
-              >
-                Claude
-              </Button>
-              <Button 
-                variant={selectedModel === 'gpt4' ? 'default' : 'outline'} 
-                onClick={() => setSelectedModel('gpt4')}
-              >
-                GPT-4
-              </Button>
-              <Button 
-                variant={selectedModel === 'perplexity' ? 'default' : 'outline'} 
-                onClick={() => setSelectedModel('perplexity')}
-              >
-                Perplexity
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm flex flex-col" style={{ minHeight: '600px' }}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Conversation</CardTitle>
-          </CardHeader>
-          
-          <ScrollArea className="flex-1 p-4 pb-0">
-            <div className="space-y-6">
-              {messages.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>Your conversation will appear here</p>
-                  <p className="text-sm">Start typing below to chat with the AI</p>
-                </div>
-              ) : (
-                messages.map((message) => (
-                  <div key={message.id} className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">
-                        {message.role === "user" ? "You" : "AI"}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    
-                    <Card className={`${
-                      message.role === "user" 
-                        ? "bg-primary-foreground" 
-                        : "bg-card"
-                    }`}>
-                      <CardContent className="p-4">
-                        {renderMessageContent(message.content)}
-                        
-                        {/* Display files attached to user messages */}
-                        {message.files && message.files.length > 0 && (
-                          <div className="mt-3 border-t pt-3">
-                            <p className="text-xs font-medium mb-2">Attached files:</p>
-                            <div className="space-y-1">
-                              {message.files.map((file, index) => (
-                                <div key={index} className="flex items-center text-xs">
-                                  <FileText className="h-3 w-3 mr-1 text-blue-500" />
-                                  <span className="truncate">{file.name}</span>
-                                  <span className="ml-1 text-muted-foreground">({formatBytes(file.size)})</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))
-              )}
-              
-              {isLoading && (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">AI</span>
-                  </div>
                   
-                  <Card>
-                    <CardContent className="p-4 flex items-center justify-center py-12">
-                      <div className="flex flex-col items-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"></div>
-                        <p className="text-muted-foreground">AI is thinking...</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-          
-          <Separator className="mt-auto" />
-          
-          <div className="p-4">
-            <div className="space-y-4">
-              <div className="flex space-x-4">
-                <textarea 
-                  ref={textareaRef}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-1 min-h-[100px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Type your question or prompt here and press Enter to send..."
-                  disabled={isLoading}
-                  rows={3}
-                />
-                <Button 
-                  onClick={handleProcessRequest} 
-                  size="icon"
-                  disabled={isLoading || (!prompt.trim() && files.length === 0)}
-                >
-                  {isLoading ? (
-                    <div className="animate-spin h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
-                  ) : (
-                    <Send className="h-4 w-4" />
+                  {messages.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={clearChat}
+                      className="text-muted-foreground hover:text-red-500"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Clear Chat
+                    </Button>
                   )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant={selectedModel === 'claude' ? 'default' : 'outline'} 
+                  onClick={() => setSelectedModel('claude')}
+                >
+                  Claude
+                </Button>
+                <Button 
+                  variant={selectedModel === 'gpt4' ? 'default' : 'outline'} 
+                  onClick={() => setSelectedModel('gpt4')}
+                >
+                  GPT-4
+                </Button>
+                <Button 
+                  variant={selectedModel === 'perplexity' ? 'default' : 'outline'} 
+                  onClick={() => setSelectedModel('perplexity')}
+                >
+                  Perplexity
                 </Button>
               </div>
               
-              {/* File Upload UI */}
-              <div>
-                <div 
-                  className="border-2 border-dashed rounded-lg p-3 text-center cursor-pointer hover:bg-slate-50"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4 mx-auto text-slate-400 mb-1" />
-                  <p className="text-xs text-slate-600">Upload files for context</p>
-                  <p className="text-xs text-slate-500">PDF, DOCX, TXT, JPG, PNG</p>
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    multiple 
-                    accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
-                  />
-                </div>
-                
-                {files.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {files.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-slate-100 rounded-lg px-2 py-1 text-xs">
-                        <div className="flex items-center gap-1 overflow-hidden">
-                          <FileText className="h-3 w-3 text-blue-500" />
-                          <span className="truncate">{file.name}</span>
-                          <span className="text-xs text-slate-500 whitespace-nowrap">({formatBytes(file.size)})</span>
-                        </div>
-                        <button 
-                          className="text-slate-500 hover:text-red-500 flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFile(index);
-                          }}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
+              {/* Message History */}
+              <div className="mt-6">
+                <ScrollArea className="h-[500px] pr-4">
+                  <div className="space-y-4">
+                    {messages.map(renderMessage)}
+                    <div ref={messagesEndRef} />
                   </div>
-                )}
+                </ScrollArea>
               </div>
               
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                  Press Enter to send, Shift+Enter for new line
-                </p>
+              <Separator className="my-4" />
+              
+              {/* Input Area */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <textarea
+                    className="min-h-[80px] resize-none w-full rounded-md border border-input p-3 pr-12 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder="Ask a question or send a document..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    ref={textareaRef}
+                    disabled={isLoading}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleProcessRequest();
+                      }
+                    }}
+                  />
+                  <Button
+                    size="icon"
+                    className="absolute right-1 top-1 h-8 w-8"
+                    disabled={isLoading || (!prompt.trim() && files.length === 0)}
+                    onClick={handleProcessRequest}
+                  >
+                    {isLoading ? (
+                      <span className="animate-spin">⏳</span>
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
                 
-                {/* Document tools removed */}
+                {/* File Upload UI */}
+                <div>
+                  <div 
+                    className="border-2 border-dashed rounded-lg p-3 text-center cursor-pointer hover:bg-slate-50"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mx-auto text-slate-400 mb-1" />
+                    <p className="text-xs text-slate-600">Upload files for context</p>
+                    <p className="text-xs text-slate-500">PDF, DOCX, TXT, JPG, PNG</p>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      multiple 
+                      accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                    />
+                  </div>
+                  
+                  {files.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {files.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-slate-100 rounded-lg px-2 py-1 text-xs">
+                          <div className="flex items-center gap-1 overflow-hidden">
+                            <FileText className="h-3 w-3 text-blue-500" />
+                            <span className="truncate">{file.name}</span>
+                            <span className="text-xs text-slate-500 whitespace-nowrap">({formatBytes(file.size)})</span>
+                          </div>
+                          <button 
+                            className="text-slate-500 hover:text-red-500 flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFile(index);
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Press Enter to send, Shift+Enter for new line
+                  </p>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        /* Document Rewrite Tab */
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Document Rewriter</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DocumentRewriteTab
+              selectedModel={selectedModel}
+              messages={messages}
+            />
+          </CardContent>
         </Card>
-      </div>
+      )}
     </main>
   );
 }
