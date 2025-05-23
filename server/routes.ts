@@ -10,7 +10,9 @@ import { processPerplexity } from "./services/perplexity";
 import { processDocument, extractText } from "./services/documentProcessor";
 import { generateAnalytics } from "./services/analytics";
 import { detectAIContent } from "./services/aiDetection";
+import { rewriteDocument } from "./services/documentRewriter";
 import { WebSocketServer } from 'ws';
+import sgMail from '@sendgrid/mail';
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -389,6 +391,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Document Rewriter API Endpoints
+  app.post('/api/rewrite-document', upload.none(), async (req: Request, res: Response) => {
+    try {
+      const { content, model, documentContent, documentName, detectionProtection } = req.body;
+      
+      if (!documentContent || !documentName || !model) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      const rewriteOptions = {
+        model: model as 'claude' | 'gpt4' | 'perplexity',
+        instructions: content.replace('Please rewrite the following document according to these instructions: ', ''),
+        detectionProtection: detectionProtection === 'true'
+      };
+      
+      const rewrittenContent = await rewriteDocument(
+        documentContent,
+        documentName,
+        rewriteOptions
+      );
+      
+      res.json({ 
+        content: rewrittenContent,
+        documentName,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error rewriting document:', error);
+      res.status(500).json({ error: 'Failed to rewrite document' });
+    }
+  });
+
+  // Document Download API
+  app.post('/api/download', async (req: Request, res: Response) => {
+    try {
+      const { content, format, filename } = req.body;
+      
+      if (!content || !format || !filename) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      // For simplicity, we'll just return the content as plain text for now
+      // In a production app, we would use libraries like docx or pdfkit to create
+      // proper document formats
+      
+      let contentType = 'text/plain';
+      let fileExtension = 'txt';
+      
+      if (format === 'docx') {
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        fileExtension = 'docx';
+        
+        // Here we would use a library like docx to create a Word document
+        // For now, we'll just set the content type
+      } else if (format === 'pdf') {
+        contentType = 'application/pdf';
+        fileExtension = 'pdf';
+        
+        // Here we would use a library like pdfkit to create a PDF document
+        // For now, we'll just set the content type
+      }
+      
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}.${fileExtension}`);
+      
+      // For now, just return the plain text content
+      // In a production app, we would convert to the actual format requested
+      res.send(content);
+    } catch (error) {
+      console.error('Error generating document for download:', error);
+      res.status(500).json({ error: 'Failed to generate downloadable document' });
+    }
+  });
+
+  // Email Sharing API using SendGrid
+  app.post('/api/share-document', async (req: Request, res: Response) => {
+    try {
+      // Check if SendGrid API key is available
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ error: 'SendGrid API key is not configured' });
+      }
+      
+      // Set the API key
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      
+      const { content, recipient, documentName, format = 'pdf' } = req.body;
+      
+      if (!content || !recipient || !documentName) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      // Create the email message
+      const msg = {
+        to: recipient,
+        from: 'document-rewriter@example.com', // Should be a verified sender in SendGrid
+        subject: `Rewritten Document: ${documentName}`,
+        text: `Hello,\n\nHere is the rewritten document "${documentName}" you requested.\n\nThe content is attached to this email.`,
+        html: `<p>Hello,</p><p>Here is the rewritten document <strong>${documentName}</strong> you requested.</p><p>The content is attached to this email.</p>`,
+        attachments: [
+          {
+            content: Buffer.from(content).toString('base64'),
+            filename: `${documentName.split('.')[0]}-rewritten.${format}`,
+            type: format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            disposition: 'attachment'
+          }
+        ]
+      };
+      
+      // Send the email
+      await sgMail.send(msg);
+      
+      res.json({ success: true, message: 'Document shared successfully' });
+    } catch (error) {
+      console.error('Error sharing document via email:', error);
+      res.status(500).json({ 
+        error: 'Failed to share document',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+  
   // Setup HTTP server and WebSocket
   const httpServer = createServer(app);
   
