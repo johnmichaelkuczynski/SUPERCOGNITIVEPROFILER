@@ -46,24 +46,38 @@ interface AIDetectionResult {
   error?: string;
 }
 
-// Check if a document is already in the conversation from localStorage
+// Check if a document is already in the conversation from localStorage or in session storage
 const getLastUploadedDocument = (): Document | null => {
   try {
-    const conversationsString = localStorage.getItem('conversations');
-    if (!conversationsString) return null;
-    
-    const conversations = JSON.parse(conversationsString);
-    const currentConversationId = localStorage.getItem('currentConversationId');
-    
-    if (!currentConversationId) return null;
-    
-    const currentConversation = conversations.find((c: any) => c.id.toString() === currentConversationId);
-    if (!currentConversation || !currentConversation.documents || !currentConversation.documents.length) {
-      return null;
+    // First check if there's a recently uploaded file in session storage
+    const recentFileString = sessionStorage.getItem('recentlyUploadedFile');
+    if (recentFileString) {
+      return JSON.parse(recentFileString);
     }
     
-    const lastDocument = currentConversation.documents[currentConversation.documents.length - 1];
-    return lastDocument;
+    // Next try to get from local storage recent documents
+    const recentDocString = localStorage.getItem('recentDocument');
+    if (recentDocString) {
+      return JSON.parse(recentDocString);
+    }
+    
+    // Look for recently uploaded files from API
+    const filesString = localStorage.getItem('uploadedFiles');
+    if (filesString) {
+      const files = JSON.parse(filesString);
+      if (files && files.length > 0) {
+        // Get the most recent file
+        const lastFile = files[files.length - 1];
+        return {
+          id: lastFile.id || Date.now().toString(),
+          name: lastFile.name,
+          content: lastFile.content || lastFile.text,
+          size: lastFile.size || (lastFile.content ? lastFile.content.length : 0)
+        };
+      }
+    }
+    
+    return null;
   } catch (error) {
     console.error('Error getting last uploaded document:', error);
     return null;
@@ -92,8 +106,18 @@ export default function DocumentRewrite() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Load the last document from conversation on initial load
+  // Store the conversation ID to return to
+  const [previousConversationId, setPreviousConversationId] = useState<string | null>(null);
+
+  // Load the last document from conversation on initial load and save previous conversation ID
   useEffect(() => {
+    // Save the current conversation ID to return to later
+    const currentConversationId = localStorage.getItem('currentConversationId');
+    if (currentConversationId) {
+      setPreviousConversationId(currentConversationId);
+    }
+    
+    // Get the last document
     const lastDocument = getLastUploadedDocument();
     if (lastDocument) {
       setDocument(lastDocument);
@@ -394,7 +418,19 @@ export default function DocumentRewrite() {
         <Button 
           variant="outline"
           size="sm"
-          onClick={() => setLocation('/')}
+          onClick={() => {
+            // Return to the previous conversation if available
+            if (previousConversationId) {
+              // Set the current conversation ID before navigating
+              localStorage.setItem('currentConversationId', previousConversationId);
+              
+              // If we have a conversation ID, go to that specific conversation
+              setLocation(`/conversation/${previousConversationId}`);
+            } else {
+              // Otherwise just go to the home page
+              setLocation('/');
+            }
+          }}
           className="mr-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
