@@ -16,7 +16,7 @@ interface DocumentExportButtonsProps {
 export default function DocumentExportButtons({ content, filename = 'document' }: DocumentExportButtonsProps) {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'txt' | 'html' | 'docx' | 'md' | 'json'>('txt');
+  const [exportFormat, setExportFormat] = useState<'txt' | 'html' | 'docx' | 'pdf' | 'md' | 'json'>('txt');
   const [exportFilename, setExportFilename] = useState(filename);
   const [emailRecipient, setEmailRecipient] = useState('');
   const [emailSubject, setEmailSubject] = useState('Your AI-Generated Document');
@@ -160,6 +160,8 @@ export default function DocumentExportButtons({ content, filename = 'document' }
         return <FileText className="h-5 w-5" />;
       case 'docx':
         return <FileDown className="h-5 w-5" />;
+      case 'pdf':
+        return <FileDown className="h-5 w-5" />;
       default:
         return <FileText className="h-5 w-5" />;
     }
@@ -194,6 +196,7 @@ export default function DocumentExportButtons({ content, filename = 'document' }
                   <SelectItem value="txt">Text (.txt)</SelectItem>
                   <SelectItem value="html">HTML (.html)</SelectItem>
                   <SelectItem value="docx">Word (.docx)</SelectItem>
+                  <SelectItem value="pdf">PDF (.pdf)</SelectItem>
                   <SelectItem value="md">Markdown (.md)</SelectItem>
                   <SelectItem value="json">JSON (.json)</SelectItem>
                 </SelectContent>
