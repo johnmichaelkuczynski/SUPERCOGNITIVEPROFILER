@@ -41,13 +41,36 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     // Make sure from is never undefined
     const from = params.from || "noreply@example.com";
     
+    // Add detailed logging
+    console.log('SendGrid params:', {
+      to: params.to,
+      from: from,
+      subject: params.subject,
+      hasText: !!params.text,
+      hasHtml: !!params.html,
+      hasAttachments: !!(params.attachments && params.attachments.length > 0)
+    });
+    
+    // Ensure attachments is properly formatted for SendGrid
+    const attachments = params.attachments && params.attachments.length > 0 
+      ? params.attachments.map(attachment => ({
+          content: attachment.content,
+          filename: attachment.filename,
+          type: attachment.type,
+          disposition: attachment.disposition || 'attachment'
+        }))
+      : undefined;
+    
+    // Reset API key before sending (might help with token expiration issues)
+    mailService.setApiKey(process.env.SENDGRID_API_KEY);
+    
     await mailService.send({
       to: params.to,
       from: from,
       subject: params.subject,
-      text: params.text || "",
-      html: params.html || "",
-      attachments: params.attachments
+      text: params.text || "Please see the attached document.",
+      html: params.html || "<p>Please see the attached document.</p>",
+      attachments: attachments
     });
     
     console.log(`Email sent successfully to ${params.to}`);
@@ -55,6 +78,12 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   } catch (error) {
     // More detailed error logging
     console.error('Error sharing document via email:', error);
-    throw error; // Rethrow to see the full error in logs
+    console.error('Error details:', error instanceof Error ? error.message : String(error));
+    
+    if (error instanceof Error && error.message.includes('forbidden')) {
+      console.error('This error might be related to using an unverified sender address. Make sure to use a verified sender in SendGrid.');
+    }
+    
+    return false; // Return false instead of throwing to handle gracefully
   }
 }

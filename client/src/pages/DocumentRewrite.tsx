@@ -456,8 +456,8 @@ export default function DocumentRewrite() {
     try {
       console.log("Sending email with params:", {
         content: rewrittenContent ? rewrittenContent.substring(0, 50) + "..." : "missing",
-        recipientEmail,
-        senderEmail,
+        recipient: emailRecipient,
+        sender: senderEmail,
         documentName: document?.name || 'Document'
       });
       
@@ -1022,8 +1022,11 @@ export default function DocumentRewrite() {
                       value={senderEmail}
                       onChange={(e) => setSenderEmail(e.target.value)}
                     />
+                    <p className="text-xs text-red-600 font-medium mt-1">
+                      Important: This MUST be a verified sender email in your SendGrid account.
+                    </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      This must be a verified sender email in your SendGrid account
+                      You can verify a sender address in your SendGrid dashboard.
                     </p>
                   </div>
                   <Button 
