@@ -637,6 +637,8 @@ YOUR REWRITTEN DOCUMENT:`;
   // Email Sharing API using SendGrid
   app.post('/api/share-document', async (req: Request, res: Response) => {
     try {
+      console.log("Email sharing request received:", req.body);
+      
       // Get parameters from request
       const { content, recipient, to, documentName, format = 'pdf', senderEmail, from } = req.body;
       
@@ -644,8 +646,23 @@ YOUR REWRITTEN DOCUMENT:`;
       const recipientEmail = to || recipient;
       const senderEmailAddress = from || senderEmail;
       
-      if (!content || !recipientEmail || !documentName) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+      console.log("Email params extracted:", { 
+        recipientEmail, 
+        senderEmailAddress, 
+        hasContent: !!content, 
+        documentName 
+      });
+      
+      if (!content) {
+        return res.status(400).json({ error: 'Missing content parameter' });
+      }
+      
+      if (!recipientEmail) {
+        return res.status(400).json({ error: 'Missing recipient email parameter' });
+      }
+      
+      if (!documentName) {
+        return res.status(400).json({ error: 'Missing document name parameter' });
       }
       
       if (!senderEmailAddress) {

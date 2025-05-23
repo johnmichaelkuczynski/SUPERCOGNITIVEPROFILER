@@ -454,13 +454,20 @@ export default function DocumentRewrite() {
     setIsSending(true);
     
     try {
+      console.log("Sending email with params:", {
+        content: rewrittenContent ? rewrittenContent.substring(0, 50) + "..." : "missing",
+        recipientEmail,
+        senderEmail,
+        documentName: document?.name || 'Document'
+      });
+      
       const response = await fetch('/api/share-document', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: rewrittenContent,
-          to: emailRecipient,
-          from: senderEmail,
+          recipient: emailRecipient,
+          senderEmail: senderEmail,
           documentName: document?.name || 'Document',
           format: 'pdf' // Default format for sharing
         }),
