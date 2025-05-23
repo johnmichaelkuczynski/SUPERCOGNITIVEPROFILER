@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2 } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ReactMarkdown from 'react-markdown';
@@ -10,6 +10,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 import AIDetectionPopover from '@/components/AIDetectionPopover';
+import { useLocation } from 'wouter';
 
 interface Message {
   id: number;
@@ -29,6 +30,7 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [, setLocation] = useLocation();
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -291,6 +293,17 @@ export default function Home() {
               >
                 Perplexity
               </Button>
+              
+              <div className="w-full mt-4 flex justify-center">
+                <Button 
+                  variant="secondary"
+                  className="flex items-center gap-2"
+                  onClick={() => setLocation('/document-rewrite')}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Rewrite Large Document
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
