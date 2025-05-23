@@ -55,8 +55,18 @@ export default function LargeDocumentRewrite({
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          setDocumentContent(event.target.result as string);
+          const content = event.target.result as string;
+          setDocumentContent(content);
+          console.log("Document loaded successfully:", file.name, "Content length:", content.length);
         }
+      };
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+        toast({
+          title: "Error reading file",
+          description: "Could not read the uploaded file. Please try again.",
+          variant: "destructive"
+        });
       };
       reader.readAsText(file);
     }
@@ -64,7 +74,7 @@ export default function LargeDocumentRewrite({
   
   // Handle document rewrite request
   const handleRewriteRequest = async () => {
-    if (!documentContent) {
+    if (!documentContent || documentContent === "Loading...") {
       toast({
         title: "No document content",
         description: "Please upload a document or use the last uploaded document from your conversation.",
@@ -85,26 +95,34 @@ export default function LargeDocumentRewrite({
     setIsProcessing(true);
     
     try {
-      // Prepare the request with all necessary information
-      const formData = new FormData();
-      formData.append('content', documentContent);
-      formData.append('instructions', rewriteInstructions);
-      formData.append('model', selectedModel);
-      formData.append('documentName', documentName);
+      console.log("Sending document for rewrite:", {
+        documentName,
+        contentLength: documentContent.length,
+        instructions: rewriteInstructions
+      });
       
-      // Include conversation insights if requested
-      if (includeConversationInsights && conversationInsights) {
-        formData.append('insights', conversationInsights);
-      }
+      // Directly create JSON payload instead of FormData for better error handling
+      const payload = {
+        content: documentContent,
+        instructions: rewriteInstructions,
+        model: selectedModel,
+        documentName: documentName,
+        insights: includeConversationInsights ? conversationInsights : ''
+      };
       
-      // Make the API call
+      // Make the API call with JSON
       const response = await fetch('/api/document/rewrite', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
       
       if (!response.ok) {
-        throw new Error('Failed to rewrite document');
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Failed to rewrite document: ${errorText}`);
       }
       
       const data = await response.json();
