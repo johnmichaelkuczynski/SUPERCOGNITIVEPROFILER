@@ -582,17 +582,17 @@ export default function DocumentRewrite() {
                     </div>
                   </div>
                   <div className="mt-3">
-                    <div className="text-sm text-slate-700 max-h-96 overflow-y-auto border rounded-md p-3 bg-white">
+                    <div 
+                      className="text-sm text-slate-700 max-h-96 overflow-y-auto border rounded-md p-3 bg-white cursor-pointer hover:bg-slate-50"
+                      onClick={() => setActiveTab('edit')}
+                      title="Click to edit this document"
+                    >
                       {document.content}
                     </div>
                     <div className="mt-2 flex justify-end">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setActiveTab('edit')}
-                      >
-                        Edit Document Before Rewriting
-                      </Button>
+                      <div className="text-xs text-slate-500">
+                        Click document to edit before rewriting
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -873,11 +873,37 @@ export default function DocumentRewrite() {
               )}
               
               {/* Rewritten Content */}
-              <div className="bg-white border rounded-md p-4 max-h-[500px] overflow-y-auto">
+              <div 
+                className="bg-white border rounded-md p-4 max-h-[500px] overflow-y-auto cursor-pointer hover:bg-slate-50"
+                onClick={() => {
+                  // Copy to clipboard
+                  navigator.clipboard.writeText(rewrittenContent)
+                    .then(() => {
+                      toast({
+                        title: "Content Copied",
+                        description: "Document content copied to clipboard",
+                      });
+                    })
+                    .catch(err => {
+                      console.error('Failed to copy:', err);
+                      toast({
+                        title: "Copy Failed",
+                        description: "Could not copy content to clipboard",
+                        variant: "destructive"
+                      });
+                    });
+                }}
+                title="Click to copy content to clipboard"
+              >
                 <div className="prose prose-sm max-w-none">
                   {rewrittenContent.split('\n').map((line, i) => (
                     <p key={i}>{line}</p>
                   ))}
+                </div>
+              </div>
+              <div className="mt-2 flex justify-end">
+                <div className="text-xs text-slate-500">
+                  Click content to copy to clipboard
                 </div>
               </div>
               
