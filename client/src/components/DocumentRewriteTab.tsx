@@ -524,33 +524,43 @@ export default function DocumentRewriteTab({ selectedModel, messages }: Document
               <Tabs defaultValue="export">
                 <TabsList className="grid grid-cols-2 w-full">
                   <TabsTrigger value="export">Export Options</TabsTrigger>
-                  <TabsTrigger value="aiDetection">AI Detection</TabsTrigger>
+                  <TabsTrigger value="analyze">AI Detection</TabsTrigger>
                 </TabsList>
                 
-                {/* Export tab */}
-                <TabsContent value="export" className="space-y-4 p-4 border rounded-md">
-                  <div className="space-y-2">
-                    <h3 className="font-medium">Download</h3>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={downloadAsWord}>
-                        Download as Word
-                      </Button>
-                      <Button variant="outline" onClick={downloadAsPDF}>
-                        Download as PDF
-                      </Button>
-                    </div>
+                <TabsContent value="export" className="space-y-4">
+                  {/* Export buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={downloadAsWord}
+                    >
+                      Download as Word
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={downloadAsPDF}
+                    >
+                      Download as PDF
+                    </Button>
                   </div>
                   
-                  <div className="space-y-2">
-                    <h3 className="font-medium">Email</h3>
-                    <div className="flex gap-2">
+                  {/* Email section */}
+                  <div className="border-t pt-4">
+                    <h3 className="text-sm font-medium mb-2">Share via Email</h3>
+                    <div className="flex space-x-2">
                       <Input
-                        type="email"
                         placeholder="recipient@example.com"
                         value={emailRecipient}
                         onChange={(e) => setEmailRecipient(e.target.value)}
+                        className="flex-1"
                       />
-                      <Button variant="outline" onClick={sendEmail}>
+                      <Button 
+                        variant="outline" 
+                        onClick={sendEmail}
+                        className="shrink-0"
+                      >
                         <Mail className="h-4 w-4 mr-2" />
                         Send
                       </Button>
@@ -558,46 +568,33 @@ export default function DocumentRewriteTab({ selectedModel, messages }: Document
                   </div>
                 </TabsContent>
                 
-                {/* AI Detection tab */}
-                <TabsContent value="aiDetection" className="p-4 border rounded-md">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium">AI Content Detection</h3>
-                      <Button 
-                        variant="outline" 
-                        onClick={runAIDetection}
-                        disabled={isDetecting}
-                      >
-                        {isDetecting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          'Analyze Text'
-                        )}
-                      </Button>
-                    </div>
-                    
-                    {aiDetectionResult && formatAIDetectionResult()}
-                    
-                    {!aiDetectionResult && !isDetecting && (
-                      <p className="text-sm text-gray-500">
-                        Click "Analyze Text" to check if this document would be detected as AI-generated.
-                      </p>
+                <TabsContent value="analyze" className="space-y-4">
+                  {/* AI Detection results */}
+                  <Button 
+                    onClick={runAIDetection}
+                    disabled={isDetecting}
+                    className="w-full"
+                  >
+                    {isDetecting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      'Run AI Content Detection'
                     )}
-                  </div>
+                  </Button>
+                  
+                  {formatAIDetectionResult()}
                 </TabsContent>
               </Tabs>
             </>
           ) : (
-            <div className="border border-dashed rounded-md p-6 flex items-center justify-center h-[300px]">
-              <div className="text-center text-gray-500">
-                <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Rewritten content will appear here</p>
-                <p className="text-sm mt-1">
-                  Upload a document and provide rewriting instructions
-                </p>
+            <div className="border rounded-md p-6 h-[300px] flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                <p>Rewritten document will appear here</p>
+                <p className="text-xs mt-1">Upload a document and provide instructions to begin</p>
               </div>
             </div>
           )}

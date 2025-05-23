@@ -10,13 +10,7 @@ import { processPerplexity } from '../services/perplexity';
  */
 export async function rewriteDocument(req: Request, res: Response) {
   try {
-    const {
-      content,
-      instructions,
-      model,
-      documentName,
-      insights
-    } = req.body;
+    const { content, instructions, model, documentName } = req.body;
     
     if (!content) {
       return res.status(400).json({ error: 'Document content is required' });
@@ -26,57 +20,61 @@ export async function rewriteDocument(req: Request, res: Response) {
       return res.status(400).json({ error: 'Rewrite instructions are required' });
     }
     
-    // Build the prompt with detailed instructions on how to rewrite the document
-    let prompt = `I need you to rewrite the following document according to these specific instructions:
+    console.log(`Processing document rewrite request for "${documentName || 'unnamed document'}"`);
+    console.log(`Using model: ${model}, Content length: ${content.length} chars`);
+    
+    // Create a prompt that includes the document and instructions
+    const prompt = `
+I need you to rewrite the following document according to these specific instructions:
 
-INSTRUCTIONS:
 ${instructions}
 
-${insights ? `ADDITIONAL INSIGHTS TO INCORPORATE:
-${insights}
+Here is the document to rewrite:
 
-` : ''}DOCUMENT TO REWRITE:
 ${content}
 
-Please maintain the document's core information while applying the requested changes. 
-Format the output in a clean, well-structured way. 
-Do not include any commentary or explanations about the rewriting process in your response.
+Please provide ONLY the rewritten document without any additional comments, explanations, or metadata.
 `;
-
-    let rewrittenContent = '';
     
-    // Process using the appropriate model
+    let rewrittenContent;
+    
+    // Route to the appropriate LLM service based on model selection
     switch (model) {
+      case 'claude':
+        rewrittenContent = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 100000,
+        });
+        break;
       case 'gpt4':
         rewrittenContent = await processGPT4(prompt, {
           temperature: 0.7,
-          maxTokens: 12000
+          maxTokens: 32000,
         });
         break;
-      
       case 'perplexity':
         rewrittenContent = await processPerplexity(prompt, {
           temperature: 0.7,
-          maxTokens: 12000
+          maxTokens: 16000,
         });
         break;
-      
-      case 'claude':
       default:
         rewrittenContent = await processClaude(prompt, {
           temperature: 0.7,
-          maxTokens: 12000
+          maxTokens: 100000,
         });
-        break;
     }
     
-    return res.status(200).json({
+    res.json({
       content: rewrittenContent,
-      documentName: documentName || 'rewritten-document'
+      success: true
     });
     
   } catch (error) {
-    console.error('Error rewriting document:', error);
-    return res.status(500).json({ error: 'Failed to rewrite document' });
+    console.error('Document rewrite error:', error);
+    res.status(500).json({ 
+      error: 'Failed to rewrite document', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 }

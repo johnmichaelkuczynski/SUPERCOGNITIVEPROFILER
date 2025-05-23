@@ -35,6 +35,7 @@ export default function Home() {
   
   // Tabs state
   const [activeTab, setActiveTab] = useState<string>('chat');
+  const [lastDocument, setLastDocument] = useState<{content: string, name: string} | null>(null);
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
