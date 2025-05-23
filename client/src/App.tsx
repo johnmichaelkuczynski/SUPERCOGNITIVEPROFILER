@@ -12,6 +12,7 @@ import Conversations from "@/pages/Conversations";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
 import Profile from "@/pages/Profile";
+import DocumentRewrite from "@/pages/DocumentRewrite";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
@@ -60,6 +61,7 @@ function Router() {
           <Route path="/conversations" component={() => <ProtectedRoute component={Conversations} />} />
           <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
           <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+          <Route path="/document-rewrite" component={() => <ProtectedRoute component={DocumentRewrite} />} />
           <Route component={NotFound} />
         </Switch>
       </div>
