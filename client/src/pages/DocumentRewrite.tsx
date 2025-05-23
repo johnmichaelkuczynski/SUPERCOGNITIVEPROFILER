@@ -136,49 +136,114 @@ export default function DocumentRewrite() {
     const file = e.target.files[0];
     setIsUploading(true);
     
-    // Read the file
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const content = event.target?.result as string;
-        
-        // Create document object
+    // For binary file types, use the API to process them
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const binaryTypes = ['docx', 'pdf', 'doc', 'png', 'jpg', 'jpeg'];
+    
+    if (binaryTypes.includes(extension || '')) {
+      // Create FormData to send the file to the server
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Send the file to the document processing API
+      fetch('/api/documents/process', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Server Error: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Create document object from processed text
         const newDocument: Document = {
           id: Date.now().toString(),
           name: file.name,
-          content: content,
+          content: data.text || data.content, // Handle different response formats
           size: file.size
         };
+        
+        // Store the document in session storage for persistence
+        try {
+          sessionStorage.setItem('recentlyUploadedFile', JSON.stringify(newDocument));
+        } catch (storageError) {
+          console.warn('Could not save to session storage:', storageError);
+        }
         
         setDocument(newDocument);
         setOriginalDocument(newDocument);
         
         toast({
           title: "Document Uploaded",
-          description: `Successfully uploaded ${file.name}.`,
+          description: `Successfully processed ${file.name}.`,
         });
-      } catch (error) {
+      })
+      .catch(error => {
         console.error('Error processing file:', error);
         toast({
-          title: "Upload Failed",
-          description: "Failed to process the document. Please try again.",
+          title: "Processing Failed",
+          description: "The server couldn't process this document. Try a different format.",
           variant: "destructive"
         });
-      } finally {
+      })
+      .finally(() => {
         setIsUploading(false);
-      }
-    };
-    
-    reader.onerror = () => {
-      setIsUploading(false);
-      toast({
-        title: "Upload Failed",
-        description: "Failed to read the document. Please try again.",
-        variant: "destructive"
       });
-    };
-    
-    reader.readAsText(file);
+    } else {
+      // For text files, use the FileReader approach
+      const reader = new FileReader();
+      
+      reader.onload = async (event) => {
+        try {
+          const content = event.target?.result as string;
+          
+          // Create document object
+          const newDocument: Document = {
+            id: Date.now().toString(),
+            name: file.name,
+            content: content,
+            size: file.size
+          };
+          
+          // Store the document in session storage for persistence
+          try {
+            sessionStorage.setItem('recentlyUploadedFile', JSON.stringify(newDocument));
+          } catch (storageError) {
+            console.warn('Could not save to session storage:', storageError);
+          }
+          
+          setDocument(newDocument);
+          setOriginalDocument(newDocument);
+          
+          toast({
+            title: "Document Uploaded",
+            description: `Successfully uploaded ${file.name}.`,
+          });
+        } catch (error) {
+          console.error('Error processing file:', error);
+          toast({
+            title: "Upload Failed",
+            description: "Failed to process the document. Please try again.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      
+      reader.onerror = () => {
+        setIsUploading(false);
+        toast({
+          title: "Upload Failed",
+          description: "Failed to read the document. Please try again.",
+          variant: "destructive"
+        });
+      };
+      
+      reader.readAsText(file);
+    }
   };
 
   // Handle document rewrite

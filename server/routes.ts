@@ -392,12 +392,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document Rewriter API Endpoints
-  app.post('/api/rewrite-document', upload.none(), async (req: Request, res: Response) => {
+  app.post('/api/rewrite-document', async (req: Request, res: Response) => {
     try {
       const { content, model, documentContent, documentName, detectionProtection } = req.body;
       
       if (!documentContent || !documentName || !model) {
         return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      console.log(`Rewriting document: ${documentName} with model ${model}, content length: ${documentContent.length}`);
+      
+      // Limit content length for very large documents
+      let processableContent = documentContent;
+      const MAX_CONTENT_LENGTH = 40000;
+      
+      if (documentContent.length > MAX_CONTENT_LENGTH) {
+        console.log(`Document is very large (${documentContent.length} chars), truncating to ${MAX_CONTENT_LENGTH} chars`);
+        processableContent = documentContent.substring(0, MAX_CONTENT_LENGTH);
       }
       
       const rewriteOptions = {
@@ -406,11 +417,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         detectionProtection: detectionProtection === 'true'
       };
       
-      const rewrittenContent = await rewriteDocument(
-        documentContent,
-        documentName,
-        rewriteOptions
-      );
+      // Use a simpler approach for direct processing with the LLM
+      let rewrittenContent;
+      
+      try {
+        if (model === 'claude') {
+          const response = await processClaude(`
+Rewrite the following document according to these instructions: ${rewriteOptions.instructions}
+
+${rewriteOptions.detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use conversational language, and avoid repetitive patterns.' : ''}
+
+Document to rewrite:
+${processableContent}
+          `, {
+            temperature: 0.7,
+            stream: false,
+            maxTokens: 4000
+          });
+          
+          rewrittenContent = typeof response === 'string' ? response : response.content;
+          
+        } else if (model === 'gpt4') {
+          const response = await processGPT4(`
+Rewrite the following document according to these instructions: ${rewriteOptions.instructions}
+
+${rewriteOptions.detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use conversational language, and avoid repetitive patterns.' : ''}
+
+Document to rewrite:
+${processableContent}
+          `, {
+            temperature: 0.7,
+            stream: false,
+            maxTokens: 4000
+          });
+          
+          rewrittenContent = typeof response === 'string' ? response : response.content;
+          
+        } else {
+          const response = await processPerplexity(`
+Rewrite the following document according to these instructions: ${rewriteOptions.instructions}
+
+${rewriteOptions.detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use conversational language, and avoid repetitive patterns.' : ''}
+
+Document to rewrite:
+${processableContent}
+          `, {
+            temperature: 0.7,
+            stream: false,
+            maxTokens: 4000
+          });
+          
+          rewrittenContent = typeof response === 'string' ? response : response.content;
+        }
+      } catch (llmError) {
+        console.error('LLM processing error:', llmError);
+        // Fallback to a simpler approach
+        rewrittenContent = `Error processing document with ${model}. Please try a different model or reduce document size.`;
+      }
       
       res.json({ 
         content: rewrittenContent,
@@ -419,7 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error rewriting document:', error);
-      res.status(500).json({ error: 'Failed to rewrite document' });
+      res.status(500).json({ error: 'Failed to rewrite document', details: error instanceof Error ? error.message : String(error) });
     }
   });
 
