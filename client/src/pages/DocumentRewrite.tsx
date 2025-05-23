@@ -99,6 +99,7 @@ export default function DocumentRewrite() {
   const [aiDetectionResult, setAiDetectionResult] = useState<AIDetectionResult | null>(null);
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [emailRecipient, setEmailRecipient] = useState<string>('');
+  const [senderEmail, setSenderEmail] = useState<string>('');
   const [isSending, setIsSending] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('rewrite');
   const [, setLocation] = useLocation();
@@ -126,6 +127,16 @@ export default function DocumentRewrite() {
         title: "Document Loaded",
         description: `Loaded document "${lastDocument.name}" from your conversation.`,
       });
+    }
+    
+    // Load any saved sender email
+    try {
+      const savedSenderEmail = localStorage.getItem('lastUsedSenderEmail');
+      if (savedSenderEmail) {
+        setSenderEmail(savedSenderEmail);
+      }
+    } catch (e) {
+      console.warn('Could not load sender email from localStorage', e);
     }
   }, []);
 
@@ -411,19 +422,30 @@ export default function DocumentRewrite() {
 
   // Handle email sharing
   const handleShareViaEmail = async () => {
-    if (!rewrittenContent || !emailRecipient) {
+    if (!rewrittenContent || !emailRecipient || !senderEmail) {
       toast({
         title: "Missing Information",
-        description: "Please provide a recipient email address and rewrite the document first.",
+        description: "Please provide both recipient and sender email addresses, and rewrite the document first.",
         variant: "destructive"
       });
       return;
     }
     
+    // Validate recipient email
     if (!emailRecipient.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address.",
+        title: "Invalid Recipient Email",
+        description: "Please enter a valid recipient email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate sender email
+    if (!senderEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast({
+        title: "Invalid Sender Email",
+        description: "Please enter a valid sender email address. This must be verified in your SendGrid account.",
         variant: "destructive"
       });
       return;
@@ -438,13 +460,16 @@ export default function DocumentRewrite() {
         body: JSON.stringify({
           content: rewrittenContent,
           recipient: emailRecipient,
+          senderEmail: senderEmail,
           documentName: document?.name || 'Document',
           format: 'pdf' // Default format for sharing
         }),
       });
       
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.details || errorData.error || `Error: ${response.status}`;
+        throw new Error(errorMsg);
       }
       
       toast({
@@ -452,12 +477,22 @@ export default function DocumentRewrite() {
         description: `Your document has been sent to ${emailRecipient}.`,
       });
       
+      // Clear recipient email but keep sender email for future use
       setEmailRecipient('');
+      
+      // Save sender email to localStorage for future use
+      try {
+        localStorage.setItem('lastUsedSenderEmail', senderEmail);
+      } catch (e) {
+        console.warn('Could not save sender email to localStorage', e);
+      }
     } catch (error) {
       console.error('Error sharing document:', error);
       toast({
         title: "Sharing Failed",
-        description: "Failed to share the document. Please try again.",
+        description: error instanceof Error 
+          ? error.message 
+          : "Failed to share the document. Make sure your sender email is verified in SendGrid.",
         variant: "destructive"
       });
     } finally {
@@ -962,18 +997,31 @@ export default function DocumentRewrite() {
                 <h3 className="font-medium mb-3">Share via Email</h3>
                 <div className="space-y-3">
                   <div>
-                    <Label htmlFor="email">Recipient Email</Label>
+                    <Label htmlFor="recipient-email">Recipient Email</Label>
                     <Input 
-                      id="email" 
+                      id="recipient-email" 
                       type="email" 
                       placeholder="recipient@example.com"
                       value={emailRecipient}
                       onChange={(e) => setEmailRecipient(e.target.value)}
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="sender-email">Your Verified Sender Email</Label>
+                    <Input 
+                      id="sender-email" 
+                      type="email" 
+                      placeholder="your-verified@sender.com"
+                      value={senderEmail}
+                      onChange={(e) => setSenderEmail(e.target.value)}
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      This must be a verified sender email in your SendGrid account
+                    </p>
+                  </div>
                   <Button 
                     onClick={handleShareViaEmail} 
-                    disabled={!emailRecipient || isSending}
+                    disabled={!emailRecipient || !senderEmail || isSending}
                     className="w-full"
                   >
                     {isSending ? (
