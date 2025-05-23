@@ -10,6 +10,7 @@ import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 import DocumentExportButtons from '@/components/DocumentExportButtons';
+import DocumentRewriteTab from '@/components/DocumentRewriteTab';
 
 interface Message {
   id: number;
@@ -359,9 +360,30 @@ export default function Home() {
 
   // Document rewrite functions removed
 
+  // State for document rewrite tab
+  const [activeTab, setActiveTab] = useState<string>('chat');
+
   return (
     <main className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">TextMind Chat</h1>
+        
+        {/* Tab navigation */}
+        <div className="flex gap-4">
+          <Button 
+            variant={activeTab === 'chat' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('chat')}
+          >
+            Chat
+          </Button>
+          <Button 
+            variant={activeTab === 'rewrite' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('rewrite')}
+          >
+            Rewrite Large Document
+          </Button>
+        </div>
+      </div>
       
       {/* Add a prominent cancellation bar at the top when processing */}
       {isProcessing && (
