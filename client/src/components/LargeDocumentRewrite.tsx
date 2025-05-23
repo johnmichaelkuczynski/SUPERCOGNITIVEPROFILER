@@ -25,38 +25,43 @@ export default function LargeDocumentRewrite({
   selectedModel,
   conversationInsights = ''
 }: LargeDocumentRewriteProps) {
-  // State for document content
+  // Document state
   const [documentContent, setDocumentContent] = useState<string>('');
   const [documentName, setDocumentName] = useState<string>('');
   
-  // Initialize with last uploaded document if available
-  useEffect(() => {
-    if (lastUploadedDocument) {
-      setDocumentContent(lastUploadedDocument.content);
-      setDocumentName(lastUploadedDocument.name);
-      console.log("Loaded document from props:", lastUploadedDocument.name, 
-                 "with content length:", lastUploadedDocument.content.length);
-    }
-  }, [lastUploadedDocument]);
-  
-  // State for rewrite instructions
+  // Rewrite state
   const [rewriteInstructions, setRewriteInstructions] = useState<string>('');
-  
-  // State for processing status
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  
-  // State for rewritten content
   const [rewrittenContent, setRewrittenContent] = useState<string>('');
   
-  // State for email sharing
+  // Email state
   const [emailRecipient, setEmailRecipient] = useState<string>('');
   const [includeConversationInsights, setIncludeConversationInsights] = useState<boolean>(false);
+  
+  // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   
   // File upload ref
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Handle file upload - simplified method that just uses the document upload API
+  // Update document content when lastUploadedDocument changes
+  useEffect(() => {
+    if (lastUploadedDocument && lastUploadedDocument.content) {
+      setDocumentContent(lastUploadedDocument.content);
+      setDocumentName(lastUploadedDocument.name);
+      console.log("Document updated from conversation:", lastUploadedDocument.name);
+    }
+  }, [lastUploadedDocument]);
+  
+  // Handle dialog open/close
+  useEffect(() => {
+    if (isDialogOpen) {
+      console.log("Dialog opened - document availability check:", 
+                 lastUploadedDocument ? "Has document" : "No document");
+    }
+  }, [isDialogOpen, lastUploadedDocument]);
+  
+  // Handle file upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -64,11 +69,11 @@ export default function LargeDocumentRewrite({
       setIsProcessing(true);
       
       try {
-        // Create form data for upload - always use the same API endpoint that works correctly in the main application
+        // Create form data for upload
         const formData = new FormData();
         formData.append('file', file);
         
-        // Use the existing /api/llm/prompt endpoint which already handles document processing correctly
+        // Use the document processing endpoint
         const response = await fetch('/api/documents/process', {
           method: 'POST',
           body: formData
@@ -133,7 +138,7 @@ export default function LargeDocumentRewrite({
         instructions: rewriteInstructions
       });
       
-      // Directly create JSON payload instead of FormData for better error handling
+      // Directly create JSON payload
       const payload = {
         content: documentContent,
         instructions: rewriteInstructions,
