@@ -86,6 +86,12 @@ export default function DocumentRewriterModal({
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [aiDetectionResult, setAiDetectionResult] = useState<AIDetectionResult | null>(null);
   
+  // State for document sharing and download
+  const [downloading, setDownloading] = useState<boolean>(false);
+  const [showEmailForm, setShowEmailForm] = useState<boolean>(false);
+  const [emailAddress, setEmailAddress] = useState<string>('');
+  const [sendingEmail, setSendingEmail] = useState<boolean>(false);
+  
   // State for settings
   const [settings, setSettings] = useState<RewriteSettings>({
     model: 'claude',
