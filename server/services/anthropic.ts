@@ -157,17 +157,28 @@ async function processWithChunking(
     messages.push({ role: 'user', content: prompt });
     
     // Ensure we're using the correct message format for Anthropic API
-    const formattedMessages = messages.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    }));
+    const formattedMessages = messages.map(msg => {
+      // Force roles to be either 'user' or 'assistant' as required by Anthropic API
+      const role = msg.role === 'user' ? 'user' : 'assistant';
+      return {
+        role: role,
+        content: msg.content
+      };
+    });
     
     console.log('Sending request to Anthropic API with model:', MODEL);
     console.log('Using API key starting with:', process.env.ANTHROPIC_API_KEY?.substring(0, 7) + '...');
     
+    // Log the formatted messages for debugging
+    console.log('Sending messages to Claude API:', 
+      formattedMessages.map(msg => ({role: msg.role, contentLength: msg.content.length})));
+    
+    // Directly cast the messages to the type expected by Anthropic
     const response = await anthropic.messages.create({
       model: MODEL,
-      messages: formattedMessages,
+      messages: [
+        {role: 'user', content: prompt}
+      ],
       temperature,
       max_tokens: maxTokens || 4000,
     });
