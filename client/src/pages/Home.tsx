@@ -195,6 +195,15 @@ export default function Home() {
     try {
       console.log(`Processing file: ${file.name}`);
       
+      // Add immediate processing message for this specific file
+      const processingMessage: Message = {
+        id: Date.now(),
+        content: `Processing ${file.name}...`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, processingMessage]);
+      
       // First, we need to extract the actual text content from the document
       // For PDFs and other complex formats, we need to use the server to extract text properly
       // Create form data for document processing
@@ -233,10 +242,34 @@ export default function Home() {
         timestamp: new Date()
       };
       
-      // Generate a summary of the document
+      // Add the user message to show we've processed this file
+      setMessages(prev => {
+        // Remove the processing message for this file
+        const filteredMessages = prev.filter(msg => msg.id !== processingMessage.id);
+        return [...filteredMessages, userMessage];
+      });
+      
+      // Generate a summary of the document directly using the selected model
+      let summaryPrompt = '';
+      if (extractedText.length > 5000) {
+        summaryPrompt = `Please provide a detailed summary of this large document (${extractedText.length} characters). Include key points, main topics, and important findings: ${extractedText.substring(0, 5000)}...`;
+      } else {
+        summaryPrompt = `Please provide a concise summary of this document: ${extractedText}`;
+      }
+      
       const formData = new FormData();
-      formData.append('content', `Please provide a concise summary of this document: ${extractedText.substring(0, 2000)}${extractedText.length > 2000 ? '...' : ''}`);
+      formData.append('content', summaryPrompt);
       formData.append('model', selectedModel);
+      
+      // Add AI analyzing message
+      const analyzingMessage: Message = {
+        id: Date.now() + 2,
+        content: `Analyzing content from ${file.name}...`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, analyzingMessage]);
       
       // Send request to get summary
       const summaryResponse = await fetch('/api/llm/prompt', {
@@ -252,14 +285,18 @@ export default function Home() {
       
       // Add AI message with content overview and summary
       const aiMessage: Message = {
-        id: Date.now() + 1,
+        id: Date.now() + 3,
         content: `I've extracted the content from ${file.name}. Here's a summary:\n\n${summaryContent || extractedText.substring(0, 200) + (extractedText.length > 200 ? '...' : '')}\n\n${extractedText.length} characters total. You can ask me questions about this document or upload more files.`,
         role: 'assistant',
         timestamp: new Date()
       };
       
-      // Add messages to conversation
-      setMessages(prev => [...prev, userMessage, aiMessage]);
+      // Add final AI message to conversation, replacing the analyzing message
+      setMessages(prev => {
+        // Remove the analyzing message
+        const filteredMessages = prev.filter(msg => msg.id !== analyzingMessage.id);
+        return [...filteredMessages, aiMessage];
+      });
     } catch (error) {
       console.error(`Error processing file ${file.name}:`, error);
       
