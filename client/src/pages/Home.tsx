@@ -418,7 +418,7 @@ export default function Home() {
           <div className="p-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <div className="flex space-x-4">
+                <div className="flex items-center gap-4">
                   <textarea 
                     ref={textareaRef}
                     value={prompt}
@@ -429,24 +429,27 @@ export default function Home() {
                     disabled={isLoading}
                     rows={3}
                   />
-                  <div className="flex flex-col space-y-2">
+                  
+                  <div className="flex flex-col gap-3">
+                    {/* SEND BUTTON */}
                     <Button 
                       onClick={handleProcessRequest} 
-                      size="icon"
+                      className="w-16 h-16"
                       disabled={isLoading || (!prompt.trim() && files.length === 0)}
                     >
                       {isLoading ? (
-                        <div className="animate-spin h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
+                        <div className="animate-spin h-6 w-6 border-2 border-b-transparent border-white rounded-full"></div>
                       ) : (
-                        <Send className="h-4 w-4" />
+                        <Send className="h-6 w-6" />
                       )}
                     </Button>
                     
+                    {/* REWRITE BUTTON - LARGE AND PROMINENT */}
                     <Button 
-                      variant="outline"
-                      size="icon"
+                      variant="secondary"
+                      className="flex flex-col items-center justify-center h-16 w-16 bg-blue-600 hover:bg-blue-700 text-white"
                       onClick={() => {
-                        // Use the last AI message as the document content
+                        // Get the last message content as document content
                         const lastAIMessage = [...messages]
                           .reverse()
                           .find(msg => msg.role === 'assistant');
@@ -461,47 +464,11 @@ export default function Home() {
                         
                         setIsRewriterOpen(true);
                       }}
-                      title="Rewrite document"
                     >
-                      <FileText className="h-4 w-4" />
+                      <FileText className="h-6 w-6 mb-1" />
+                      <span className="text-xs">Rewrite</span>
                     </Button>
                   </div>
-                </div>
-                
-                {/* Button with text below the input area */}
-                <div className="flex justify-end">
-                  <Button 
-                    variant="ghost"
-                    size="sm" 
-                    className="text-xs text-muted-foreground"
-                    onClick={() => {
-                      // Find the latest document content if it exists
-                      const latestDocumentMessage = [...messages]
-                        .reverse()
-                        .find(msg => msg.files && msg.files.length > 0 && msg.role === 'assistant');
-                        
-                      // Open the rewriter modal
-                      if (latestDocumentMessage) {
-                        setDocumentContent(latestDocumentMessage.content);
-                        setIsRewriterOpen(true);
-                      } else {
-                        // If no document found, open with most recent AI message
-                        const lastAIMessage = [...messages]
-                          .reverse()
-                          .find(msg => msg.role === 'assistant');
-                          
-                        if (lastAIMessage) {
-                          setDocumentContent(lastAIMessage.content);
-                        } else {
-                          setDocumentContent('');
-                        }
-                        setIsRewriterOpen(true);
-                      }
-                    }}
-                  >
-                    <FileText className="h-3 w-3 mr-1" />
-                    Rewrite Document
-                  </Button>
                 </div>
               </div>
               
