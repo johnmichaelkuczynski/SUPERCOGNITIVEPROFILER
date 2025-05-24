@@ -480,10 +480,17 @@ YOUR REWRITTEN DOCUMENT:`;
         // Extract content from response
         if (typeof response === 'string') {
           rewrittenContent = response;
-        } else if (response && typeof response === 'object' && 'content' in response) {
-          rewrittenContent = response.content;
+        } else if (response && typeof response === 'object') {
+          // Handle object responses more carefully
+          if ('content' in response && response.content) {
+            rewrittenContent = response.content.toString();
+          } else {
+            console.error('Unexpected response structure:', response);
+            throw new Error(`Invalid response structure from ${model}`);
+          }
         } else {
-          throw new Error(`Invalid response structure from ${model}`);
+          console.error('Unexpected response type:', typeof response);
+          throw new Error(`Invalid response type from ${model}`);
         }
         
         // Ensure the result is not empty

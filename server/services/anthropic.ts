@@ -60,8 +60,13 @@ export async function processClaude(
       stream: false
     });
     
-    // Return the content 
-    return ('text' in response.content[0]) ? response.content[0].text : JSON.stringify(response.content[0]);
+    // Return the content as string
+    if ('text' in response.content[0]) {
+      return response.content[0].text;
+    } else {
+      console.error("Unexpected response format from Anthropic:", response.content[0]);
+      throw new Error("Invalid response format from Claude");
+    }
   } catch (error) {
     console.error("Error calling Anthropic API:", error);
     throw new Error(`Claude processing failed: ${(error as Error).message}`);
