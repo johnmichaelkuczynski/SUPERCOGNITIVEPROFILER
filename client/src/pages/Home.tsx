@@ -46,6 +46,10 @@ export default function Home() {
   const [viewingDocumentContent, setViewingDocumentContent] = useState<string>('');
   const [viewingDocumentName, setViewingDocumentName] = useState<string>('');
   
+  // Document chunk selector state
+  const [isChunkSelectorOpen, setIsChunkSelectorOpen] = useState(false);
+  const [selectedChunk, setSelectedChunk] = useState<{id: number, title: string, content: string} | null>(null);
+  
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
   
@@ -300,6 +304,49 @@ export default function Home() {
         [file.name]: extractedText
       }));
       
+      // For larger documents (over 2000 words), we'll use the chunk selector
+      const documentWords = extractedText.split(/\s+/).length;
+      if (documentWords > 2000) {
+        // Set the document content for chunking
+        setDocumentContent(extractedText);
+        setDocumentName(file.name);
+        
+        // Create initial analysis message
+        const initialAnalysisMessage: Message = {
+          id: Date.now() + 1,
+          content: `## ${file.name} (${documentWords} words)\n\nThis is a large document with approximately ${documentWords} words. Would you like to:\n\n1. Analyze specific sections of the document\n2. View a summary of the entire document\n\nFor more focused analysis, use the document sidebar to select specific sections.`,
+          role: 'assistant',
+          timestamp: new Date()
+        };
+        
+        // Add AI detection info if available
+        let aiDetectionInfo = '';
+        if (aiDetection) {
+          const aiProbability = Math.round(aiDetection.aiProbability * 100);
+          const humanProbability = Math.round(aiDetection.humanProbability * 100);
+          
+          if (aiProbability > 70) {
+            aiDetectionInfo = `\n\n**AI Content Detection**: This document appears to be AI-generated (${aiProbability}% probability).`;
+          } else if (humanProbability > 70) {
+            aiDetectionInfo = `\n\n**AI Content Detection**: This document appears to be human-written (${humanProbability}% probability human).`;
+          } else {
+            aiDetectionInfo = `\n\n**AI Content Detection**: This document has a mix of human and AI-like content (${aiProbability}% AI probability).`;
+          }
+          
+          initialAnalysisMessage.content += aiDetectionInfo;
+        }
+        
+        // Replace the processing message with the initial analysis
+        setMessages(prev => {
+          // Remove the processing message
+          const filteredMessages = prev.filter(msg => msg.id !== processingMessage.id);
+          return [...filteredMessages, initialAnalysisMessage];
+        });
+        
+        return;
+      }
+      
+      // For smaller documents, proceed with regular analysis
       // Create the prompt for analysis
       let analysisPrompt = '';
       if (extractedText.length > 5000) {
@@ -534,6 +581,28 @@ Document text: ${extractedText}`;
                                     }}
                                   >
                                     <Eye className="h-3 w-3" />
+                                  </Button>
+                                )}
+                                
+                                {/* Section Analysis Button */}
+                                {uploadedDocuments[file.name] && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-5 w-5 ml-1"
+                                    onClick={() => {
+                                      setDocumentContent(uploadedDocuments[file.name]);
+                                      setDocumentName(file.name);
+                                      setIsChunkSelectorOpen(true);
+                                    }}
+                                    title="Analyze sections"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sections">
+                                      <rect width="8" height="8" x="2" y="2" rx="1" />
+                                      <rect width="8" height="8" x="14" y="2" rx="1" />
+                                      <rect width="8" height="8" x="2" y="14" rx="1" />
+                                      <rect width="8" height="8" x="14" y="14" rx="1" />
+                                    </svg>
                                   </Button>
                                 )}
                                 
@@ -926,6 +995,78 @@ Document text: ${extractedText}`;
             timestamp: new Date()
           };
           setMessages(prev => [...prev, userMessage]);
+        }}
+      />
+      
+      {/* Document Chunk Selector */}
+      <DocumentChunkSelector
+        isOpen={isChunkSelectorOpen}
+        onClose={() => setIsChunkSelectorOpen(false)}
+        documentName={documentName}
+        documentContent={documentContent}
+        onChunkSelected={(chunk) => {
+          setSelectedChunk(chunk);
+          
+          // Add the selected chunk as a new message with focused instructions
+          const userMessage: Message = {
+            id: Date.now(),
+            content: `Please analyze the following section from ${documentName}:\n\n${chunk.title}`,
+            role: 'user',
+            timestamp: new Date()
+          };
+          
+          // Create an analysis request for this specific chunk
+          const analysisPrompt = `Please provide a detailed analysis of this section titled "${chunk.title}" from ${documentName}:\n\n${chunk.content}`;
+          
+          // Add to message history
+          setMessages(prev => [...prev, userMessage]);
+          
+          // Send request to get analysis
+          const handleChunkAnalysis = async () => {
+            setIsLoading(true);
+            
+            try {
+              const analysisFormData = new FormData();
+              analysisFormData.append('content', analysisPrompt);
+              analysisFormData.append('model', selectedModel);
+              
+              const analysisResponse = await fetch('/api/llm/prompt', {
+                method: 'POST',
+                body: analysisFormData,
+              });
+              
+              if (analysisResponse.ok) {
+                const analysisData = await analysisResponse.json();
+                const analysisContent = analysisData.content || '';
+                
+                const aiMessage: Message = {
+                  id: Date.now() + 1,
+                  content: `## Analysis of "${chunk.title}"\n\n${analysisContent}`,
+                  role: 'assistant',
+                  timestamp: new Date()
+                };
+                
+                setMessages(prev => [...prev, aiMessage]);
+              } else {
+                throw new Error('Failed to analyze document section');
+              }
+            } catch (error) {
+              console.error('Error analyzing chunk:', error);
+              
+              const errorMessage: Message = {
+                id: Date.now() + 1,
+                content: `Error analyzing the selected section: ${error instanceof Error ? error.message : String(error)}`,
+                role: 'assistant',
+                timestamp: new Date()
+              };
+              
+              setMessages(prev => [...prev, errorMessage]);
+            } finally {
+              setIsLoading(false);
+            }
+          };
+          
+          handleChunkAnalysis();
         }}
       />
     </main>
