@@ -48,6 +48,10 @@ export default function Home() {
   
   // Document chunk selector state
   const [isChunkSelectorOpen, setIsChunkSelectorOpen] = useState(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string>('');
+  const [selectedDocumentTitle, setSelectedDocumentTitle] = useState<string>('');
+  const [documentChunks, setDocumentChunks] = useState<any[]>([]);
+  const [selectedChunks, setSelectedChunks] = useState<number[]>([]);
   const [selectedChunk, setSelectedChunk] = useState<{id: number, title: string, content: string} | null>(null);
   
   // Track all uploaded documents for the sidebar
@@ -999,76 +1003,37 @@ Document text: ${extractedText}`;
       />
       
       {/* Document Chunk Selector */}
-      <DocumentChunkSelector
-        isOpen={isChunkSelectorOpen}
-        onClose={() => setIsChunkSelectorOpen(false)}
-        documentName={documentName}
-        documentContent={documentContent}
-        onChunkSelected={(chunk) => {
-          setSelectedChunk(chunk);
-          
-          // Add the selected chunk as a new message with focused instructions
-          const userMessage: Message = {
-            id: Date.now(),
-            content: `Please analyze the following section from ${documentName}:\n\n${chunk.title}`,
-            role: 'user',
-            timestamp: new Date()
-          };
-          
-          // Create an analysis request for this specific chunk
-          const analysisPrompt = `Please provide a detailed analysis of this section titled "${chunk.title}" from ${documentName}:\n\n${chunk.content}`;
-          
-          // Add to message history
-          setMessages(prev => [...prev, userMessage]);
-          
-          // Send request to get analysis
-          const handleChunkAnalysis = async () => {
-            setIsLoading(true);
-            
-            try {
-              const analysisFormData = new FormData();
-              analysisFormData.append('content', analysisPrompt);
-              analysisFormData.append('model', selectedModel);
-              
-              const analysisResponse = await fetch('/api/llm/prompt', {
-                method: 'POST',
-                body: analysisFormData,
-              });
-              
-              if (analysisResponse.ok) {
-                const analysisData = await analysisResponse.json();
-                const analysisContent = analysisData.content || '';
+      {documentChunks.length > 0 && (
+        <Dialog open={isChunkSelectorOpen} onOpenChange={setIsChunkSelectorOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Document Sections</DialogTitle>
+            </DialogHeader>
+            <DocumentChunkSelector
+              documentId={selectedDocumentId}
+              documentTitle={selectedDocumentTitle}
+              chunks={documentChunks}
+              onSelectChunks={(selectedChunkIndices) => {
+                setSelectedChunks(selectedChunkIndices);
+                setIsChunkSelectorOpen(false);
                 
-                const aiMessage: Message = {
-                  id: Date.now() + 1,
-                  content: `## Analysis of "${chunk.title}"\n\n${analysisContent}`,
-                  role: 'assistant',
-                  timestamp: new Date()
-                };
-                
-                setMessages(prev => [...prev, aiMessage]);
-              } else {
-                throw new Error('Failed to analyze document section');
-              }
-            } catch (error) {
-              console.error('Error analyzing chunk:', error);
-              
-              const errorMessage: Message = {
-                id: Date.now() + 1,
-                content: `Error analyzing the selected section: ${error instanceof Error ? error.message : String(error)}`,
-                role: 'assistant',
-                timestamp: new Date()
-              };
-              
-              setMessages(prev => [...prev, errorMessage]);
-            } finally {
-              setIsLoading(false);
-            }
-          };
-          
-          handleChunkAnalysis();
-        }}
-      />
+                // Inform the user about selected chunks
+                if (selectedChunkIndices.length > 0) {
+                  setMessages(prev => [
+                    ...prev,
+                    {
+                      id: Date.now(),
+                      role: 'assistant',
+                      content: `I'll focus on the ${selectedChunkIndices.length} section${selectedChunkIndices.length === 1 ? '' : 's'} you selected. You can now ask specific questions about this content.`,
+                      timestamp: new Date()
+                    }
+                  ]);
+                }
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </main>
   );
 }
