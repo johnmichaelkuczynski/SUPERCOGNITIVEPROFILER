@@ -486,25 +486,33 @@ export default function DocumentRewriterModal({
       
       if (result.aiProbability < 0.3) {
         toast({
-          title: "AI Detection Complete",
-          description: "This text appears to be mainly human-written.",
+          title: "AI Detection Passed",
+          description: "The content reads as human-written. Low probability of AI detection.",
         });
-      } else if (result.aiProbability > 0.7) {
+      } else if (result.aiProbability < 0.6) {
         toast({
-          title: "AI Detection Complete",
-          description: "This text has strong indicators of AI generation.",
+          title: "AI Detection Warning",
+          description: "Moderate chance of being detected as AI-generated. Consider further edits.",
+          variant: "destructive"
         });
       } else {
         toast({
-          title: "AI Detection Complete",
-          description: "This text has mixed human and AI characteristics.",
+          title: "AI Detection Failed",
+          description: "High probability of being detected as AI-generated. Try rewriting with different settings.",
+          variant: "destructive"
         });
       }
     } catch (error) {
       console.error('Error running AI detection:', error);
+      setAiDetectionResult({
+        aiProbability: 0,
+        humanProbability: 0,
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+      
       toast({
         title: "AI Detection Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze the text",
+        description: "Could not analyze the text. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -512,8 +520,8 @@ export default function DocumentRewriterModal({
     }
   };
   
-  // Get AI probability classification
-  const getAIProbabilityClass = (probability: number): string => {
+  // Get AI label based on probability
+  const getAILabel = (probability: number) => {
     if (probability >= 0.8) return 'Very likely AI';
     if (probability >= 0.6) return 'Likely AI';
     if (probability >= 0.4) return 'Uncertain';
@@ -694,14 +702,18 @@ export default function DocumentRewriterModal({
         throw new Error(errorMessage);
       }
       
-      // Handle the blob and download
+      // Get the blob data
       const blob = await response.blob();
+      
+      // Create a download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       const filename = documentData?.name ? documentData.name.replace(/\.[^/.]+$/, '') : 'document';
       
       a.href = url;
       a.download = `${filename}.${format}`;
+      
+      // Add to the DOM, trigger download, and clean up
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -722,45 +734,37 @@ export default function DocumentRewriterModal({
       setDownloading(false);
     }
   };
-  
+
   // Format file size
   const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
     
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
-  
-  // Close dialog handler
+
+  // Handle dialog close
   const handleCloseDialog = () => {
-    // If we have rewritten content and onRewriteComplete callback, call it
+    // If we have rewritten content and a callback, send the result back
     if (rewrittenContent && onRewriteComplete) {
       onRewriteComplete(rewrittenContent);
     }
     
     // Reset state
-    setDocumentData(null);
-    setOriginalDocument(null);
-    setRewrittenContent('');
     setViewMode('rewrite');
-    setAiDetectionResult(null);
-    setShowEmailForm(false);
-    setEmailAddress('');
-    
-    // Close the dialog
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
-      <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Document Rewriter
           </DialogTitle>
@@ -775,8 +779,7 @@ export default function DocumentRewriterModal({
                   <div className="mb-4">
                     <FilePlus className="h-10 w-10 text-slate-400" />
                   </div>
-                  <h3 className="text-lg font-medium mb-2">Upload Document</h3>
-                  <p className="text-slate-500 text-center mb-4">
+                  <p className="text-center text-slate-500 mb-4">
                     {initialContent ? 
                       "Using content from chat. You can also upload a different document." :
                       "Upload a document to rewrite, or create a new document directly in the editor."}
@@ -794,18 +797,18 @@ export default function DocumentRewriterModal({
                       ) : (
                         <>
                           <Upload className="h-4 w-4 mr-2" />
-                          Upload File
+                          Upload Document
                         </>
                       )}
                     </Button>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept=".txt,.doc,.docx,.pdf"
-                      onChange={handleFileUpload}
-                    />
                   </div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept=".txt,.md,.doc,.docx,.pdf,.jpg,.jpeg,.png"
+                  />
                 </div>
               ) : (
                 <>
@@ -823,13 +826,28 @@ export default function DocumentRewriterModal({
                           onClick={() => {
                             setDocumentData(null);
                             setOriginalDocument(null);
-                            fileInputRef.current!.value = '';
+                            setDocumentChunks([]);
+                            setChunkMode(false);
+                            setPreviewChunkId(null);
+                            toast({
+                              title: "Document Cleared",
+                              description: "You can now upload a new document."
+                            });
                           }}
                         >
-                          <ArrowLeft className="h-4 w-4 mr-1" />
-                          Change Document
+                          <X className="h-4 w-4 mr-1" />
+                          Clear
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                  
+                  {/* Document Content Preview */}
+                  <div className="border rounded-md p-4 max-h-[200px] overflow-y-auto bg-white">
+                    <div className="prose prose-sm max-w-none">
+                      {documentData.content.split('\n').map((line, i) => (
+                        <p key={i} className="mb-1">{line || ' '}</p>
+                      ))}
                     </div>
                   </div>
                   
@@ -861,11 +879,15 @@ export default function DocumentRewriterModal({
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 gap-2 max-h-[240px] overflow-y-auto">
-                      {documentChunks.map(chunk => (
+                    <div className="mb-3">
+                      <p className="text-sm text-blue-700 font-medium">Select which numbered sections to rewrite:</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto p-3 border rounded-md bg-white">
+                      {documentChunks.map((chunk) => (
                         <div 
                           key={chunk.id}
-                          className={`p-3 border rounded-md transition-all ${
+                          className={`p-3 border-2 rounded-md cursor-pointer transition-colors ${
                             chunk.selected ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
                           }`}
                         >
@@ -875,10 +897,11 @@ export default function DocumentRewriterModal({
                                 checked={chunk.selected}
                                 onCheckedChange={() => toggleChunkSelection(chunk.id)}
                                 id={`chunk-${chunk.id}`}
+                                className="h-5 w-5"
                               />
                               <label 
                                 htmlFor={`chunk-${chunk.id}`}
-                                className="text-sm font-medium cursor-pointer"
+                                className="font-bold text-lg cursor-pointer"
                               >
                                 Section {chunk.id + 1}
                               </label>
@@ -888,15 +911,16 @@ export default function DocumentRewriterModal({
                                 variant={previewChunkId === chunk.id ? "secondary" : "outline"}
                                 size="sm"
                                 onClick={() => toggleChunkPreview(chunk.id)}
+                                className="px-3"
                               >
                                 {previewChunkId === chunk.id ? (
                                   <>
-                                    <EyeOff className="h-3 w-3 mr-1" />
-                                    Hide
+                                    <EyeOff className="h-4 w-4 mr-1" />
+                                    Hide Preview
                                   </>
                                 ) : (
                                   <>
-                                    <Eye className="h-3 w-3 mr-1" />
+                                    <Eye className="h-4 w-4 mr-1" />
                                     Preview
                                   </>
                                 )}
@@ -904,70 +928,86 @@ export default function DocumentRewriterModal({
                             </div>
                           </div>
                           
+                          {/* Chunk Preview */}
                           {previewChunkId === chunk.id && (
-                            <div className="mt-2 p-2 bg-white rounded border text-sm">
-                              {chunk.content.length > 200 
-                                ? `${chunk.content.substring(0, 200)}...` 
-                                : chunk.content}
+                            <div className="mt-3 pt-2 border-t text-sm">
+                              <div className="max-h-60 overflow-y-auto p-3 bg-white rounded border">
+                                <div className="prose prose-sm max-w-none">
+                                  {chunk.content.split('\n').map((line, i) => (
+                                    <p key={i} className="mb-1">{line || ' '}</p>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
                       ))}
                     </div>
+                    
+                    <div className="mt-3 p-2 bg-blue-100 rounded-md">
+                      <p className="text-sm text-blue-800 font-medium">
+                        <span className="mr-1">📝</span> Use the preview button to see each section's content
+                      </p>
+                      <p className="text-sm text-blue-800 font-medium mt-1">
+                        <span className="mr-1">✅</span> Only selected sections will be rewritten
+                      </p>
+                      <p className="font-medium mt-2 text-blue-900">
+                        Total: {documentChunks.length} sections, {selectedChunkIds.length} selected
+                      </p>
+                    </div>
                   </div>
                   
-                  {/* Rewrite Settings */}
-                  <div className="border p-4 rounded-md">
-                    <h3 className="font-medium mb-4">Rewrite Settings</h3>
+                  {/* Rewrite Instructions */}
+                  <div className="space-y-4 border-2 border-blue-500 p-6 rounded-md bg-blue-50">
+                    <h3 className="font-bold text-lg text-blue-800">Rewrite Instructions</h3>
                     
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="model">AI Model</Label>
-                        <Select 
-                          value={settings.model} 
-                          onValueChange={(value: 'claude' | 'gpt4' | 'perplexity') => 
-                            setSettings(prev => ({ ...prev, model: value }))
+                    <div className="space-y-2">
+                      <Label htmlFor="instructions" className="text-base font-medium">Tell the AI how to rewrite your document:</Label>
+                      <Textarea
+                        id="instructions"
+                        placeholder="Example: Make this more formal and professional. Fix any grammar errors. Make it sound like it was written by a professor."
+                        value={settings.instructions}
+                        onChange={(e) => setSettings({ ...settings, instructions: e.target.value })}
+                        className="min-h-[120px] text-base"
+                      />
+                    </div>
+                    
+                    <div className="p-3 bg-white rounded border">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="detection-protection"
+                          checked={settings.detectionProtection}
+                          onCheckedChange={(checked) => 
+                            setSettings({ ...settings, detectionProtection: checked as boolean })
                           }
-                        >
-                          <SelectTrigger id="model">
-                            <SelectValue placeholder="Select a model" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="claude">Claude (Recommended)</SelectItem>
-                            <SelectItem value="gpt4">GPT-4</SelectItem>
-                            <SelectItem value="perplexity">Perplexity</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="instructions">Rewrite Instructions</Label>
-                        <Textarea
-                          id="instructions"
-                          placeholder="Enter detailed instructions for rewriting the document..."
-                          value={settings.instructions}
-                          onChange={(e) => setSettings(prev => ({ ...prev, instructions: e.target.value }))}
-                          className="h-24"
                         />
+                        <label
+                          htmlFor="detection-protection"
+                          className="text-sm font-semibold"
+                        >
+                          AI Detection Protection
+                        </label>
                       </div>
-                      
-                      <div className="p-3 bg-white rounded border">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="detection-protection"
-                            checked={settings.detectionProtection}
-                            onCheckedChange={(checked) => 
-                              setSettings(prev => ({ ...prev, detectionProtection: checked === true }))
-                            }
-                          />
-                          <Label htmlFor="detection-protection" className="text-sm cursor-pointer">
-                            Enable AI detection protection
-                          </Label>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1 ml-6">
-                          Makes rewritten content less detectable by AI detection tools (may reduce quality)
-                        </p>
-                      </div>
+                      <p className="text-xs text-slate-600 ml-6 mt-1">
+                        Optimize the text to avoid detection by AI content detectors.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="model-select">AI Model</Label>
+                      <Select
+                        value={settings.model}
+                        onValueChange={(value: any) => setSettings({ ...settings, model: value })}
+                      >
+                        <SelectTrigger id="model-select">
+                          <SelectValue placeholder="Select model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="claude">Claude</SelectItem>
+                          <SelectItem value="gpt4">GPT-4</SelectItem>
+                          <SelectItem value="perplexity">Perplexity</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </>
@@ -1037,54 +1077,49 @@ export default function DocumentRewriterModal({
                   onClick={() => setShowEmailForm(!showEmailForm)}
                 >
                   <MailIcon className="h-4 w-4 mr-1" />
-                  Email
+                  Share via Email
                 </Button>
               </div>
-              
-              <Textarea 
-                value={rewrittenContent}
-                readOnly
-                className="font-mono text-sm h-72"
-              />
-              
-              {/* Email form */}
-              {showEmailForm && (
-                <div className="mt-4 p-4 border rounded-md bg-gray-50">
-                  <h3 className="text-sm font-medium mb-2">Send Document via Email</h3>
-                  <div className="flex space-x-2">
-                    <Input
-                      type="email"
-                      placeholder="recipient@example.com"
-                      value={emailAddress}
-                      onChange={(e) => setEmailAddress(e.target.value)}
-                      disabled={sendingEmail}
-                      className="flex-1"
-                    />
-                    <Button 
-                      size="sm"
-                      disabled={sendingEmail || !emailAddress}
-                      onClick={handleShareEmail}
-                    >
-                      {sendingEmail ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                      ) : (
-                        <Send className="h-4 w-4 mr-1" />
-                      )}
-                      Send
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setShowEmailForm(false)}
-                      disabled={sendingEmail}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                
+                {/* Email form */}
+                {showEmailForm && (
+                  <div className="mt-4 p-4 border rounded-md bg-gray-50">
+                    <h3 className="text-sm font-medium mb-2">Send Document via Email</h3>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="email"
+                        placeholder="recipient@example.com"
+                        value={emailAddress}
+                        onChange={(e) => setEmailAddress(e.target.value)}
+                        disabled={sendingEmail}
+                        className="flex-1"
+                      />
+                      <Button 
+                        size="sm"
+                        disabled={sendingEmail || !emailAddress}
+                        onClick={handleShareEmail}
+                      >
+                        {sendingEmail ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        ) : (
+                          <Send className="h-4 w-4 mr-1" />
+                        )}
+                        Send
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowEmailForm(false)}
+                        disabled={sendingEmail}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
               
-              {/* AI Detection Result */}
+              {/* AI Detection Results Section */}
               {aiDetectionResult && !aiDetectionResult.error && (
                 <Card className="mb-4">
                   <CardContent className="pt-6">
@@ -1092,12 +1127,14 @@ export default function DocumentRewriterModal({
                       <div className="font-medium">AI Detection Result</div>
                       <Badge 
                         className={`${
-                          aiDetectionResult.aiProbability < 0.3 ? 'bg-green-500' :
-                          aiDetectionResult.aiProbability > 0.7 ? 'bg-red-500' :
-                          'bg-amber-500'
+                          aiDetectionResult.aiProbability < 0.3 
+                            ? 'bg-green-100 text-green-800' 
+                            : aiDetectionResult.aiProbability < 0.6 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {getAIProbabilityClass(aiDetectionResult.aiProbability)}
+                        {getAILabel(aiDetectionResult.aiProbability)}
                       </Badge>
                     </div>
                     
@@ -1105,17 +1142,14 @@ export default function DocumentRewriterModal({
                       <span>AI Probability</span>
                       <span className="font-medium">{Math.round(aiDetectionResult.aiProbability * 100)}%</span>
                     </div>
-                    <Progress
-                      value={aiDetectionResult.aiProbability * 100}
-                      className="h-2 mt-1 mb-4"
-                    />
+                    <Progress value={aiDetectionResult.aiProbability * 100} className="h-2 mb-4" />
                     
                     {aiDetectionResult.mostAISentence && (
-                      <div className="border-t pt-2 mt-4 text-sm">
-                        <div className="font-medium mb-1">Most AI-like section:</div>
-                        <div className="p-2 bg-red-50 rounded-sm border border-red-100 text-sm">
+                      <div className="text-xs">
+                        <p className="font-medium text-red-600 mb-1">Most AI-like sentence:</p>
+                        <p className="italic bg-slate-100 p-2 rounded text-slate-800">
                           "{aiDetectionResult.mostAISentence.sentence}"
-                        </div>
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -1133,16 +1167,31 @@ export default function DocumentRewriterModal({
                 </div>
               )}
               
-              <div className="flex justify-end">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setViewMode('rewrite')}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1" />
-                  Back to Edit
-                </Button>
+              <div 
+                className="bg-white border rounded-md p-4 max-h-[500px] overflow-y-auto cursor-pointer hover:bg-slate-50"
+                onClick={() => {
+                  navigator.clipboard.writeText(rewrittenContent);
+                  toast({
+                    title: "Copied",
+                    description: "Content copied to clipboard",
+                  });
+                }}
+              >
+                <div className="prose prose-sm max-w-none">
+                  {rewrittenContent.split('\n').map((line, i) => (
+                    <p key={i}>{line || ' '}</p>
+                  ))}
+                </div>
               </div>
+              
+              {/* Back to Edit */}
+              <Button 
+                variant="outline" 
+                onClick={() => setViewMode('rewrite')}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Edit
+              </Button>
             </div>
           )}
         </div>
@@ -1151,14 +1200,16 @@ export default function DocumentRewriterModal({
           {viewMode === 'rewrite' ? (
             <>
               <Button 
-                type="submit"
-                disabled={
-                  isProcessing || 
-                  !documentData || 
-                  !settings.instructions || 
-                  (chunkMode && selectedChunkIds.length === 0)
-                }
-                onClick={handleRewrite}
+                variant="outline" 
+                onClick={handleCloseDialog}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleRewrite} 
+                disabled={!documentData || !settings.instructions || isProcessing}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 text-lg"
+                size="lg"
               >
                 {isProcessing ? (
                   <>
