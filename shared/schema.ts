@@ -53,9 +53,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
-export const insertDocumentSchema = createInsertSchema(documents).omit({
-  id: true,
-});
+export const insertDocumentSchema = createInsertSchema(documents);
 
 export const insertAnalyticsSchema = createInsertSchema(analytics).omit({
   id: true,

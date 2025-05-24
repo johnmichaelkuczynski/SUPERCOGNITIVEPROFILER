@@ -203,9 +203,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Generate a unique ID for the document
+      const docId = crypto.randomUUID();
+      
       // Store the document with chunks
       const document = await storage.createDocument({
-        id: crypto.randomUUID(),
+        id: docId,
         userId,
         title,
         content: extractedText,
