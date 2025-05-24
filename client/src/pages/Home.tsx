@@ -602,15 +602,127 @@ Document text: ${extractedText}`;
                   className="hidden"
                   multiple
                   accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    if (e.target.files) {
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files.length > 0) {
                       const newFiles = Array.from(e.target.files);
-                      setFiles(newFiles);
-                      // Automatically process files when they're uploaded
-                      setTimeout(() => {
-                        // We use setTimeout to ensure state is updated before processing
-                        processFile();
-                      }, 100);
+                      
+                      // Process each file individually and immediately
+                      for (const file of newFiles) {
+                        try {
+                          console.log(`Processing file directly: ${file.name}`);
+                          
+                          // Immediately show a message saying we're analyzing the document
+                          const processingMessage: Message = {
+                            id: Date.now(),
+                            content: `Analyzing ${file.name}...`,
+                            role: 'assistant',
+                            timestamp: new Date()
+                          };
+                          setMessages(prev => [...prev, processingMessage]);
+                          
+                          // Extract text from the document
+                          const processFormData = new FormData();
+                          processFormData.append('file', file);
+                          
+                          const processResponse = await fetch('/api/documents/process', {
+                            method: 'POST',
+                            body: processFormData,
+                          });
+                          
+                          if (!processResponse.ok) {
+                            throw new Error('Failed to extract text from document');
+                          }
+                          
+                          const processedData = await processResponse.json();
+                          const extractedText = processedData.content || '';
+                          const aiDetection = processedData.aiDetection || null;
+                          
+                          // Store document for sidebar and rewriter
+                          setAllDocuments(prev => [...prev, {name: file.name, content: extractedText}]);
+                          setUploadedDocuments(prev => ({...prev, [file.name]: extractedText}));
+                          
+                          console.log(`Extracted ${extractedText.length} characters from ${file.name}`);
+                          
+                          // Create analysis prompt
+                          let analysisPrompt = '';
+                          if (extractedText.length > 5000) {
+                            analysisPrompt = `Please analyze this document (${extractedText.length} characters) and provide:
+1. A concise summary of the main points (3-4 sentences)
+2. Key topics and themes
+3. The most important insights or conclusions
+4. Any notable patterns or writing style observations
+
+Document text: ${extractedText.substring(0, 5000)}...`;
+                          } else {
+                            analysisPrompt = `Please analyze this document and provide:
+1. A concise summary of the main points (3-4 sentences)
+2. Key topics and themes
+3. The most important insights or conclusions
+4. Any notable patterns or writing style observations
+
+Document text: ${extractedText}`;
+                          }
+                          
+                          // Get analysis from AI
+                          const analysisFormData = new FormData();
+                          analysisFormData.append('content', analysisPrompt);
+                          analysisFormData.append('model', selectedModel);
+                          
+                          const analysisResponse = await fetch('/api/llm/prompt', {
+                            method: 'POST',
+                            body: analysisFormData,
+                          });
+                          
+                          let analysisContent = '';
+                          if (analysisResponse.ok) {
+                            const analysisData = await analysisResponse.json();
+                            analysisContent = analysisData.content || '';
+                          }
+                          
+                          // Format AI detection info
+                          let aiDetectionInfo = '';
+                          if (aiDetection) {
+                            const aiProbability = Math.round(aiDetection.aiProbability * 100);
+                            const humanProbability = Math.round(aiDetection.humanProbability * 100);
+                            
+                            if (aiProbability > 70) {
+                              aiDetectionInfo = `\n\n**AI Content Detection**: This document appears to be AI-generated (${aiProbability}% probability).`;
+                            } else if (humanProbability > 70) {
+                              aiDetectionInfo = `\n\n**AI Content Detection**: This document appears to be human-written (${humanProbability}% probability human).`;
+                            } else {
+                              aiDetectionInfo = `\n\n**AI Content Detection**: This document has a mix of human and AI-like content (${aiProbability}% AI probability).`;
+                            }
+                          }
+                          
+                          // Format the complete analysis response
+                          const responseContent = analysisContent ? 
+                            `## Analysis of ${file.name}\n\n${analysisContent}${aiDetectionInfo}\n\n_Document contains ${extractedText.length} characters total._` :
+                            `I've extracted the content from ${file.name}.\n\n${extractedText.substring(0, 300)}${extractedText.length > 300 ? '...' : ''}\n\n${extractedText.length} characters total.${aiDetectionInfo}`;
+                          
+                          // Replace processing message with analysis
+                          const aiMessage: Message = {
+                            id: Date.now() + 1,
+                            content: responseContent,
+                            role: 'assistant',
+                            timestamp: new Date()
+                          };
+                          
+                          setMessages(prev => {
+                            const filteredMessages = prev.filter(msg => msg.id !== processingMessage.id);
+                            return [...filteredMessages, aiMessage];
+                          });
+                          
+                        } catch (error) {
+                          console.error(`Error processing file ${file.name}:`, error);
+                          const errorMessage: Message = {
+                            id: Date.now(),
+                            content: `Error processing ${file.name}: ${error instanceof Error ? error.message : String(error)}`,
+                            role: 'assistant',
+                            timestamp: new Date()
+                          };
+                          setMessages(prev => [...prev, errorMessage]);
+                        }
+                      }
                     }
                   }}
                 />
