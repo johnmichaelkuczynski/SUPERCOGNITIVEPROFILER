@@ -604,7 +604,13 @@ Document text: ${extractedText}`;
                   accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
                   onChange={(e) => {
                     if (e.target.files) {
-                      setFiles(Array.from(e.target.files));
+                      const newFiles = Array.from(e.target.files);
+                      setFiles(newFiles);
+                      // Automatically process files when they're uploaded
+                      setTimeout(() => {
+                        // We use setTimeout to ensure state is updated before processing
+                        processFile();
+                      }, 100);
                     }
                   }}
                 />
@@ -710,7 +716,7 @@ Document text: ${extractedText}`;
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="h-4 w-4 mx-auto text-slate-400 mb-1" />
-                  <p className="text-xs text-slate-600">Upload files for context</p>
+                  <p className="text-xs text-slate-600">Upload files for automatic analysis</p>
                   <p className="text-xs text-slate-500">PDF, DOCX, TXT, JPG, PNG</p>
                 </div>
               </div>
