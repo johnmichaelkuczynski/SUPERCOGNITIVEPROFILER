@@ -91,26 +91,63 @@ export default function Home() {
       // Create FormData and append prompt and model
       const formData = new FormData();
       
-      // ALWAYS include document context for ANY questions asked
+      // Include focused document context for questions
       let fullPrompt = userContent;
       
-      // Add context from uploaded documents on EVERY question
+      // Add context from uploaded documents for questions
       if (Object.keys(uploadedDocuments).length > 0) {
-        // Get ALL document text for context
-        const documentContexts = Object.entries(uploadedDocuments)
-          .map(([filename, content]) => {
+        // Check if we should focus on a specific document
+        const docNameMatch = userContent.match(/document\s*[:"]?\s*"?([^"]+)"?/i) || 
+                             userContent.match(/focus\s+on\s+(?:the\s+)?(?:document\s+)?(?:titled\s+)?["]?([^"]+)["]?/i) ||
+                             userContent.match(/about\s+(?:the\s+)?([^?.,]+?)(?:\s+document)?[\s,.?]/i);
+        
+        let focusedDocuments = [];
+        
+        if (docNameMatch && docNameMatch[1]) {
+          const docName = docNameMatch[1].trim();
+          // Find best matching document by name
+          const matchingDocs = Object.keys(uploadedDocuments).filter(
+            filename => filename.toLowerCase().includes(docName.toLowerCase())
+          );
+          
+          if (matchingDocs.length > 0) {
+            console.log(`Focusing on specific document: ${matchingDocs[0]}`);
+            // Only use the matched document
+            focusedDocuments = matchingDocs.map(filename => ({
+              filename,
+              content: uploadedDocuments[filename]
+            }));
+          }
+        }
+        
+        // If no specific document was identified, include all documents
+        if (focusedDocuments.length === 0) {
+          focusedDocuments = Object.entries(uploadedDocuments).map(([filename, content]) => ({
+            filename,
+            content
+          }));
+        }
+        
+        // Format document contexts with proper titles
+        const documentContexts = focusedDocuments
+          .map(({filename, content}) => {
             // Limit each document's content to prevent tokens overflow
             const truncatedContent = content.length > 4000 ? 
               content.substring(0, 4000) + "..." : 
               content;
-            return `Document: ${filename}\nContent: ${truncatedContent}\n\n`;
+            
+            // Extract possible title from first line
+            const firstLine = content.split('\n')[0].trim();
+            const title = firstLine.length < 100 ? firstLine : filename;
+            
+            return `Document title: ${title}\nFilename: ${filename}\nContent: ${truncatedContent}\n\n`;
           })
           .join("\n");
         
-        // Create a context-aware prompt - CRITICAL for document memory
-        fullPrompt = `I have the following documents for context:\n\n${documentContexts}\n\nUser question: ${userContent}`;
+        // Create a context-aware prompt with clear document focus
+        fullPrompt = `You are an expert writing assistant. Focus on the following document(s) to answer this question: "${userContent}"\n\n${documentContexts}`;
         
-        console.log("Added document context to prompt");
+        console.log(`Added context from ${focusedDocuments.length} document(s) to prompt`);
       }
       
       formData.append('content', fullPrompt);
