@@ -46,7 +46,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const processedDocs = await Promise.all(files.map(file => processDocument(file)));
         
         // Extract text from each document
-        const documentTexts = processedDocs.map(doc => doc.text);
+        const documentTexts = [];
+        let documentChunksUsed = false;
+        
+        // Check if there are chunks and if any are specifically requested
+        for (const doc of processedDocs) {
+          // Check if we're focusing on specific chunks
+          if (req.body.selectedChunks && Array.isArray(req.body.selectedChunks) && 
+              doc.chunks && doc.chunks.length > 0) {
+            
+            // Get the selected chunks
+            const selectedChunks = doc.chunks.filter((chunk, index) => 
+              req.body.selectedChunks.includes(index.toString()) || 
+              req.body.selectedChunks.includes(index)
+            );
+            
+            if (selectedChunks.length > 0) {
+              // Use only the selected chunks for context
+              const selectedText = selectedChunks.map(chunk => chunk.content).join("\n\n---CHUNK BOUNDARY---\n\n");
+              documentTexts.push(selectedText);
+              documentChunksUsed = true;
+              console.log(`Using ${selectedChunks.length} selected chunks instead of full document`);
+            } else {
+              documentTexts.push(doc.text);
+            }
+          } else {
+            // Use the full document text
+            documentTexts.push(doc.text);
+          }
+        }
+        
         console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
         
         // Add document context to the prompt
@@ -174,20 +203,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Store the document
-      await storage.createDocument({
+      // Store the document with chunks
+      const document = await storage.createDocument({
+        id: crypto.randomUUID(),
         userId,
         title,
         content: extractedText,
         model: 'claude', // Default model for file uploads
         excerpt,
         date: new Date(),
-        metadata: JSON.stringify(aiMetadata)
+        metadata: JSON.stringify(aiMetadata),
+        chunks: chunks ? JSON.stringify(chunks) : '[]'
       });
       
+      // Generate simple summaries for chunks if present
+      let chunkSummaries = [];
+      if (chunks && chunks.length > 0) {
+        chunkSummaries = chunks.map((chunk, index) => {
+          // Create a one-sentence summary from the first sentence
+          const firstSentence = chunk.content.split(/[.!?](?:\s|$)/)[0].trim();
+          const wordCount = chunk.content.split(/\s+/).length;
+          return {
+            index,
+            title: chunk.title,
+            summary: `${wordCount} words: ${firstSentence.substring(0, 100)}${firstSentence.length > 100 ? '...' : ''}`,
+            wordCount
+          };
+        });
+      }
+      
       res.json({ 
+        id: document.id,
         content: extractedText,
         text: extractedText, // Add text field as well for document rewriter
+        chunks: chunkSummaries,
         message: 'Document successfully processed and saved'
       });
     } catch (error) {
