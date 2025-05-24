@@ -78,13 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
         
-        // Apply the direct document evaluation approach 
-        processedContent = "You are a document evaluator. Based ONLY on the document below, respond to the following query: \n\n" 
-          + content 
-          + "\n\nDo not rely on the title or any outside knowledge. Quote exact phrases from the document to support your analysis. If information is not found in the document, clearly state this fact.\n\n"
-          + "DOCUMENT CONTENT:\n\n" 
-          + documentTexts.join("\n\n") 
-          + "\n\nRespond using only the information in the document above. Quote exact text when providing examples.";
+        // Simple document context without complicated instructions
+        processedContent = content + "\n\nContext documents:\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n");
       }
       
       // Process with the selected model
