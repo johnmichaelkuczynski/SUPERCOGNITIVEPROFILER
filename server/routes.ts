@@ -78,14 +78,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
         
-        // Create a much stronger system message to force content usage
-        // Add document context to the prompt with strict instructions
-        processedContent = "CRITICAL INSTRUCTION: Your task is to analyze ONLY the document content provided below. Do NOT make up information or use your general knowledge. STRICTLY base your response ONLY on the text between the ### markers.\n\n" 
+        // Apply the direct document evaluation approach 
+        processedContent = "You are a document evaluator. Based ONLY on the document below, respond to the following query: \n\n" 
           + content 
-          + "\n\n### DOCUMENT CONTENT START ###\n\n" 
-          + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n") 
-          + "\n\n### DOCUMENT CONTENT END ###\n\n"
-          + "REMINDER: You MUST only use information from the document above. If you cannot find relevant information in the document content, state that explicitly instead of making things up. For quotes, use the EXACT text from the document. If asked for topics not covered in the document, say 'The document does not contain information about [topic]' rather than making up content.";
+          + "\n\nDo not rely on the title or any outside knowledge. Quote exact phrases from the document to support your analysis. If information is not found in the document, clearly state this fact.\n\n"
+          + "DOCUMENT CONTENT:\n\n" 
+          + documentTexts.join("\n\n") 
+          + "\n\nRespond using only the information in the document above. Quote exact text when providing examples.";
       }
       
       // Process with the selected model
