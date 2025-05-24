@@ -89,11 +89,25 @@ export async function detectAIContent(text: string): Promise<AIDetectionResult> 
     const humanProbability = 1 - aiProbability;
     
     // Format and normalize the detailed sentence analysis
-    const detailedAnalysis = document.statistics.sentences.map(sentence => ({
-      sentence: sentence.sentence,
-      aiProbability: sentence.generated_prob,
-      perplexity: sentence.perplexity
-    }));
+    let detailedAnalysis = [];
+    
+    // Check if sentence statistics exist before processing
+    if (document.statistics && document.statistics.sentences && Array.isArray(document.statistics.sentences)) {
+      detailedAnalysis = document.statistics.sentences.map(sentence => ({
+        sentence: sentence.sentence,
+        aiProbability: sentence.generated_prob,
+        perplexity: sentence.perplexity
+      }));
+    } else {
+      // If no sentence data, create a single entry with overall document stats
+      detailedAnalysis = [{
+        sentence: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+        aiProbability: document.completely_generated_prob,
+        perplexity: 0 // Default value since we don't have actual perplexity
+      }];
+      
+      log('Warning: No sentence-level analysis available from GPTZero', 'gptzero');
+    }
     
     // Find the most AI-like and most human-like sentences
     let mostAISentence: {sentence: string, aiProbability: number} | undefined;
@@ -103,15 +117,20 @@ export async function detectAIContent(text: string): Promise<AIDetectionResult> 
       // Sort by AI probability in descending order
       const sorted = [...detailedAnalysis].sort((a, b) => b.aiProbability - a.aiProbability);
       
-      mostAISentence = {
-        sentence: sorted[0].sentence,
-        aiProbability: sorted[0].aiProbability
-      };
+      // Make sure we have valid sentence data
+      if (sorted[0] && sorted[0].sentence) {
+        mostAISentence = {
+          sentence: sorted[0].sentence,
+          aiProbability: sorted[0].aiProbability
+        };
+      }
       
-      mostHumanSentence = {
-        sentence: sorted[sorted.length - 1].sentence,
-        aiProbability: sorted[sorted.length - 1].aiProbability
-      };
+      if (sorted[sorted.length - 1] && sorted[sorted.length - 1].sentence) {
+        mostHumanSentence = {
+          sentence: sorted[sorted.length - 1].sentence,
+          aiProbability: sorted[sorted.length - 1].aiProbability
+        };
+      }
     }
     
     const result: AIDetectionResult = {
