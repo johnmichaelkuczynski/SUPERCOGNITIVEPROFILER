@@ -537,8 +537,8 @@ YOUR REWRITTEN DOCUMENT:`;
       }
       
       // Import SendGrid
-      const sgMail = require('@sendgrid/mail');
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      const sgMail = await import('@sendgrid/mail');
+      sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
       
       // Create email message
       const msg = {
@@ -555,7 +555,7 @@ YOUR REWRITTEN DOCUMENT:`;
       
       // Send email
       try {
-        await sgMail.send(msg);
+        await sgMail.default.send(msg);
         console.log(`Email sent successfully to ${email}`);
         return res.json({ success: true, message: 'Document sent successfully' });
       } catch (emailError) {
