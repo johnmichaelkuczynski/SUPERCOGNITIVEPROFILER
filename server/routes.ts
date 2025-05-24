@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import { processGPT4 } from "./services/openai";
+import { processGPT4, summarizeDocumentChunk } from "./services/openai";
 import { processClaude } from "./services/anthropic";
 import { processPerplexity } from "./services/perplexity";
 import { processDocument, extractText } from "./services/documentProcessor";

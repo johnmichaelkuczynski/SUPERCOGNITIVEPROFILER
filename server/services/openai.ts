@@ -1,169 +1,121 @@
-import OpenAI from "openai";
+import OpenAI from 'openai';
+import { createReadStream } from 'fs';
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const MODEL = "gpt-4o";
-
-// Initialize OpenAI client
+// Create a client instance
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || ""
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
+// The newest OpenAI model is "gpt-4o" which was released May 13, 2024. 
+// Do not change this unless explicitly requested by the user
+const DEFAULT_MODEL = 'gpt-4o';
+
+interface GPT4Options {
+  temperature?: number;
+  stream?: boolean;
+  chunkSize?: string;
+  maxTokens?: number;
+  previousMessages?: Array<{role: string; content: string}>;
+}
+
+/**
+ * Process text with GPT-4
+ */
 export async function processGPT4(
-  content: string, 
-  options: any = {}
-): Promise<string> {
-  // Extract options with defaults
-  const temperature = typeof options === 'object' ? (options.temperature || 0.7) : 0.7;
-  const stream = typeof options === 'object' ? (options.stream || false) : false;
-  const chunkSize = typeof options === 'object' ? options.chunkSize : undefined;
-  const maxTokens = typeof options === 'object' ? options.maxTokens : undefined;
-  const previousMessages = typeof options === 'object' ? options.previousMessages : [];
+  prompt: string,
+  options: GPT4Options = {}
+) {
+  const {
+    temperature = 0.7,
+    stream = false,
+    maxTokens = 4000,
+    previousMessages = []
+  } = options;
+
+  const messages = [
+    ...previousMessages,
+    { role: 'user', content: prompt }
+  ];
+
+  if (stream) {
+    return processWithChunking(prompt, options);
+  }
+
   try {
-    // Implement chunking strategy if needed
-    if (chunkSize && content.length > 10000) {
-      return await processWithChunking(content, temperature, chunkSize, maxTokens);
-    }
-    
-    // Build messages array including conversation history
-    let messages = [];
-    
-    // Add previous messages if provided
-    if (previousMessages && previousMessages.length > 0) {
-      messages = previousMessages.map(msg => ({
-        role: msg.role === 'system' ? 'system' : (msg.role === 'user' ? 'user' : 'assistant'),
-        content: msg.content
-      }));
-    }
-    
-    // Add current message
-    messages.push({ role: "user", content });
-    
     const response = await openai.chat.completions.create({
-      model: MODEL,
-      messages: messages,
-      temperature: temperature,
+      model: DEFAULT_MODEL,
+      messages,
+      temperature,
       max_tokens: maxTokens,
-      stream: false // We manually handle streaming for consistent API
     });
-    
-    return response.choices[0].message.content || "";
+
+    return response.choices[0].message.content;
   } catch (error) {
-    console.error("Error calling OpenAI API:", error);
-    throw new Error(`GPT-4 processing failed: ${(error as Error).message}`);
+    console.error('Error calling OpenAI API:', error);
+    throw error;
   }
 }
 
+/**
+ * Process text with GPT-4 in chunks for streaming
+ */
 async function processWithChunking(
-  content: string, 
-  temperature: number,
-  chunkSize: string,
-  maxTokens?: number
-): Promise<string> {
-  // Determine chunk size based on the strategy
-  let chunkTokens: number;
-  switch (chunkSize) {
-    case 'small':
-      chunkTokens = 1000;
-      break;
-    case 'medium':
-      chunkTokens = 2000;
-      break;
-    case 'large':
-      chunkTokens = 4000;
-      break;
-    default: // auto
-      chunkTokens = 2000;
-  }
-  
-  // Simple text chunking by paragraphs (in a real app, we would use a more sophisticated chunking strategy)
-  const paragraphs = content.split("\n\n");
-  
-  // Estimate tokens (rough approximation)
-  const estimatedTokensPerChar = 0.25;
-  
-  let chunks: string[] = [];
-  let currentChunk = "";
-  
-  for (const paragraph of paragraphs) {
-    const paragraphTokens = paragraph.length * estimatedTokensPerChar;
-    
-    if (currentChunk.length * estimatedTokensPerChar + paragraphTokens > chunkTokens && currentChunk.length > 0) {
-      chunks.push(currentChunk);
-      currentChunk = paragraph;
-    } else {
-      currentChunk += (currentChunk ? "\n\n" : "") + paragraph;
-    }
-  }
-  
-  if (currentChunk) {
-    chunks.push(currentChunk);
-  }
-  
-  // Process each chunk
-  let results: string[] = [];
-  let context = "";
-  
-  for (let i = 0; i < chunks.length; i++) {
-    const isFirstChunk = i === 0;
-    const isLastChunk = i === chunks.length - 1;
-    
-    let prompt = chunks[i];
-    
-    if (!isFirstChunk) {
-      prompt = `Previous context:\n${context}\n\nContinue processing with this chunk:\n${prompt}`;
-    }
-    
-    if (!isLastChunk) {
-      prompt += "\n\nNote: This is not the end of the document. More content follows in subsequent chunks.";
-    }
-    
-    const response = await openai.chat.completions.create({
-      model: MODEL,
-      messages: [
-        { role: "user", content: prompt }
-      ],
+  prompt: string,
+  options: GPT4Options = {}
+) {
+  const { temperature = 0.7, chunkSize = 'medium', maxTokens = 4000 } = options;
+
+  try {
+    const stream = await openai.chat.completions.create({
+      model: DEFAULT_MODEL,
+      messages: [{ role: 'user', content: prompt }],
       temperature,
       max_tokens: maxTokens,
-      stream: false
+      stream: true,
     });
-    
-    const result = response.choices[0].message.content || "";
-    results.push(result);
-    
-    // Update context with a summary of what was processed so far
-    if (chunks.length > 1 && !isLastChunk) {
-      const contextResponse = await openai.chat.completions.create({
-        model: MODEL,
-        messages: [
-          { 
-            role: "user", 
-            content: `Summarize the following content in 200 words or less to provide context for continuation:\n\n${chunks[i]}\n\n${result}`
-          }
-        ],
-        temperature: 0.3,
-        stream: false
-      });
-      
-      context = contextResponse.choices[0].message.content || "";
+
+    let generatedText = '';
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      generatedText += content;
     }
+
+    return generatedText;
+  } catch (error) {
+    console.error('Error streaming from OpenAI API:', error);
+    throw error;
   }
-  
-  // For multiple chunks, ensure proper consolidation
-  if (chunks.length > 1) {
-    const consolidationResponse = await openai.chat.completions.create({
-      model: MODEL,
+}
+
+/**
+ * Generate a one-sentence summary of a document chunk
+ */
+export async function summarizeDocumentChunk(text: string): Promise<string> {
+  try {
+    // Truncate text to avoid exceeding token limits
+    const truncatedText = text.length > 3000 ? 
+      text.substring(0, 3000) + '...' : 
+      text;
+    
+    const response = await openai.chat.completions.create({
+      model: DEFAULT_MODEL,
       messages: [
-        { 
-          role: "user", 
-          content: `You have processed a document in ${chunks.length} chunks. Please combine and revise the following outputs to create a coherent whole:\n\n${results.join("\n\n===CHUNK BOUNDARY===\n\n")}`
+        {
+          role: 'system', 
+          content: 'You are an expert document summarizer. Create a brief, informative title (1-2 sentences) that captures the essence of this document section.'
+        },
+        {
+          role: 'user',
+          content: `Summarize the following text in 1-2 sentences that could serve as an informative title:\n\n${truncatedText}`
         }
       ],
-      temperature: 0.3,
-      stream: false
+      temperature: 0.3, // Lower temperature for more focused output
+      max_tokens: 60,   // Keep it brief
     });
-    
-    return consolidationResponse.choices[0].message.content || results.join("\n\n");
+
+    return response.choices[0].message.content || '';
+  } catch (error) {
+    console.error('Error generating document summary:', error);
+    throw error;
   }
-  
-  return results.join("\n\n");
 }
