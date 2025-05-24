@@ -45,6 +45,9 @@ export default function Home() {
   const [viewingDocumentContent, setViewingDocumentContent] = useState<string>('');
   const [viewingDocumentName, setViewingDocumentName] = useState<string>('');
   
+  // Track all uploaded documents for the sidebar
+  const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
+  
   // Scroll to bottom whenever messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -200,6 +203,15 @@ export default function Home() {
         ...prev,
         [file.name]: extractedText
       }));
+      
+      // Add to the sidebar documents list
+      setAllDocuments(prev => {
+        // Check if document already exists to avoid duplicates
+        if (!prev.some(doc => doc.name === file.name)) {
+          return [...prev, { name: file.name, content: extractedText }];
+        }
+        return prev;
+      });
       
       // Create a message showing we're processing this file
       const userMessage: Message = {
