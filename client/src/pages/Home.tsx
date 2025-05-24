@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { LLMModel, formatBytes } from '@/lib/utils';
 import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download } from 'lucide-react';
 import { downloadOutput } from '@/lib/llm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ReactMarkdown from 'react-markdown';
@@ -875,23 +875,75 @@ Document text: ${extractedText}`;
                     View Analytics
                   </Button>
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      if (messages.length > 0) {
-                        const chatContent = messages.map(msg => 
-                          `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n${msg.content}\n\n`
-                        ).join('---\n\n');
-                        
-                        downloadOutput(chatContent, 'txt', `chat-export-${new Date().toISOString().split('T')[0]}`);
-                      }
-                    }}
-                    disabled={messages.length === 0}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export Chat
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={messages.length === 0}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Chat
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Export Conversation</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <p className="text-sm text-slate-600">Choose a format to export your conversation:</p>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            onClick={() => {
+                              if (messages.length > 0) {
+                                const chatContent = messages.map(msg => 
+                                  `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n${msg.content}\n\n`
+                                ).join('---\n\n');
+                                
+                                downloadOutput(chatContent, 'txt', `chat-export-${new Date().toISOString().split('T')[0]}`);
+                              }
+                            }}
+                            variant="outline"
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Export as Text (.txt)
+                          </Button>
+                          
+                          <Button 
+                            onClick={() => {
+                              if (messages.length > 0) {
+                                const chatContent = messages.map(msg => 
+                                  `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n${msg.content}\n\n`
+                                ).join('---\n\n');
+                                
+                                downloadOutput(chatContent, 'docx', `chat-export-${new Date().toISOString().split('T')[0]}`);
+                              }
+                            }}
+                            variant="outline"
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Export as Word (.docx)
+                          </Button>
+                          
+                          <Button 
+                            onClick={() => {
+                              if (messages.length > 0) {
+                                const chatContent = messages.map(msg => 
+                                  `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n${msg.content}\n\n`
+                                ).join('---\n\n');
+                                
+                                downloadOutput(chatContent, 'pdf', `chat-export-${new Date().toISOString().split('T')[0]}`);
+                              }
+                            }}
+                            variant="outline"
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Export as PDF (.pdf)
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   
                   <Button 
                     variant="outline" 
