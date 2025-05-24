@@ -877,6 +877,24 @@ Document text: ${extractedText}`;
                   <Button 
                     variant="outline" 
                     size="sm"
+                    onClick={() => {
+                      if (messages.length > 0) {
+                        const chatContent = messages.map(msg => 
+                          `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n${msg.content}\n\n`
+                        ).join('---\n\n');
+                        
+                        downloadOutput(chatContent, 'txt', `chat-export-${new Date().toISOString().split('T')[0]}`);
+                      }
+                    }}
+                    disabled={messages.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Chat
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={() => setMessages([])}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
