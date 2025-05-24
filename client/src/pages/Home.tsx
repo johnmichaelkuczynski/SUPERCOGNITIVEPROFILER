@@ -160,6 +160,16 @@ export default function Home() {
     // Add user message to conversation
     setMessages(prev => [...prev, userMessage]);
     
+    // Add immediate initial response message
+    const initialResponseMessage: Message = {
+      id: Date.now() + 1,
+      content: "I'm analyzing your document(s)...",
+      role: 'assistant',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, initialResponseMessage]);
+    
     try {
       // Process each file
       for (const file of files) {
