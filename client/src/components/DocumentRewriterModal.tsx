@@ -529,6 +529,74 @@ export default function DocumentRewriterModal({
     return 'Very likely human';
   };
 
+  // Handle email sharing
+  const handleShareEmail = async () => {
+    if (!rewrittenContent) {
+      toast({
+        title: "No Content",
+        description: "There is no rewritten content to share.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // If email form is not showing yet, just show it
+    if (!showEmailForm) {
+      setShowEmailForm(true);
+      return;
+    }
+    
+    // Validate email
+    if (!emailAddress || !emailAddress.includes('@')) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setSendingEmail(true);
+      
+      const response = await fetch('/api/share-document', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailAddress,
+          content: rewrittenContent,
+          subject: `Rewritten Document: ${documentData?.name || 'Document'}`
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to send email');
+      }
+      
+      toast({
+        title: "Email Sent",
+        description: `Your document has been sent to ${emailAddress}`,
+      });
+      
+      // Reset email form
+      setShowEmailForm(false);
+      setEmailAddress('');
+      
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Email Failed",
+        description: error instanceof Error ? error.message : "Failed to send the email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   // Handle download
   const handleDownload = async (format: 'txt' | 'docx' | 'pdf') => {
     if (!rewrittenContent) {
@@ -917,7 +985,53 @@ export default function DocumentRewriterModal({
                     <FileDown className="h-4 w-4 mr-1" />
                     Download PDF
                   </Button>
+                  <Button 
+                    variant="outline"
+                    size="sm" 
+                    disabled={isProcessing || !rewrittenContent || sendingEmail}
+                    onClick={() => setShowEmailForm(!showEmailForm)}
+                  >
+                    <MailIcon className="h-4 w-4 mr-1" />
+                    Share via Email
+                  </Button>
                 </div>
+                
+                {/* Email form */}
+                {showEmailForm && (
+                  <div className="mt-4 p-4 border rounded-md bg-gray-50">
+                    <h3 className="text-sm font-medium mb-2">Send Document via Email</h3>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="email"
+                        placeholder="recipient@example.com"
+                        value={emailAddress}
+                        onChange={(e) => setEmailAddress(e.target.value)}
+                        disabled={sendingEmail}
+                        className="flex-1"
+                      />
+                      <Button 
+                        size="sm"
+                        disabled={sendingEmail || !emailAddress}
+                        onClick={handleShareEmail}
+                      >
+                        {sendingEmail ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        ) : (
+                          <Send className="h-4 w-4 mr-1" />
+                        )}
+                        Send
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowEmailForm(false)}
+                        disabled={sendingEmail}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* AI Detection Result */}
