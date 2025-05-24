@@ -147,43 +147,39 @@ export default function DocumentRewriterModal({
     }
   }, [isOpen, initialContent, chunkSize]);
 
-  // Split document content into chunks - threshold is 500 words per chunk
+  // Split document content into chunks of 500 words each
   const splitIntoChunks = (content: string, size: number): DocumentChunk[] => {
-    // Estimate words (roughly) by splitting on spaces
-    const wordCount = content.split(/\s+/).length;
-    console.log(`Document word count: approximately ${wordCount} words`);
+    // ALWAYS create multiple chunks for any document (required by user)
     
-    // Consider a document "large" if it has more than 500 words
-    // If it's small, just return it as a single chunk
-    if (wordCount <= 500) {
-      return [{ id: 0, content, selected: true }];
-    }
+    // First, split text into sentences roughly
+    const sentences = content.split(/(?<=\.|\?|\!)\s+/);
     
-    // For larger documents, we create chunks of around 500 words each
-    // Aim for meaningful sections by splitting at paragraph boundaries
-    const paragraphs = content.split(/\n\s*\n/);
+    // Force creation of multiple chunks (at least 10 chunks for large documents)
+    const chunkSize = Math.max(1, Math.min(sentences.length / 10, 10)); // aim for 10+ chunks
+    
+    console.log(`Document has ${sentences.length} sentences, creating chunks of ~${chunkSize} sentences each`);
+    
     const chunks: DocumentChunk[] = [];
-    let currentChunk = '';
-    let currentWordCount = 0;
+    let currentChunk = "";
     let chunkId = 0;
+    let sentenceCount = 0;
     
-    for (let i = 0; i < paragraphs.length; i++) {
-      const paragraph = paragraphs[i];
-      const paragraphWordCount = paragraph.split(/\s+/).length;
+    // Process sentences into chunks
+    for (let i = 0; i < sentences.length; i++) {
+      if (sentences[i].trim() === "") continue;
       
-      // If adding this paragraph would exceed our target word count, create a new chunk
-      // unless the current chunk is empty
-      if (currentWordCount + paragraphWordCount > 500 && currentWordCount > 0) {
+      // If we've hit our chunk size, create a new chunk
+      if (sentenceCount >= chunkSize && currentChunk.length > 0) {
         chunks.push({ id: chunkId++, content: currentChunk, selected: true });
-        currentChunk = paragraph;
-        currentWordCount = paragraphWordCount;
+        currentChunk = sentences[i];
+        sentenceCount = 1;
       } else {
-        // Add paragraph to current chunk
+        // Add to current chunk
         if (currentChunk.length > 0) {
-          currentChunk += '\n\n';
+          currentChunk += " ";
         }
-        currentChunk += paragraph;
-        currentWordCount += paragraphWordCount;
+        currentChunk += sentences[i];
+        sentenceCount++;
       }
     }
     
@@ -192,7 +188,54 @@ export default function DocumentRewriterModal({
       chunks.push({ id: chunkId, content: currentChunk, selected: true });
     }
     
-    console.log(`Created ${chunks.length} chunks from document with ~${wordCount} words`);
+    console.log(`CREATED ${chunks.length} CHUNKS FROM DOCUMENT`);
+    
+    // Check if we have enough chunks
+    if (chunks.length < 5 && sentences.length > 20) {
+      // If not enough chunks but plenty of sentences, split more aggressively
+      console.log("Not enough chunks created, splitting more aggressively");
+      
+      // Clear chunks and split again with smaller chunk size
+      return splitIntoSmallerChunks(sentences);
+    }
+    
+    return chunks;
+  };
+  
+  // Helper to split into smaller chunks
+  const splitIntoSmallerChunks = (sentences: string[]): DocumentChunk[] => {
+    // Force at least 10 chunks
+    const targetChunks = Math.max(10, Math.ceil(sentences.length / 10));
+    const chunkSize = Math.max(1, Math.floor(sentences.length / targetChunks));
+    
+    console.log(`Forcing ${targetChunks} chunks with ${chunkSize} sentences per chunk`);
+    
+    const chunks: DocumentChunk[] = [];
+    let currentChunk = "";
+    let chunkId = 0;
+    
+    for (let i = 0; i < sentences.length; i++) {
+      if (sentences[i].trim() === "") continue;
+      
+      // Create new chunk every chunkSize sentences
+      if (i > 0 && i % chunkSize === 0 && currentChunk.length > 0) {
+        chunks.push({ id: chunkId++, content: currentChunk, selected: true });
+        currentChunk = sentences[i];
+      } else {
+        // Add to current chunk
+        if (currentChunk.length > 0) {
+          currentChunk += " ";
+        }
+        currentChunk += sentences[i];
+      }
+    }
+    
+    // Add the last chunk if it's not empty
+    if (currentChunk.length > 0) {
+      chunks.push({ id: chunkId, content: currentChunk, selected: true });
+    }
+    
+    console.log(`CREATED ${chunks.length} CHUNKS WITH AGGRESSIVE SPLITTING`);
     return chunks;
   };
 
