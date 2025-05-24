@@ -8,6 +8,10 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
 
+// Log API key status for debugging
+console.log("Anthropic API key available:", !!process.env.ANTHROPIC_API_KEY);
+console.log("Anthropic API key first few chars:", process.env.ANTHROPIC_API_KEY?.substring(0, 5) + "...");
+
 interface LLMOptions {
   temperature?: number;
   stream?: boolean;
@@ -152,9 +156,18 @@ async function processWithChunking(
     // Add the current prompt
     messages.push({ role: 'user', content: prompt });
     
+    // Ensure we're using the correct message format for Anthropic API
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content
+    }));
+    
+    console.log('Sending request to Anthropic API with model:', MODEL);
+    console.log('Using API key starting with:', process.env.ANTHROPIC_API_KEY?.substring(0, 7) + '...');
+    
     const response = await anthropic.messages.create({
       model: MODEL,
-      messages,
+      messages: formattedMessages,
       temperature,
       max_tokens: maxTokens || 4000,
     });

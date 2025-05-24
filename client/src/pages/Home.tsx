@@ -86,6 +86,8 @@ export default function Home() {
     }
     
     try {
+      console.log("Sending request with content:", userContent);
+      
       // Create FormData and append prompt and model
       const formData = new FormData();
       formData.append('content', userContent);
@@ -256,6 +258,8 @@ export default function Home() {
       } else {
         summaryPrompt = `Please provide a concise summary of this document: ${extractedText}`;
       }
+      
+      console.log("Creating summary request with prompt length:", summaryPrompt.length);
       
       const formData = new FormData();
       formData.append('content', summaryPrompt);
