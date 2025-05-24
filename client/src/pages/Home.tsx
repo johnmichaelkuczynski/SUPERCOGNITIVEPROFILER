@@ -544,6 +544,15 @@ export default function Home() {
                     <FileText className="h-4 w-4 mr-2" />
                     View Analytics
                   </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setMessages([])}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear Chat
+                  </Button>
                 </div>
                 
                 {/* Document Actions */}
