@@ -197,20 +197,20 @@ export default function Home() {
     try {
       console.log(`Processing file: ${file.name}`);
       
-      // Add immediate processing message for this specific file
-      const processingMessage: Message = {
-        id: Date.now(),
-        content: `Processing ${file.name}...`,
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, processingMessage]);
-      
       // First, we need to extract the actual text content from the document
       // For PDFs and other complex formats, we need to use the server to extract text properly
       // Create form data for document processing
       const processFormData = new FormData();
       processFormData.append('file', file);
+      
+      // Immediately show a message saying we're analyzing the document
+      const processingMessage: Message = {
+        id: Date.now(),
+        content: `Analyzing ${file.name}...`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, processingMessage]);
       
       // Send the file to be processed by the server to extract text
       const processResponse = await fetch('/api/documents/process', {
@@ -225,6 +225,9 @@ export default function Home() {
       const processedData = await processResponse.json();
       const extractedText = processedData.content || '';
       
+      // Also get AI detection metadata if available
+      const aiDetection = processedData.aiDetection || null;
+      
       // Store the document in our uploadedDocuments object and allDocuments array for the sidebar
       setAllDocuments(prev => [...prev, {name: file.name, content: extractedText}]);
       
@@ -236,81 +239,75 @@ export default function Home() {
         [file.name]: extractedText
       }));
       
-      // Create user message to indicate file was processed
-      const userMessage: Message = {
-        id: Date.now(),
-        content: `Processed file: ${file.name}`,
-        role: 'user',
-        timestamp: new Date()
-      };
-      
-      // Add the user message to show we've processed this file
-      setMessages(prev => {
-        // Remove the processing message for this file
-        const filteredMessages = prev.filter(msg => msg.id !== processingMessage.id);
-        return [...filteredMessages, userMessage];
-      });
-      
-      // Generate a summary of the document directly using the selected model
-      let summaryPrompt = '';
+      // Create the prompt for analysis
+      let analysisPrompt = '';
       if (extractedText.length > 5000) {
-        summaryPrompt = `Please provide a detailed summary of this large document (${extractedText.length} characters). Include key points, main topics, and important findings: ${extractedText.substring(0, 5000)}...`;
+        analysisPrompt = `Please analyze this document (${extractedText.length} characters) and provide:
+1. A concise summary of the main points (3-4 sentences)
+2. Key topics and themes
+3. The most important insights or conclusions
+4. Any notable patterns or writing style observations
+
+Document text: ${extractedText.substring(0, 5000)}...`;
       } else {
-        summaryPrompt = `Please provide a concise summary of this document: ${extractedText}`;
+        analysisPrompt = `Please analyze this document and provide:
+1. A concise summary of the main points (3-4 sentences)
+2. Key topics and themes
+3. The most important insights or conclusions
+4. Any notable patterns or writing style observations
+
+Document text: ${extractedText}`;
       }
       
-      console.log("Creating summary request with prompt length:", summaryPrompt.length);
+      // Send analysis request
+      const analysisFormData = new FormData();
+      analysisFormData.append('content', analysisPrompt);
+      analysisFormData.append('model', selectedModel);
       
-      const formData = new FormData();
-      formData.append('content', summaryPrompt);
-      formData.append('model', selectedModel);
-      
-      // Add AI analyzing message
-      const analyzingMessage: Message = {
-        id: Date.now() + 2,
-        content: `Analyzing content from ${file.name}...`,
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, analyzingMessage]);
-      
-      // Send request to get summary
-      const summaryResponse = await fetch('/api/llm/prompt', {
+      // Send request to get analysis
+      const analysisResponse = await fetch('/api/llm/prompt', {
         method: 'POST',
-        body: formData,
+        body: analysisFormData,
       });
       
-      let summaryContent = '';
-      if (summaryResponse.ok) {
-        const summaryData = await summaryResponse.json();
-        summaryContent = summaryData.content || '';
+      let analysisContent = '';
+      if (analysisResponse.ok) {
+        const analysisData = await analysisResponse.json();
+        analysisContent = analysisData.content || '';
       }
       
-      // Create a summary from the extracted text without relying on AI if API fails
-      let summary = "";
-      
-      if (summaryContent) {
-        // Use AI-generated summary if available
-        summary = summaryContent;
-      } else {
-        // Create a basic summary from the extracted text
-        const firstParagraph = extractedText.split('\n\n')[0] || extractedText.substring(0, 200);
-        summary = `${firstParagraph}${extractedText.length > 200 ? '...' : ''}`;
+      // Add AI detection info if available
+      let aiDetectionInfo = '';
+      if (aiDetection) {
+        const aiProbability = Math.round(aiDetection.aiProbability * 100);
+        const humanProbability = Math.round(aiDetection.humanProbability * 100);
+        
+        if (aiProbability > 70) {
+          aiDetectionInfo = `\n\n**AI Content Detection**: This document appears to be AI-generated (${aiProbability}% probability).`;
+        } else if (humanProbability > 70) {
+          aiDetectionInfo = `\n\n**AI Content Detection**: This document appears to be human-written (${humanProbability}% probability human).`;
+        } else {
+          aiDetectionInfo = `\n\n**AI Content Detection**: This document has a mix of human and AI-like content (${aiProbability}% AI probability).`;
+        }
       }
       
-      // Add AI message with content overview and summary
+      // Format the complete analysis response
+      const responseContent = analysisContent ? 
+        `## Analysis of ${file.name}\n\n${analysisContent}${aiDetectionInfo}\n\n_Document contains ${extractedText.length} characters total._` :
+        `I've extracted the content from ${file.name}.\n\n${extractedText.substring(0, 300)}${extractedText.length > 300 ? '...' : ''}\n\n${extractedText.length} characters total.${aiDetectionInfo}`;
+      
+      // Add AI message with content overview and analysis
       const aiMessage: Message = {
-        id: Date.now() + 3,
-        content: `I've extracted the content from ${file.name}. Here's a summary:\n\n${summary}\n\n${extractedText.length} characters total. You can ask me questions about this document or upload more files.`,
+        id: Date.now() + 1,
+        content: responseContent,
         role: 'assistant',
         timestamp: new Date()
       };
       
-      // Add final AI message to conversation, replacing the analyzing message
+      // Replace the processing message with the analysis
       setMessages(prev => {
-        // Remove the analyzing message
-        const filteredMessages = prev.filter(msg => msg.id !== analyzingMessage.id);
+        // Remove the processing message
+        const filteredMessages = prev.filter(msg => msg.id !== processingMessage.id);
         return [...filteredMessages, aiMessage];
       });
     } catch (error) {
