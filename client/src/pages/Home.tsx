@@ -168,28 +168,31 @@ export default function Home() {
     try {
       setIsLoading(true);
       
-      // First, read the file content to store it for the document rewriter
-      const reader = new FileReader();
+      // First, we need to extract the actual text content from the document
+      // For PDFs and other complex formats, we need to use the server to extract text properly
+      // Create form data for document processing
+      const processFormData = new FormData();
+      processFormData.append('file', file);
       
-      // Use a promise to handle the file reading asynchronously
-      const fileContentPromise = new Promise<string>((resolve) => {
-        reader.onload = (e) => {
-          const content = e.target?.result as string || '';
-          resolve(content);
-        };
+      // Send the file to be processed by the server to extract text
+      const processResponse = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: processFormData,
       });
       
-      // Start reading the file as text
-      reader.readAsText(file);
+      if (!processResponse.ok) {
+        throw new Error('Failed to extract text from document');
+      }
       
-      // Wait for the file to be read
-      const fileContent = await fileContentPromise;
+      const processedData = await processResponse.json();
+      const extractedText = processedData.text || '';
       
-      // Store the original document content with the filename as key
-      console.log(`Read file ${file.name} with ${fileContent.length} characters`);
+      console.log(`Extracted ${extractedText.length} characters from ${file.name}`);
+      
+      // Store the extracted text for the document rewriter
       setUploadedDocuments(prev => ({
         ...prev,
-        [file.name]: fileContent
+        [file.name]: extractedText
       }));
       
       // Create a message showing we're processing this file
@@ -203,7 +206,7 @@ export default function Home() {
       
       setMessages(prev => [...prev, userMessage]);
       
-      // Create form data
+      // Create form data for the AI analysis
       const formData = new FormData();
       formData.append('content', `Please analyze this document: ${file.name}`);
       formData.append('model', selectedModel);
@@ -219,14 +222,14 @@ export default function Home() {
       
       formData.append('conversation_history', JSON.stringify(conversationContext));
       
-      // Make the API call
+      // Make the API call for AI analysis
       const res = await fetch('/api/llm/prompt', {
         method: 'POST',
         body: formData,
       });
       
       if (!res.ok) {
-        throw new Error('Failed to process document');
+        throw new Error('Failed to process document with AI');
       }
       
       const data = await res.json();
