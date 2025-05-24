@@ -91,24 +91,26 @@ export default function Home() {
       // Create FormData and append prompt and model
       const formData = new FormData();
       
-      // Include document context for any questions asked
+      // ALWAYS include document context for ANY questions asked
       let fullPrompt = userContent;
       
-      // Add context from uploaded documents if this is a follow-up question
-      if (Object.keys(uploadedDocuments).length > 0 && !files.length) {
-        // Get the most recent document text for context
+      // Add context from uploaded documents on EVERY question
+      if (Object.keys(uploadedDocuments).length > 0) {
+        // Get ALL document text for context
         const documentContexts = Object.entries(uploadedDocuments)
           .map(([filename, content]) => {
             // Limit each document's content to prevent tokens overflow
-            const truncatedContent = content.length > 2000 ? 
-              content.substring(0, 2000) + "..." : 
+            const truncatedContent = content.length > 4000 ? 
+              content.substring(0, 4000) + "..." : 
               content;
             return `Document: ${filename}\nContent: ${truncatedContent}\n\n`;
           })
           .join("\n");
         
-        // Create a context-aware prompt
+        // Create a context-aware prompt - CRITICAL for document memory
         fullPrompt = `I have the following documents for context:\n\n${documentContexts}\n\nUser question: ${userContent}`;
+        
+        console.log("Added document context to prompt");
       }
       
       formData.append('content', fullPrompt);
