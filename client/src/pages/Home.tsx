@@ -658,34 +658,6 @@ export default function Home() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Document Viewer Dialog */}
-      <Dialog open={isDocumentViewerOpen} onOpenChange={setIsDocumentViewerOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Document: {viewingDocumentName}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-2 overflow-auto max-h-[60vh]">
-            <div className="border rounded p-4 bg-white font-mono text-sm whitespace-pre-wrap">
-              {viewingDocumentContent}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setIsDocumentViewerOpen(false)}>Close</Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setDocumentContent(viewingDocumentContent);
-                setDocumentName(viewingDocumentName);
-                setIsRewriterOpen(true);
-                setIsDocumentViewerOpen(false);
-              }}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Rewrite Document
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       
       {/* Document Rewriter Modal */}
       <DocumentRewriterModal
