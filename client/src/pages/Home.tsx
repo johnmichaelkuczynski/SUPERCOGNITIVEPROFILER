@@ -327,31 +327,7 @@ export default function Home() {
                 Perplexity
               </Button>
               
-              <div className="w-full mt-4 flex justify-center">
-                <Button 
-                  variant="secondary"
-                  className="flex items-center gap-2"
-                  onClick={() => {
-                    // Find the latest document content if it exists
-                    const latestDocumentMessage = [...messages]
-                      .reverse()
-                      .find(msg => msg.files && msg.files.length > 0);
-                      
-                    // Open the rewriter modal
-                    if (latestDocumentMessage && latestDocumentMessage.role === 'assistant') {
-                      setDocumentContent(latestDocumentMessage.content);
-                      setIsRewriterOpen(true);
-                    } else {
-                      // If no document found, open with empty content
-                      setDocumentContent('');
-                      setIsRewriterOpen(true);
-                    }
-                  }}
-                >
-                  <FileText className="h-4 w-4" />
-                  Rewrite Document
-                </Button>
-              </div>
+
             </div>
           </CardContent>
         </Card>
@@ -440,28 +416,100 @@ export default function Home() {
           
           <div className="p-4">
             <div className="space-y-4">
-              <div className="flex space-x-4">
-                <textarea 
-                  ref={textareaRef}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-1 min-h-[100px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Type your question or prompt here and press Enter to send..."
-                  disabled={isLoading}
-                  rows={3}
-                />
-                <Button 
-                  onClick={handleProcessRequest} 
-                  size="icon"
-                  disabled={isLoading || (!prompt.trim() && files.length === 0)}
-                >
-                  {isLoading ? (
-                    <div className="animate-spin h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
+              <div className="space-y-2">
+                <div className="flex space-x-4">
+                  <textarea 
+                    ref={textareaRef}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 min-h-[100px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Type your question or prompt here and press Enter to send..."
+                    disabled={isLoading}
+                    rows={3}
+                  />
+                  <div className="flex flex-col space-y-2">
+                    <Button 
+                      onClick={handleProcessRequest} 
+                      size="icon"
+                      disabled={isLoading || (!prompt.trim() && files.length === 0)}
+                    >
+                      {isLoading ? (
+                        <div className="animate-spin h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        // Find the latest document content if it exists
+                        const latestDocumentMessage = [...messages]
+                          .reverse()
+                          .find(msg => msg.files && msg.files.length > 0 && msg.role === 'assistant');
+                          
+                        // Open the rewriter modal
+                        if (latestDocumentMessage) {
+                          setDocumentContent(latestDocumentMessage.content);
+                          setIsRewriterOpen(true);
+                        } else {
+                          // If no document found, open with most recent AI message
+                          const lastAIMessage = [...messages]
+                            .reverse()
+                            .find(msg => msg.role === 'assistant');
+                            
+                          if (lastAIMessage) {
+                            setDocumentContent(lastAIMessage.content);
+                          } else {
+                            setDocumentContent('');
+                          }
+                          setIsRewriterOpen(true);
+                        }
+                      }}
+                      title="Rewrite document"
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Button with text below the input area */}
+                <div className="flex justify-end">
+                  <Button 
+                    variant="ghost"
+                    size="sm" 
+                    className="text-xs text-muted-foreground"
+                    onClick={() => {
+                      // Find the latest document content if it exists
+                      const latestDocumentMessage = [...messages]
+                        .reverse()
+                        .find(msg => msg.files && msg.files.length > 0 && msg.role === 'assistant');
+                        
+                      // Open the rewriter modal
+                      if (latestDocumentMessage) {
+                        setDocumentContent(latestDocumentMessage.content);
+                        setIsRewriterOpen(true);
+                      } else {
+                        // If no document found, open with most recent AI message
+                        const lastAIMessage = [...messages]
+                          .reverse()
+                          .find(msg => msg.role === 'assistant');
+                          
+                        if (lastAIMessage) {
+                          setDocumentContent(lastAIMessage.content);
+                        } else {
+                          setDocumentContent('');
+                        }
+                        setIsRewriterOpen(true);
+                      }
+                    }}
+                  >
+                    <FileText className="h-3 w-3 mr-1" />
+                    Rewrite Document
+                  </Button>
+                </div>
               </div>
               
               {/* File Upload UI */}
