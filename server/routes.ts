@@ -394,128 +394,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Document Rewriter API Endpoints
   app.post('/api/rewrite-document', async (req: Request, res: Response) => {
     try {
-      const { content, model, documentContent, documentName, detectionProtection } = req.body;
+      console.log("Document rewrite request received:", JSON.stringify(req.body).substring(0, 200) + "...");
       
-      if (!documentContent || !documentName || !model) {
+      const { content, filename, model, instructions, detectionProtection } = req.body;
+      
+      if (!content || !instructions || !model) {
         console.error('Missing required parameters:', { 
           hasContent: !!content, 
-          hasModel: !!model, 
-          hasDocumentContent: !!documentContent, 
-          hasDocumentName: !!documentName 
+          hasInstructions: !!instructions,
+          hasModel: !!model
         });
-        return res.status(400).json({ error: 'Missing required parameters' });
+        return res.status(400).json({ error: 'Missing required parameters: content, instructions, and model are required' });
       }
       
-      console.log(`Rewriting document: ${documentName} with model ${model}, content length: ${documentContent.length}`);
+      console.log(`Rewriting document with model ${model}, content length: ${content.length}, instructions: "${instructions.substring(0, 50)}..."`);
       
       // Limit content length for very large documents
-      let processableContent = documentContent;
+      let processableContent = content;
       const MAX_CONTENT_LENGTH = 30000;
       
-      if (documentContent.length > MAX_CONTENT_LENGTH) {
-        console.log(`Document is very large (${documentContent.length} chars), truncating to ${MAX_CONTENT_LENGTH} chars`);
-        processableContent = documentContent.substring(0, MAX_CONTENT_LENGTH);
+      if (content.length > MAX_CONTENT_LENGTH) {
+        console.log(`Document is very large (${content.length} chars), truncating to ${MAX_CONTENT_LENGTH} chars`);
+        processableContent = content.substring(0, MAX_CONTENT_LENGTH);
       }
-      
-      // Extract just the instructions part
-      const instructions = content.includes('Please rewrite the following document according to these instructions:') 
-        ? content.replace('Please rewrite the following document according to these instructions:', '').trim()
-        : content;
-      
-      console.log(`Using instructions: "${instructions.substring(0, 100)}${instructions.length > 100 ? '...' : ''}"`);
 
       let rewrittenContent = '';
       
       try {
+        // Build the prompt template
+        const promptTemplate = `
+You are an expert document editor. Please rewrite the following document according to these instructions:
+${instructions}
+
+${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
+
+DOCUMENT TO REWRITE:
+${processableContent}
+
+INSTRUCTIONS AGAIN:
+${instructions}
+
+YOUR REWRITTEN DOCUMENT:`;
+
+        // Process with selected model
+        let response;
+        
         if (model === 'claude') {
           console.log('Using Claude for rewriting');
-          const prompt = `
-You are an expert document editor. Please rewrite the following document according to these instructions:
-${instructions}
-
-${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
-
-DOCUMENT TO REWRITE:
-${processableContent}
-
-INSTRUCTIONS AGAIN:
-${instructions}
-
-YOUR REWRITTEN DOCUMENT:`;
-
-          const response = await processClaude(prompt, {
+          response = await processClaude(promptTemplate, {
             temperature: 0.7,
             stream: false,
             maxTokens: 4000
           });
-          
-          if (typeof response === 'string') {
-            rewrittenContent = response;
-          } else if (response && typeof response === 'object' && 'content' in response) {
-            rewrittenContent = response.content;
-          } else {
-            throw new Error('Invalid response structure from Claude');
-          }
-          
         } else if (model === 'gpt4') {
           console.log('Using GPT-4 for rewriting');
-          const prompt = `
-You are an expert document editor. Please rewrite the following document according to these instructions:
-${instructions}
-
-${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
-
-DOCUMENT TO REWRITE:
-${processableContent}
-
-INSTRUCTIONS AGAIN:
-${instructions}
-
-YOUR REWRITTEN DOCUMENT:`;
-
-          const response = await processGPT4(prompt, {
+          response = await processGPT4(promptTemplate, {
             temperature: 0.7,
             stream: false,
             maxTokens: 4000
           });
-          
-          if (typeof response === 'string') {
-            rewrittenContent = response;
-          } else if (response && typeof response === 'object' && 'content' in response) {
-            rewrittenContent = response.content;
-          } else {
-            throw new Error('Invalid response structure from GPT-4');
-          }
-          
         } else {
+          // Default to perplexity
           console.log('Using Perplexity for rewriting');
-          const prompt = `
-You are an expert document editor. Please rewrite the following document according to these instructions:
-${instructions}
-
-${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
-
-DOCUMENT TO REWRITE:
-${processableContent}
-
-INSTRUCTIONS AGAIN:
-${instructions}
-
-YOUR REWRITTEN DOCUMENT:`;
-
-          const response = await processPerplexity(prompt, {
+          response = await processPerplexity(promptTemplate, {
             temperature: 0.7,
             stream: false,
             maxTokens: 4000
           });
-          
-          if (typeof response === 'string') {
-            rewrittenContent = response;
-          } else if (response && typeof response === 'object' && 'content' in response) {
-            rewrittenContent = response.content;
-          } else {
-            throw new Error('Invalid response structure from Perplexity');
-          }
+        }
+        
+        // Extract content from response
+        if (typeof response === 'string') {
+          rewrittenContent = response;
+        } else if (response && typeof response === 'object' && 'content' in response) {
+          rewrittenContent = response.content;
+        } else {
+          throw new Error(`Invalid response structure from ${model}`);
         }
         
         // Ensure the result is not empty
@@ -523,7 +477,7 @@ YOUR REWRITTEN DOCUMENT:`;
           throw new Error(`Empty response from ${model}`);
         }
         
-        console.log(`Successfully rewrote document with ${model}, result length: ${rewrittenContent.length}`);
+        console.log(`Successfully rewrote document with ${model}, original length: ${content.length}, result length: ${rewrittenContent.length}`);
       } catch (llmError) {
         console.error('LLM processing error:', llmError);
         return res.status(500).json({ 
@@ -532,9 +486,10 @@ YOUR REWRITTEN DOCUMENT:`;
         });
       }
       
+      // Return successful response
       res.json({ 
         content: rewrittenContent,
-        documentName,
+        model,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
