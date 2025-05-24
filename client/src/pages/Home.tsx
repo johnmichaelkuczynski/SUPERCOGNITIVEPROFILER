@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, FileTextIcon, Eye } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -78,104 +78,112 @@ export default function Home() {
     // Add user message to message history
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
-    setPrompt(''); // Clear the input immediately
+    
+    // Clear form
+    setPrompt('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
     
     try {
+      // Create FormData and append prompt and model
       const formData = new FormData();
-      formData.append('content', userContent);
+      formData.append('prompt', userContent);
       formData.append('model', selectedModel);
-      formData.append('stream', 'false');
-      formData.append('temperature', '0.7');
       
-      // Create context from previous messages for conversation memory
-      // This helps the model remember previous interactions
-      const conversationContext = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-      
-      // Add conversation history to the request
-      formData.append('conversation_history', JSON.stringify(conversationContext));
-      
-      // Add any uploaded files to the request
-      if (files.length > 0) {
-        files.forEach(file => {
-          formData.append('files', file);
-        });
+      // Append each file to form data
+      for (const file of files) {
+        formData.append('files', file);
       }
       
-      const res = await fetch('/api/llm/prompt', {
+      // Make request to API
+      const response = await fetch('/api/llm/prompt', {
         method: 'POST',
         body: formData,
       });
       
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error('Failed to process request');
       }
       
-      const data = await res.json();
+      const data = await response.json();
       
-      // Add AI response to messages
+      // Create AI response message
       const aiMessage: Message = {
         id: Date.now(),
         content: data.content,
         role: 'assistant',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
       
+      // Add AI message to history
       setMessages(prev => [...prev, aiMessage]);
-      setFiles([]); // Clear files after successful response
     } catch (error) {
       console.error('Error processing request:', error);
       
-      // Add error message
+      // Create error message
       const errorMessage: Message = {
         id: Date.now(),
-        content: 'Error: Failed to get a response. Please try again.',
+        content: `Error: ${error instanceof Error ? error.message : 'Failed to process your request'}. Please try again.`,
         role: 'assistant',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
       
+      // Add error message to history
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      setFiles([]); // Clear files after sending
     }
   };
+  
+  // Process file upload
+  const processFile = async () => {
+    if (files.length === 0) return;
 
-  // Handle Enter key press
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Allow submission on Enter if either there's text OR files have been uploaded
-    if (e.key === 'Enter' && !e.shiftKey && (prompt.trim() || files.length > 0)) {
-      e.preventDefault();
-      handleProcessRequest();
+    setIsLoading(true);
+    
+    // Create a combined message for all files
+    let combinedMessage = "Processing files:\n";
+    for (const file of files) {
+      combinedMessage += `- ${file.name} (${formatBytes(file.size)})\n`;
     }
-  };
-  
-  // File upload handlers
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFiles = Array.from(e.target.files);
-      
-      // Process each file individually
-      selectedFiles.forEach(file => {
-        // Add the file to the state
-        setFiles(prevFiles => [...prevFiles, file]);
-        
-        // Process this individual file immediately
-        processIndividualFile(file);
-      });
-      
-      // Reset the input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    
+    const userMessage: Message = {
+      id: Date.now(),
+      content: combinedMessage,
+      role: 'user',
+      timestamp: new Date(),
+      files: [...files]
+    };
+    
+    // Add user message to conversation
+    setMessages(prev => [...prev, userMessage]);
+    
+    try {
+      // Process each file
+      for (const file of files) {
+        await processIndividualFile(file);
       }
+    } catch (error) {
+      console.error("Error processing files:", error);
+      const errorMessage: Message = {
+        id: Date.now(),
+        content: `Error processing files: ${error instanceof Error ? error.message : String(error)}`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      setFiles([]); // Clear files after processing
     }
   };
   
-  // Process a single file with AI
+  // Process individual file upload
   const processIndividualFile = async (file: File) => {
     try {
-      setIsLoading(true);
+      console.log(`Processing file: ${file.name}`);
       
       // First, we need to extract the actual text content from the document
       // For PDFs and other complex formats, we need to use the server to extract text properly
@@ -196,6 +204,9 @@ export default function Home() {
       const processedData = await processResponse.json();
       const extractedText = processedData.content || '';
       
+      // Store the document in our uploadedDocuments object and allDocuments array for the sidebar
+      setAllDocuments(prev => [...prev, {name: file.name, content: extractedText}]);
+      
       console.log(`Extracted ${extractedText.length} characters from ${file.name}`);
       
       // Store the extracted text for the document rewriter
@@ -204,93 +215,50 @@ export default function Home() {
         [file.name]: extractedText
       }));
       
-      // Add to the sidebar documents list
-      setAllDocuments(prev => {
-        // Check if document already exists to avoid duplicates
-        if (!prev.some(doc => doc.name === file.name)) {
-          return [...prev, { name: file.name, content: extractedText }];
-        }
-        return prev;
-      });
-      
-      // Create a message showing we're processing this file
+      // Create user message to indicate file was processed
       const userMessage: Message = {
         id: Date.now(),
-        content: `Please analyze this document: ${file.name}`,
+        content: `Processed file: ${file.name}`,
         role: 'user',
-        timestamp: new Date(),
-        files: [file]
+        timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, userMessage]);
-      
-      // Create form data for the AI analysis
-      const formData = new FormData();
-      formData.append('content', `Please analyze this document: ${file.name}`);
-      formData.append('model', selectedModel);
-      formData.append('stream', 'false');
-      formData.append('temperature', '0.7');
-      formData.append('files', file);
-      
-      // Add conversation history to keep context
-      const conversationContext = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-      
-      formData.append('conversation_history', JSON.stringify(conversationContext));
-      
-      // Make the API call for AI analysis
-      const res = await fetch('/api/llm/prompt', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!res.ok) {
-        throw new Error('Failed to process document with AI');
-      }
-      
-      const data = await res.json();
-      
-      // Add AI response to messages
+      // Add AI message with content overview
       const aiMessage: Message = {
         id: Date.now() + 1,
-        content: data.content,
+        content: `I've extracted the content from ${file.name}. Here's a summary:\n\n${extractedText.substring(0, 200)}${extractedText.length > 200 ? '...' : ''}\n\n${extractedText.length} characters total. You can ask me questions about this document or upload more files.`,
         role: 'assistant',
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, aiMessage]);
+      // Add messages to conversation
+      setMessages(prev => [...prev, userMessage, aiMessage]);
     } catch (error) {
-      console.error('Error processing file:', error);
+      console.error(`Error processing file ${file.name}:`, error);
       
-      // Add error message
+      // Create user message about failed file
+      const userMessage: Message = {
+        id: Date.now(),
+        content: `Failed to process file: ${file.name}`,
+        role: 'user',
+        timestamp: new Date()
+      };
+      
+      // Create error message
       const errorMessage: Message = {
         id: Date.now() + 1,
-        content: `Error processing document: ${file.name}. Please try again.`,
+        content: `I was unable to process ${file.name}. Error: ${error instanceof Error ? error.message : String(error)}`,
         role: 'assistant',
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+      // Add messages to conversation
+      setMessages(prev => [...prev, userMessage, errorMessage]);
     }
   };
   
-  const handleRemoveFile = (index: number) => {
-    const newFiles = [...files];
-    newFiles.splice(index, 1);
-    setFiles(newFiles);
-  };
-  
-  const clearChat = () => {
-    setPrompt('');
-    setMessages([]);
-    setFiles([]);
-  };
-  
-  const renderMessageContent = (content: string) => {
+  // Format markdown
+  const formatMessage = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
         <ReactMarkdown
@@ -324,37 +292,40 @@ export default function Home() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
-      
-      {/* Document Rewriter Modal */}
-      <DocumentRewriterModal 
-        isOpen={isRewriterOpen}
-        onClose={() => setIsRewriterOpen(false)}
-        initialContent={documentContent}
-        onRewriteComplete={handleRewriteComplete}
-      />
-      
-      <div className="grid grid-cols-1 gap-6">
-        <Card className="shadow-sm">
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">Model Selection</CardTitle>
-              {messages.length > 0 && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={clearChat}
-                  className="text-muted-foreground hover:text-red-500"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Clear Chat
-                </Button>
-              )}
+    <main className="container mx-auto px-4 py-6 flex">
+      {/* Document Sidebar */}
+      {allDocuments.length > 0 && (
+        <div className="w-16 bg-slate-50 rounded-lg flex flex-col items-center py-4 mr-4 h-[calc(100vh-3rem)] overflow-y-auto sticky top-6">
+          {allDocuments.map((doc, index) => (
+            <div 
+              key={index}
+              className="relative group cursor-pointer mb-4"
+              onClick={() => {
+                setViewingDocumentContent(doc.content);
+                setViewingDocumentName(doc.name);
+                setIsDocumentViewerOpen(true);
+              }}
+            >
+              <div className="w-10 h-10 flex items-center justify-center bg-white rounded-lg border-2 border-slate-200 hover:border-blue-500 transition-colors">
+                <FileText className="h-5 w-5 text-slate-700" />
+              </div>
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
+                {doc.name}
+              </div>
             </div>
+          ))}
+        </div>
+      )}
+      
+      <div className="flex-1">
+        <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
+        
+        <Card className="shadow-sm flex flex-col mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Chat with AI</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <Button 
                 variant={selectedModel === 'claude' ? 'default' : 'outline'} 
                 onClick={() => setSelectedModel('claude')}
@@ -373,8 +344,6 @@ export default function Home() {
               >
                 Perplexity
               </Button>
-              
-
             </div>
           </CardContent>
         </Card>
@@ -400,180 +369,252 @@ export default function Home() {
                           {message.role === "user" ? "You" : "AI"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {message.timestamp.toLocaleTimeString()}
                         </span>
                       </div>
                       
-                      {message.role === "assistant" && (
-                        <AIDetectionPopover />
+                      {/* File list for messages with attachments */}
+                      {message.files && message.files.length > 0 && (
+                        <div className="flex flex-col">
+                          <div className="text-xs text-muted-foreground mb-1">Attached files:</div>
+                          <div className="flex flex-wrap gap-2">
+                            {message.files.map((file, index) => (
+                              <div key={index} className="flex items-center bg-slate-100 rounded px-2 py-1 text-xs">
+                                <FileText className="h-3 w-3 mr-1" />
+                                {file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name}
+                                
+                                {/* View Document Button */}
+                                {uploadedDocuments[file.name] && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-5 w-5 ml-1"
+                                    onClick={() => {
+                                      setViewingDocumentContent(uploadedDocuments[file.name]);
+                                      setViewingDocumentName(file.name);
+                                      setIsDocumentViewerOpen(true);
+                                    }}
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                )}
+                                
+                                {/* Rewrite Document Button */}
+                                {uploadedDocuments[file.name] && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-5 w-5"
+                                    onClick={() => {
+                                      setDocumentContent(uploadedDocuments[file.name]);
+                                      setDocumentName(file.name);
+                                      setIsRewriterOpen(true);
+                                    }}
+                                  >
+                                    <RefreshCw className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                     
-                    <Card className={`${
-                      message.role === "user" 
-                        ? "bg-primary-foreground" 
-                        : "bg-card"
-                    }`}>
-                      <CardContent className="p-4">
-                        {renderMessageContent(message.content)}
-                        
-                        {/* Display files attached to user messages */}
-                        {message.files && message.files.length > 0 && (
-                          <div className="mt-3 border-t pt-3">
-                            <p className="text-xs font-medium mb-2">Attached files:</p>
-                            <div className="space-y-1">
-                              {message.files.map((file, index) => (
-                                <div key={index} className="flex items-center text-xs">
-                                  <FileText className="h-3 w-3 mr-1 text-blue-500" />
-                                  <span className="truncate">{file.name}</span>
-                                  <span className="ml-1 text-muted-foreground">({formatBytes(file.size)})</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                    <div className={`p-4 rounded-lg ${message.role === "user" ? "bg-primary-foreground" : "bg-accent"}`}>
+                      {formatMessage(message.content)}
+                    </div>
                   </div>
                 ))
               )}
-              
-              {isLoading && (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">AI</span>
-                  </div>
-                  
-                  <Card>
-                    <CardContent className="p-4 flex items-center justify-center py-12">
-                      <div className="flex flex-col items-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"></div>
-                        <p className="text-muted-foreground">AI is thinking...</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-              
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
           
-          <Separator className="mt-auto" />
-          
-          <div className="p-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-4">
-                  <textarea 
-                    ref={textareaRef}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 min-h-[100px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Type your question or prompt here and press Enter to send..."
-                    disabled={isLoading}
-                    rows={3}
-                  />
+          <CardFooter className="pt-0 pb-4 border-t">
+            <div className="flex flex-col w-full space-y-4 mt-4">
+              {/* File preview */}
+              {files.length > 0 && (
+                <div className="bg-slate-50 p-3 rounded-lg">
+                  <div className="text-sm font-medium mb-2">Selected files:</div>
+                  <div className="space-y-2">
+                    {files.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                        <div className="flex items-center">
+                          <FileText className="h-4 w-4 mr-2 text-slate-400" />
+                          <span className="text-sm">{file.name}</span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {formatBytes(file.size)}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setFiles(files.filter((_, i) => i !== index));
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                   
-                  <div className="flex flex-col gap-3">
-                    {/* SEND BUTTON */}
+                  <div className="flex space-x-2 mt-3">
                     <Button 
-                      onClick={handleProcessRequest} 
-                      className="w-16 h-16"
-                      disabled={isLoading || (!prompt.trim() && files.length === 0)}
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setFiles([])}
                     >
-                      {isLoading ? (
-                        <div className="animate-spin h-6 w-6 border-2 border-b-transparent border-white rounded-full"></div>
-                      ) : (
-                        <Send className="h-6 w-6" />
-                      )}
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Clear All
                     </Button>
                     
-                    {/* REWRITE BUTTON - LARGE AND PROMINENT */}
                     <Button 
-                      variant="secondary"
-                      className="flex flex-col items-center justify-center h-16 w-16 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={async () => {
-                        // Find the most recent user message with a file attached
-                        const recentFileMessage = [...messages]
-                          .reverse()
-                          .find(msg => msg.role === 'user' && msg.files && msg.files.length > 0);
-                        
-                        if (recentFileMessage && recentFileMessage.files && recentFileMessage.files.length > 0) {
-                          try {
-                            // Get the first file from the message
-                            const file = recentFileMessage.files[0];
-                            const fileName = file.name;
-                            
-                            // We need to ensure we have the extracted text
-                            // If we don't already have it, extract it now
-                            if (!uploadedDocuments[fileName] || uploadedDocuments[fileName].length < 100) {
-                              console.log('Need to extract text from', fileName);
-                              
-                              // Create a form to send the file for text extraction
-                              const formData = new FormData();
-                              formData.append('file', file);
-                              
-                              // Send file for processing to get text content
-                              const res = await fetch('/api/documents/process', {
-                                method: 'POST',
-                                body: formData
-                              });
-                              
-                              if (res.ok) {
-                                const data = await res.json();
-                                if (data.text && data.text.length > 10) {
-                                  // Store the extracted text
-                                  setUploadedDocuments(prev => ({
-                                    ...prev,
-                                    [fileName]: data.text
-                                  }));
-                                  console.log(`Extracted ${data.text.length} characters of text for rewriting`);
-                                  
-                                  // Use this text in the document rewriter
-                                  setDocumentContent(data.text);
-                                  setDocumentName(fileName);
-                                  
-                                  // Open the rewriter
-                                  setIsRewriterOpen(true);
-                                  return;
-                                }
-                              }
-                            } else {
-                              // We already have the content
-                              console.log(`Using uploaded document: ${fileName} with ${uploadedDocuments[fileName].length} characters`);
-                              setDocumentContent(uploadedDocuments[fileName]);
-                              setDocumentName(fileName);
-                              setIsRewriterOpen(true);
-                              return;
-                            }
-                          } catch (error) {
-                            console.error('Error preparing file for rewrite:', error);
-                          }
+                      variant="default" 
+                      size="sm"
+                      onClick={processFile}
+                      disabled={isLoading}
+                    >
+                      <FileUp className="h-4 w-4 mr-1" />
+                      Process Files
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Input area */}
+              <div className="flex space-x-2 items-end">
+                <div className="flex-1">
+                  <textarea
+                    ref={textareaRef}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[80px] resize-none"
+                    placeholder="Type your message here..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleProcessRequest();
+                      }
+                    }}
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading}
+                  >
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="icon"
+                    onClick={handleProcessRequest}
+                    disabled={isLoading || (!prompt.trim() && files.length === 0)}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  multiple
+                  accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setFiles(Array.from(e.target.files));
+                    }
+                  }}
+                />
+              </div>
+              
+              {/* Action buttons */}
+              <div className="flex justify-between">
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setLocation('/analytics')}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Analytics
+                  </Button>
+                </div>
+                
+                {/* Document Actions */}
+                {Object.keys(uploadedDocuments).length > 0 && (
+                  <div className="flex space-x-2">
+                    <div className="text-xs text-slate-500 self-center mr-2">
+                      {Object.entries(uploadedDocuments).length} document(s) uploaded
+                    </div>
+                    
+                    <Dialog>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Select Document to Rewrite</DialogTitle>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          {Object.entries(uploadedDocuments).map(([filename, content]) => (
+                            <div key={filename} className="flex items-center justify-between border p-3 rounded-lg">
+                              <div className="flex items-center">
+                                <FileText className="h-5 w-5 mr-2 text-slate-500" />
+                                <span>{filename}</span>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setViewingDocumentContent(content);
+                                    setViewingDocumentName(filename);
+                                    setIsDocumentViewerOpen(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View
+                                </Button>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => {
+                                    setDocumentContent(content);
+                                    setDocumentName(filename);
+                                    setIsRewriterOpen(true);
+                                  }}
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Rewrite
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex flex-col items-center px-3 py-2 h-auto"
+                      onClick={() => {
+                        if (Object.entries(uploadedDocuments).length > 0) {
+                          const [[firstFilename, firstContent]] = Object.entries(uploadedDocuments);
+                          setDocumentContent(firstContent);
+                          setDocumentName(firstFilename);
+                          setIsRewriterOpen(true);
                         }
-                        
-                        // Fallback to AI message if document extraction failed or no file message
-                        const lastAIMessage = [...messages]
-                          .reverse()
-                          .find(msg => msg.role === 'assistant');
-                        
-                        if (lastAIMessage) {
-                          setDocumentContent(lastAIMessage.content);
-                          setDocumentName('AI Response');
-                        } else {
-                          setDocumentContent('');
-                          setDocumentName('');
-                        }
-                        
-                        setIsRewriterOpen(true);
                       }}
                     >
                       <FileText className="h-6 w-6 mb-1" />
                       <span className="text-xs">Rewrite</span>
                     </Button>
                   </div>
-                </div>
+                )}
               </div>
               
               {/* File Upload UI */}
@@ -585,89 +626,24 @@ export default function Home() {
                   <Upload className="h-4 w-4 mx-auto text-slate-400 mb-1" />
                   <p className="text-xs text-slate-600">Upload files for context</p>
                   <p className="text-xs text-slate-500">PDF, DOCX, TXT, JPG, PNG</p>
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    multiple 
-                    accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
-                  />
                 </div>
-                
-                {files.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {files.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-slate-100 rounded-lg px-2 py-1 text-xs">
-                        <div className="flex items-center gap-1 overflow-hidden">
-                          <FileText className="h-3 w-3 text-blue-500" />
-                          <span className="truncate">{file.name}</span>
-                          <span className="text-xs text-slate-500 whitespace-nowrap">({formatBytes(file.size)})</span>
-                        </div>
-                        <div className="flex gap-1">
-                          {uploadedDocuments[file.name] && (
-                            <button 
-                              className="text-blue-500 hover:text-blue-700 flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setViewingDocumentContent(uploadedDocuments[file.name]);
-                                setViewingDocumentName(file.name);
-                                setIsDocumentViewerOpen(true);
-                              }}
-                            >
-                              <Eye className="h-3 w-3" />
-                            </button>
-                          )}
-                          <button 
-                            className="text-slate-500 hover:text-red-500 flex-shrink-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveFile(index);
-                            }}
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-              
-              <p className="text-xs text-muted-foreground">
-                Press Enter to send, Shift+Enter for new line
-              </p>
             </div>
-          </div>
+          </CardFooter>
         </Card>
       </div>
-    
+      
       {/* Document Viewer Dialog */}
       <Dialog open={isDocumentViewerOpen} onOpenChange={setIsDocumentViewerOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Document: {viewingDocumentName}</DialogTitle>
+            <DialogTitle>{viewingDocumentName}</DialogTitle>
           </DialogHeader>
-          <div className="mt-2 overflow-auto max-h-[60vh]">
-            <div className="border rounded p-4 bg-white font-mono text-sm whitespace-pre-wrap">
+          <ScrollArea className="h-[60vh]">
+            <div className="p-4 whitespace-pre-wrap">
               {viewingDocumentContent}
             </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setIsDocumentViewerOpen(false)}>Close</Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setDocumentContent(viewingDocumentContent);
-                setDocumentName(viewingDocumentName);
-                setIsRewriterOpen(true);
-                setIsDocumentViewerOpen(false);
-              }}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Rewrite Document
-            </Button>
-          </DialogFooter>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
       
