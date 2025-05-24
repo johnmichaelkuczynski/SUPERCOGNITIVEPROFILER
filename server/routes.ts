@@ -225,6 +225,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Running AI detection on text of length ${text.length}`);
       
+      // Check if text is too large to process
+      if (text.length > 100000) {
+        console.log(`Text too large for AI detection: ${text.length} characters`);
+        return res.status(413).json({ 
+          error: 'Request Entity Too Large',
+          message: 'Text is too large for AI detection. Please use a smaller section of text.',
+          aiProbability: 0.5,
+          humanProbability: 0.5
+        });
+      }
+      
       const result = await detectAIContent(text);
       
       if (result.error) {
