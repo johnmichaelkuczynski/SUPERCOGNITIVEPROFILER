@@ -225,7 +225,7 @@ export default function Home() {
       
       // Generate a summary of the document
       const formData = new FormData();
-      formData.append('prompt', `Please provide a concise summary of this document: ${extractedText.substring(0, 2000)}${extractedText.length > 2000 ? '...' : ''}`);
+      formData.append('content', `Please provide a concise summary of this document: ${extractedText.substring(0, 2000)}${extractedText.length > 2000 ? '...' : ''}`);
       formData.append('model', selectedModel);
       
       // Send request to get summary
