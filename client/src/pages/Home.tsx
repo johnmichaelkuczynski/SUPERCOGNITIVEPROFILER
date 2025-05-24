@@ -223,10 +223,27 @@ export default function Home() {
         timestamp: new Date()
       };
       
-      // Add AI message with content overview
+      // Generate a summary of the document
+      const formData = new FormData();
+      formData.append('prompt', `Please provide a concise summary of this document: ${extractedText.substring(0, 2000)}${extractedText.length > 2000 ? '...' : ''}`);
+      formData.append('model', selectedModel);
+      
+      // Send request to get summary
+      const summaryResponse = await fetch('/api/llm/prompt', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      let summaryContent = '';
+      if (summaryResponse.ok) {
+        const summaryData = await summaryResponse.json();
+        summaryContent = summaryData.content || '';
+      }
+      
+      // Add AI message with content overview and summary
       const aiMessage: Message = {
         id: Date.now() + 1,
-        content: `I've extracted the content from ${file.name}. Here's a summary:\n\n${extractedText.substring(0, 200)}${extractedText.length > 200 ? '...' : ''}\n\n${extractedText.length} characters total. You can ask me questions about this document or upload more files.`,
+        content: `I've extracted the content from ${file.name}. Here's a summary:\n\n${summaryContent || extractedText.substring(0, 200) + (extractedText.length > 200 ? '...' : '')}\n\n${extractedText.length} characters total. You can ask me questions about this document or upload more files.`,
         role: 'assistant',
         timestamp: new Date()
       };
