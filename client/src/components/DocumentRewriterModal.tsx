@@ -110,6 +110,9 @@ export default function DocumentRewriterModal({
   // State for view mode
   const [viewMode, setViewMode] = useState<'rewrite' | 'result'>('rewrite');
   
+  // State for dialogs
+  const [showOriginalTextDialog, setShowOriginalTextDialog] = useState<boolean>(false);
+  
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -852,6 +855,15 @@ export default function DocumentRewriterModal({
                       <div>
                         <div className="font-medium text-lg">{documentData.name}</div>
                         <div className="text-sm text-slate-500 mt-1">{formatBytes(documentData.size)}</div>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="px-0 text-blue-600 hover:text-blue-800"
+                          onClick={() => setShowOriginalTextDialog(true)}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Full Document Text
+                        </Button>
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -871,6 +883,23 @@ export default function DocumentRewriterModal({
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Original Text Dialog */}
+                  <Dialog open={showOriginalTextDialog} onOpenChange={setShowOriginalTextDialog}>
+                    <DialogContent className="max-w-4xl max-h-[80vh]">
+                      <DialogHeader>
+                        <DialogTitle>Original Document: {documentData.name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="mt-2 overflow-auto max-h-[60vh]">
+                        <div className="border rounded p-4 bg-white font-mono text-sm whitespace-pre-wrap">
+                          {documentData.content}
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={() => setShowOriginalTextDialog(false)}>Close</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                   
                   {/* Chunk Selection - ALWAYS VISIBLE */}
                   <div className="border-2 border-blue-500 p-4 rounded-md bg-blue-50 mb-4">
