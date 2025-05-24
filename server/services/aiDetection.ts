@@ -28,6 +28,12 @@ export interface AIDetectionResult {
  */
 export async function detectAIContent(text: string): Promise<AIDetectionResult> {
   try {
+    // Check for GPTZero's known character limit (50K)
+    if (text.length > 50000) {
+      console.warn(`Text exceeds GPTZero's character limit: ${text.length} characters, truncating to 50K`);
+      text = text.substring(0, 49000); // Trim to slightly under 50K to be safe
+    }
+    
     if (!process.env.GPTZERO_API_KEY) {
       throw new Error('GPTZERO_API_KEY is not defined');
     }
