@@ -37,6 +37,7 @@ export default function Home() {
   const [isRewriterOpen, setIsRewriterOpen] = useState(false);
   const [documentContent, setDocumentContent] = useState<string>('');
   const [documentName, setDocumentName] = useState<string>('');
+  const [uploadedDocuments, setUploadedDocuments] = useState<{[filename: string]: string}>({});
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -166,6 +167,30 @@ export default function Home() {
   const processIndividualFile = async (file: File) => {
     try {
       setIsLoading(true);
+      
+      // First, read the file content to store it for the document rewriter
+      const reader = new FileReader();
+      
+      // Use a promise to handle the file reading asynchronously
+      const fileContentPromise = new Promise<string>((resolve) => {
+        reader.onload = (e) => {
+          const content = e.target?.result as string || '';
+          resolve(content);
+        };
+      });
+      
+      // Start reading the file as text
+      reader.readAsText(file);
+      
+      // Wait for the file to be read
+      const fileContent = await fileContentPromise;
+      
+      // Store the original document content with the filename as key
+      console.log(`Read file ${file.name} with ${fileContent.length} characters`);
+      setUploadedDocuments(prev => ({
+        ...prev,
+        [file.name]: fileContent
+      }));
       
       // Create a message showing we're processing this file
       const userMessage: Message = {
@@ -449,17 +474,48 @@ export default function Home() {
                       variant="secondary"
                       className="flex flex-col items-center justify-center h-16 w-16 bg-blue-600 hover:bg-blue-700 text-white"
                       onClick={() => {
-                        // Get the last message content as document content
-                        const lastAIMessage = [...messages]
+                        // Find the most recent user message with a file attached
+                        const recentFileMessage = [...messages]
                           .reverse()
-                          .find(msg => msg.role === 'assistant');
+                          .find(msg => msg.role === 'user' && msg.files && msg.files.length > 0);
                         
-                        if (lastAIMessage) {
-                          setDocumentContent(lastAIMessage.content);
-                          setDocumentName('AI Response');
+                        if (recentFileMessage && recentFileMessage.files && recentFileMessage.files.length > 0) {
+                          // Get the first file from the message
+                          const fileName = recentFileMessage.files[0].name;
+                          
+                          // Check if we have the content for this file
+                          if (uploadedDocuments[fileName]) {
+                            console.log(`Using uploaded document: ${fileName} with ${uploadedDocuments[fileName].length} characters`);
+                            setDocumentContent(uploadedDocuments[fileName]);
+                            setDocumentName(fileName);
+                          } else {
+                            console.log('Document content not found for', fileName);
+                            // Fallback to the last AI message
+                            const lastAIMessage = [...messages]
+                              .reverse()
+                              .find(msg => msg.role === 'assistant');
+                            
+                            if (lastAIMessage) {
+                              setDocumentContent(lastAIMessage.content);
+                              setDocumentName('AI Response');
+                            } else {
+                              setDocumentContent('');
+                              setDocumentName('');
+                            }
+                          }
                         } else {
-                          setDocumentContent('');
-                          setDocumentName('');
+                          // No file messages, use the last AI message
+                          const lastAIMessage = [...messages]
+                            .reverse()
+                            .find(msg => msg.role === 'assistant');
+                          
+                          if (lastAIMessage) {
+                            setDocumentContent(lastAIMessage.content);
+                            setDocumentName('AI Response');
+                          } else {
+                            setDocumentContent('');
+                            setDocumentName('');
+                          }
                         }
                         
                         setIsRewriterOpen(true);
