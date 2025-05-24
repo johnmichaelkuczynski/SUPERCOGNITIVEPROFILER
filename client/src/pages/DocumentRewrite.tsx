@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { 
   FileText, Upload, Download, Send, AlertTriangle, Check, X, FileDown, MailIcon, Loader2, 
-  Shield, FilePlus, ArrowLeft, Fingerprint, RefreshCw
+  Shield, FilePlus, ArrowLeft, Fingerprint, RefreshCw, Eye, EyeOff, Layers, Split, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -84,6 +84,14 @@ const getLastUploadedDocument = (): Document | null => {
   }
 };
 
+// Define a chunk interface for document splitting
+interface DocumentChunk {
+  id: number;
+  content: string;
+  selected: boolean;
+  rewritten?: string;
+}
+
 export default function DocumentRewrite() {
   // State
   const [document, setDocument] = useState<Document | null>(null);
@@ -104,11 +112,106 @@ export default function DocumentRewrite() {
   const [activeTab, setActiveTab] = useState<string>('rewrite');
   const [, setLocation] = useLocation();
   
+  // Chunking state
+  const [documentChunks, setDocumentChunks] = useState<DocumentChunk[]>([]);
+  const [chunkMode, setChunkMode] = useState<boolean>(false);
+  const [selectedChunkIds, setSelectedChunkIds] = useState<number[]>([]);
+  const [previewChunkId, setPreviewChunkId] = useState<number | null>(null);
+  const [chunkSize, setChunkSize] = useState<number>(3000); // Default chunk size in characters
+  const [isProcessingChunks, setIsProcessingChunks] = useState<boolean>(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Store the conversation ID to return to
   const [previousConversationId, setPreviousConversationId] = useState<string | null>(null);
+
+  // Split document content into chunks
+  const splitIntoChunks = (content: string, size: number): DocumentChunk[] => {
+    // Check if document is large enough to need chunking
+    if (content.length < size) {
+      return [{ id: 0, content, selected: true }];
+    }
+    
+    // Split by paragraphs first to maintain coherence
+    const paragraphs = content.split(/\n\s*\n/);
+    const chunks: DocumentChunk[] = [];
+    let currentChunk = '';
+    let chunkId = 0;
+    
+    for (let i = 0; i < paragraphs.length; i++) {
+      const paragraph = paragraphs[i];
+      
+      // If adding this paragraph would exceed chunk size, create a new chunk
+      if (currentChunk.length + paragraph.length + 2 > size && currentChunk.length > 0) {
+        chunks.push({ id: chunkId++, content: currentChunk, selected: true });
+        currentChunk = paragraph;
+      } else {
+        // Add paragraph to current chunk
+        if (currentChunk.length > 0) {
+          currentChunk += '\n\n';
+        }
+        currentChunk += paragraph;
+      }
+    }
+    
+    // Add the last chunk if it's not empty
+    if (currentChunk.length > 0) {
+      chunks.push({ id: chunkId, content: currentChunk, selected: true });
+    }
+    
+    return chunks;
+  };
+
+  // Toggle chunk selection
+  const toggleChunkSelection = (id: number) => {
+    setDocumentChunks(prev => 
+      prev.map(chunk => 
+        chunk.id === id ? { ...chunk, selected: !chunk.selected } : chunk
+      )
+    );
+    
+    setSelectedChunkIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(chunkId => chunkId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+  
+  // Toggle preview for a chunk
+  const toggleChunkPreview = (id: number | null) => {
+    setPreviewChunkId(prevId => prevId === id ? null : id);
+  };
+  
+  // Get combined content of selected chunks
+  const getSelectedChunksContent = (): string => {
+    return documentChunks
+      .filter(chunk => chunk.selected)
+      .map(chunk => chunk.content)
+      .join('\n\n');
+  };
+  
+  // Get combined rewritten content
+  const getRewrittenContent = (): string => {
+    let result = '';
+    
+    // For chunk mode, combine original and rewritten chunks in proper order
+    if (chunkMode) {
+      const chunksInOrder = [...documentChunks].sort((a, b) => a.id - b.id);
+      
+      for (const chunk of chunksInOrder) {
+        if (result.length > 0) result += '\n\n';
+        result += chunk.rewritten || chunk.content;
+      }
+      
+      return result;
+    }
+    
+    // Otherwise use the full rewritten content
+    return rewrittenContent;
+  };
 
   // Load the last document from conversation on initial load and save previous conversation ID
   useEffect(() => {
@@ -123,6 +226,20 @@ export default function DocumentRewrite() {
     if (lastDocument) {
       setDocument(lastDocument);
       setOriginalDocument(lastDocument);
+      
+      // Check if document is large enough to suggest chunk mode
+      if (lastDocument.content.length > 10000) { // Suggest chunking for docs over 10k chars
+        // Create chunks but don't enable chunk mode automatically
+        const chunks = splitIntoChunks(lastDocument.content, chunkSize);
+        setDocumentChunks(chunks);
+        setSelectedChunkIds(chunks.map(chunk => chunk.id));
+        
+        toast({
+          title: "Large Document Loaded",
+          description: `This document is large (${formatBytes(lastDocument.size)}). You can use chunk mode to process specific sections.`,
+        });
+      }
+      
       toast({
         title: "Document Loaded",
         description: `Loaded document "${lastDocument.name}" from your conversation.`,
