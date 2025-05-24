@@ -46,8 +46,8 @@ interface AIDetectionResult {
   error?: string;
 }
 
-// Define document interface
-interface Document {
+// Define our own document type for the rewriter
+interface DocumentData {
   id: string;
   name: string;
   content: string;
@@ -76,8 +76,8 @@ export default function DocumentRewriterModal({
   onRewriteComplete
 }: DocumentRewriterModalProps) {
   // State for document handling
-  const [documentData, setDocumentData] = useState<Document | null>(null);
-  const [originalDocument, setOriginalDocument] = useState<Document | null>(null);
+  const [documentData, setDocumentData] = useState<DocumentData | null>(null);
+  const [originalDocument, setOriginalDocument] = useState<DocumentData | null>(null);
   const [rewrittenContent, setRewrittenContent] = useState<string>('');
   
   // State for processing
@@ -111,15 +111,15 @@ export default function DocumentRewriterModal({
   // When modal opens, check if we have initial content to use
   useEffect(() => {
     if (isOpen && initialContent) {
-      const newDocument: Document = {
+      const newDoc: DocumentData = {
         id: Date.now().toString(),
         name: 'Chat Document.txt',
         content: initialContent,
         size: initialContent.length
       };
       
-      setDocument(newDocument);
-      setOriginalDocument(newDocument);
+      setDocumentData(newDoc);
+      setOriginalDocument(newDoc);
       
       // Check if document is large enough to suggest chunk mode
       if (initialContent.length > 10000) { // Suggest chunking for docs over 10k chars
@@ -137,7 +137,7 @@ export default function DocumentRewriterModal({
         setDocumentChunks(splitIntoChunks(initialContent, chunkSize));
       }
     }
-  }, [isOpen, initialContent]);
+  }, [isOpen, initialContent, chunkSize]);
 
   // Split document content into chunks
   const splitIntoChunks = (content: string, size: number): DocumentChunk[] => {
@@ -219,15 +219,15 @@ export default function DocumentRewriterModal({
       if (event.target) {
         const content = event.target.result as string;
         
-        const newDocument: Document = {
+        const newDoc: DocumentData = {
           id: Date.now().toString(),
           name: file.name,
           content,
           size: file.size
         };
         
-        setDocument(newDocument);
-        setOriginalDocument(newDocument);
+        setDocumentData(newDoc);
+        setOriginalDocument(newDoc);
         
         // Check if document is large enough to suggest chunk mode
         if (content.length > 10000) { // Suggest chunking for docs over 10k chars
@@ -264,7 +264,7 @@ export default function DocumentRewriterModal({
 
   // Handle rewrite
   const handleRewrite = async () => {
-    if (!document || !settings.instructions) {
+    if (!documentData || !settings.instructions) {
       toast({
         title: "Missing Information",
         description: "Please upload a document and provide rewriting instructions.",
@@ -307,7 +307,7 @@ export default function DocumentRewriterModal({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               content: chunk.content,
-              filename: `${document.name} (Chunk ${chunk.id + 1})`,
+              filename: `${documentData.name} (Chunk ${chunk.id + 1})`,
               model: settings.model,
               instructions: settings.instructions,
               detectionProtection: settings.detectionProtection
@@ -348,14 +348,14 @@ export default function DocumentRewriterModal({
         });
       } else {
         // Regular full document rewrite
-        console.log('Sending rewrite request with document:', document.name, 'content length:', document.content.length);
+        console.log('Sending rewrite request with document:', documentData.name, 'content length:', documentData.content.length);
         
         const response = await fetch('/api/rewrite-document', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: document.content,
-            filename: document.name,
+            content: documentData.content,
+            filename: documentData.name,
             model: settings.model,
             instructions: settings.instructions,
             detectionProtection: settings.detectionProtection
@@ -485,7 +485,7 @@ export default function DocumentRewriterModal({
         body: JSON.stringify({
           content: rewrittenContent,
           format,
-          filename: document?.name ? document.name.replace(/\.[^/.]+$/, '') : 'document'
+          filename: documentData?.name ? documentData.name.replace(/\.[^/.]+$/, '') : 'document'
         }),
       });
       
@@ -499,16 +499,16 @@ export default function DocumentRewriterModal({
       // Create a download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const filename = document?.name ? document.name.replace(/\.[^/.]+$/, '') : 'document';
+      const filename = documentData?.name ? documentData.name.replace(/\.[^/.]+$/, '') : 'document';
       
       a.href = url;
       a.download = `${filename}.${format}`;
       
       // Add to the DOM, trigger download, and clean up
-      window.document.body.appendChild(a);
+      document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      window.document.body.removeChild(a);
+      document.body.removeChild(a);
       
       toast({
         title: "Download Started",
@@ -556,7 +556,7 @@ export default function DocumentRewriterModal({
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Document Rewriter
-            {document && document.content.length > 10000 && (
+            {documentData && documentData.content.length > 10000 && (
               <Button
                 variant={chunkMode ? "secondary" : "outline"} 
                 size="sm"
@@ -574,7 +574,7 @@ export default function DocumentRewriterModal({
           {viewMode === 'rewrite' ? (
             <div className="space-y-4">
               {/* Document Upload Section */}
-              {!document ? (
+              {!documentData ? (
                 <div className="flex flex-col items-center justify-center p-8 bg-slate-50 rounded-md">
                   <div className="mb-4">
                     <FilePlus className="h-10 w-10 text-slate-400" />
@@ -616,15 +616,15 @@ export default function DocumentRewriterModal({
                   <div className="bg-slate-50 p-4 rounded-md">
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-medium">{document.name}</div>
-                        <div className="text-sm text-slate-500 mt-1">{formatBytes(document.size)}</div>
+                        <div className="font-medium">{documentData.name}</div>
+                        <div className="text-sm text-slate-500 mt-1">{formatBytes(documentData.size)}</div>
                       </div>
                       <div className="flex gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setDocument(null);
+                            setDocumentData(null);
                             setOriginalDocument(null);
                             setDocumentChunks([]);
                             setChunkMode(false);
@@ -925,7 +925,7 @@ export default function DocumentRewriterModal({
               </Button>
               <Button 
                 onClick={handleRewrite} 
-                disabled={!document || !settings.instructions || isProcessing}
+                disabled={!documentData || !settings.instructions || isProcessing}
               >
                 {isProcessing ? (
                   <>
