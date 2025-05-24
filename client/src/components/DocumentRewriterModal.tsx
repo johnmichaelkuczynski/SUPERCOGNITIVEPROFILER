@@ -128,50 +128,62 @@ export default function DocumentRewriterModal({
         instructions: "Rewrite this content to make it more professional while keeping the same meaning."
       }));
       
-      // Check if document is large enough to suggest chunk mode
-      if (initialContent.length > 10000) { // Suggest chunking for docs over 10k chars
-        // Create chunks
-        const chunks = splitIntoChunks(initialContent, chunkSize);
-        setDocumentChunks(chunks);
-        setSelectedChunkIds(chunks.map(chunk => chunk.id));
-        
+      // Always enable chunk mode to split document into manageable pieces
+      const chunks = splitIntoChunks(initialContent, chunkSize);
+      setDocumentChunks(chunks);
+      setSelectedChunkIds(chunks.map(chunk => chunk.id));
+      
+      // Automatically enable chunk mode
+      setChunkMode(true);
+      
+      console.log(`Document loaded with ${chunks.length} chunks`);
+      
+      if (initialContent.length > 10000) {
         toast({
-          title: "Large Document Detected",
-          description: `This document is large (${formatBytes(initialContent.length)}). You can use chunk mode to process specific sections.`,
+          title: "Document Chunking Enabled",
+          description: `Document has been split into ${chunks.length} sections for easier editing.`,
         });
-      } else {
-        // For smaller documents, still create chunks but don't suggest chunking
-        setDocumentChunks(splitIntoChunks(initialContent, chunkSize));
       }
     }
   }, [isOpen, initialContent, chunkSize]);
 
-  // Split document content into chunks
+  // Split document content into chunks - threshold is 500 words per chunk
   const splitIntoChunks = (content: string, size: number): DocumentChunk[] => {
-    // Check if document is large enough to need chunking
-    if (content.length < size) {
+    // Estimate words (roughly) by splitting on spaces
+    const wordCount = content.split(/\s+/).length;
+    console.log(`Document word count: approximately ${wordCount} words`);
+    
+    // Consider a document "large" if it has more than 500 words
+    // If it's small, just return it as a single chunk
+    if (wordCount <= 500) {
       return [{ id: 0, content, selected: true }];
     }
     
-    // Split by paragraphs first to maintain coherence
+    // For larger documents, we create chunks of around 500 words each
+    // Aim for meaningful sections by splitting at paragraph boundaries
     const paragraphs = content.split(/\n\s*\n/);
     const chunks: DocumentChunk[] = [];
     let currentChunk = '';
+    let currentWordCount = 0;
     let chunkId = 0;
     
     for (let i = 0; i < paragraphs.length; i++) {
       const paragraph = paragraphs[i];
+      const paragraphWordCount = paragraph.split(/\s+/).length;
       
-      // If adding this paragraph would exceed chunk size, create a new chunk
-      if (currentChunk.length + paragraph.length + 2 > size && currentChunk.length > 0) {
+      // If adding this paragraph would exceed our target word count, create a new chunk
+      // unless the current chunk is empty
+      if (currentWordCount + paragraphWordCount > 500 && currentWordCount > 0) {
         chunks.push({ id: chunkId++, content: currentChunk, selected: true });
         currentChunk = paragraph;
+        currentWordCount = paragraphWordCount;
       } else {
         // Add paragraph to current chunk
         if (currentChunk.length > 0) {
           currentChunk += '\n\n';
         }
         currentChunk += paragraph;
+        currentWordCount += paragraphWordCount;
       }
     }
     
@@ -180,6 +192,7 @@ export default function DocumentRewriterModal({
       chunks.push({ id: chunkId, content: currentChunk, selected: true });
     }
     
+    console.log(`Created ${chunks.length} chunks from document with ~${wordCount} words`);
     return chunks;
   };
 
@@ -563,17 +576,6 @@ export default function DocumentRewriterModal({
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Document Rewriter
-            {documentData && documentData.content.length > 10000 && (
-              <Button
-                variant={chunkMode ? "secondary" : "outline"} 
-                size="sm"
-                onClick={() => setChunkMode(!chunkMode)}
-                className="ml-2"
-              >
-                <Layers className="h-4 w-4 mr-1" />
-                {chunkMode ? "Chunk Mode Active" : "Enable Chunk Mode"}
-              </Button>
-            )}
           </DialogTitle>
         </DialogHeader>
         
@@ -658,88 +660,111 @@ export default function DocumentRewriterModal({
                     </div>
                   </div>
                   
-                  {/* Chunk Selection (if in chunk mode) */}
-                  {chunkMode && documentChunks.length > 0 && (
-                    <div className="border p-4 rounded-md">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-medium">Document Chunks</h3>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedChunkIds(documentChunks.map(chunk => chunk.id));
-                              setDocumentChunks(prev => prev.map(chunk => ({...chunk, selected: true})));
-                            }}
-                          >
-                            Select All
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedChunkIds([]);
-                              setDocumentChunks(prev => prev.map(chunk => ({...chunk, selected: false})));
-                            }}
-                          >
-                            Clear All
-                          </Button>
-                        </div>
+                  {/* Chunk Selection - ALWAYS VISIBLE */}
+                  <div className="border-2 border-blue-500 p-4 rounded-md bg-blue-50 mb-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-medium text-lg text-blue-800">Document Chunks</h3>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedChunkIds(documentChunks.map(chunk => chunk.id));
+                            setDocumentChunks(prev => prev.map(chunk => ({...chunk, selected: true})));
+                          }}
+                        >
+                          Select All
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedChunkIds([]);
+                            setDocumentChunks(prev => prev.map(chunk => ({...chunk, selected: false})));
+                          }}
+                        >
+                          Clear All
+                        </Button>
                       </div>
-                      
-                      <div className="space-y-2 max-h-80 overflow-y-auto p-2 border rounded-md bg-white">
-                        {documentChunks.map((chunk) => (
-                          <div 
-                            key={chunk.id}
-                            className={`p-3 border rounded-md cursor-pointer transition-colors ${
-                              chunk.selected ? 'border-primary bg-primary/5' : 'border-gray-200'
-                            }`}
-                          >
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                <Checkbox 
-                                  checked={chunk.selected}
-                                  onCheckedChange={() => toggleChunkSelection(chunk.id)}
-                                  id={`chunk-${chunk.id}`}
-                                />
-                                <label 
-                                  htmlFor={`chunk-${chunk.id}`}
-                                  className="font-medium cursor-pointer"
-                                >
-                                  Chunk {chunk.id + 1}
-                                </label>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => toggleChunkPreview(chunk.id)}
-                                >
-                                  {previewChunkId === chunk.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              </div>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <p className="text-sm text-blue-700 font-medium">Select which numbered sections to rewrite:</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto p-3 border rounded-md bg-white">
+                      {documentChunks.map((chunk) => (
+                        <div 
+                          key={chunk.id}
+                          className={`p-3 border-2 rounded-md cursor-pointer transition-colors ${
+                            chunk.selected ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <Checkbox 
+                                checked={chunk.selected}
+                                onCheckedChange={() => toggleChunkSelection(chunk.id)}
+                                id={`chunk-${chunk.id}`}
+                                className="h-5 w-5"
+                              />
+                              <label 
+                                htmlFor={`chunk-${chunk.id}`}
+                                className="font-bold text-lg cursor-pointer"
+                              >
+                                Section {chunk.id + 1}
+                              </label>
                             </div>
-                            
-                            {/* Chunk Preview */}
-                            {previewChunkId === chunk.id && (
-                              <div className="mt-2 pt-2 border-t text-sm">
-                                <div className="max-h-40 overflow-y-auto p-2 bg-white rounded border">
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant={previewChunkId === chunk.id ? "secondary" : "outline"}
+                                size="sm"
+                                onClick={() => toggleChunkPreview(chunk.id)}
+                                className="px-3"
+                              >
+                                {previewChunkId === chunk.id ? (
+                                  <>
+                                    <EyeOff className="h-4 w-4 mr-1" />
+                                    Hide Preview
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Preview
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Chunk Preview */}
+                          {previewChunkId === chunk.id && (
+                            <div className="mt-3 pt-2 border-t text-sm">
+                              <div className="max-h-60 overflow-y-auto p-3 bg-white rounded border">
+                                <div className="prose prose-sm max-w-none">
                                   {chunk.content.split('\n').map((line, i) => (
                                     <p key={i} className="mb-1">{line || ' '}</p>
                                   ))}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="mt-2 text-xs text-slate-500">
-                        <p>Click a chunk to preview its content. Selected chunks will be rewritten.</p>
-                        <p className="font-medium mt-1">Total: {documentChunks.length} chunks, {selectedChunkIds.length} selected</p>
-                      </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  )}
+                    
+                    <div className="mt-3 p-2 bg-blue-100 rounded-md">
+                      <p className="text-sm text-blue-800 font-medium">
+                        <span className="mr-1">📝</span> Use the preview button to see each section's content
+                      </p>
+                      <p className="text-sm text-blue-800 font-medium mt-1">
+                        <span className="mr-1">✅</span> Only selected sections will be rewritten
+                      </p>
+                      <p className="font-medium mt-2 text-blue-900">
+                        Total: {documentChunks.length} sections, {selectedChunkIds.length} selected
+                      </p>
+                    </div>
+                  </div>
                   
                   {/* Rewrite Instructions */}
                   <div className="space-y-4 border-2 border-blue-500 p-6 rounded-md bg-blue-50">
