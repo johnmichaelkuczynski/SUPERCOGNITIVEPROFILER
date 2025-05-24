@@ -408,6 +408,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Document rewrite request received:", JSON.stringify(req.body).substring(0, 200) + "...");
       
+      // Log request data more explicitly for debugging
+      console.log("Request body type:", typeof req.body);
+      console.log("Request content type:", typeof req.body.content);
+      console.log("Request body keys:", Object.keys(req.body));
+      
       const { content, filename, model, instructions, detectionProtection } = req.body;
       
       if (!content || !instructions || !model) {

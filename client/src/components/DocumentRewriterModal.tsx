@@ -114,6 +114,19 @@ export default function DocumentRewriterModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Format file size
+  const formatBytes = (bytes: number, decimals = 2) => {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  };
+
   // When modal opens, check if we have initial content to use
   useEffect(() => {
     if (isOpen && initialContent) {
@@ -326,7 +339,13 @@ export default function DocumentRewriterModal({
 
   // Handle rewrite
   const handleRewrite = async () => {
+    console.log("Rewrite button clicked");
+    console.log("Document data:", documentData?.name, documentData?.size);
+    console.log("Instructions:", settings.instructions);
+    console.log("Selected model:", settings.model);
+    
     if (!documentData || !settings.instructions) {
+      console.log("Missing required data for rewrite");
       toast({
         title: "Missing Information",
         description: "Please upload a document and provide rewriting instructions.",
@@ -335,6 +354,7 @@ export default function DocumentRewriterModal({
       return;
     }
     
+    console.log("Starting rewrite process...");
     setIsProcessing(true);
     
     try {
@@ -364,32 +384,48 @@ export default function DocumentRewriterModal({
           
           console.log(`Rewriting chunk ${chunk.id}, content length: ${chunk.content.length}`);
           
-          const response = await fetch('/api/rewrite-document', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              content: chunk.content,
-              filename: `${documentData.name} (Chunk ${chunk.id + 1})`,
-              model: settings.model,
-              instructions: settings.instructions,
-              detectionProtection: settings.detectionProtection
-            }),
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Error ${response.status} rewriting chunk ${chunk.id + 1}`);
-          }
-          
-          const data = await response.json();
-          
-          if (!data.content) {
-            throw new Error(`Server returned empty content for chunk ${chunk.id + 1}`);
-          }
-          
-          // Update the chunk's rewritten content
-          const index = updatedChunks.findIndex(c => c.id === chunk.id);
-          if (index !== -1) {
-            updatedChunks[index].rewritten = data.content;
+          try {
+            const response = await fetch('/api/rewrite-document', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                content: chunk.content,
+                filename: `${documentData.name} (Chunk ${chunk.id + 1})`,
+                model: settings.model,
+                instructions: settings.instructions,
+                detectionProtection: settings.detectionProtection
+              }),
+            });
+            
+            console.log(`Chunk ${chunk.id} response status:`, response.status);
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(`Chunk ${chunk.id} error:`, errorText);
+              throw new Error(`Error ${response.status} rewriting chunk ${chunk.id + 1}: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.content) {
+              throw new Error(`Server returned empty content for chunk ${chunk.id + 1}`);
+            }
+            
+            // Update the chunk's rewritten content
+            const index = updatedChunks.findIndex(c => c.id === chunk.id);
+            if (index !== -1) {
+              updatedChunks[index].rewritten = data.content;
+            }
+          } catch (chunkError) {
+            console.error(`Error processing chunk ${chunk.id}:`, chunkError);
+            toast({
+              title: `Error Processing Chunk ${chunk.id + 1}`,
+              description: chunkError instanceof Error ? chunkError.message : "Unknown error",
+              variant: "destructive"
+            });
           }
         }
         
@@ -412,9 +448,19 @@ export default function DocumentRewriterModal({
         // Regular full document rewrite
         console.log('Sending rewrite request with document:', documentData.name, 'content length:', documentData.content.length);
         
+        // Add more debugging for the fetch request
+        console.log('Preparing API request with:', {
+          contentLength: documentData.content.length,
+          model: settings.model,
+          instructionsLength: settings.instructions.length
+        });
+        
         const response = await fetch('/api/rewrite-document', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           body: JSON.stringify({
             content: documentData.content,
             filename: documentData.name,
@@ -424,8 +470,12 @@ export default function DocumentRewriterModal({
           }),
         });
         
+        console.log('Fetch response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error('API error response:', errorText);
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
         }
         
         const data = await response.json();
@@ -723,19 +773,6 @@ export default function DocumentRewriterModal({
     }
   };
   
-  // Format file size
-  const formatBytes = (bytes: number, decimals = 2) => {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  };
-  
   // Close dialog handler
   const handleCloseDialog = () => {
     // If we have rewritten content and onRewriteComplete callback, call it
@@ -823,7 +860,9 @@ export default function DocumentRewriterModal({
                           onClick={() => {
                             setDocumentData(null);
                             setOriginalDocument(null);
-                            fileInputRef.current!.value = '';
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
+                            }
                           }}
                         >
                           <ArrowLeft className="h-4 w-4 mr-1" />
