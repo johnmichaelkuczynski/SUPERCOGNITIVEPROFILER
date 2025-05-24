@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { 
   FileText, Upload, Download, Send, AlertTriangle, Check, X, FileDown, MailIcon, Loader2, 
@@ -75,7 +76,7 @@ export default function DocumentRewriterModal({
   onRewriteComplete
 }: DocumentRewriterModalProps) {
   // State for document handling
-  const [document, setDocument] = useState<Document | null>(null);
+  const [documentData, setDocumentData] = useState<Document | null>(null);
   const [originalDocument, setOriginalDocument] = useState<Document | null>(null);
   const [rewrittenContent, setRewrittenContent] = useState<string>('');
   
@@ -430,7 +431,7 @@ export default function DocumentRewriterModal({
         toast({
           title: "AI Detection Warning",
           description: "Moderate chance of being detected as AI-generated. Consider further edits.",
-          variant: "warning"
+          variant: "destructive"
         });
       } else {
         toast({
@@ -835,6 +836,54 @@ export default function DocumentRewriterModal({
                   </Button>
                 </div>
               </div>
+              
+              {/* AI Detection Result */}
+              {aiDetectionResult && !aiDetectionResult.error && (
+                <Card className="mb-4">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">AI Detection Result</div>
+                      <Badge 
+                        className={`${
+                          aiDetectionResult.aiProbability < 0.3 
+                            ? 'bg-green-100 text-green-800' 
+                            : aiDetectionResult.aiProbability < 0.6 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {getAILabel(aiDetectionResult.aiProbability)}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex justify-between text-sm">
+                      <span>AI Probability</span>
+                      <span className="font-medium">{Math.round(aiDetectionResult.aiProbability * 100)}%</span>
+                    </div>
+                    <Progress value={aiDetectionResult.aiProbability * 100} className="h-2 mb-4" />
+                    
+                    {aiDetectionResult.mostAISentence && (
+                      <div className="text-xs">
+                        <p className="font-medium text-red-600 mb-1">Most AI-like sentence:</p>
+                        <p className="italic bg-slate-100 p-2 rounded text-slate-800">
+                          "{aiDetectionResult.mostAISentence.sentence}"
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Error message if AI detection failed */}
+              {aiDetectionResult?.error && (
+                <div className="bg-red-50 p-3 rounded-md border border-red-200 text-red-800 text-sm mb-4">
+                  <div className="flex items-center font-medium">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    AI Detection Error
+                  </div>
+                  <p className="mt-1">{aiDetectionResult.error}</p>
+                </div>
+              )}
               
               <div 
                 className="bg-white border rounded-md p-4 max-h-[500px] overflow-y-auto cursor-pointer hover:bg-slate-50"

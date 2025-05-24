@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, FileTextIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ReactMarkdown from 'react-markdown';
@@ -11,6 +11,7 @@ import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 import AIDetectionPopover from '@/components/AIDetectionPopover';
 import { useLocation } from 'wouter';
+import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 
 interface Message {
   id: number;
@@ -31,6 +32,10 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [, setLocation] = useLocation();
+  
+  // Document rewriter modal state
+  const [isRewriterOpen, setIsRewriterOpen] = useState(false);
+  const [documentContent, setDocumentContent] = useState<string>('');
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -251,9 +256,37 @@ export default function Home() {
     );
   };
 
+  // Handle when rewritten content is received from the modal
+  const handleRewriteComplete = (rewrittenContent: string) => {
+    // Add the rewritten content as a new user message
+    const userMessage: Message = {
+      id: Date.now(),
+      content: "I've rewritten my document:",
+      role: 'user',
+      timestamp: new Date()
+    };
+    
+    const aiMessage: Message = {
+      id: Date.now() + 1,
+      content: rewrittenContent,
+      role: 'assistant',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage, aiMessage]);
+  };
+
   return (
     <main className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
+      
+      {/* Document Rewriter Modal */}
+      <DocumentRewriterModal 
+        isOpen={isRewriterOpen}
+        onClose={() => setIsRewriterOpen(false)}
+        initialContent={documentContent}
+        onRewriteComplete={handleRewriteComplete}
+      />
       
       <div className="grid grid-cols-1 gap-6">
         <Card className="shadow-sm">
@@ -298,10 +331,25 @@ export default function Home() {
                 <Button 
                   variant="secondary"
                   className="flex items-center gap-2"
-                  onClick={() => setLocation('/document-rewrite')}
+                  onClick={() => {
+                    // Find the latest document content if it exists
+                    const latestDocumentMessage = [...messages]
+                      .reverse()
+                      .find(msg => msg.files && msg.files.length > 0);
+                      
+                    // Open the rewriter modal
+                    if (latestDocumentMessage && latestDocumentMessage.role === 'assistant') {
+                      setDocumentContent(latestDocumentMessage.content);
+                      setIsRewriterOpen(true);
+                    } else {
+                      // If no document found, open with empty content
+                      setDocumentContent('');
+                      setIsRewriterOpen(true);
+                    }
+                  }}
                 >
-                  <RefreshCw className="h-4 w-4" />
-                  Rewrite Large Document
+                  <FileText className="h-4 w-4" />
+                  Rewrite Document
                 </Button>
               </div>
             </div>
