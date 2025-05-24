@@ -111,6 +111,9 @@ export default function DocumentRewriterModal({
   // When modal opens, check if we have initial content to use
   useEffect(() => {
     if (isOpen && initialContent) {
+      console.log("DOCUMENT LENGTH:", initialContent.length);
+      console.log("FIRST 100 CHARS:", initialContent.substring(0, 100));
+      
       // If we have initial content, create a document immediately
       const newDoc: DocumentData = {
         id: Date.now().toString(),
@@ -121,6 +124,7 @@ export default function DocumentRewriterModal({
       
       setDocumentData(newDoc);
       setOriginalDocument(newDoc);
+      setChunkMode(true); // Always enable chunk mode
       
       // Pre-populate with a default instruction for better UX
       setSettings(prev => ({
@@ -128,114 +132,103 @@ export default function DocumentRewriterModal({
         instructions: "Rewrite this content to make it more professional while keeping the same meaning."
       }));
       
-      // Always enable chunk mode to split document into manageable pieces
+      // Force document into chunks regardless of size
       const chunks = splitIntoChunks(initialContent, chunkSize);
       setDocumentChunks(chunks);
       setSelectedChunkIds(chunks.map(chunk => chunk.id));
       
-      // Automatically enable chunk mode
-      setChunkMode(true);
-      
       console.log(`Document loaded with ${chunks.length} chunks`);
       
-      if (initialContent.length > 10000) {
-        toast({
-          title: "Document Chunking Enabled",
-          description: `Document has been split into ${chunks.length} sections for easier editing.`,
-        });
-      }
+      toast({
+        title: "Document Processing Complete",
+        description: `Your document has been split into ${chunks.length} sections. Select which ones to rewrite.`,
+      });
     }
   }, [isOpen, initialContent, chunkSize]);
 
-  // Split document content into chunks of 500 words each
+  // Split document into chunks for easier processing
   const splitIntoChunks = (content: string, size: number): DocumentChunk[] => {
-    // ALWAYS create multiple chunks for any document (required by user)
+    // ALWAYS create multiple chunks - minimum of 20 chunks
     
-    // First, split text into sentences roughly
-    const sentences = content.split(/(?<=\.|\?|\!)\s+/);
+    // Calculate how many chunks to create
+    // For large documents, we want at least 20 chunks, but not more than 100
+    const documentLength = content.length;
+    let numChunks = 20; // Default minimum number of chunks
     
-    // Force creation of multiple chunks (at least 10 chunks for large documents)
-    const chunkSize = Math.max(1, Math.min(sentences.length / 10, 10)); // aim for 10+ chunks
-    
-    console.log(`Document has ${sentences.length} sentences, creating chunks of ~${chunkSize} sentences each`);
-    
-    const chunks: DocumentChunk[] = [];
-    let currentChunk = "";
-    let chunkId = 0;
-    let sentenceCount = 0;
-    
-    // Process sentences into chunks
-    for (let i = 0; i < sentences.length; i++) {
-      if (sentences[i].trim() === "") continue;
-      
-      // If we've hit our chunk size, create a new chunk
-      if (sentenceCount >= chunkSize && currentChunk.length > 0) {
-        chunks.push({ id: chunkId++, content: currentChunk, selected: true });
-        currentChunk = sentences[i];
-        sentenceCount = 1;
-      } else {
-        // Add to current chunk
-        if (currentChunk.length > 0) {
-          currentChunk += " ";
-        }
-        currentChunk += sentences[i];
-        sentenceCount++;
-      }
+    // For really large documents, create more chunks
+    if (documentLength > 100000) {
+      numChunks = 50;
+    }
+    if (documentLength > 500000) {
+      numChunks = 75;
     }
     
-    // Add the last chunk if it's not empty
-    if (currentChunk.length > 0) {
-      chunks.push({ id: chunkId, content: currentChunk, selected: true });
+    // Simple math - divide the document into roughly equal chunks
+    const chunkLength = Math.floor(documentLength / numChunks);
+    console.log(`Document length: ${documentLength}, creating ${numChunks} chunks of ~${chunkLength} characters each`);
+    
+    const chunks: DocumentChunk[] = [];
+    
+    // Create chunks by character count, but try to break at paragraph boundaries
+    let startPos = 0;
+    let chunkId = 0;
+    
+    while (startPos < content.length) {
+      // Calculate ideal end position for this chunk
+      let endPos = startPos + chunkLength;
+      
+      // Don't go past end of text
+      if (endPos >= content.length) {
+        endPos = content.length;
+      } else {
+        // Try to find a paragraph break near the target position
+        const nextParagraph = content.indexOf("\n\n", endPos - 200);
+        if (nextParagraph !== -1 && nextParagraph < endPos + 200) {
+          // If we can find a paragraph break within reasonable distance, use it
+          endPos = nextParagraph;
+        } else {
+          // Otherwise try to find a sentence end
+          const nextSentence = content.indexOf(". ", endPos - 100);
+          if (nextSentence !== -1 && nextSentence < endPos + 100) {
+            endPos = nextSentence + 1; // Include the period
+          }
+        }
+      }
+      
+      // Extract the chunk
+      const chunkContent = content.substring(startPos, endPos).trim();
+      
+      // Add non-empty chunks to the list
+      if (chunkContent.length > 0) {
+        chunks.push({ 
+          id: chunkId++, 
+          content: chunkContent, 
+          selected: true 
+        });
+      }
+      
+      // Move to next chunk position
+      startPos = endPos;
     }
     
     console.log(`CREATED ${chunks.length} CHUNKS FROM DOCUMENT`);
     
-    // Check if we have enough chunks
-    if (chunks.length < 5 && sentences.length > 20) {
-      // If not enough chunks but plenty of sentences, split more aggressively
-      console.log("Not enough chunks created, splitting more aggressively");
-      
-      // Clear chunks and split again with smaller chunk size
-      return splitIntoSmallerChunks(sentences);
-    }
-    
-    return chunks;
-  };
-  
-  // Helper to split into smaller chunks
-  const splitIntoSmallerChunks = (sentences: string[]): DocumentChunk[] => {
-    // Force at least 10 chunks
-    const targetChunks = Math.max(10, Math.ceil(sentences.length / 10));
-    const chunkSize = Math.max(1, Math.floor(sentences.length / targetChunks));
-    
-    console.log(`Forcing ${targetChunks} chunks with ${chunkSize} sentences per chunk`);
-    
-    const chunks: DocumentChunk[] = [];
-    let currentChunk = "";
-    let chunkId = 0;
-    
-    for (let i = 0; i < sentences.length; i++) {
-      if (sentences[i].trim() === "") continue;
-      
-      // Create new chunk every chunkSize sentences
-      if (i > 0 && i % chunkSize === 0 && currentChunk.length > 0) {
-        chunks.push({ id: chunkId++, content: currentChunk, selected: true });
-        currentChunk = sentences[i];
-      } else {
-        // Add to current chunk
-        if (currentChunk.length > 0) {
-          currentChunk += " ";
-        }
-        currentChunk += sentences[i];
+    // Ensure we have at least some chunks
+    if (chunks.length === 0) {
+      // Fallback: just create 20 equal-sized chunks
+      const simpleChunkSize = Math.ceil(content.length / 20);
+      for (let i = 0; i < 20; i++) {
+        const start = i * simpleChunkSize;
+        const end = Math.min(start + simpleChunkSize, content.length);
+        chunks.push({
+          id: i,
+          content: content.substring(start, end),
+          selected: true
+        });
       }
+      console.log(`Created ${chunks.length} simple chunks as fallback`);
     }
     
-    // Add the last chunk if it's not empty
-    if (currentChunk.length > 0) {
-      chunks.push({ id: chunkId, content: currentChunk, selected: true });
-    }
-    
-    console.log(`CREATED ${chunks.length} CHUNKS WITH AGGRESSIVE SPLITTING`);
     return chunks;
   };
 
