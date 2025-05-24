@@ -13,6 +13,7 @@ import 'katex/dist/katex.min.css';
 import AIDetectionPopover from '@/components/AIDetectionPopover';
 import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
+import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 
 interface Message {
   id: number;

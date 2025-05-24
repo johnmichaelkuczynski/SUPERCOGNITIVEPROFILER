@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import { processGPT4, summarizeDocumentChunk } from "./services/openai";
+import { processGPT4 } from "./services/openai";
+import summarizeRoutes from "./routes/summarize";
 import { processClaude } from "./services/anthropic";
 import { processPerplexity } from "./services/perplexity";
 import { processDocument, extractText } from "./services/documentProcessor";
@@ -21,6 +22,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register document chunk summarization route
+  app.use('/api/llm/summarize-chunk', summarizeRoutes);
   // LLM prompt processing route
   app.post('/api/llm/prompt', upload.array('files'), async (req: Request, res: Response) => {
     try {
