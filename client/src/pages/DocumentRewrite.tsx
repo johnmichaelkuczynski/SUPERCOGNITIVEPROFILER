@@ -109,7 +109,7 @@ export default function DocumentRewrite() {
   const [emailRecipient, setEmailRecipient] = useState<string>('');
   const [senderEmail, setSenderEmail] = useState<string>('');
   const [isSending, setIsSending] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>('rewrite');
+  const [activeTab, setActiveTab] = useState<string>('rewrite'); // Keep only for compatibility with existing code
   const [, setLocation] = useLocation();
   
   // Chunking state
