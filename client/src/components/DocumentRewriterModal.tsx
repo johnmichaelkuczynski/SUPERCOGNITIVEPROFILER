@@ -30,6 +30,21 @@ interface DocumentRewriterModalProps {
   onRewriteComplete?: (rewrittenContent: string) => void;
 }
 
+// AI Detection Result interface
+interface AIDetectionResult {
+  aiProbability: number;
+  humanProbability: number;
+  mostAISentence?: {
+    sentence: string;
+    aiProbability: number;
+  };
+  mostHumanSentence?: {
+    sentence: string;
+    aiProbability: number;
+  };
+  error?: string;
+}
+
 // Define document interface
 interface Document {
   id: string;
@@ -67,6 +82,8 @@ export default function DocumentRewriterModal({
   // State for processing
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isDetecting, setIsDetecting] = useState<boolean>(false);
+  const [aiDetectionResult, setAiDetectionResult] = useState<AIDetectionResult | null>(null);
   
   // State for settings
   const [settings, setSettings] = useState<RewriteSettings>({
@@ -374,6 +391,79 @@ export default function DocumentRewriterModal({
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  // Handle AI detection
+  const runAIDetection = async () => {
+    if (!rewrittenContent) {
+      toast({
+        title: "No Content",
+        description: "Please rewrite the document first before running AI detection.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsDetecting(true);
+    setAiDetectionResult(null);
+    
+    try {
+      const response = await fetch('/api/ai-detection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: rewrittenContent }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      setAiDetectionResult(result);
+      
+      if (result.aiProbability < 0.3) {
+        toast({
+          title: "AI Detection Passed",
+          description: "The content reads as human-written. Low probability of AI detection.",
+        });
+      } else if (result.aiProbability < 0.6) {
+        toast({
+          title: "AI Detection Warning",
+          description: "Moderate chance of being detected as AI-generated. Consider further edits.",
+          variant: "warning"
+        });
+      } else {
+        toast({
+          title: "AI Detection Failed",
+          description: "High probability of being detected as AI-generated. Try rewriting with different settings.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error running AI detection:', error);
+      setAiDetectionResult({
+        aiProbability: 0,
+        humanProbability: 0,
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+      
+      toast({
+        title: "AI Detection Failed",
+        description: "Could not analyze the text. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+  
+  // Get AI label based on probability
+  const getAILabel = (probability: number) => {
+    if (probability >= 0.8) return 'Very likely AI';
+    if (probability >= 0.6) return 'Likely AI';
+    if (probability >= 0.4) return 'Uncertain';
+    if (probability >= 0.2) return 'Likely human';
+    return 'Very likely human';
   };
 
   // Handle download
@@ -696,6 +786,24 @@ export default function DocumentRewriterModal({
               <div className="flex justify-between items-center">
                 <h3 className="font-medium">Rewritten Content</h3>
                 <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={runAIDetection}
+                    disabled={isDetecting || !rewrittenContent}
+                  >
+                    {isDetecting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Detecting...
+                      </>
+                    ) : (
+                      <>
+                        <Fingerprint className="h-4 w-4 mr-1" />
+                        AI Detection
+                      </>
+                    )}
+                  </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
