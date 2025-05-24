@@ -88,7 +88,7 @@ export default function Home() {
     try {
       // Create FormData and append prompt and model
       const formData = new FormData();
-      formData.append('prompt', userContent);
+      formData.append('content', userContent);
       formData.append('model', selectedModel);
       
       // Append each file to form data
@@ -283,10 +283,22 @@ export default function Home() {
         summaryContent = summaryData.content || '';
       }
       
+      // Create a summary from the extracted text without relying on AI if API fails
+      let summary = "";
+      
+      if (summaryContent) {
+        // Use AI-generated summary if available
+        summary = summaryContent;
+      } else {
+        // Create a basic summary from the extracted text
+        const firstParagraph = extractedText.split('\n\n')[0] || extractedText.substring(0, 200);
+        summary = `${firstParagraph}${extractedText.length > 200 ? '...' : ''}`;
+      }
+      
       // Add AI message with content overview and summary
       const aiMessage: Message = {
         id: Date.now() + 3,
-        content: `I've extracted the content from ${file.name}. Here's a summary:\n\n${summaryContent || extractedText.substring(0, 200) + (extractedText.length > 200 ? '...' : '')}\n\n${extractedText.length} characters total. You can ask me questions about this document or upload more files.`,
+        content: `I've extracted the content from ${file.name}. Here's a summary:\n\n${summary}\n\n${extractedText.length} characters total. You can ask me questions about this document or upload more files.`,
         role: 'assistant',
         timestamp: new Date()
       };
