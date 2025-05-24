@@ -168,6 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ 
         content: extractedText,
+        text: extractedText, // Add text field as well for document rewriter
         message: 'Document successfully processed and saved'
       });
     } catch (error) {

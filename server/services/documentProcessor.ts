@@ -75,10 +75,29 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     const reader = new PdfReader();
     const textByPage: { [key: number]: string[] } = {};
     
+    // Start with a safety fallback if parser returns nothing
+    setTimeout(() => {
+      // If we've collected any text at all, return it
+      if (Object.keys(textByPage).length > 0) {
+        const text = Object.keys(textByPage)
+          .sort((a, b) => parseInt(a) - parseInt(b))
+          .map(pageNum => textByPage[parseInt(pageNum)].join(' '))
+          .join('\n\n');
+        
+        if (text.trim().length > 0) {
+          resolve(text);
+          return;
+        }
+      }
+      
+      // If we got nothing, provide a fallback message
+      resolve("The PDF content could not be extracted. This may be a scanned document or have content protection.");
+    }, 10000); // 10 second timeout
+    
     reader.parseBuffer(buffer, (err, item) => {
       if (err) {
-        reject(err);
-        return;
+        console.error("PDF parsing error:", err);
+        // Don't reject - try to continue parsing
       }
       
       if (!item) {
@@ -87,7 +106,8 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
           .sort((a, b) => parseInt(a) - parseInt(b))
           .map(pageNum => textByPage[parseInt(pageNum)].join(' '))
           .join('\n\n');
-          
+        
+        console.log(`Extracted ${text.length} characters from PDF`);
         resolve(text);
         return;
       }

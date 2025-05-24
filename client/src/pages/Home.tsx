@@ -476,49 +476,76 @@ export default function Home() {
                     <Button 
                       variant="secondary"
                       className="flex flex-col items-center justify-center h-16 w-16 bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => {
+                      onClick={async () => {
                         // Find the most recent user message with a file attached
                         const recentFileMessage = [...messages]
                           .reverse()
                           .find(msg => msg.role === 'user' && msg.files && msg.files.length > 0);
                         
                         if (recentFileMessage && recentFileMessage.files && recentFileMessage.files.length > 0) {
-                          // Get the first file from the message
-                          const fileName = recentFileMessage.files[0].name;
-                          
-                          // Check if we have the content for this file
-                          if (uploadedDocuments[fileName]) {
-                            console.log(`Using uploaded document: ${fileName} with ${uploadedDocuments[fileName].length} characters`);
-                            setDocumentContent(uploadedDocuments[fileName]);
-                            setDocumentName(fileName);
-                          } else {
-                            console.log('Document content not found for', fileName);
-                            // Fallback to the last AI message
-                            const lastAIMessage = [...messages]
-                              .reverse()
-                              .find(msg => msg.role === 'assistant');
+                          try {
+                            // Get the first file from the message
+                            const file = recentFileMessage.files[0];
+                            const fileName = file.name;
                             
-                            if (lastAIMessage) {
-                              setDocumentContent(lastAIMessage.content);
-                              setDocumentName('AI Response');
+                            // We need to ensure we have the extracted text
+                            // If we don't already have it, extract it now
+                            if (!uploadedDocuments[fileName] || uploadedDocuments[fileName].length < 100) {
+                              console.log('Need to extract text from', fileName);
+                              
+                              // Create a form to send the file for text extraction
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              
+                              // Send file for processing to get text content
+                              const res = await fetch('/api/documents/process', {
+                                method: 'POST',
+                                body: formData
+                              });
+                              
+                              if (res.ok) {
+                                const data = await res.json();
+                                if (data.text && data.text.length > 10) {
+                                  // Store the extracted text
+                                  setUploadedDocuments(prev => ({
+                                    ...prev,
+                                    [fileName]: data.text
+                                  }));
+                                  console.log(`Extracted ${data.text.length} characters of text for rewriting`);
+                                  
+                                  // Use this text in the document rewriter
+                                  setDocumentContent(data.text);
+                                  setDocumentName(fileName);
+                                  
+                                  // Open the rewriter
+                                  setIsRewriterOpen(true);
+                                  return;
+                                }
+                              }
                             } else {
-                              setDocumentContent('');
-                              setDocumentName('');
+                              // We already have the content
+                              console.log(`Using uploaded document: ${fileName} with ${uploadedDocuments[fileName].length} characters`);
+                              setDocumentContent(uploadedDocuments[fileName]);
+                              setDocumentName(fileName);
+                              setIsRewriterOpen(true);
+                              return;
                             }
+                          } catch (error) {
+                            console.error('Error preparing file for rewrite:', error);
                           }
+                        }
+                        
+                        // Fallback to AI message if document extraction failed or no file message
+                        const lastAIMessage = [...messages]
+                          .reverse()
+                          .find(msg => msg.role === 'assistant');
+                        
+                        if (lastAIMessage) {
+                          setDocumentContent(lastAIMessage.content);
+                          setDocumentName('AI Response');
                         } else {
-                          // No file messages, use the last AI message
-                          const lastAIMessage = [...messages]
-                            .reverse()
-                            .find(msg => msg.role === 'assistant');
-                          
-                          if (lastAIMessage) {
-                            setDocumentContent(lastAIMessage.content);
-                            setDocumentName('AI Response');
-                          } else {
-                            setDocumentContent('');
-                            setDocumentName('');
-                          }
+                          setDocumentContent('');
+                          setDocumentName('');
                         }
                         
                         setIsRewriterOpen(true);
