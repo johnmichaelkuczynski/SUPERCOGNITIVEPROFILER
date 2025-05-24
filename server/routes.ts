@@ -130,8 +130,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const file = req.file;
+      console.log(`Processing file directly: ${file.originalname}`);
+      
       const processed = await processDocument(file);
       const extractedText = processed.text;
+      const chunks = processed.chunks;
+      
+      // Log the extraction success
+      console.log(`Extracted ${extractedText.length} characters from ${file.originalname}`);
+      if (chunks) {
+        console.log(`Document was split into ${chunks.length} chunks for better analysis`);
+      }
       
       // Save the document to the database
       const userId = 1; // Mock user ID for now
