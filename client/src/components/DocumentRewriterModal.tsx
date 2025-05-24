@@ -608,7 +608,75 @@ export default function DocumentRewriterModal({
       return;
     }
     
+    // For large documents (>200K characters), handle more gracefully
+    if (rewrittenContent.length > 200000) {
+      // For TXT format, download client-side to avoid size issues
+      if (format === 'txt') {
+        try {
+          // Create text file directly on client
+          const blob = new Blob([rewrittenContent], { type: 'text/plain' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const filename = documentData?.name ? documentData.name.replace(/\.[^/.]+$/, '') : 'document';
+          
+          a.href = url;
+          a.download = `${filename}.txt`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          toast({
+            title: "Download Complete",
+            description: "Your document has been downloaded as a text file.",
+          });
+          return;
+        } catch (error) {
+          console.error('Error creating text file:', error);
+          toast({
+            title: "Download Failed",
+            description: "Failed to create text file. Please try again.",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        // For other formats with large content, warn user
+        toast({
+          title: "Document Too Large",
+          description: `The document is too large to download as ${format}. Try with a smaller section or use TXT format.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
     try {
+      setDownloading(true);
+      
+      // For txt format, do it client-side for better reliability
+      if (format === 'txt') {
+        const blob = new Blob([rewrittenContent], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const filename = documentData?.name ? documentData.name.replace(/\.[^/.]+$/, '') : 'document';
+        
+        a.href = url;
+        a.download = `${filename}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: "Download Complete",
+          description: "Your document has been downloaded as a text file.",
+        });
+        setDownloading(false);
+        return;
+      }
+      
+      // For DOCX and PDF, use the server
       const response = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -620,7 +688,18 @@ export default function DocumentRewriterModal({
       });
       
       if (!response.ok) {
-        throw new Error(`Download failed: ${response.status}`);
+        // Try to get detailed error from response
+        let errorMessage = `Download failed (${response.status})`;
+        try {
+          const errorData = await response.json();
+          if (errorData && errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // If we can't parse the error JSON, use the default message
+        }
+        
+        throw new Error(errorMessage);
       }
       
       // Get the blob data
@@ -641,16 +720,18 @@ export default function DocumentRewriterModal({
       document.body.removeChild(a);
       
       toast({
-        title: "Download Started",
-        description: `Your document is being downloaded as ${format.toUpperCase()}.`,
+        title: "Download Complete",
+        description: `Your document has been downloaded as a ${format.toUpperCase()} file.`,
       });
     } catch (error) {
       console.error('Error downloading document:', error);
       toast({
         title: "Download Failed",
-        description: "Failed to download the document. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to download the document. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setDownloading(false);
     }
   };
 

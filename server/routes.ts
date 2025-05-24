@@ -584,8 +584,8 @@ YOUR REWRITTEN DOCUMENT:`;
       }
       
       // Limit content size to prevent "request entity too large" errors
-      if (content.length > 1000000) { // 1MB limit
-        return res.status(400).json({ error: 'Document content too large. Try with a smaller section.' });
+      if (content.length > 250000) { // 250K characters limit
+        return res.status(413).json({ error: 'Document content too large. Try with a smaller section.' });
       }
       
       console.log(`Creating ${format} document: ${filename}, content length: ${content.length}`);
