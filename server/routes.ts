@@ -78,8 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
         
-        // Add document context to the prompt
-        processedContent = content + "\n\nContext documents:\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n");
+        // Add document context to the prompt with clear instructions
+        processedContent = content + "\n\nIMPORTANT - DOCUMENT CONTEXT:\nThe following document content MUST be used to answer the question. Base your response ONLY on this content and nothing else:\n\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n") + "\n\nEnd of document context. Respond based ONLY on the above content.";
       }
       
       // Process with the selected model

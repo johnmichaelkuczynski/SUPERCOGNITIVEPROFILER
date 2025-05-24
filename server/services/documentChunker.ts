@@ -15,6 +15,18 @@ export function splitIntoChunks(
 ): Array<{title: string, content: string}> {
   console.log(`Splitting ${text.length} characters into chunks`);
   
+  // IMPORTANT: Always include the full text as the first chunk
+  // This ensures the entire document content is available
+  const fullTextChunk = {
+    title: "Full Document Content",
+    content: text
+  };
+  
+  // For shorter documents (less than 10,000 characters), just return the full text
+  if (text.length < 10000) {
+    return [fullTextChunk];
+  }
+  
   // Try to identify headings (markdown style or numbered sections)
   const headingRegex = /(?:^|\n)(?:#{1,3}\s+|(?:\d+\.)+\s+|[A-Z][A-Z\s]+:)(.+?)(?=\n|$)/g;
   const headingMatches = Array.from(text.matchAll(headingRegex));
@@ -22,7 +34,8 @@ export function splitIntoChunks(
   // If we found enough headings, use them to create meaningful chunks
   if (headingMatches.length >= 3) {
     console.log(`Found ${headingMatches.length} headings for chunking`);
-    return createChunksFromHeadings(text, headingMatches);
+    const headingChunks = createChunksFromHeadings(text, headingMatches);
+    return [fullTextChunk, ...headingChunks];
   }
   
   // Otherwise, try section boundaries with line breaks
@@ -31,12 +44,14 @@ export function splitIntoChunks(
   
   if (sections.length >= 3) {
     console.log(`Found ${sections.length} natural sections for chunking`);
-    return createChunksFromSections(sections);
+    const sectionChunks = createChunksFromSections(sections);
+    return [fullTextChunk, ...sectionChunks];
   }
   
   // Last resort: fixed-size chunking
   console.log('Using fixed-size chunking');
-  return createFixedSizeChunks(text, options.maxChunkSize);
+  const fixedChunks = createFixedSizeChunks(text, options.maxChunkSize);
+  return [fullTextChunk, ...fixedChunks];
 }
 
 /**
