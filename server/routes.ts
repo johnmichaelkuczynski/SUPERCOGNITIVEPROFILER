@@ -42,8 +42,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process document files if any
       let processedContent = content;
       if (files && files.length > 0) {
-        const extractedTexts = await Promise.all(files.map(file => extractText(file)));
-        processedContent = content + "\n\nContext documents:\n" + extractedTexts.join("\n\n");
+        console.log(`Processing ${files.length} document(s) for context`);
+        const processedDocs = await Promise.all(files.map(file => processDocument(file)));
+        
+        // Extract text from each document
+        const documentTexts = processedDocs.map(doc => doc.text);
+        console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
+        
+        // Add document context to the prompt
+        processedContent = content + "\n\nContext documents:\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n");
       }
       
       // Process with the selected model
