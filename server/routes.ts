@@ -427,6 +427,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 You are an expert document editor. Please rewrite the following document according to these instructions:
 ${instructions}
 
+IMPORTANT: Format the output as plain text only. DO NOT use markdown headings, bold formatting, italics, bullet points or any special formatting. Write in plain text with regular paragraphs.
+
 ${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
 
 DOCUMENT TO REWRITE:
@@ -487,6 +489,13 @@ YOUR REWRITTEN DOCUMENT:`;
         });
       }
       
+      // Clean up any markdown formatting that might still be in the content
+      rewrittenContent = rewrittenContent
+        .replace(/^[#]+\s+/gm, '') // Remove heading markers
+        .replace(/[*]{2,3}(.+?)[*]{2,3}/g, '$1') // Remove bold/italic markers
+        .replace(/[_]{2}(.+?)[_]{2}/g, '$1') // Remove underscore emphasis
+        .replace(/^\s*[-*+]\s+/gm, ''); // Remove bullet points
+      
       // Return successful response
       res.json({ 
         content: rewrittenContent,
@@ -502,6 +511,58 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
 
+  // Email document sharing endpoint
+  app.post('/api/share-document', async (req: Request, res: Response) => {
+    try {
+      const { email, content, subject } = req.body;
+      
+      if (!email || !content) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      // Use SendGrid to send email
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ error: 'SendGrid API key not configured' });
+      }
+      
+      // Import SendGrid
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      
+      // Create email message
+      const msg = {
+        to: email,
+        from: 'document-rewriter@example.com', // Replace with your verified sender
+        subject: subject || 'Your rewritten document',
+        text: 'Please find your rewritten document attached.',
+        html: `<div>
+          <h3>Your rewritten document</h3>
+          <p>The rewritten document you requested is attached below:</p>
+          <pre style="white-space: pre-wrap; background: #f0f0f0; padding: 15px; border-radius: 5px;">${content}</pre>
+        </div>`,
+      };
+      
+      // Send email
+      try {
+        await sgMail.send(msg);
+        console.log(`Email sent successfully to ${email}`);
+        return res.json({ success: true, message: 'Document sent successfully' });
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        return res.status(500).json({ 
+          error: 'Failed to send email', 
+          details: emailError.response ? emailError.response.body : emailError.message 
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing document:', error);
+      return res.status(500).json({ 
+        error: 'Failed to share document', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
   // Document Download API
   app.post('/api/download', async (req: Request, res: Response) => {
     try {
@@ -511,72 +572,108 @@ YOUR REWRITTEN DOCUMENT:`;
         return res.status(400).json({ error: 'Missing required parameters' });
       }
       
+      // Limit content size to prevent "request entity too large" errors
+      if (content.length > 1000000) { // 1MB limit
+        return res.status(400).json({ error: 'Document content too large. Try with a smaller section.' });
+      }
+      
       console.log(`Creating ${format} document: ${filename}, content length: ${content.length}`);
       
       if (format === 'docx') {
-        // Generate Word document
-        const { Document, Packer, Paragraph, TextRun } = await import('docx');
-        
-        // Create document with paragraphs
-        const doc = new Document({
-          sections: [{
-            properties: {},
-            children: content.split('\n').map(line => 
-              new Paragraph({
-                children: [new TextRun(line || ' ')],
-              })
-            ),
-          }],
-        });
-        
-        // Generate buffer
-        const buffer = await Packer.toBuffer(doc);
-        
-        // Set headers
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        res.setHeader('Content-Disposition', `attachment; filename=${filename}.docx`);
-        res.setHeader('Content-Length', buffer.length);
-        
-        // Send buffer
-        res.send(buffer);
-        console.log('Word document generated successfully');
-        
-      } else if (format === 'pdf') {
-        // Generate PDF
-        const PDFDocument = await import('pdfkit');
-        const doc = new PDFDocument.default();
-        
-        // Create a buffer to store PDF
-        const chunks: Buffer[] = [];
-        let result: Buffer;
-        
-        // Capture PDF data chunks
-        doc.on('data', (chunk) => {
-          chunks.push(chunk);
-        });
-        
-        // When document is done, create buffer and send response
-        doc.on('end', () => {
-          result = Buffer.concat(chunks);
+        try {
+          // Generate Word document
+          const { Document, Packer, Paragraph, TextRun } = await import('docx');
+          
+          // Create document with paragraphs
+          const doc = new Document({
+            sections: [{
+              properties: {},
+              children: content.split('\n').map(line => 
+                new Paragraph({
+                  children: [new TextRun(line || ' ')],
+                })
+              ),
+            }],
+          });
+          
+          // Generate buffer
+          const buffer = await Packer.toBuffer(doc);
           
           // Set headers
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
-          res.setHeader('Content-Length', result.length);
+          res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+          res.setHeader('Content-Disposition', `attachment; filename=${filename}.docx`);
+          res.setHeader('Content-Length', buffer.length);
           
           // Send buffer
-          res.send(result);
-          console.log('PDF document generated successfully');
-        });
-        
-        // Add content to PDF
-        const lines = content.split('\n');
-        for (const line of lines) {
-          doc.text(line || ' ');
+          res.send(buffer);
+          console.log('Word document generated successfully');
+        } catch (docxError) {
+          console.error('DOCX generation error:', docxError);
+          return res.status(500).json({ error: 'Failed to generate DOCX file', details: docxError.message });
         }
         
-        // Finalize PDF
-        doc.end();
+      } else if (format === 'pdf') {
+        try {
+          // Generate PDF
+          const PDFDocument = await import('pdfkit');
+          const doc = new PDFDocument.default();
+          
+          // Create a buffer to store PDF
+          const chunks: Buffer[] = [];
+          
+          // Capture PDF data chunks
+          doc.on('data', (chunk) => {
+            chunks.push(chunk);
+          });
+          
+          // Handle errors on the doc
+          doc.on('error', (pdfError) => {
+            console.error('PDF generation error:', pdfError);
+            return res.status(500).json({ error: 'PDF generation failed', details: pdfError.message });
+          });
+          
+          // When document is done, create buffer and send response
+          doc.on('end', () => {
+            try {
+              const result = Buffer.concat(chunks);
+              
+              // Set headers
+              res.setHeader('Content-Type', 'application/pdf');
+              res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
+              res.setHeader('Content-Length', result.length);
+              
+              // Send buffer
+              res.send(result);
+              console.log('PDF document generated successfully');
+            } catch (bufferError) {
+              console.error('PDF buffer error:', bufferError);
+              return res.status(500).json({ error: 'PDF buffer creation failed', details: bufferError.message });
+            }
+          });
+          
+          // Add content to PDF with proper font settings
+          doc.font('Helvetica');
+          doc.fontSize(12);
+          
+          // Add content to PDF with proper line breaks
+          const paragraphs = content.split('\n\n');
+          for (let i = 0; i < paragraphs.length; i++) {
+            doc.text(paragraphs[i] || ' ', {
+              align: 'left',
+              continued: false
+            });
+            
+            if (i < paragraphs.length - 1) {
+              doc.moveDown();
+            }
+          }
+          
+          // Finalize PDF
+          doc.end();
+        } catch (pdfError) {
+          console.error('PDF creation error:', pdfError);
+          return res.status(500).json({ error: 'Failed to generate PDF file', details: pdfError.message });
+        }
         
       } else {
         // Default to plain text
