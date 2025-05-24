@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, FileTextIcon } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, FileTextIcon, Eye } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ReactMarkdown from 'react-markdown';
@@ -38,6 +39,11 @@ export default function Home() {
   const [documentContent, setDocumentContent] = useState<string>('');
   const [documentName, setDocumentName] = useState<string>('');
   const [uploadedDocuments, setUploadedDocuments] = useState<{[filename: string]: string}>({});
+  
+  // Document viewer modal state
+  const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
+  const [viewingDocumentContent, setViewingDocumentContent] = useState<string>('');
+  const [viewingDocumentName, setViewingDocumentName] = useState<string>('');
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -185,7 +191,7 @@ export default function Home() {
       }
       
       const processedData = await processResponse.json();
-      const extractedText = processedData.text || '';
+      const extractedText = processedData.content || '';
       
       console.log(`Extracted ${extractedText.length} characters from ${file.name}`);
       
