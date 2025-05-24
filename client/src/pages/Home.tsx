@@ -592,15 +592,30 @@ export default function Home() {
                           <span className="truncate">{file.name}</span>
                           <span className="text-xs text-slate-500 whitespace-nowrap">({formatBytes(file.size)})</span>
                         </div>
-                        <button 
-                          className="text-slate-500 hover:text-red-500 flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveFile(index);
-                          }}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                        <div className="flex gap-1">
+                          {uploadedDocuments[file.name] && (
+                            <button 
+                              className="text-blue-500 hover:text-blue-700 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingDocumentContent(uploadedDocuments[file.name]);
+                                setViewingDocumentName(file.name);
+                                setIsDocumentViewerOpen(true);
+                              }}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </button>
+                          )}
+                          <button 
+                            className="text-slate-500 hover:text-red-500 flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFile(index);
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -614,6 +629,80 @@ export default function Home() {
           </div>
         </Card>
       </div>
+    
+      {/* Document Viewer Dialog */}
+      <Dialog open={isDocumentViewerOpen} onOpenChange={setIsDocumentViewerOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Document: {viewingDocumentName}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 overflow-auto max-h-[60vh]">
+            <div className="border rounded p-4 bg-white font-mono text-sm whitespace-pre-wrap">
+              {viewingDocumentContent}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsDocumentViewerOpen(false)}>Close</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setDocumentContent(viewingDocumentContent);
+                setDocumentName(viewingDocumentName);
+                setIsRewriterOpen(true);
+                setIsDocumentViewerOpen(false);
+              }}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Rewrite Document
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Document Viewer Dialog */}
+      <Dialog open={isDocumentViewerOpen} onOpenChange={setIsDocumentViewerOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Document: {viewingDocumentName}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 overflow-auto max-h-[60vh]">
+            <div className="border rounded p-4 bg-white font-mono text-sm whitespace-pre-wrap">
+              {viewingDocumentContent}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsDocumentViewerOpen(false)}>Close</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setDocumentContent(viewingDocumentContent);
+                setDocumentName(viewingDocumentName);
+                setIsRewriterOpen(true);
+                setIsDocumentViewerOpen(false);
+              }}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Rewrite Document
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Document Rewriter Modal */}
+      <DocumentRewriterModal
+        isOpen={isRewriterOpen}
+        onClose={() => setIsRewriterOpen(false)}
+        initialContent={documentContent}
+        onRewriteComplete={(rewrittenContent) => {
+          // Add the rewritten content as a user message
+          const userMessage: Message = {
+            id: Date.now(),
+            content: `Here's my rewritten version of ${documentName}:\n\n${rewrittenContent.substring(0, 100)}...`,
+            role: 'user',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, userMessage]);
+        }}
+      />
     </main>
   );
 }
