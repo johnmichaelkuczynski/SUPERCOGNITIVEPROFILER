@@ -36,6 +36,7 @@ export default function Home() {
   // Document rewriter modal state
   const [isRewriterOpen, setIsRewriterOpen] = useState(false);
   const [documentContent, setDocumentContent] = useState<string>('');
+  const [documentName, setDocumentName] = useState<string>('');
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -445,28 +446,46 @@ export default function Home() {
                       variant="outline"
                       size="icon"
                       onClick={() => {
-                        // Find the latest document content if it exists
-                        const latestDocumentMessage = [...messages]
-                          .reverse()
-                          .find(msg => msg.files && msg.files.length > 0 && msg.role === 'assistant');
+                        // Find all uploaded document messages
+                        const uploadedDocMessages = messages.filter(msg => 
+                          msg.files && msg.files.length > 0 && msg.role === 'user'
+                        );
+                        
+                        // Get the most recent uploaded document analysis response
+                        let documentToRewrite = '';
+                        let documentName = '';
+                        
+                        if (uploadedDocMessages.length > 0) {
+                          // Get the most recent file upload message
+                          const latestUpload = uploadedDocMessages[uploadedDocMessages.length - 1];
                           
-                        // Open the rewriter modal
-                        if (latestDocumentMessage) {
-                          setDocumentContent(latestDocumentMessage.content);
-                          setIsRewriterOpen(true);
-                        } else {
-                          // If no document found, open with most recent AI message
+                          // Find the assistant's response to this upload (should be the next message)
+                          const uploadIndex = messages.findIndex(msg => msg.id === latestUpload.id);
+                          if (uploadIndex !== -1 && uploadIndex < messages.length - 1) {
+                            const assistantResponse = messages[uploadIndex + 1];
+                            if (assistantResponse && assistantResponse.role === 'assistant') {
+                              documentToRewrite = assistantResponse.content;
+                              documentName = latestUpload.files && latestUpload.files[0] ? 
+                                latestUpload.files[0].name : 'Uploaded Document';
+                            }
+                          }
+                        }
+                        
+                        // If we couldn't find a document upload, use most recent AI message
+                        if (!documentToRewrite) {
                           const lastAIMessage = [...messages]
                             .reverse()
                             .find(msg => msg.role === 'assistant');
                             
                           if (lastAIMessage) {
-                            setDocumentContent(lastAIMessage.content);
-                          } else {
-                            setDocumentContent('');
+                            documentToRewrite = lastAIMessage.content;
+                            documentName = 'AI Response';
                           }
-                          setIsRewriterOpen(true);
                         }
+                        
+                        // Set content and open modal
+                        setDocumentContent(documentToRewrite);
+                        setIsRewriterOpen(true);
                       }}
                       title="Rewrite document"
                     >
