@@ -111,15 +111,22 @@ export default function DocumentRewriterModal({
   // When modal opens, check if we have initial content to use
   useEffect(() => {
     if (isOpen && initialContent) {
+      // If we have initial content, create a document immediately
       const newDoc: DocumentData = {
         id: Date.now().toString(),
-        name: 'Chat Document.txt',
+        name: 'Document from Chat.txt',
         content: initialContent,
         size: initialContent.length
       };
       
       setDocumentData(newDoc);
       setOriginalDocument(newDoc);
+      
+      // Pre-populate with a default instruction for better UX
+      setSettings(prev => ({
+        ...prev,
+        instructions: "Rewrite this content to make it more professional while keeping the same meaning."
+      }));
       
       // Check if document is large enough to suggest chunk mode
       if (initialContent.length > 10000) { // Suggest chunking for docs over 10k chars
@@ -616,7 +623,7 @@ export default function DocumentRewriterModal({
                   <div className="bg-slate-50 p-4 rounded-md">
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-medium">{documentData.name}</div>
+                        <div className="font-medium text-lg">{documentData.name}</div>
                         <div className="text-sm text-slate-500 mt-1">{formatBytes(documentData.size)}</div>
                       </div>
                       <div className="flex gap-2">
@@ -639,6 +646,15 @@ export default function DocumentRewriterModal({
                           Clear
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                  
+                  {/* Document Content Preview */}
+                  <div className="border rounded-md p-4 max-h-[200px] overflow-y-auto bg-white">
+                    <div className="prose prose-sm max-w-none">
+                      {documentData.content.split('\n').map((line, i) => (
+                        <p key={i} className="mb-1">{line || ' '}</p>
+                      ))}
                     </div>
                   </div>
                   
@@ -725,12 +741,44 @@ export default function DocumentRewriterModal({
                     </div>
                   )}
                   
-                  {/* Rewrite Settings */}
-                  <div className="space-y-4 border p-4 rounded-md">
-                    <h3 className="font-medium">Rewrite Settings</h3>
+                  {/* Rewrite Instructions */}
+                  <div className="space-y-4 border-2 border-blue-500 p-6 rounded-md bg-blue-50">
+                    <h3 className="font-bold text-lg text-blue-800">Rewrite Instructions</h3>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="model-select">Model</Label>
+                      <Label htmlFor="instructions" className="text-base font-medium">Tell the AI how to rewrite your document:</Label>
+                      <Textarea
+                        id="instructions"
+                        placeholder="Example: Make this more formal and professional. Fix any grammar errors. Make it sound like it was written by a professor."
+                        value={settings.instructions}
+                        onChange={(e) => setSettings({ ...settings, instructions: e.target.value })}
+                        className="min-h-[120px] text-base"
+                      />
+                    </div>
+                    
+                    <div className="p-3 bg-white rounded border">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="detection-protection"
+                          checked={settings.detectionProtection}
+                          onCheckedChange={(checked) => 
+                            setSettings({ ...settings, detectionProtection: checked as boolean })
+                          }
+                        />
+                        <label
+                          htmlFor="detection-protection"
+                          className="text-sm font-semibold"
+                        >
+                          AI Detection Protection
+                        </label>
+                      </div>
+                      <p className="text-xs text-slate-600 ml-6 mt-1">
+                        Optimize the text to avoid detection by AI content detectors.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="model-select">AI Model</Label>
                       <Select
                         value={settings.model}
                         onValueChange={(value: any) => setSettings({ ...settings, model: value })}
@@ -744,38 +792,6 @@ export default function DocumentRewriterModal({
                           <SelectItem value="perplexity">Perplexity</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="instructions">Rewrite Instructions</Label>
-                      <Textarea
-                        id="instructions"
-                        placeholder="Enter detailed instructions for rewriting the document..."
-                        value={settings.instructions}
-                        onChange={(e) => setSettings({ ...settings, instructions: e.target.value })}
-                        className="min-h-[100px]"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="detection-protection"
-                        checked={settings.detectionProtection}
-                        onCheckedChange={(checked) => 
-                          setSettings({ ...settings, detectionProtection: checked as boolean })
-                        }
-                      />
-                      <div className="grid gap-1.5 leading-none">
-                        <label
-                          htmlFor="detection-protection"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          AI Detection Protection
-                        </label>
-                        <p className="text-xs text-slate-500">
-                          Optimize the text to avoid detection by AI content detectors.
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </>
@@ -926,16 +942,18 @@ export default function DocumentRewriterModal({
               <Button 
                 onClick={handleRewrite} 
                 disabled={!documentData || !settings.instructions || isProcessing}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 text-lg"
+                size="lg"
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing...
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    PROCESSING...
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Rewrite Document
+                    <RefreshCw className="h-5 w-5 mr-2" />
+                    REWRITE DOCUMENT
                   </>
                 )}
               </Button>

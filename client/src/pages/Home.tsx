@@ -446,45 +446,19 @@ export default function Home() {
                       variant="outline"
                       size="icon"
                       onClick={() => {
-                        // Find all uploaded document messages
-                        const uploadedDocMessages = messages.filter(msg => 
-                          msg.files && msg.files.length > 0 && msg.role === 'user'
-                        );
+                        // Use the last AI message as the document content
+                        const lastAIMessage = [...messages]
+                          .reverse()
+                          .find(msg => msg.role === 'assistant');
                         
-                        // Get the most recent uploaded document analysis response
-                        let documentToRewrite = '';
-                        let documentName = '';
-                        
-                        if (uploadedDocMessages.length > 0) {
-                          // Get the most recent file upload message
-                          const latestUpload = uploadedDocMessages[uploadedDocMessages.length - 1];
-                          
-                          // Find the assistant's response to this upload (should be the next message)
-                          const uploadIndex = messages.findIndex(msg => msg.id === latestUpload.id);
-                          if (uploadIndex !== -1 && uploadIndex < messages.length - 1) {
-                            const assistantResponse = messages[uploadIndex + 1];
-                            if (assistantResponse && assistantResponse.role === 'assistant') {
-                              documentToRewrite = assistantResponse.content;
-                              documentName = latestUpload.files && latestUpload.files[0] ? 
-                                latestUpload.files[0].name : 'Uploaded Document';
-                            }
-                          }
+                        if (lastAIMessage) {
+                          setDocumentContent(lastAIMessage.content);
+                          setDocumentName('AI Response');
+                        } else {
+                          setDocumentContent('');
+                          setDocumentName('');
                         }
                         
-                        // If we couldn't find a document upload, use most recent AI message
-                        if (!documentToRewrite) {
-                          const lastAIMessage = [...messages]
-                            .reverse()
-                            .find(msg => msg.role === 'assistant');
-                            
-                          if (lastAIMessage) {
-                            documentToRewrite = lastAIMessage.content;
-                            documentName = 'AI Response';
-                          }
-                        }
-                        
-                        // Set content and open modal
-                        setDocumentContent(documentToRewrite);
                         setIsRewriterOpen(true);
                       }}
                       title="Rewrite document"
