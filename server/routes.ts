@@ -78,8 +78,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
         
-        // Add document context to the prompt with clear instructions
-        processedContent = content + "\n\nIMPORTANT - DOCUMENT CONTEXT:\nThe following document content MUST be used to answer the question. Base your response ONLY on this content and nothing else:\n\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n") + "\n\nEnd of document context. Respond based ONLY on the above content.";
+        // Create a much stronger system message to force content usage
+        // Add document context to the prompt with strict instructions
+        processedContent = "CRITICAL INSTRUCTION: Your task is to analyze ONLY the document content provided below. Do NOT make up information or use your general knowledge. STRICTLY base your response ONLY on the text between the ### markers.\n\n" 
+          + content 
+          + "\n\n### DOCUMENT CONTENT START ###\n\n" 
+          + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n") 
+          + "\n\n### DOCUMENT CONTENT END ###\n\n"
+          + "REMINDER: You MUST only use information from the document above. If you cannot find relevant information in the document content, state that explicitly instead of making things up. For quotes, use the EXACT text from the document. If asked for topics not covered in the document, say 'The document does not contain information about [topic]' rather than making up content.";
       }
       
       // Process with the selected model
