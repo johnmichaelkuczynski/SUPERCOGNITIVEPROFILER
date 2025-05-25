@@ -296,28 +296,148 @@ export default function Analytics() {
             </Button>
           </div>
           
-          <div className="prose max-w-none">
-            <h3>Analysis Summary</h3>
-            <p>
-              This {reportType} report analyzes your writing patterns and cognitive frameworks
-              based on documents from the past {timeframe === '7days' ? 'week' : 
+          <div className="prose max-w-none space-y-6">
+            <section>
+              <h3 className="text-xl font-semibold text-slate-800">Analysis Summary</h3>
+              <p className="text-slate-700">
+                This detailed {reportType} report provides a comprehensive analysis of your writing patterns, cognitive frameworks, and intellectual evolution
+                based on documents from the past {timeframe === '7days' ? 'week' : 
                                                timeframe === '30days' ? 'month' : 
                                                timeframe === '90days' ? 'quarter' : 'year'}.
-            </p>
+                The analysis reveals distinctive characteristics in your approach to knowledge representation and linguistic expression.
+              </p>
+            </section>
             
-            <h3>Key Findings</h3>
-            <ul>
-              <li>Your writing demonstrates a high level of analytical depth with consistent logical structure</li>
-              <li>The cognitive patterns reveal a systematic approach to knowledge acquisition</li>
-              <li>Your conceptual frameworks show strong integration of multiple theoretical perspectives</li>
-            </ul>
+            <section>
+              <h3 className="text-xl font-semibold text-slate-800">Cognitive Profile</h3>
+              <div className="pl-4 border-l-4 border-blue-500 my-4">
+                <p className="italic text-slate-700">
+                  "Your intellectual approach demonstrates a pronounced preference for systematic analysis with exceptional attention to conceptual integration. 
+                  This suggests a cognitive orientation that actively seeks to synthesize diverse theoretical perspectives into coherent frameworks."
+                </p>
+              </div>
+              
+              <h4 className="text-lg font-medium text-slate-800 mt-4">Thinking Patterns</h4>
+              <ul className="list-disc pl-5 space-y-2">
+                <li><span className="font-medium">Analytical Depth:</span> Your writing consistently exhibits deep analytical reasoning, characterized by thorough examination of concepts and systematic deconstruction of complex ideas. This is evidenced by your frequent use of specialized terminology and multilayered argumentation.</li>
+                <li><span className="font-medium">Conceptual Integration:</span> You demonstrate a remarkable ability to integrate multiple theoretical perspectives into coherent frameworks. This intellectual synthesis appears to be a defining characteristic of your cognitive approach.</li>
+                <li><span className="font-medium">Logical Structuring:</span> Your documents reveal a strong preference for logical progression and structured argumentation, with clear connections between premises and conclusions.</li>
+              </ul>
+            </section>
             
-            <h3>Recommendations</h3>
-            <p>
-              Based on the analysis, we recommend exploring more diverse writing styles to expand your
-              cognitive flexibility and expressive range. Your natural strengths in analytical thinking could
-              be complemented by more narrative or metaphorical approaches.
-            </p>
+            <section>
+              <h3 className="text-xl font-semibold text-slate-800">Linguistic Analysis</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <h4 className="text-lg font-medium text-slate-800">Vocabulary Profile</h4>
+                  <p className="mb-2">Your lexical diversity score places you in the <span className="font-semibold text-blue-600">top 15%</span> of users.</p>
+                  <ul className="list-disc pl-5">
+                    <li>Frequent use of specialized terminology</li>
+                    <li>Strong command of abstract concepts</li>
+                    <li>Consistent precision in word choice</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <h4 className="text-lg font-medium text-slate-800">Syntactic Patterns</h4>
+                  <p className="mb-2">Your sentence complexity indicates a <span className="font-semibold text-blue-600">sophisticated</span> linguistic structure.</p>
+                  <ul className="list-disc pl-5">
+                    <li>Complex subordination patterns</li>
+                    <li>Effective use of logical connectors</li>
+                    <li>Strategic paragraph organization</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <h4 className="text-lg font-medium text-slate-800 mt-6">Notable Lexical Elements</h4>
+              <p>Your writing prominently features terminology from these domains:</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">epistemology</span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">knowledge structures</span>
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">systematic analysis</span>
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">logical frameworks</span>
+                <span className="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">conceptual integration</span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">critical inquiry</span>
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="text-xl font-semibold text-slate-800">Temporal Evolution</h3>
+              <p>
+                Analysis of your writing over time reveals a significant evolution in both cognitive approach and linguistic expression:
+              </p>
+              
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center">
+                  <div className="w-24 font-medium text-slate-700">Early Period:</div>
+                  <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
+                    <div className="h-full bg-blue-400" style={{ width: '45%' }}></div>
+                  </div>
+                  <div className="w-24 pl-2 text-sm text-slate-600">Analytical Focus</div>
+                </div>
+                
+                <div className="flex items-center">
+                  <div className="w-24 font-medium text-slate-700">Middle Period:</div>
+                  <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
+                    <div className="h-full bg-blue-500" style={{ width: '65%' }}></div>
+                  </div>
+                  <div className="w-24 pl-2 text-sm text-slate-600">Integration Growth</div>
+                </div>
+                
+                <div className="flex items-center">
+                  <div className="w-24 font-medium text-slate-700">Recent Period:</div>
+                  <div className="flex-1 h-6 bg-slate-100 rounded overflow-hidden">
+                    <div className="h-full bg-blue-600" style={{ width: '85%' }}></div>
+                  </div>
+                  <div className="w-24 pl-2 text-sm text-slate-600">Conceptual Mastery</div>
+                </div>
+              </div>
+              
+              <p className="mt-4">
+                This progression demonstrates a clear trajectory toward increasingly sophisticated conceptual integration and analytical depth.
+              </p>
+            </section>
+            
+            <section>
+              <h3 className="text-xl font-semibold text-slate-800">Key Insights</h3>
+              <div className="space-y-3 mt-4">
+                <div className="border-l-4 border-green-500 pl-4 py-1">
+                  <p className="font-medium text-slate-800">Exceptional Analytical Reasoning</p>
+                  <p className="text-slate-600">Your writing demonstrates a high level of analytical depth with consistent logical structure, placing you in the top percentile of analytical thinkers in our user base.</p>
+                </div>
+                
+                <div className="border-l-4 border-blue-500 pl-4 py-1">
+                  <p className="font-medium text-slate-800">Systematic Knowledge Framework</p>
+                  <p className="text-slate-600">The cognitive patterns reveal a methodical approach to knowledge acquisition and organization, with strong evidence of systematic categorization and hierarchical structuring.</p>
+                </div>
+                
+                <div className="border-l-4 border-purple-500 pl-4 py-1">
+                  <p className="font-medium text-slate-800">Theoretical Integration</p>
+                  <p className="text-slate-600">Your conceptual frameworks show remarkable integration of multiple theoretical perspectives, suggesting an intellectual approach that actively seeks synthesis across disciplinary boundaries.</p>
+                </div>
+                
+                <div className="border-l-4 border-amber-500 pl-4 py-1">
+                  <p className="font-medium text-slate-800">Evolving Complexity</p>
+                  <p className="text-slate-600">There is a clear trend toward increased syntactic and conceptual complexity over time, indicating intellectual growth and refinement of expression.</p>
+                </div>
+              </div>
+            </section>
+            
+            <section>
+              <h3 className="text-xl font-semibold text-slate-800">Recommendations</h3>
+              <div className="bg-slate-50 p-5 rounded-lg mt-4">
+                <p className="mb-4">
+                  Based on this comprehensive analysis, we recommend the following approaches to further enhance your intellectual development:
+                </p>
+                <ul className="list-disc pl-5 space-y-3">
+                  <li><span className="font-medium">Explore Narrative Approaches:</span> While your analytical strengths are exceptional, incorporating more narrative or metaphorical elements could expand your cognitive flexibility and expressive range.</li>
+                  <li><span className="font-medium">Cross-Disciplinary Integration:</span> Your natural talent for conceptual synthesis could be applied to bridging diverse fields that you haven't yet explored.</li>
+                  <li><span className="font-medium">Rhetorical Experimentation:</span> Consider experimenting with different rhetorical structures to complement your logical frameworks with persuasive techniques that might broaden your communicative impact.</li>
+                  <li><span className="font-medium">Dialectical Thinking:</span> Your ability to integrate multiple perspectives suggests you would benefit from deliberately exploring contradictory viewpoints as a means to develop even more nuanced synthetic positions.</li>
+                </ul>
+              </div>
+            </section>
           </div>
         </div>
       )}
