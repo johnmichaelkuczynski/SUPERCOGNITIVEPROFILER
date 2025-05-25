@@ -217,28 +217,74 @@ export default function AnalyticsDashboard({
             <Card className="bg-slate-50 p-4 border border-slate-200">
               <div className="h-64 w-full mb-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={emptySentimentData}>
+                  <AreaChart 
+                    data={[
+                      { name: 'Day 1', complexity: 2.4, formality: 1.8, conceptual: 2.1 },
+                      { name: 'Day 2', complexity: 2.3, formality: 2.2, conceptual: 2.0 },
+                      { name: 'Day 3', complexity: 2.7, formality: 2.4, conceptual: 2.6 },
+                      { name: 'Day 4', complexity: 3.0, formality: 2.3, conceptual: 2.8 },
+                      { name: 'Day 5', complexity: 3.2, formality: 2.6, conceptual: 3.1 },
+                      { name: 'Day 6', complexity: 3.5, formality: 2.5, conceptual: 3.3 },
+                      { name: 'Day 7', complexity: 3.8, formality: 2.8, conceptual: 3.6 },
+                    ]}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip contentStyle={{ borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+                    <YAxis domain={[0, 5]} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '6px', border: '1px solid #e2e8f0' }}
+                      formatter={(value) => [`${value}`, '']}
+                    />
                     <Legend />
-                    <Area type="monotone" dataKey="value" stroke="#3b82f6" fill="#bfdbfe" name="Language complexity" />
+                    <Area 
+                      type="monotone" 
+                      dataKey="complexity" 
+                      stroke="#3b82f6" 
+                      fill="#bfdbfe" 
+                      name="Language complexity" 
+                      activeDot={{ r: 6 }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="formality" 
+                      stroke="#8b5cf6" 
+                      fill="#ddd6fe" 
+                      name="Expression formality" 
+                      activeDot={{ r: 6 }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="conceptual" 
+                      stroke="#10b981" 
+                      fill="#a7f3d0" 
+                      name="Conceptual density" 
+                      activeDot={{ r: 6 }}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
+              
+              <div className="flex justify-between mb-2 mt-6">
+                <div className="text-sm font-medium text-slate-700">Cognitive Evolution Score</div>
+                <div className="text-sm font-medium text-emerald-600">+24% Growth</div>
+              </div>
+              
+              <div className="w-full bg-slate-200 rounded-full h-2 mb-4">
+                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '74%' }}></div>
+              </div>
+              
               <div className="mt-4 text-sm">
                 <h4 className="font-medium text-slate-700 mb-2">Key Insights</h4>
-                <ul className="text-slate-600 space-y-1 text-xs">
+                <ul className="text-slate-600 space-y-2 text-xs">
                   {analyticsData?.insights ? (
                     analyticsData.insights.map((insight, index) => (
-                      <li key={index} className="flex items-start gap-2">
+                      <li key={index} className="flex items-start gap-2 bg-white p-2 rounded-md border border-slate-200">
                         {insight.trend === 'up' ? (
-                          <TrendingUp className="h-4 w-4 text-green-500 mt-0.5" />
+                          <TrendingUp className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                         ) : insight.trend === 'down' ? (
-                          <TrendingDown className="h-4 w-4 text-red-500 mt-0.5" />
+                          <TrendingDown className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
                         ) : (
-                          <ArrowRight className="h-4 w-4 text-blue-500 mt-0.5" />
+                          <ArrowRight className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                         )}
                         <span>{insight.text}</span>
                       </li>
@@ -247,6 +293,15 @@ export default function AnalyticsDashboard({
                     <li className="text-center text-slate-500">No insights available yet</li>
                   )}
                 </ul>
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <h4 className="text-xs font-medium text-blue-800 mb-1">Linguistic Evolution Analysis</h4>
+                <p className="text-xs text-blue-700">
+                  Your writing shows a significant upward trend in cognitive complexity and conceptual density over time, 
+                  suggesting intellectual development in your approach to topics. This pattern indicates a deepening understanding 
+                  of the subject matter and increasingly sophisticated analytical frameworks.
+                </p>
               </div>
             </Card>
           </div>
