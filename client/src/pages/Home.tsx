@@ -25,20 +25,6 @@ interface Message {
   files?: File[];
 }
 
-// MathJax configuration for LaTeX rendering
-const mathJaxConfig = {
-  loader: { load: ["input/tex", "output/chtml"] },
-  tex: {
-    inlineMath: [['\\(', '\\)'], ['$', '$']],
-    displayMath: [['\\[', '\\]'], ['$$', '$$']],
-    processEscapes: true,
-    processEnvironments: true
-  },
-  options: {
-    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-  }
-};
-
 export default function Home() {
   // Basic state
   const [selectedModel, setSelectedModel] = useState<LLMModel>('claude');
@@ -466,14 +452,12 @@ Document text: ${extractedText}`;
   const formatMessage = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
-        <MathJax>
-          <ReactMarkdown
-            rehypePlugins={[rehypeKatex]}
-            remarkPlugins={[remarkMath]}
-          >
-            {content}
-          </ReactMarkdown>
-        </MathJax>
+        <ReactMarkdown
+          rehypePlugins={[rehypeKatex]}
+          remarkPlugins={[remarkMath]}
+        >
+          {content}
+        </ReactMarkdown>
       </div>
     );
   };
@@ -499,8 +483,7 @@ Document text: ${extractedText}`;
   };
 
   return (
-    <MathJaxContext version={3} config={mathJaxConfig}>
-      <main className="container mx-auto px-4 py-6 flex">
+    <main className="container mx-auto px-4 py-6 flex">
       {/* Document Sidebar */}
       {allDocuments.length > 0 && (
         <div className="w-16 bg-slate-50 rounded-lg flex flex-col items-center py-4 mr-4 h-[calc(100vh-3rem)] overflow-y-auto sticky top-6">
@@ -1135,7 +1118,6 @@ Document text: ${extractedText}`;
           </DialogContent>
         </Dialog>
       )}
-      </main>
-    </MathJaxContext>
+    </main>
   );
 }

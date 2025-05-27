@@ -79,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
         
         // Simple document context without complicated instructions
-        processedContent = content + "\n\nContext documents:\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n");
+        processedContent = content + "\n\nContext documents:\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n") + "\n\nIMPORTANT: When responding with mathematical content, use proper LaTeX formatting with \\(...\\) for inline math and $$...$$ for display math. Do not escape or convert LaTeX symbols.";
       }
       
       // Process with the selected model
