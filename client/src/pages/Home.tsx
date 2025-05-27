@@ -551,18 +551,31 @@ Document text: ${extractedText}`;
           {allDocuments.map((doc, index) => (
             <div 
               key={index}
-              className="relative group cursor-pointer mb-4"
-              onClick={() => {
-                setViewingDocumentContent(doc.content);
-                setViewingDocumentName(doc.name);
-                setIsDocumentViewerOpen(true);
-              }}
+              className="relative group mb-4"
             >
-              <div className="w-10 h-10 flex items-center justify-center bg-white rounded-lg border-2 border-slate-200 hover:border-blue-500 transition-colors">
-                <FileText className="h-5 w-5 text-slate-700" />
+              <div className="flex flex-col space-y-1">
+                <div 
+                  className="w-10 h-10 flex items-center justify-center bg-white rounded-lg border-2 border-slate-200 hover:border-blue-500 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setViewingDocumentContent(doc.content);
+                    setViewingDocumentName(doc.name);
+                    setIsDocumentViewerOpen(true);
+                  }}
+                >
+                  <FileText className="h-5 w-5 text-slate-700" />
+                </div>
+                <button
+                  className="w-10 h-6 flex items-center justify-center bg-blue-50 rounded border border-blue-200 hover:bg-blue-100 transition-colors"
+                  onClick={() => openChunkedRewriter(doc.content, doc.name)}
+                  title="Smart Rewrite"
+                >
+                  <Edit3 className="h-3 w-3 text-blue-600" />
+                </button>
               </div>
               <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
                 {doc.name}
+                <br />
+                <span className="text-blue-200">Click icon to view • Click rewrite to edit</span>
               </div>
             </div>
           ))}
@@ -1179,6 +1192,21 @@ Document text: ${extractedText}`;
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Chunked Rewriter Modal */}
+      <Dialog open={isChunkedRewriterOpen} onOpenChange={setIsChunkedRewriterOpen}>
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Smart Document Rewriter - {rewriterTitle}</DialogTitle>
+          </DialogHeader>
+          <ChunkedRewriter
+            originalText={rewriterText}
+            onRewriteComplete={handleChunkedRewriteComplete}
+            onAddToChat={handleAddChunkedRewriteToChat}
+            chatHistory={messages.map(msg => ({ role: msg.role, content: msg.content }))}
+          />
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

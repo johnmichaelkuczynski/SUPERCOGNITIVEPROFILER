@@ -931,6 +931,165 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
   
+  // Chunked rewriter API endpoints
+  app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
+    try {
+      const { content, instructions, model, chatContext, chunkIndex, totalChunks } = req.body;
+      
+      if (!content || !instructions) {
+        return res.status(400).json({ error: 'Content and instructions are required' });
+      }
+
+      let prompt = `Please rewrite the following text according to these instructions: ${instructions}\n\n`;
+      
+      if (chatContext) {
+        prompt += `Chat context for reference:\n${chatContext}\n\n`;
+      }
+
+      prompt += `Text to rewrite (chunk ${chunkIndex + 1} of ${totalChunks}):\n\n${content}\n\n`;
+      prompt += `IMPORTANT: If the text contains mathematical expressions or formulas:
+- Preserve all LaTeX formatting using \\(...\\) for inline math and $$...$$ for display math
+- Do not escape or convert LaTeX symbols
+- Keep all mathematical notation in proper LaTeX format
+
+Return only the rewritten text without any additional comments, explanations, or headers.`;
+
+      let result: string;
+      
+      if (model === 'claude') {
+        result = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      } else if (model === 'gpt4') {
+        const OpenAI = require('openai');
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+          max_tokens: 4000
+        });
+        
+        result = response.choices[0].message.content || '';
+      } else {
+        // Fallback to Claude
+        result = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      }
+      
+      res.json({ rewrittenContent: result });
+      
+    } catch (error) {
+      console.error('Chunk rewrite error:', error);
+      res.status(500).json({ error: 'Failed to rewrite chunk' });
+    }
+  });
+
+  app.post('/api/download-rewrite', async (req: Request, res: Response) => {
+    try {
+      const { content, format, title } = req.body;
+      
+      if (!content || !format) {
+        return res.status(400).json({ error: 'Content and format are required' });
+      }
+      
+      let buffer: Buffer;
+      let contentType: string;
+      let fileExtension: string;
+      const filename = title || 'rewritten-document';
+      
+      if (format === 'pdf') {
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument();
+        
+        const chunks: Buffer[] = [];
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+        doc.on('end', () => {
+          buffer = Buffer.concat(chunks);
+          contentType = 'application/pdf';
+          fileExtension = 'pdf';
+          
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Content-Disposition', `attachment; filename="${filename}.${fileExtension}"`);
+          res.send(buffer);
+        });
+        
+        doc.fontSize(12).text(content, 50, 50);
+        doc.end();
+        return;
+      } else if (format === 'docx') {
+        const { Document, Packer, Paragraph, TextRun } = require('docx');
+        
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: content.split('\n').map((line: string) => 
+              new Paragraph({
+                children: [new TextRun(line)]
+              })
+            )
+          }]
+        });
+        
+        buffer = await Packer.toBuffer(doc);
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        fileExtension = 'docx';
+      } else {
+        buffer = Buffer.from(content, 'utf-8');
+        contentType = 'text/plain';
+        fileExtension = 'txt';
+      }
+      
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.${fileExtension}"`);
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error('Download rewrite error:', error);
+      res.status(500).json({ error: 'Failed to generate download' });
+    }
+  });
+
+  app.post('/api/share-rewrite', async (req: Request, res: Response) => {
+    try {
+      const { content, recipientEmail, subject } = req.body;
+      
+      if (!content || !recipientEmail) {
+        return res.status(400).json({ error: 'Content and recipient email are required' });
+      }
+
+      const emailParams = {
+        to: recipientEmail,
+        from: 'noreply@textmind.app',
+        subject: subject || 'Rewritten Document',
+        html: `
+          <h2>Rewritten Document</h2>
+          <p>Here is your rewritten document:</p>
+          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; white-space: pre-wrap; font-family: Arial, sans-serif;">
+            ${content.replace(/\n/g, '<br>')}
+          </div>
+          <p><small>Generated by TextMind AI Document Rewriter</small></p>
+        `
+      };
+      
+      const success = await sendEmail(emailParams);
+      
+      if (success) {
+        res.json({ message: 'Email sent successfully' });
+      } else {
+        res.status(500).json({ error: 'Failed to send email' });
+      }
+      
+    } catch (error) {
+      console.error('Share rewrite error:', error);
+      res.status(500).json({ error: 'Failed to share document' });
+    }
+  });
+
   // Setup HTTP server and WebSocket
   const httpServer = createServer(app);
   
