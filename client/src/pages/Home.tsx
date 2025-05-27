@@ -17,7 +17,6 @@ import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
-import ScreenshotOCR from '@/components/ScreenshotOCR';
 
 interface Message {
   id: number;
@@ -616,23 +615,7 @@ Document text: ${extractedText}`;
         
         <Card className="shadow-sm flex flex-col" style={{ minHeight: '600px' }}>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Conversation</CardTitle>
-              {messages.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setMessages([]);
-                    setUploadedDocuments({});
-                  }}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear Chat
-                </Button>
-              )}
-            </div>
+            <CardTitle className="text-lg">Conversation</CardTitle>
           </CardHeader>
           
           <ScrollArea className="flex-1 p-4 pb-0">
@@ -1143,30 +1126,6 @@ Document text: ${extractedText}`;
               </div>
             </div>
           </CardFooter>
-        </Card>
-
-        {/* Screenshot OCR Section */}
-        <Card className="shadow-sm mb-6">
-          <ScreenshotOCR
-            onTextExtracted={(text, containsMath) => {
-              // Add extracted text to the chat
-              const userMessage: Message = {
-                id: Date.now(),
-                content: `I've extracted text from a screenshot${containsMath ? ' (with mathematical notation)' : ''}:`,
-                role: 'user',
-                timestamp: new Date()
-              };
-              
-              const aiMessage: Message = {
-                id: Date.now() + 1,
-                content: text,
-                role: 'assistant',
-                timestamp: new Date()
-              };
-              
-              setMessages(prev => [...prev, userMessage, aiMessage]);
-            }}
-          />
         </Card>
       </div>
       

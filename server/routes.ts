@@ -931,41 +931,6 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
   
-  // OCR Screenshot processing endpoint
-  app.post('/api/ocr/screenshot', upload.single('screenshot'), async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No screenshot file provided' });
-      }
-
-      console.log(`Processing screenshot: ${req.file.originalname} (${req.file.size} bytes)`);
-      
-      // Use Texify API for mathematical OCR
-      const { processScreenshotWithTexify } = await import('./services/texifyOCR');
-      
-      const result = await processScreenshotWithTexify(req.file.buffer);
-      
-      console.log(`Screenshot OCR completed: ${result.text.length} characters extracted`);
-      console.log(`Contains math: ${result.containsMath}, Confidence: ${result.confidence}`);
-      console.log(`Processing method: ${result.processingMethod}`);
-      
-      res.json({
-        text: result.text,
-        containsMath: result.containsMath,
-        confidence: result.confidence,
-        processingMethod: result.processingMethod,
-        filename: req.file.originalname
-      });
-      
-    } catch (error) {
-      console.error('Screenshot OCR error:', error);
-      res.status(500).json({ 
-        error: 'Failed to process screenshot',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
   // Chunked rewriter API endpoints
   app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
     try {
@@ -1168,18 +1133,11 @@ Return only the rewritten text without any additional comments, explanations, or
             throw new Error('Conversation not found');
           }
           
-          // Get previous messages for context (excluding the current one we just stored)
+          // Get previous messages for context
           const messages = await storage.getMessagesByConversationId(data.conversationId);
           
-          // Format messages for LLM context, ensuring proper conversation flow
-          const context = messages
-            .filter(msg => msg.content !== data.content) // Don't include the message we just added
-            .map(msg => ({ role: msg.role, content: msg.content }));
-          
-          console.log(`Conversation context: ${context.length} messages loaded`);
-          if (context.length > 0) {
-            console.log('Last few messages:', context.slice(-3).map(m => `${m.role}: ${m.content.substring(0, 100)}...`));
-          }
+          // Format messages for LLM context
+          const context = messages.map(msg => ({ role: msg.role, content: msg.content }));
           
           // Get referenced documents if any
           let documentContext = '';
