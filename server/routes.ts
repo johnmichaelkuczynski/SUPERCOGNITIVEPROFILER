@@ -940,10 +940,10 @@ YOUR REWRITTEN DOCUMENT:`;
 
       console.log(`Processing screenshot: ${req.file.originalname} (${req.file.size} bytes)`);
       
-      // Use hybrid OCR approach for better math detection
-      const { processScreenshotAdvanced } = await import('./services/hybridOCR');
+      // Use Texify API for mathematical OCR
+      const { processScreenshotWithTexify } = await import('./services/texifyOCR');
       
-      const result = await processScreenshotAdvanced(req.file.buffer);
+      const result = await processScreenshotWithTexify(req.file.buffer);
       
       console.log(`Screenshot OCR completed: ${result.text.length} characters extracted`);
       console.log(`Contains math: ${result.containsMath}, Confidence: ${result.confidence}`);
