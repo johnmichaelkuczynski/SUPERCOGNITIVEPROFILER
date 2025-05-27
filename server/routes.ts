@@ -1168,11 +1168,18 @@ Return only the rewritten text without any additional comments, explanations, or
             throw new Error('Conversation not found');
           }
           
-          // Get previous messages for context
+          // Get previous messages for context (excluding the current one we just stored)
           const messages = await storage.getMessagesByConversationId(data.conversationId);
           
-          // Format messages for LLM context
-          const context = messages.map(msg => ({ role: msg.role, content: msg.content }));
+          // Format messages for LLM context, ensuring proper conversation flow
+          const context = messages
+            .filter(msg => msg.content !== data.content) // Don't include the message we just added
+            .map(msg => ({ role: msg.role, content: msg.content }));
+          
+          console.log(`Conversation context: ${context.length} messages loaded`);
+          if (context.length > 0) {
+            console.log('Last few messages:', context.slice(-3).map(m => `${m.role}: ${m.content.substring(0, 100)}...`));
+          }
           
           // Get referenced documents if any
           let documentContext = '';

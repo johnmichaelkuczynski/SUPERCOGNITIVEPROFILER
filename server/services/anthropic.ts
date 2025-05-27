@@ -42,8 +42,11 @@ export async function processClaude(
     
     // Add previous messages if available
     if (previousMessages && previousMessages.length > 0) {
+      // Filter out the current user message to avoid duplication
+      const historyMessages = previousMessages.filter(msg => msg.content !== content);
+      
       // Ensure roles are valid for Anthropic (only 'user' and 'assistant' are allowed)
-      messages = previousMessages.map(msg => ({
+      messages = historyMessages.map(msg => ({
         role: (msg.role === 'system' || msg.role === 'user') ? 'user' : 'assistant',
         content: msg.content
       }));
