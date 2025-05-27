@@ -76,9 +76,12 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
       log('GPTZERO_API_KEY not found in environment variables, skipping AI detection', 'document');
     }
     
+    // Clean up the extracted text to remove excessive spacing
+    const cleanedText = cleanExtractedText(extractedText);
+    
     // Always return the full document text and chunks if available
     return {
-      text: extractedText,
+      text: cleanedText,
       chunks,
       aiDetection
     };
@@ -86,6 +89,31 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
     console.error("Document processing error:", error);
     throw new Error(`Failed to process document: ${(error as Error).message}`);
   }
+}
+
+// Clean extracted text to remove excessive spacing and formatting issues
+function cleanExtractedText(text: string): string {
+  if (!text) return text;
+  
+  // Remove excessive spaces between characters (common in PDF extraction)
+  let cleaned = text.replace(/(\w)\s+(\w)/g, '$1$2');
+  
+  // Fix specific spacing issues
+  cleaned = cleaned.replace(/([a-zA-Z])\s+([a-zA-Z])/g, '$1$2');
+  
+  // Restore proper word spacing
+  cleaned = cleaned.replace(/([a-zA-Z])([A-Z])/g, '$1 $2');
+  
+  // Fix common extraction artifacts
+  cleaned = cleaned.replace(/\s{2,}/g, ' '); // Multiple spaces to single space
+  cleaned = cleaned.replace(/\n\s*\n/g, '\n\n'); // Multiple newlines to double newline
+  cleaned = cleaned.replace(/^\s+|\s+$/g, ''); // Trim whitespace
+  
+  // Fix numbers and punctuation spacing
+  cleaned = cleaned.replace(/(\d)\s+(\d)/g, '$1$2');
+  cleaned = cleaned.replace(/(\w)\s+([.,;:!?])/g, '$1$2');
+  
+  return cleaned;
 }
 
 // Extract text from any file type
