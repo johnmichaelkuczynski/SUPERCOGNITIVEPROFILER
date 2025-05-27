@@ -616,7 +616,25 @@ Document text: ${extractedText}`;
         
         <Card className="shadow-sm flex flex-col" style={{ minHeight: '600px' }}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Conversation</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Conversation</CardTitle>
+              {messages.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setMessages([]);
+                    setUploadedDocuments({});
+                    // Clear conversation context
+                    setCurrentConversationId(null);
+                  }}
+                  className="text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear Chat
+                </Button>
+              )}
+            </div>
           </CardHeader>
           
           <ScrollArea className="flex-1 p-4 pb-0">
