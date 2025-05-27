@@ -270,23 +270,41 @@ async function extractTextFromTXT(buffer: Buffer): Promise<string> {
   return buffer.toString('utf-8');
 }
 
-// Extract text from images using Tesseract OCR
+// Extract text from images using enhanced OCR with Mathpix support
 async function extractTextFromImage(buffer: Buffer): Promise<string> {
-  const worker = await createWorker();
-  
   try {
-    await worker.load();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
+    // Use enhanced Mathpix OCR for better text and math extraction
+    const { extractTextFromImageEnhanced } = await import('./mathpixOCR');
     
-    const { data } = await worker.recognize(buffer);
-    await worker.terminate();
+    console.log('Starting enhanced OCR with Mathpix...');
+    const extractedText = await extractTextFromImageEnhanced(buffer);
     
-    return data.text;
+    console.log(`Enhanced OCR completed. Extracted ${extractedText?.length || 0} characters.`);
+    return extractedText;
+    
   } catch (error) {
-    if (worker) {
+    console.error('Enhanced OCR Error:', error);
+    
+    // Fallback to original Tesseract implementation
+    const { createWorker } = await import('tesseract.js');
+    const worker = await createWorker();
+    
+    try {
+      await worker.load();
+      await worker.loadLanguage('eng');
+      await worker.initialize('eng');
+      
+      console.log('Using fallback Tesseract OCR...');
+      const { data } = await worker.recognize(buffer);
       await worker.terminate();
+      
+      return data.text || 'Could not extract text from image.';
+    } catch (fallbackError) {
+      if (worker) {
+        await worker.terminate();
+      }
+      console.error('Fallback OCR Error:', fallbackError);
+      return 'Could not extract text from image due to OCR errors.';
     }
-    throw error;
   }
 }

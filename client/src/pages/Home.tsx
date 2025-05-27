@@ -17,6 +17,7 @@ import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
+import ScreenshotOCR from '@/components/ScreenshotOCR';
 
 interface Message {
   id: number;
@@ -1126,6 +1127,30 @@ Document text: ${extractedText}`;
               </div>
             </div>
           </CardFooter>
+        </Card>
+
+        {/* Screenshot OCR Section */}
+        <Card className="shadow-sm mb-6">
+          <ScreenshotOCR
+            onTextExtracted={(text, containsMath) => {
+              // Add extracted text to the chat
+              const userMessage: Message = {
+                id: Date.now(),
+                content: `I've extracted text from a screenshot${containsMath ? ' (with mathematical notation)' : ''}:`,
+                role: 'user',
+                timestamp: new Date()
+              };
+              
+              const aiMessage: Message = {
+                id: Date.now() + 1,
+                content: text,
+                role: 'assistant',
+                timestamp: new Date()
+              };
+              
+              setMessages(prev => [...prev, userMessage, aiMessage]);
+            }}
+          />
         </Card>
       </div>
       

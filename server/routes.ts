@@ -931,6 +931,41 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
   
+  // OCR Screenshot processing endpoint
+  app.post('/api/ocr/screenshot', upload.single('screenshot'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No screenshot file provided' });
+      }
+
+      console.log(`Processing screenshot: ${req.file.originalname} (${req.file.size} bytes)`);
+      
+      // Use Mathpix OCR for enhanced text and math extraction
+      const { processScreenshot } = await import('./services/mathpixOCR');
+      
+      const result = await processScreenshot(req.file.buffer);
+      
+      console.log(`Screenshot OCR completed: ${result.text.length} characters extracted`);
+      console.log(`Contains math: ${result.containsMath}, Confidence: ${result.confidence}`);
+      console.log(`Processing method: ${result.processingMethod}`);
+      
+      res.json({
+        text: result.text,
+        containsMath: result.containsMath,
+        confidence: result.confidence,
+        processingMethod: result.processingMethod,
+        filename: req.file.originalname
+      });
+      
+    } catch (error) {
+      console.error('Screenshot OCR error:', error);
+      res.status(500).json({ 
+        error: 'Failed to process screenshot',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Chunked rewriter API endpoints
   app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
     try {
