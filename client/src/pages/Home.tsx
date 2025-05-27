@@ -17,6 +17,7 @@ import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
+import CompletedRewritesViewer from '@/components/CompletedRewritesViewer';
 
 interface Message {
   id: number;
@@ -61,6 +62,9 @@ export default function Home() {
   const [isChunkedRewriterOpen, setIsChunkedRewriterOpen] = useState(false);
   const [rewriterText, setRewriterText] = useState<string>('');
   const [rewriterTitle, setRewriterTitle] = useState<string>('');
+  
+  // Completed rewrites viewer state
+  const [isCompletedRewritesOpen, setIsCompletedRewritesOpen] = useState(false);
   
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
@@ -1097,17 +1101,10 @@ Document text: ${extractedText}`;
                       variant="outline"
                       size="sm"
                       className="flex flex-col items-center px-3 py-2 h-auto"
-                      onClick={() => {
-                        if (Object.entries(uploadedDocuments).length > 0) {
-                          const [[firstFilename, firstContent]] = Object.entries(uploadedDocuments);
-                          setDocumentContent(firstContent);
-                          setDocumentName(firstFilename);
-                          setIsRewriterOpen(true);
-                        }
-                      }}
+                      onClick={() => setIsCompletedRewritesOpen(true)}
                     >
                       <FileText className="h-6 w-6 mb-1" />
-                      <span className="text-xs">Rewrite</span>
+                      <span className="text-xs">View Rewrites</span>
                     </Button>
                   </div>
                 )}
@@ -1207,6 +1204,12 @@ Document text: ${extractedText}`;
           />
         </DialogContent>
       </Dialog>
+
+      {/* Completed Rewrites Viewer */}
+      <CompletedRewritesViewer
+        isOpen={isCompletedRewritesOpen}
+        onClose={() => setIsCompletedRewritesOpen(false)}
+      />
     </main>
   );
 }
