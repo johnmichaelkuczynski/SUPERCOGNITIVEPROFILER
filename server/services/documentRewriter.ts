@@ -37,7 +37,14 @@ export async function rewriteDocument(
     prompt += `Here is the document content to rewrite:\n\n${documentContent}\n\n`;
     
     // Add final instructions
-    prompt += `Please rewrite this document according to the instructions. Maintain the original information and meaning, but improve it according to the specified requirements. Return only the rewritten text without any additional comments, explanations, or headers.`;
+    prompt += `Please rewrite this document according to the instructions. Maintain the original information and meaning, but improve it according to the specified requirements. 
+
+IMPORTANT: If the document contains mathematical expressions or formulas:
+- Preserve all LaTeX formatting using \\(...\\) for inline math and $$...$$ for display math
+- Do not escape or convert LaTeX symbols
+- Keep all mathematical notation in proper LaTeX format
+
+Return only the rewritten text without any additional comments, explanations, or headers.`;
     
     // Choose the model to use for rewriting
     let result: string;

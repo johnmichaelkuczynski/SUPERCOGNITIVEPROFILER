@@ -452,12 +452,14 @@ Document text: ${extractedText}`;
   const formatMessage = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
-        <ReactMarkdown
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkMath]}
-        >
-          {content}
-        </ReactMarkdown>
+        <MathJax>
+          <ReactMarkdown
+            rehypePlugins={[rehypeKatex]}
+            remarkPlugins={[remarkMath]}
+          >
+            {content}
+          </ReactMarkdown>
+        </MathJax>
       </div>
     );
   };
