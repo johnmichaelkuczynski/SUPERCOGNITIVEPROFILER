@@ -50,7 +50,7 @@ export async function extractWithMathpix(
     const base64Image = imageBuffer.toString('base64');
     const mimeType = detectImageMimeType(imageBuffer);
     
-    // Prepare request body
+    // Prepare request body with enhanced math detection
     const requestBody = {
       src: `data:${mimeType};base64,${base64Image}`,
       formats: formats,
@@ -61,6 +61,18 @@ export async function extractWithMathpix(
         include_svg: false,
         include_table_html: false,
         include_tsv: false
+      },
+      format_options: {
+        text: {
+          transforms: ["rm_spaces", "rm_newlines"],
+          math_inline_delimiters: ["\\(", "\\)"],
+          math_display_delimiters: ["\\[", "\\]"]
+        },
+        latex_styled: {
+          transforms: ["rm_spaces"],
+          math_inline_delimiters: ["\\(", "\\)"],
+          math_display_delimiters: ["\\[", "\\]"]
+        }
       }
     };
 
@@ -103,19 +115,23 @@ export async function extractWithMathpix(
       latex = result.latex_styled;
     }
 
-    // If we have both text and LaTeX, combine them intelligently
+    // Process and enhance the extracted text for better math notation
     let finalText = '';
+    const containsMath = result.detection_map?.contains_math || false;
+    
     if (latex && extractedText) {
-      // If LaTeX is significantly different from text, it likely contains math
-      if (latex.includes('\\') || latex.includes('$')) {
-        finalText = latex; // Use LaTeX version as it preserves mathematical notation
+      // If LaTeX is available and contains math notation, prefer it
+      if (latex.includes('\\') || latex.includes('$') || containsMath) {
+        finalText = latex;
       } else {
-        finalText = extractedText; // Use plain text if no math detected
+        // Post-process text to identify potential math expressions
+        finalText = enhanceMathNotation(extractedText);
       }
     } else if (latex) {
       finalText = latex;
     } else if (extractedText) {
-      finalText = extractedText;
+      // Post-process plain text to identify and format math expressions
+      finalText = enhanceMathNotation(extractedText);
     }
 
     return {
@@ -136,6 +152,86 @@ export async function extractWithMathpix(
       error: error instanceof Error ? error.message : 'Unknown OCR error'
     };
   }
+}
+
+/**
+ * Enhance text by identifying and formatting mathematical expressions
+ */
+function enhanceMathNotation(text: string): string {
+  if (!text) return text;
+  
+  let enhanced = text;
+  
+  // Common mathematical patterns to convert to LaTeX
+  const mathPatterns = [
+    // Greek letters
+    { pattern: /\balpha\b/g, latex: '\\alpha' },
+    { pattern: /\bbeta\b/g, latex: '\\beta' },
+    { pattern: /\bgamma\b/g, latex: '\\gamma' },
+    { pattern: /\bdelta\b/g, latex: '\\delta' },
+    { pattern: /\bepsilon\b/g, latex: '\\epsilon' },
+    { pattern: /\btheta\b/g, latex: '\\theta' },
+    { pattern: /\blambda\b/g, latex: '\\lambda' },
+    { pattern: /\bmu\b/g, latex: '\\mu' },
+    { pattern: /\bpi\b/g, latex: '\\pi' },
+    { pattern: /\bsigma\b/g, latex: '\\sigma' },
+    { pattern: /\btau\b/g, latex: '\\tau' },
+    { pattern: /\bphi\b/g, latex: '\\phi' },
+    { pattern: /\bchi\b/g, latex: '\\chi' },
+    { pattern: /\bpsi\b/g, latex: '\\psi' },
+    { pattern: /\bomega\b/g, latex: '\\omega' },
+    
+    // Mathematical operators and symbols
+    { pattern: /\+/-/g, latex: '\\pm' },
+    { pattern: /\binfinity\b/g, latex: '\\infty' },
+    { pattern: /\bsum\b/g, latex: '\\sum' },
+    { pattern: /\bintegral\b/g, latex: '\\int' },
+    { pattern: /\bpartial\b/g, latex: '\\partial' },
+    { pattern: /\bnabla\b/g, latex: '\\nabla' },
+    { pattern: /\bforall\b/g, latex: '\\forall' },
+    { pattern: /\bexists\b/g, latex: '\\exists' },
+    { pattern: /\bin\b(?=\s)/g, latex: '\\in' },
+    { pattern: /\bsubset\b/g, latex: '\\subset' },
+    { pattern: /\bunion\b/g, latex: '\\cup' },
+    { pattern: /\bintersection\b/g, latex: '\\cap' },
+    
+    // Common function patterns
+    { pattern: /\bsin\b/g, latex: '\\sin' },
+    { pattern: /\bcos\b/g, latex: '\\cos' },
+    { pattern: /\btan\b/g, latex: '\\tan' },
+    { pattern: /\blog\b/g, latex: '\\log' },
+    { pattern: /\bln\b/g, latex: '\\ln' },
+    { pattern: /\bexp\b/g, latex: '\\exp' },
+    { pattern: /\blim\b/g, latex: '\\lim' },
+    
+    // Fractions (simple pattern)
+    { pattern: /(\d+)\/(\d+)/g, latex: '\\frac{$1}{$2}' },
+    
+    // Subscripts and superscripts (basic detection)
+    { pattern: /([a-zA-Z])_([a-zA-Z0-9]+)/g, latex: '$1_{$2}' },
+    { pattern: /([a-zA-Z])\^([a-zA-Z0-9]+)/g, latex: '$1^{$2}' },
+  ];
+  
+  // Apply mathematical pattern replacements
+  for (const { pattern, latex } of mathPatterns) {
+    enhanced = enhanced.replace(pattern, latex);
+  }
+  
+  // Wrap mathematical expressions in LaTeX delimiters if they contain LaTeX commands
+  if (enhanced.includes('\\') && !enhanced.includes('\\(') && !enhanced.includes('$$')) {
+    // Split text by lines and wrap lines containing math
+    const lines = enhanced.split('\n');
+    const processedLines = lines.map(line => {
+      if (line.includes('\\') && /\\[a-zA-Z]+/.test(line)) {
+        // This line contains LaTeX commands, wrap it
+        return `\\(${line}\\)`;
+      }
+      return line;
+    });
+    enhanced = processedLines.join('\n');
+  }
+  
+  return enhanced;
 }
 
 /**
