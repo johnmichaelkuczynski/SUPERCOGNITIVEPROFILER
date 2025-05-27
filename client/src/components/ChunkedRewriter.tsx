@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -166,11 +167,6 @@ export default function ChunkedRewriter({
         setProgress(((i + 1) / selectedChunks.length) * 100);
       }
 
-      toast({
-        title: "Rewrite complete!",
-        description: `Successfully rewrote ${selectedChunks.length} chunks.`,
-      });
-
       // Compile the full rewritten text
       const fullRewrittenText = chunks
         .filter(chunk => chunk.selected && chunk.rewritten)
@@ -185,6 +181,12 @@ export default function ChunkedRewriter({
         instructions: instructions,
         includedChatContext: includeChatContext
       };
+
+      toast({
+        title: "Rewrite complete!",
+        description: `Successfully rewrote ${selectedChunks.length} chunks. Document saved and ready for download/sharing.`,
+        duration: 5000,
+      });
 
       onRewriteComplete(fullRewrittenText, metadata);
 
@@ -498,8 +500,92 @@ export default function ChunkedRewriter({
           </div>
         )}
 
+        {/* Completed Rewrite Display */}
+        {chunks.some(c => c.rewritten) && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-green-600">✓ Rewrite Complete!</h3>
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                {chunks.filter(c => c.rewritten).length} chunks rewritten
+              </Badge>
+            </div>
+            
+            <Card className="bg-green-50 border-green-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-green-800">Your Rewritten Document</CardTitle>
+                <CardDescription>
+                  Document is ready for download, sharing, or adding to your chat
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Button 
+                    onClick={addToChat}
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Add to Chat</span>
+                  </Button>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={() => downloadRewrite('pdf')}
+                    className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-100"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download PDF</span>
+                  </Button>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={() => downloadRewrite('docx')}
+                    className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-100"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Word</span>
+                  </Button>
+
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline"
+                        className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-100"
+                      >
+                        <Mail className="w-4 h-4" />
+                        <span>Email</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Share Rewritten Document</DialogTitle>
+                        <DialogDescription>
+                          Send your rewritten document via email
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="Enter email address..."
+                          value={emailAddress}
+                          onChange={(e) => setEmailAddress(e.target.value)}
+                        />
+                        <Button 
+                          onClick={shareViaEmail}
+                          disabled={!emailAddress}
+                          className="w-full"
+                        >
+                          Send Email
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Button 
             onClick={startRewrite} 
             disabled={isProcessing || chunks.filter(c => c.selected).length === 0}
@@ -511,52 +597,25 @@ export default function ChunkedRewriter({
 
           <Button 
             variant="outline" 
-            onClick={addToChat}
-            disabled={!chunks.some(c => c.rewritten)}
+            onClick={() => {
+              setChunks(prev => prev.map(chunk => ({
+                ...chunk,
+                rewritten: undefined,
+                isProcessing: false,
+                isComplete: false
+              })));
+              setProgress(0);
+              setCurrentChunkIndex(0);
+            }}
+            disabled={isProcessing}
             className="flex items-center space-x-2"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Add to Chat</span>
-          </Button>
-
-          <Button 
-            variant="outline" 
-            onClick={() => downloadRewrite('pdf')}
-            disabled={!chunks.some(c => c.rewritten)}
-            className="flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>PDF</span>
-          </Button>
-
-          <Button 
-            variant="outline" 
-            onClick={() => downloadRewrite('docx')}
-            disabled={!chunks.some(c => c.rewritten)}
-            className="flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Word</span>
+            <span>Reset</span>
           </Button>
         </div>
 
-        {/* Email Sharing */}
-        <div className="flex space-x-2">
-          <Input
-            placeholder="Enter email address to share..."
-            value={emailAddress}
-            onChange={(e) => setEmailAddress(e.target.value)}
-            disabled={!chunks.some(c => c.rewritten)}
-          />
-          <Button 
-            onClick={shareViaEmail}
-            disabled={!chunks.some(c => c.rewritten) || !emailAddress}
-            className="flex items-center space-x-2"
-          >
-            <Mail className="w-4 h-4" />
-            <span>Share</span>
-          </Button>
-        </div>
+
       </CardContent>
     </Card>
   );
