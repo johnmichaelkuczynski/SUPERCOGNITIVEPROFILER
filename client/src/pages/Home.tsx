@@ -462,16 +462,18 @@ Document text: ${extractedText}`;
     }
   };
   
-  // Format markdown
+  // Format markdown with MathJax support
   const formatMessage = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
-        <ReactMarkdown
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkMath]}
-        >
-          {content}
-        </ReactMarkdown>
+        <MathJax>
+          <ReactMarkdown
+            rehypePlugins={[rehypeKatex]}
+            remarkPlugins={[remarkMath]}
+          >
+            {content}
+          </ReactMarkdown>
+        </MathJax>
       </div>
     );
   };
@@ -497,7 +499,8 @@ Document text: ${extractedText}`;
   };
 
   return (
-    <main className="container mx-auto px-4 py-6 flex">
+    <MathJaxContext version={3} config={mathJaxConfig}>
+      <main className="container mx-auto px-4 py-6 flex">
       {/* Document Sidebar */}
       {allDocuments.length > 0 && (
         <div className="w-16 bg-slate-50 rounded-lg flex flex-col items-center py-4 mr-4 h-[calc(100vh-3rem)] overflow-y-auto sticky top-6">
@@ -1132,6 +1135,7 @@ Document text: ${extractedText}`;
           </DialogContent>
         </Dialog>
       )}
-    </main>
+      </main>
+    </MathJaxContext>
   );
 }
