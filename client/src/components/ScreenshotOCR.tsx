@@ -226,15 +226,26 @@ export default function ScreenshotOCR({ onTextExtracted, className = "" }: Scree
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium">Extracted Text:</h3>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={copyToClipboard}
-                  className="flex items-center gap-1"
-                >
-                  <Copy className="w-3 h-3" />
-                  Copy
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={copyToClipboard}
+                    className="flex items-center gap-1"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copy
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setOcrResult(null)}
+                    className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    <X className="w-3 h-3" />
+                    Clear
+                  </Button>
+                </div>
               </div>
               
               <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 max-h-96 overflow-y-auto">

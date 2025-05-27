@@ -625,8 +625,6 @@ Document text: ${extractedText}`;
                   onClick={() => {
                     setMessages([]);
                     setUploadedDocuments({});
-                    // Clear conversation context
-                    setCurrentConversationId(null);
                   }}
                   className="text-red-600 border-red-200 hover:bg-red-50"
                 >
