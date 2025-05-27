@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3 } from 'lucide-react';
 import { downloadOutput } from '@/lib/llm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,6 +16,7 @@ import AIDetectionPopover from '@/components/AIDetectionPopover';
 import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
+import ChunkedRewriter from '@/components/ChunkedRewriter';
 
 interface Message {
   id: number;
@@ -55,6 +56,11 @@ export default function Home() {
   const [documentChunks, setDocumentChunks] = useState<any[]>([]);
   const [selectedChunks, setSelectedChunks] = useState<number[]>([]);
   const [selectedChunk, setSelectedChunk] = useState<{id: number, title: string, content: string} | null>(null);
+  
+  // Chunked rewriter state
+  const [isChunkedRewriterOpen, setIsChunkedRewriterOpen] = useState(false);
+  const [rewriterText, setRewriterText] = useState<string>('');
+  const [rewriterTitle, setRewriterTitle] = useState<string>('');
   
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
@@ -482,6 +488,59 @@ Document text: ${extractedText}`;
     };
     
     setMessages(prev => [...prev, userMessage, aiMessage]);
+  };
+
+  // Handle chunked rewriter completion
+  const handleChunkedRewriteComplete = async (rewrittenText: string, metadata: any) => {
+    // Store the rewritten document in the documents section
+    try {
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: `${rewriterTitle} (Rewritten)`,
+          content: rewrittenText,
+          type: 'rewrite',
+          metadata: metadata
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Rewritten document saved to Documents section');
+      }
+    } catch (error) {
+      console.error('Failed to save rewritten document:', error);
+    }
+
+    setIsChunkedRewriterOpen(false);
+  };
+
+  // Handle adding chunked rewrite content to chat
+  const handleAddChunkedRewriteToChat = (content: string, metadata: any) => {
+    const userMessage: Message = {
+      id: Date.now(),
+      content: `I've completed a chunked rewrite of "${rewriterTitle}" using ${metadata.model}. Instructions: ${metadata.instructions}`,
+      role: 'user',
+      timestamp: new Date()
+    };
+    
+    const aiMessage: Message = {
+      id: Date.now() + 1,
+      content: content,
+      role: 'assistant',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage, aiMessage]);
+  };
+
+  // Open chunked rewriter with document content
+  const openChunkedRewriter = (content: string, title: string) => {
+    setRewriterText(content);
+    setRewriterTitle(title);
+    setIsChunkedRewriterOpen(true);
   };
 
   return (
