@@ -1064,7 +1064,7 @@ Return only the rewritten text without any additional comments, explanations, or
 
       const emailParams = {
         to: recipientEmail,
-        from: 'noreply@textmind.app',
+        from: process.env.SENDGRID_FROM_EMAIL || 'your-verified-email@example.com',
         subject: subject || 'Rewritten Document',
         html: `
           <h2>Rewritten Document</h2>
