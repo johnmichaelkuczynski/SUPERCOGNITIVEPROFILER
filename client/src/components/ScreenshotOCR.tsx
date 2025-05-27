@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Camera, Upload, Copy, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Camera, Upload, Copy, CheckCircle, AlertTriangle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MathJax } from 'better-react-mathjax';
 import ReactMarkdown from 'react-markdown';
