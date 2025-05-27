@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ReactMarkdown from 'react-markdown';
+import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
@@ -23,6 +24,20 @@ interface Message {
   timestamp: Date;
   files?: File[];
 }
+
+// MathJax configuration for LaTeX rendering
+const mathJaxConfig = {
+  loader: { load: ["input/tex", "output/chtml"] },
+  tex: {
+    inlineMath: [['\\(', '\\)'], ['$', '$']],
+    displayMath: [['\\[', '\\]'], ['$$', '$$']],
+    processEscapes: true,
+    processEnvironments: true
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+};
 
 export default function Home() {
   // Basic state
