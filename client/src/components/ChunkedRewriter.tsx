@@ -55,6 +55,8 @@ export default function ChunkedRewriter({
   const [showResultsPopup, setShowResultsPopup] = useState(false);
   const [finalRewrittenContent, setFinalRewrittenContent] = useState('');
   const [rewriteMetadata, setRewriteMetadata] = useState<any>(null);
+  const [showLiveProgress, setShowLiveProgress] = useState(false);
+  const [liveProgressChunks, setLiveProgressChunks] = useState<Array<{title: string, content: string, completed: boolean}>>([]);
   
   // Re-rewrite state
   const [isRerewriting, setIsRerewriting] = useState(false);
@@ -161,6 +163,17 @@ export default function ChunkedRewriter({
         totalOperations += numberOfNewChunks;
       }
 
+      // Initialize live progress tracking
+      setShowLiveProgress(true);
+      setLiveProgressChunks(Array(totalOperations).fill(null).map((_, i) => {
+        const selectedChunks = chunks.filter(chunk => chunk.selected);
+        return {
+          title: i < selectedChunks.length ? `Rewriting Chunk ${i + 1}` : `Generating New Chunk ${i - selectedChunks.length + 1}`,
+          content: '',
+          completed: false
+        };
+      }));
+
       // Step 1: Handle existing chunks
       if (rewriteMode === 'rewrite' || rewriteMode === 'both') {
         const selectedChunks = chunks.filter(chunk => chunk.selected);
@@ -208,6 +221,15 @@ export default function ChunkedRewriter({
                   isComplete: true 
                 }
               : c
+          ));
+
+          // Update live progress with completed chunk
+          setLiveProgressChunks(prev => prev.map((item, idx) => 
+            idx === i ? {
+              ...item,
+              content: result.rewrittenContent,
+              completed: true
+            } : item
           ));
 
           processedChunks++;
@@ -263,6 +285,16 @@ export default function ChunkedRewriter({
           
           // Add new chunk to final content
           finalContent += '\n\n' + result.newChunkContent;
+
+          // Update live progress with new chunk
+          const selectedCount = chunks.filter(chunk => chunk.selected).length;
+          setLiveProgressChunks(prev => prev.map((item, idx) => 
+            idx === selectedCount + i ? {
+              ...item,
+              content: result.newChunkContent,
+              completed: true
+            } : item
+          ));
 
           processedChunks++;
           setProgress((processedChunks / totalOperations) * 100);
