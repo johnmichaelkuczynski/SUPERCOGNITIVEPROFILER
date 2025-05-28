@@ -1087,64 +1087,93 @@ export default function ChunkedRewriter({
             </Button>
 
             <Button 
-              onClick={async () => {
-                try {
-                  // Add timeout to prevent hanging
-                  const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-                  const response = await fetch('/api/download-rewrite', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      content: finalRewrittenContent,
-                      format: 'pdf',
-                      title: 'Rewrite Results',
-                      metadata: rewriteMetadata
-                    }),
-                    signal: controller.signal
-                  });
-
-                  clearTimeout(timeoutId);
-
-                  if (!response.ok) {
-                    throw new Error(`PDF generation failed: ${response.status}`);
-                  }
-
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.style.display = 'none';
-                  a.href = url;
-                  a.download = `rewrite-results-${Date.now()}.pdf`;
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  document.body.removeChild(a);
-
+              onClick={() => {
+                // Create print window for popup content
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
                   toast({
-                    title: "PDF downloaded!",
-                    description: "Your rewrite has been saved as PDF.",
+                    title: "Pop-up blocked",
+                    description: "Please allow pop-ups and try again.",
+                    variant: "destructive"
                   });
-                } catch (error) {
-                  console.error('PDF download failed:', error);
-                  
-                  if (error.name === 'AbortError') {
-                    toast({
-                      title: "PDF generation timed out",
-                      description: "The PDF is taking too long to generate. Try the Word download instead.",
-                      variant: "destructive"
-                    });
-                  } else {
-                    toast({
-                      title: "PDF generation failed",
-                      description: "Unable to generate PDF. Try the Word download instead.",
-                      variant: "destructive"
-                    });
-                  }
+                  return;
                 }
+
+                const printHTML = `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <title>Rewrite Results</title>
+                      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+                      <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                      <script>
+                        window.MathJax = {
+                          tex: {
+                            inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                            displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                            processEscapes: true,
+                            processEnvironments: true
+                          },
+                          options: {
+                            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+                          }
+                        };
+                      </script>
+                      <style>
+                        body { 
+                          font-family: 'Times New Roman', serif; 
+                          line-height: 1.6; 
+                          max-width: 8.5in; 
+                          margin: 0 auto; 
+                          padding: 1in;
+                          color: black;
+                          background: white;
+                        }
+                        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
+                        p { margin-bottom: 12px; }
+                        .MathJax { font-size: 1em !important; }
+                        @media print {
+                          body { margin: 0.5in; }
+                          .no-print { display: none; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">📄 Save as PDF</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Close</button>
+                      </div>
+                      <div id="content"></div>
+                      <script>
+                        const content = ${JSON.stringify(finalRewrittenContent)};
+                        const contentDiv = document.getElementById('content');
+                        
+                        let html = content
+                          .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                          .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                          .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                          .replace(/\\n\\n/g, '</p><p>')
+                          .replace(/\\n/g, '<br>');
+                        
+                        contentDiv.innerHTML = '<p>' + html + '</p>';
+                        
+                        if (window.MathJax) {
+                          MathJax.typesetPromise([contentDiv]).then(() => {
+                            console.log('MathJax rendering complete');
+                          });
+                        }
+                      </script>
+                    </body>
+                  </html>
+                `;
+
+                printWindow.document.write(printHTML);
+                printWindow.document.close();
+
+                toast({
+                  title: "Print window opened",
+                  description: "Click 'Save as PDF' in the new window to download with perfect math notation!",
+                });
               }}
               className="flex items-center space-x-2"
             >
