@@ -43,6 +43,7 @@ export default function ChunkedRewriter({
   const [includeChatContext, setIncludeChatContext] = useState(false);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
@@ -66,6 +67,14 @@ export default function ChunkedRewriter({
   const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
   
   const { toast } = useToast();
+
+  const cancelRewrite = () => {
+    setIsCancelled(true);
+    toast({
+      title: "Cancelling Rewrite",
+      description: "Stopping the rewrite process...",
+    });
+  };
 
   // Split text into chunks of approximately 500 words
   useEffect(() => {
@@ -179,6 +188,18 @@ export default function ChunkedRewriter({
         const selectedChunks = chunks.filter(chunk => chunk.selected);
         
         for (let i = 0; i < selectedChunks.length; i++) {
+          // Check if cancelled
+          if (isCancelled) {
+            setIsProcessing(false);
+            setIsCancelled(false);
+            toast({
+              title: "Rewrite Cancelled",
+              description: "The rewrite process was stopped.",
+              variant: "destructive"
+            });
+            return;
+          }
+
           const chunk = selectedChunks[i];
           setCurrentChunkIndex(i);
           
@@ -856,14 +877,25 @@ export default function ChunkedRewriter({
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button 
-            onClick={startRewrite} 
-            disabled={isProcessing || chunks.filter(c => c.selected).length === 0}
-            className="flex items-center space-x-2"
-          >
-            <Play className="w-4 h-4" />
-            <span>{isProcessing ? 'Processing...' : 'Start Rewrite'}</span>
-          </Button>
+          {!isProcessing ? (
+            <Button 
+              onClick={startRewrite} 
+              disabled={chunks.filter(c => c.selected).length === 0}
+              className="flex items-center space-x-2"
+            >
+              <Play className="w-4 h-4" />
+              <span>Start Rewrite</span>
+            </Button>
+          ) : (
+            <Button 
+              onClick={cancelRewrite} 
+              variant="destructive"
+              className="flex items-center space-x-2"
+            >
+              <X className="w-4 h-4" />
+              <span>Cancel Rewrite</span>
+            </Button>
+          )}
 
           <Button 
             variant="outline" 
