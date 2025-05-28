@@ -1414,7 +1414,7 @@ export default function ChunkedRewriter({
     </Dialog>
 
     {/* Live Progress Popup */}
-    <Dialog open={showLiveProgress} onOpenChange={() => {}}>
+    <Dialog open={showLiveProgress} onOpenChange={setShowLiveProgress}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>🔄 Rewriting in Progress</DialogTitle>
