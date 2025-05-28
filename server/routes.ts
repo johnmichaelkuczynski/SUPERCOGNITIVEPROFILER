@@ -960,6 +960,60 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
   
+  // Download rewrite endpoint
+  app.post('/api/download-rewrite', async (req: Request, res: Response) => {
+    try {
+      const { content, format, title } = req.body;
+      
+      if (!content || !format) {
+        return res.status(400).json({ error: 'Content and format are required' });
+      }
+      
+      const filename = title || 'rewritten-document';
+      
+      if (format === 'pdf') {
+        const PDFDocument = await import('pdfkit');
+        const doc = new PDFDocument.default();
+        
+        let buffer: Buffer;
+        const chunks: Buffer[] = [];
+        
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+        doc.on('end', () => {
+          buffer = Buffer.concat(chunks);
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+          res.send(buffer);
+        });
+        
+        doc.fontSize(12).text(content, { width: 500 });
+        doc.end();
+        
+      } else if (format === 'docx') {
+        const { Document, Packer, Paragraph, TextRun } = await import('docx');
+        
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: content.split('\n').map((line: string) => 
+              new Paragraph({
+                children: [new TextRun(line || ' ')],
+              })
+            ),
+          }],
+        });
+        
+        const buffer = await Packer.toBuffer(doc);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.docx"`);
+        res.send(buffer);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      res.status(500).json({ error: 'Failed to generate download' });
+    }
+  });
+
   // Chunked rewriter API endpoints
   app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
     try {

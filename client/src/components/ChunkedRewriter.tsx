@@ -168,10 +168,15 @@ export default function ChunkedRewriter({
       }
 
       // Compile the full rewritten text
-      const fullRewrittenText = chunks
-        .filter(chunk => chunk.selected && chunk.rewritten)
+      const rewrittenChunks = chunks.filter(chunk => chunk.selected && chunk.rewritten);
+      console.log('Rewritten chunks for assembly:', rewrittenChunks.length);
+      console.log('Sample chunk content:', rewrittenChunks[0]?.rewritten?.substring(0, 100));
+      
+      const fullRewrittenText = rewrittenChunks
         .map(chunk => chunk.rewritten)
         .join('\n\n');
+      
+      console.log('Final assembled text length:', fullRewrittenText.length);
 
       const metadata = {
         originalLength: originalText.length,
