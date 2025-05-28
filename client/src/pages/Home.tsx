@@ -540,8 +540,10 @@ Document text: ${extractedText}`;
       console.error('Failed to save rewritten document:', error);
     }
 
-    // THIRD: Close modal AFTER everything is done
-    setIsChunkedRewriterOpen(false);
+    // THIRD: Close modal AFTER everything is done (with delay to ensure chat update happens)
+    setTimeout(() => {
+      setIsChunkedRewriterOpen(false);
+    }, 100);
   };
 
   // Handle adding chunked rewrite content to chat

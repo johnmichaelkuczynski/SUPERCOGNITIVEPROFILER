@@ -294,6 +294,10 @@ export default function ChunkedRewriter({
         description: `Successfully processed content with ${metadata.chunksProcessed} rewritten chunks${metadata.newChunksAdded ? ` and ${metadata.newChunksAdded} new chunks` : ''}.`,
       });
 
+      // Force the rewrite to appear in chat immediately
+      console.log("FORCING REWRITE TO CHAT:", finalContent.substring(0, 100));
+      onAddToChat(`**Rewritten Document:**\n\n${finalContent}`, metadata);
+      
       onRewriteComplete(finalContent, metadata);
 
     } catch (error) {
@@ -922,6 +926,20 @@ export default function ChunkedRewriter({
               <span>Rewrite the Rewrite</span>
             </Button>
             
+            <Button 
+              onClick={() => {
+                onAddToChat(`**Rewritten Document:**\n\n${finalRewrittenContent}`, rewriteMetadata);
+                toast({
+                  title: "Added to chat!",
+                  description: "The rewritten content has been added to your chat.",
+                });
+              }}
+              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Add to Chat</span>
+            </Button>
+
             <Button 
               onClick={() => window.print()}
               className="flex items-center space-x-2"
