@@ -397,7 +397,7 @@ export default function ChunkedRewriter({
     }
   };
 
-  const downloadRewrite = async (format: 'pdf' | 'docx') => {
+  const printAsPDF = () => {
     const rewrittenText = chunks
       .filter(chunk => chunk.selected && chunk.rewritten)
       .map(chunk => chunk.rewritten)
@@ -405,52 +405,103 @@ export default function ChunkedRewriter({
 
     if (!rewrittenText) {
       toast({
-        title: "No content to download",
+        title: "No content to print",
         description: "Please complete the rewrite first.",
         variant: "destructive"
       });
       return;
     }
 
-    try {
-      const response = await fetch('/api/download-rewrite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: rewrittenText,
-          format: format,
-          title: 'Rewritten Document'
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `rewritten-document.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
+    // Create a new window with the content formatted for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
       toast({
-        title: "Download started",
-        description: `Your ${format.toUpperCase()} file is downloading.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Download failed",
-        description: "Unable to download the file. Please try again.",
+        title: "Pop-up blocked",
+        description: "Please allow pop-ups and try again.",
         variant: "destructive"
       });
+      return;
     }
+
+    // Create the print-friendly HTML with MathJax
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Rewritten Document</title>
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+          <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+          <script>
+            window.MathJax = {
+              tex: {
+                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                processEscapes: true,
+                processEnvironments: true
+              },
+              options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+              }
+            };
+          </script>
+          <style>
+            body { 
+              font-family: 'Times New Roman', serif; 
+              line-height: 1.6; 
+              max-width: 8.5in; 
+              margin: 0 auto; 
+              padding: 1in;
+              color: black;
+              background: white;
+            }
+            h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
+            p { margin-bottom: 12px; }
+            .MathJax { font-size: 1em !important; }
+            @media print {
+              body { margin: 0.5in; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">📄 Save as PDF</button>
+            <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Close</button>
+          </div>
+          <div id="content"></div>
+          <script>
+            // Convert markdown-like content to HTML and render math
+            const content = ${JSON.stringify(rewrittenText)};
+            const contentDiv = document.getElementById('content');
+            
+            // Simple markdown conversion
+            let html = content
+              .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+              .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+              .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+              .replace(/\\n\\n/g, '</p><p>')
+              .replace(/\\n/g, '<br>');
+            
+            contentDiv.innerHTML = '<p>' + html + '</p>';
+            
+            // Re-render MathJax after content is loaded
+            if (window.MathJax) {
+              MathJax.typesetPromise([contentDiv]).then(() => {
+                console.log('MathJax rendering complete');
+              });
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+
+    toast({
+      title: "Print window opened",
+      description: "Click 'Save as PDF' in the new window to download with perfect math notation!",
+    });
   };
 
   const shareViaEmail = async () => {
@@ -949,22 +1000,12 @@ export default function ChunkedRewriter({
 
           <Button 
             variant="outline" 
-            onClick={() => downloadRewrite('pdf')}
+            onClick={printAsPDF}
             disabled={!chunks.some(c => c.rewritten)}
             className="flex items-center space-x-2"
           >
             <Download className="w-4 h-4" />
-            <span>PDF</span>
-          </Button>
-
-          <Button 
-            variant="outline" 
-            onClick={() => downloadRewrite('docx')}
-            disabled={!chunks.some(c => c.rewritten)}
-            className="flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Word</span>
+            <span>Print/Save as PDF</span>
           </Button>
         </div>
 
