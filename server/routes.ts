@@ -1040,10 +1040,26 @@ Return only the rewritten text without any additional comments, explanations, or
       let result: string;
       
       if (model === 'claude') {
-        result = await processClaude(prompt, {
-          temperature: 0.7,
-          maxTokens: 4000
-        });
+        try {
+          result = await processClaude(prompt, {
+            temperature: 0.7,
+            maxTokens: 4000
+          });
+        } catch (claudeError: any) {
+          console.log('Claude overloaded, falling back to GPT-4...');
+          // Fallback to GPT-4 when Claude is overloaded
+          const OpenAI = require('openai');
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+          
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+            max_tokens: 4000
+          });
+          
+          result = response.choices[0].message.content || '';
+        }
       } else if (model === 'gpt4') {
         const OpenAI = require('openai');
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
