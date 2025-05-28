@@ -474,8 +474,14 @@ export default function ChunkedRewriter({
             const content = ${JSON.stringify(rewrittenText)};
             const contentDiv = document.getElementById('content');
             
-            // Simple markdown conversion
-            let html = content
+            // Clean up markdown formatting for PDF
+            let cleanContent = content
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+              .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+              .replace(/\(\*(.*?)\*\)/g, '($1)') // Remove asterisks around stage directions
+              .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining single asterisks
+            
+            let html = cleanContent
               .replace(/^# (.*$)/gm, '<h1>$1</h1>')
               .replace(/^## (.*$)/gm, '<h2>$1</h2>')
               .replace(/^### (.*$)/gm, '<h3>$1</h3>')
@@ -1148,7 +1154,14 @@ export default function ChunkedRewriter({
                         const content = ${JSON.stringify(finalRewrittenContent)};
                         const contentDiv = document.getElementById('content');
                         
-                        let html = content
+                        // Clean up markdown formatting for PDF
+                        let cleanContent = content
+                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                          .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+                          .replace(/\(\*(.*?)\*\)/g, '($1)') // Remove asterisks around stage directions
+                          .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining single asterisks
+                        
+                        let html = cleanContent
                           .replace(/^# (.*$)/gm, '<h1>$1</h1>')
                           .replace(/^## (.*$)/gm, '<h2>$1</h2>')
                           .replace(/^### (.*$)/gm, '<h3>$1</h3>')
