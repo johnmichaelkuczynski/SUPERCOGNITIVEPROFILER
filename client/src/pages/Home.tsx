@@ -1097,17 +1097,21 @@ Document text: ${extractedText}`;
                       </DialogContent>
                     </Dialog>
                     
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex flex-col items-center px-3 py-2 h-auto"
-                      onClick={() => setIsCompletedRewritesOpen(true)}
-                    >
-                      <FileText className="h-6 w-6 mb-1" />
-                      <span className="text-xs">View Rewrites</span>
-                    </Button>
                   </div>
                 )}
+                
+                {/* Always visible View Rewrites button */}
+                <div className="mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex flex-col items-center px-3 py-2 h-auto w-full"
+                    onClick={() => setIsCompletedRewritesOpen(true)}
+                  >
+                    <FileText className="h-6 w-6 mb-1" />
+                    <span className="text-xs">View Completed Rewrites</span>
+                  </Button>
+                </div>
               </div>
               
               {/* File Upload UI */}
