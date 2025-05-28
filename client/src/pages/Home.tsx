@@ -14,6 +14,7 @@ import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 import AIDetectionPopover from '@/components/AIDetectionPopover';
 import { useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
@@ -496,23 +497,36 @@ Document text: ${extractedText}`;
 
   // Handle chunked rewriter completion
   const handleChunkedRewriteComplete = async (rewrittenText: string, metadata: any) => {
-    // Store the rewritten document in the documents section
+    // Store the rewritten document in the documents section with proper marking
     try {
+      const rewriteMetadata = {
+        ...metadata,
+        isRewrite: true,
+        originalTitle: rewriterTitle,
+        rewriteInstructions: metadata.instructions,
+        totalChunks: metadata.chunksProcessed
+      };
+
       const response = await fetch('/api/documents', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: `${rewriterTitle} (Rewritten)`,
+          title: `Rewritten: ${rewriterTitle}`,
           content: rewrittenText,
           type: 'rewrite',
-          metadata: metadata
+          metadata: rewriteMetadata
         }),
       });
 
       if (response.ok) {
         console.log('Rewritten document saved to Documents section');
+        toast({
+          title: "Rewrite saved!",
+          description: "Your completed rewrite is now available in the 'View Completed Rewrites' section.",
+          duration: 5000,
+        });
       }
     } catch (error) {
       console.error('Failed to save rewritten document:', error);
@@ -1100,17 +1114,18 @@ Document text: ${extractedText}`;
                   </div>
                 )}
                 
-                {/* Always visible View Rewrites button */}
-                <div className="mt-4">
+                {/* Always visible View Rewrites button - prominent and clear */}
+                <div className="mt-4 space-y-2">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex flex-col items-center px-3 py-2 h-auto w-full"
                     onClick={() => setIsCompletedRewritesOpen(true)}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md"
                   >
-                    <FileText className="h-6 w-6 mb-1" />
-                    <span className="text-xs">View Completed Rewrites</span>
+                    <FileText className="h-5 w-5 mr-2" />
+                    View My Completed Rewrites
                   </Button>
+                  <p className="text-xs text-gray-500 text-center">
+                    Access your finished rewritten documents
+                  </p>
                 </div>
               </div>
               

@@ -45,34 +45,36 @@ export default function CompletedRewritesViewer({ isOpen, onClose }: CompletedRe
 
   const loadCompletedRewrites = async () => {
     try {
-      // Try to load from Documents API (saved rewrites)
+      // Load from Documents API (saved rewrites)
       const response = await fetch('/api/documents');
       if (response.ok) {
         const documents = await response.json();
+        console.log('All documents from API:', documents);
+        
         const rewriteDocs = documents
-          .filter((doc: any) => doc.type === 'rewrite' || doc.title.includes('(Rewritten)'))
+          .filter((doc: any) => {
+            // Check for rewrite indicators
+            const isRewrite = doc.type === 'rewrite' || 
+                             doc.title.includes('(Rewritten)') || 
+                             doc.title.includes('Rewritten:') ||
+                             doc.metadata?.isRewrite === true;
+            console.log(`Document ${doc.title}: isRewrite=${isRewrite}, type=${doc.type}`);
+            return isRewrite;
+          })
           .map((doc: any) => ({
             id: doc.id,
             title: doc.title,
             content: doc.content,
-            originalLength: doc.metadata?.originalLength || 0,
+            originalLength: doc.metadata?.originalLength || doc.content.length,
             rewrittenLength: doc.content.length,
-            model: doc.metadata?.model || 'unknown',
-            instructions: doc.metadata?.instructions || 'No instructions provided',
-            createdAt: new Date(doc.createdAt || Date.now()),
-            chunksProcessed: doc.metadata?.chunksProcessed || 1
+            model: doc.metadata?.model || 'claude',
+            instructions: doc.metadata?.instructions || doc.metadata?.rewriteInstructions || 'Default rewrite instructions',
+            createdAt: new Date(doc.createdAt || doc.updatedAt || Date.now()),
+            chunksProcessed: doc.metadata?.chunksProcessed || doc.metadata?.totalChunks || 1
           }));
+        
+        console.log('Filtered rewrite documents:', rewriteDocs);
         setRewrites(rewriteDocs);
-      }
-
-      // Also check localStorage for any cached rewrites
-      const cachedRewrites = localStorage.getItem('completedRewrites');
-      if (cachedRewrites) {
-        const parsed = JSON.parse(cachedRewrites);
-        // Merge with API results, avoiding duplicates
-        const existingIds = new Set(rewrites.map(r => r.id));
-        const newRewrites = parsed.filter((r: CompletedRewrite) => !existingIds.has(r.id));
-        setRewrites(prev => [...prev, ...newRewrites]);
       }
     } catch (error) {
       console.error('Failed to load completed rewrites:', error);
