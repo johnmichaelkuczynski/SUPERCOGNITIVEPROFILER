@@ -190,7 +190,7 @@ export default function ChunkedRewriter({
       // Process existing chunks for rewriting
       for (let i = 0; i < selectedChunks.length; i++) {
         const chunk = selectedChunks[i];
-        setCurrentChunkIndex(i);
+        setCurrentChunkIndex(completedTasks);
         
         // Mark current chunk as processing
         setChunks(prev => prev.map(c => 
