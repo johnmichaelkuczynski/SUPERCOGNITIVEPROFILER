@@ -1006,6 +1006,92 @@ Return only the rewritten text without any additional comments, explanations, or
         const PDFDocument = require('pdfkit');
         const doc = new PDFDocument();
         
+        // Convert LaTeX math to readable mathematical notation
+        let processedContent = content;
+        
+        // Convert common LaTeX symbols to Unicode mathematical symbols
+        const latexToUnicode = {
+          '\\mathcal{P}': '𝒫',
+          '\\mathcal{L}': '𝒟',
+          '\\mathcal{A}': '𝒜',
+          '\\mathcal{R}': '𝒯',
+          '\\mathcal{E}': 'ℰ',
+          '\\mathcal{H}': 'ℋ',
+          '\\mathcal{D}': '𝒟',
+          '\\rightarrow': '→',
+          '\\leftarrow': '←',
+          '\\Rightarrow': '⇒',
+          '\\Leftarrow': '⇐',
+          '\\leftrightarrow': '↔',
+          '\\Leftrightarrow': '⇔',
+          '\\theta': 'θ',
+          '\\alpha': 'α',
+          '\\beta': 'β',
+          '\\gamma': 'γ',
+          '\\delta': 'δ',
+          '\\epsilon': 'ε',
+          '\\lambda': 'λ',
+          '\\mu': 'μ',
+          '\\pi': 'π',
+          '\\sigma': 'σ',
+          '\\tau': 'τ',
+          '\\phi': 'φ',
+          '\\omega': 'ω',
+          '\\Theta': 'Θ',
+          '\\Alpha': 'Α',
+          '\\Beta': 'Β',
+          '\\Gamma': 'Γ',
+          '\\Delta': 'Δ',
+          '\\Lambda': 'Λ',
+          '\\Pi': 'Π',
+          '\\Sigma': 'Σ',
+          '\\Phi': 'Φ',
+          '\\Omega': 'Ω',
+          '\\nabla': '∇',
+          '\\partial': '∂',
+          '\\sum': '∑',
+          '\\prod': '∏',
+          '\\int': '∫',
+          '\\infty': '∞',
+          '\\leq': '≤',
+          '\\geq': '≥',
+          '\\neq': '≠',
+          '\\approx': '≈',
+          '\\equiv': '≡',
+          '\\subset': '⊂',
+          '\\supset': '⊃',
+          '\\subseteq': '⊆',
+          '\\supseteq': '⊇',
+          '\\in': '∈',
+          '\\notin': '∉',
+          '\\cup': '∪',
+          '\\cap': '∩',
+          '\\emptyset': '∅',
+          '\\forall': '∀',
+          '\\exists': '∃',
+          '\\times': '×',
+          '\\cdot': '⋅',
+          '\\pm': '±',
+          '\\mp': '∓'
+        };
+        
+        // Apply LaTeX to Unicode conversions
+        for (const [latex, unicode] of Object.entries(latexToUnicode)) {
+          processedContent = processedContent.replace(new RegExp(latex.replace(/\\/g, '\\\\'), 'g'), unicode);
+        }
+        
+        // Remove common LaTeX delimiters
+        processedContent = processedContent.replace(/\$\$([^$]+)\$\$/g, '$1'); // Display math
+        processedContent = processedContent.replace(/\$([^$]+)\$/g, '$1'); // Inline math
+        processedContent = processedContent.replace(/\\begin\{equation\}(.*?)\\end\{equation\}/gs, '$1');
+        processedContent = processedContent.replace(/\\begin\{align\}(.*?)\\end\{align\}/gs, '$1');
+        processedContent = processedContent.replace(/\\left\(/g, '(');
+        processedContent = processedContent.replace(/\\right\)/g, ')');
+        processedContent = processedContent.replace(/\\left\[/g, '[');
+        processedContent = processedContent.replace(/\\right\]/g, ']');
+        processedContent = processedContent.replace(/\\{/g, '{');
+        processedContent = processedContent.replace(/\\}/g, '}');
+        
         const chunks: Buffer[] = [];
         doc.on('data', (chunk: Buffer) => chunks.push(chunk));
         doc.on('end', () => {
@@ -1018,7 +1104,7 @@ Return only the rewritten text without any additional comments, explanations, or
           res.send(buffer);
         });
         
-        doc.fontSize(12).text(content, 50, 50);
+        doc.fontSize(12).text(processedContent, 50, 50);
         doc.end();
         return;
       } else if (format === 'docx') {
