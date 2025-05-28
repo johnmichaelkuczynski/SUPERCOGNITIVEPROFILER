@@ -248,6 +248,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Create document route (for saving rewrites)
+  app.post('/api/documents', async (req: Request, res: Response) => {
+    try {
+      const { title, content, type, metadata } = req.body;
+      const userId = 1; // Mock user ID for now
+      
+      const docId = `doc_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+      
+      const document = await storage.createDocument({
+        id: docId,
+        userId,
+        title,
+        content,
+        type: type || 'document',
+        model: metadata?.model || 'claude',
+        excerpt: content.substring(0, 200),
+        date: new Date(),
+        metadata: JSON.stringify(metadata || {}),
+        chunks: '[]'
+      });
+      
+      console.log(`Saved document "${title}" with type "${type}"`);
+      res.json(document);
+    } catch (error) {
+      console.error('Error creating document:', error);
+      res.status(500).json({ message: 'Failed to create document', error: (error as Error).message });
+    }
+  });
+
   // Get documents route
   app.get('/api/documents', async (req: Request, res: Response) => {
     try {
