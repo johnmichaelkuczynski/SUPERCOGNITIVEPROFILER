@@ -397,7 +397,7 @@ export default function ChunkedRewriter({
     }
   };
 
-  const downloadAsTxt = () => {
+  const printChunksAsPDF = () => {
     const rewrittenText = chunks
       .filter(chunk => chunk.selected && chunk.rewritten)
       .map(chunk => chunk.rewritten)
@@ -405,33 +405,110 @@ export default function ChunkedRewriter({
 
     if (!rewrittenText) {
       toast({
-        title: "No content to download",
+        title: "No content to print",
         description: "Please complete the rewrite first.",
         variant: "destructive"
       });
       return;
     }
 
-    // Clean up markdown formatting
-    const cleanContent = rewrittenText
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
-      .replace(/\(\*(.*?)\*\)/g, '($1)') // Clean stage directions
-      .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining asterisks
+    // Create proper PDF with MathJax
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (!printWindow) {
+      toast({
+        title: "Pop-up blocked",
+        description: "Please allow pop-ups and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const blob = new Blob([cleanContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `rewritten-chunks-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Clean content but preserve LaTeX math
+    let cleanContent = rewrittenText
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^$*]*)\*/g, '<em>$1</em>')
+      .replace(/\(\*([^)]*)\*\)/g, '($1)')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Rewritten Chunks</title>
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+          <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+          <script>
+            window.MathJax = {
+              tex: {
+                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                processEscapes: true,
+                processEnvironments: true
+              },
+              options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+              },
+              startup: {
+                ready: () => {
+                  MathJax.startup.defaultReady();
+                  setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                  }, 1000);
+                }
+              }
+            };
+          </script>
+          <style>
+            body { 
+              font-family: 'Times New Roman', serif; 
+              line-height: 1.6; 
+              max-width: 8.5in; 
+              margin: 0 auto; 
+              padding: 1in;
+              color: black;
+              background: white;
+            }
+            h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
+            p { margin-bottom: 12px; }
+            .MathJax { font-size: 1em !important; }
+            #loading { text-align: center; padding: 50px; }
+            #content { display: none; }
+            .controls { text-align: center; margin: 20px 0; }
+            .controls button { 
+              margin: 0 10px; padding: 10px 20px; 
+              background: #007bff; color: white; 
+              border: none; border-radius: 4px; cursor: pointer; 
+            }
+            .controls button:hover { background: #0056b3; }
+            .controls .close { background: #6c757d; }
+            .controls .close:hover { background: #545b62; }
+            @media print {
+              .controls { display: none; }
+              body { margin: 0.5in; }
+            }
+          </style>
+        </head>
+        <body>
+          <div id="loading">Loading math notation...</div>
+          <div id="content">
+            <div class="controls">
+              <button onclick="window.print()">📄 Save as PDF</button>
+              <button class="close" onclick="window.close()">Close</button>
+            </div>
+            <div id="text-content"><p>${cleanContent}</p></div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
 
     toast({
-      title: "Download complete!",
-      description: "Your rewritten chunks have been saved as a clean text file.",
+      title: "PDF window opened!",
+      description: "Math notation will render in a moment, then click 'Save as PDF'",
     });
   };
 
@@ -931,12 +1008,12 @@ export default function ChunkedRewriter({
 
           <Button 
             variant="outline" 
-            onClick={printAsPDF}
+            onClick={printChunksAsPDF}
             disabled={!chunks.some(c => c.rewritten)}
             className="flex items-center space-x-2"
           >
             <Download className="w-4 h-4" />
-            <span>Print/Save as PDF</span>
+            <span>Save as PDF</span>
           </Button>
         </div>
 
@@ -1019,32 +1096,109 @@ export default function ChunkedRewriter({
 
             <Button 
               onClick={() => {
-                // Simple, clean PDF generation
-                const cleanContent = finalRewrittenContent
-                  .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-                  .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
-                  .replace(/\(\*(.*?)\*\)/g, '($1)') // Clean stage directions
-                  .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining asterisks
+                // Create proper PDF with MathJax like the working chat version
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                if (!printWindow) {
+                  toast({
+                    title: "Pop-up blocked",
+                    description: "Please allow pop-ups and try again.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
 
-                const blob = new Blob([cleanContent], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `rewrite-results-${Date.now()}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                // Clean content but preserve LaTeX math
+                let cleanContent = finalRewrittenContent
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*([^$*]*)\*/g, '<em>$1</em>')
+                  .replace(/\(\*([^)]*)\*\)/g, '($1)')
+                  .replace(/\n\n/g, '</p><p>')
+                  .replace(/\n/g, '<br>');
+
+                const htmlContent = `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <title>Rewrite Results</title>
+                      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+                      <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                      <script>
+                        window.MathJax = {
+                          tex: {
+                            inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                            displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                            processEscapes: true,
+                            processEnvironments: true
+                          },
+                          options: {
+                            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+                          },
+                          startup: {
+                            ready: () => {
+                              MathJax.startup.defaultReady();
+                              setTimeout(() => {
+                                document.getElementById('loading').style.display = 'none';
+                                document.getElementById('content').style.display = 'block';
+                              }, 1000);
+                            }
+                          }
+                        };
+                      </script>
+                      <style>
+                        body { 
+                          font-family: 'Times New Roman', serif; 
+                          line-height: 1.6; 
+                          max-width: 8.5in; 
+                          margin: 0 auto; 
+                          padding: 1in;
+                          color: black;
+                          background: white;
+                        }
+                        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
+                        p { margin-bottom: 12px; }
+                        .MathJax { font-size: 1em !important; }
+                        #loading { text-align: center; padding: 50px; }
+                        #content { display: none; }
+                        .controls { text-align: center; margin: 20px 0; }
+                        .controls button { 
+                          margin: 0 10px; padding: 10px 20px; 
+                          background: #007bff; color: white; 
+                          border: none; border-radius: 4px; cursor: pointer; 
+                        }
+                        .controls button:hover { background: #0056b3; }
+                        .controls .close { background: #6c757d; }
+                        .controls .close:hover { background: #545b62; }
+                        @media print {
+                          .controls { display: none; }
+                          body { margin: 0.5in; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <div id="loading">Loading math notation...</div>
+                      <div id="content">
+                        <div class="controls">
+                          <button onclick="window.print()">📄 Save as PDF</button>
+                          <button class="close" onclick="window.close()">Close</button>
+                        </div>
+                        <div id="text-content"><p>${cleanContent}</p></div>
+                      </div>
+                    </body>
+                  </html>
+                `;
+
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
 
                 toast({
-                  title: "Download complete!",
-                  description: "Your rewrite has been saved as a text file.",
+                  title: "PDF window opened!",
+                  description: "Math notation will render in a moment, then click 'Save as PDF'",
                 });
               }}
               className="flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
-              <span>Download Text</span>
+              <span>Save as PDF</span>
             </Button>
             
             <Button 
