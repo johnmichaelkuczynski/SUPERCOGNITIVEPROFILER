@@ -188,8 +188,8 @@ export default function ChunkedRewriter({
         duration: 8000,
       });
 
-      // Don't auto-close - let user see the results
-      // onRewriteComplete(fullRewrittenText, metadata);
+      // Save the completed rewrite and let user see the results
+      onRewriteComplete(fullRewrittenText, metadata);
 
     } catch (error) {
       console.error('Rewrite error:', error);
