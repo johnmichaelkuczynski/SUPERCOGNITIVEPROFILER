@@ -962,7 +962,7 @@ Return only the rewritten text without any additional comments, explanations, or
           maxTokens: 4000
         });
       } else if (model === 'gpt4') {
-        const OpenAI = require('openai');
+        const { default: OpenAI } = await import('openai');
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         
         const response = await openai.chat.completions.create({
@@ -1129,7 +1129,7 @@ Return only the new content without any additional comments, explanations, or he
           maxTokens: 4000
         });
       } else if (model === 'gpt4') {
-        const OpenAI = require('openai');
+        const { default: OpenAI } = await import('openai');
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         
         const response = await openai.chat.completions.create({
