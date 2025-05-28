@@ -666,12 +666,14 @@ Write the content in a clear, engaging style with proper headings and structure.
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newDescription">Description (Optional)</Label>
-              <Input
+              <Label htmlFor="newDescription">Detailed Instructions (Optional)</Label>
+              <Textarea
                 id="newDescription"
-                placeholder="Brief description of what to cover..."
+                placeholder="Detailed instructions for what to include in this section. You can provide extensive guidance, examples, specific points to cover, writing style preferences, etc."
                 value={newContentDescription}
                 onChange={(e) => setNewContentDescription(e.target.value)}
+                rows={4}
+                className="min-h-[100px]"
               />
             </div>
             <div className="md:col-span-2">
