@@ -733,11 +733,11 @@ export default function ChunkedRewriter({
           <DialogDescription>
             {rewriteMetadata && (
               <div className="text-sm space-y-1">
-                <p>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</p>
-                <p>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</p>
-                {rewriteMetadata.chunksProcessed > 0 && <p>Chunks rewritten: {rewriteMetadata.chunksProcessed}</p>}
-                {rewriteMetadata.newChunksAdded > 0 && <p>New chunks added: {rewriteMetadata.newChunksAdded}</p>}
-                <p>Model: {rewriteMetadata.model.toUpperCase()}</p>
+                <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
+                <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
+                {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
+                {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
+                <div>Model: {rewriteMetadata.model.toUpperCase()}</div>
               </div>
             )}
           </DialogDescription>
