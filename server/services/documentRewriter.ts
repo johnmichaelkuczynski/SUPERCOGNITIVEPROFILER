@@ -39,12 +39,15 @@ export async function rewriteDocument(
     // Add final instructions
     prompt += `Please rewrite this document according to the instructions. Maintain the original information and meaning, but improve it according to the specified requirements. 
 
-IMPORTANT: If the document contains mathematical expressions or formulas:
-- Preserve all LaTeX formatting using \\(...\\) for inline math and $$...$$ for display math
-- Do not escape or convert LaTeX symbols
-- Keep all mathematical notation in proper LaTeX format
+CRITICAL MATH FORMATTING REQUIREMENT: If the document contains ANY mathematical expressions or LaTeX:
+- You MUST preserve ALL LaTeX formatting EXACTLY as written
+- Keep every \\theta as \\theta, every \\alpha as \\alpha 
+- Preserve all $$equations$$ and \\[equations\\] exactly
+- Do NOT convert LaTeX to plain text under any circumstances
+- Mathematical symbols like \\nabla, \\partial, \\sum must stay in LaTeX form
+- Every backslash and curly brace in math expressions must be preserved
 
-Return only the rewritten text without any additional comments, explanations, or headers.`;
+Return only the rewritten text with all mathematical LaTeX formatting intact.`;
     
     // Choose the model to use for rewriting
     let result: string;
