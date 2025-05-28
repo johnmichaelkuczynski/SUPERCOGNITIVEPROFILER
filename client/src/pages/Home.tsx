@@ -498,6 +498,12 @@ Document text: ${extractedText}`;
   // Handle chunked rewriter completion
   const handleChunkedRewriteComplete = async (rewrittenText: string, metadata: any) => {
     // Store the rewritten document in the documents section with proper marking
+    console.log('handleChunkedRewriteComplete called with:', { 
+      textLength: rewrittenText?.length || 0, 
+      textPreview: rewrittenText?.substring(0, 100) || 'NO TEXT',
+      metadata 
+    });
+    
     try {
       const rewriteMetadata = {
         ...metadata,
