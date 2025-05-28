@@ -1120,19 +1120,7 @@ Document text: ${extractedText}`;
                   </div>
                 )}
                 
-                {/* Always visible View Rewrites button - prominent and clear */}
-                <div className="mt-4 space-y-2">
-                  <Button
-                    onClick={() => setIsCompletedRewritesOpen(true)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md"
-                  >
-                    <FileText className="h-5 w-5 mr-2" />
-                    View My Completed Rewrites
-                  </Button>
-                  <p className="text-xs text-gray-500 text-center">
-                    Access your finished rewritten documents
-                  </p>
-                </div>
+
               </div>
               
               {/* File Upload UI */}

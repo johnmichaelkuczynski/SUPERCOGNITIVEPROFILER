@@ -337,14 +337,15 @@ Write the content in a clear, engaging style with proper headings and structure.
         successMessage = `Successfully added ${selectedNewContent.length} new content sections.`;
       }
 
-      toast({
-        title: "Process complete!",
-        description: `${successMessage} Document saved and ready for download/sharing.`,
-        duration: 8000,
-      });
-
       // Save the completed rewrite and let user see the results
       onRewriteComplete(fullRewrittenText, metadata);
+      
+      // Show the actual rewritten content immediately
+      setCompletedRewrite({
+        content: fullRewrittenText,
+        metadata: metadata,
+        successMessage: successMessage
+      });
 
     } catch (error) {
       console.error('Rewrite error:', error);
