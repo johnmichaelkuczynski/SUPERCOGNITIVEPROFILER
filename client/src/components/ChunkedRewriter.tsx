@@ -890,6 +890,80 @@ Write the content in a clear, engaging style with proper headings and structure.
           </Button>
         </div>
 
+        {/* Results Popup */}
+        {showResultsPopup && completedRewrite && (
+          <Dialog open={showResultsPopup} onOpenChange={setShowResultsPopup}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-xl text-green-600">✓ Rewrite Complete!</DialogTitle>
+                <DialogDescription>
+                  Your document has been successfully rewritten. Here's your new content:
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                {/* Preview of rewritten content */}
+                <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                  <h4 className="font-semibold mb-2">Rewritten Content Preview:</h4>
+                  <div className="text-sm whitespace-pre-wrap">
+                    {completedRewrite.content.substring(0, 2000)}
+                    {completedRewrite.content.length > 2000 && '...'}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    Total: {completedRewrite.content.length} characters
+                  </div>
+                </div>
+
+                {/* Download and Share Options */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button 
+                    onClick={() => downloadRewrite('pdf')}
+                    className="flex items-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Download PDF</span>
+                  </Button>
+                  <Button 
+                    onClick={() => downloadRewrite('docx')}
+                    variant="outline"
+                    className="flex items-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Download Word</span>
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setEmailAddress('');
+                    }}
+                    variant="outline"
+                    className="flex items-center space-x-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span>Share via Email</span>
+                  </Button>
+                </div>
+
+                {/* Email sharing section */}
+                <div className="space-y-2">
+                  <Label htmlFor="popup-email">Email Address (for sharing)</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      id="popup-email"
+                      type="email"
+                      placeholder="Enter email address..."
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={shareViaEmail} disabled={!emailAddress}>
+                      Send
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
       </CardContent>
     </Card>
