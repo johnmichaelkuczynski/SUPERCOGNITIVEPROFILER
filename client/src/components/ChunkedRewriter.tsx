@@ -563,12 +563,25 @@ export default function ChunkedRewriter({
         console.error("Error saving re-rewritten document:", saveError);
       }
 
+      // Automatically add re-rewritten content to chat
+      const rerewriteMetadata = {
+        type: 'rerewrite',
+        originalLength: rewriteMetadata?.originalLength || 0,
+        rewrittenLength: rerewrittenContent.length,
+        chunksRerewrote: selectedChunks.length,
+        model: rerewriteModel,
+        instructions: rerewriteInstructions,
+        isRerewrite: true
+      };
+
+      onAddToChat(`**Re-rewritten Content:**\n\n${rerewrittenContent}`, rerewriteMetadata);
+
       setShowRerewriteForm(false);
       setRerewriteInstructions('');
 
       toast({
         title: "Re-rewrite complete!",
-        description: `Successfully re-rewrote ${selectedChunks.length} chunk(s) and saved to Documents.`,
+        description: `Successfully re-rewrote ${selectedChunks.length} chunk(s) and added to chat.`,
       });
 
     } catch (error) {
