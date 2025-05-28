@@ -655,7 +655,7 @@ Write the content in a clear, engaging style with proper headings and structure.
             Add entirely new sections to your document on topics you specify. These will be generated as additional content alongside your existing text.
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+          <div className="grid grid-cols-1 gap-4 p-4 bg-muted/50 rounded-lg">
             <div className="space-y-2">
               <Label htmlFor="newTopic">Topic/Section Title</Label>
               <Input
@@ -669,14 +669,14 @@ Write the content in a clear, engaging style with proper headings and structure.
               <Label htmlFor="newDescription">Detailed Instructions (Optional)</Label>
               <Textarea
                 id="newDescription"
-                placeholder="Detailed instructions for what to include in this section. You can provide extensive guidance, examples, specific points to cover, writing style preferences, etc."
+                placeholder="Detailed instructions for what to include in this section. You can provide extensive guidance, examples, specific points to cover, writing style preferences, etc. Add as much detail as needed - this field can handle multiple paragraphs of instructions."
                 value={newContentDescription}
                 onChange={(e) => setNewContentDescription(e.target.value)}
-                rows={4}
-                className="min-h-[100px]"
+                rows={8}
+                className="min-h-[200px] w-full resize-y"
               />
             </div>
-            <div className="md:col-span-2">
+            <div>
               <Button onClick={addNewContentItem} className="w-full">
                 Add New Section
               </Button>
