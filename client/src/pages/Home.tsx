@@ -492,7 +492,24 @@ Document text: ${extractedText}`;
 
   // Handle chunked rewriter completion
   const handleChunkedRewriteComplete = async (rewrittenText: string, metadata: any) => {
-    // Store the rewritten document in the documents section
+    // FIRST: Add to chat BEFORE closing modal
+    const userMessage: Message = {
+      id: Date.now(),
+      content: `I've completed a chunked rewrite of "${rewriterTitle}" using ${metadata.model}.`,
+      role: 'user',
+      timestamp: new Date()
+    };
+    
+    const aiMessage: Message = {
+      id: Date.now() + 1,
+      content: `**Rewritten Document:**\n\n${rewrittenText}`,
+      role: 'assistant',
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage, aiMessage]);
+    
+    // SECOND: Store the rewritten document in the documents section
     try {
       const response = await fetch('/api/documents', {
         method: 'POST',
@@ -514,6 +531,7 @@ Document text: ${extractedText}`;
       console.error('Failed to save rewritten document:', error);
     }
 
+    // THIRD: Close modal AFTER everything is done
     setIsChunkedRewriterOpen(false);
   };
 
