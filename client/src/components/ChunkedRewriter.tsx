@@ -294,9 +294,6 @@ export default function ChunkedRewriter({
         description: `Successfully processed content with ${metadata.chunksProcessed} rewritten chunks${metadata.newChunksAdded ? ` and ${metadata.newChunksAdded} new chunks` : ''}.`,
       });
 
-      // Automatically add rewritten content to chat
-      onAddToChat(`**Rewritten Document:**\n\n${finalContent}`, metadata);
-      
       onRewriteComplete(finalContent, metadata);
 
     } catch (error) {

@@ -492,6 +492,9 @@ Document text: ${extractedText}`;
 
   // Handle chunked rewriter completion
   const handleChunkedRewriteComplete = async (rewrittenText: string, metadata: any) => {
+    console.log("handleChunkedRewriteComplete called with:", rewrittenText.length, "characters");
+    console.log("Current messages length:", messages.length);
+    
     // FIRST: Add to chat BEFORE closing modal
     const userMessage: Message = {
       id: Date.now(),
@@ -507,7 +510,13 @@ Document text: ${extractedText}`;
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, userMessage, aiMessage]);
+    console.log("Adding messages to chat:", userMessage, aiMessage);
+    setMessages(prev => {
+      console.log("Previous messages:", prev.length);
+      const newMessages = [...prev, userMessage, aiMessage];
+      console.log("New messages:", newMessages.length);
+      return newMessages;
+    });
     
     // SECOND: Store the rewritten document in the documents section
     try {
