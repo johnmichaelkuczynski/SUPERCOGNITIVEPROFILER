@@ -50,7 +50,9 @@ export default function Rewrites() {
                              doc.title.includes('(Rewritten)') || 
                              doc.title.includes('Rewritten:') ||
                              doc.metadata?.isRewrite === true;
-            return isRewrite;
+            // Only show rewrites that actually have content
+            const hasContent = doc.content && doc.content.trim().length > 0;
+            return isRewrite && hasContent;
           })
           .map((doc: any) => {
             const metadata = typeof doc.metadata === 'string' ? JSON.parse(doc.metadata) : doc.metadata || {};
