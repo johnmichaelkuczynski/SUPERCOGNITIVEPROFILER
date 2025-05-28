@@ -228,6 +228,9 @@ export default function ChunkedRewriter({
       // Step 2: Generate new chunks if needed
       if (rewriteMode === 'add' || rewriteMode === 'both') {
         for (let i = 0; i < numberOfNewChunks; i++) {
+          // Update current chunk index for new chunks
+          setCurrentChunkIndex(processedChunks);
+          
           const response = await fetch('/api/generate-new-chunk', {
             method: 'POST',
             headers: {
@@ -646,7 +649,14 @@ export default function ChunkedRewriter({
         {isProcessing && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Processing chunk {currentChunkIndex + 1} of {chunks.filter(c => c.selected).length}</span>
+              <span>
+                {rewriteMode === 'add' 
+                  ? `Generating new chunk ${currentChunkIndex + 1} of ${numberOfNewChunks}`
+                  : rewriteMode === 'rewrite' 
+                    ? `Rewriting chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length}`
+                    : `Processing chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length + numberOfNewChunks}`
+                }
+              </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="w-full" />
