@@ -51,7 +51,7 @@ export default function ChunkedRewriter({
   // New rewriting mode options
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
-  const [numberOfNewChunks, setNumberOfNewChunks] = useState(2);
+  const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);
   const [showResultsPopup, setShowResultsPopup] = useState(false);
   const [finalRewrittenContent, setFinalRewrittenContent] = useState('');
   const [rewriteMetadata, setRewriteMetadata] = useState<any>(null);
@@ -232,9 +232,10 @@ export default function ChunkedRewriter({
         finalContent = originalText;
       }
 
-      // Step 2: Generate new chunks if needed
+      // Step 2: Generate new chunks if needed (cap at maximum 5 chunks to prevent overwhelming)
       if (rewriteMode === 'add' || rewriteMode === 'both') {
-        for (let i = 0; i < numberOfNewChunks; i++) {
+        const maxNewChunks = Math.min(numberOfNewChunks, 5);
+        for (let i = 0; i < maxNewChunks; i++) {
           // Update current chunk index for new chunks
           setCurrentChunkIndex(processedChunks);
           

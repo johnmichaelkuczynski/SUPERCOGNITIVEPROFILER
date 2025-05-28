@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3 } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3, Mail } from 'lucide-react';
 import { downloadOutput } from '@/lib/llm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -673,6 +673,7 @@ Document text: ${extractedText}`;
                             className="h-6 w-6"
                             onClick={() => {
                               const printWindow = window.open('', '_blank');
+                              if (!printWindow) return;
                               printWindow.document.write(`
                                 <html>
                                   <head>
@@ -744,7 +745,7 @@ Document text: ${extractedText}`;
                             size="icon"
                             className="h-6 w-6"
                             onClick={() => {
-                              const email = prompt("Enter email address to share this message:");
+                              const email = window.prompt("Enter email address to share this message:");
                               if (email) {
                                 fetch('/api/share-rewrite', {
                                   method: 'POST',
