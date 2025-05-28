@@ -294,27 +294,34 @@ Write the content in a clear, engaging style with proper headings and structure.
         setProgress((completedTasks / totalTasks) * 100);
       }
 
-      // Compile the full text: rewritten chunks + new content
-      const rewrittenChunks = chunks.filter(chunk => chunk.selected && chunk.rewritten);
-      const newGeneratedContent = newContentItems.filter(item => item.selected && item.generatedContent);
+      // Build text by collecting all rewritten content directly
+      let allRewrittenParts: string[] = [];
       
-      console.log('Rewritten chunks for assembly:', rewrittenChunks.length);
-      console.log('New content sections for assembly:', newGeneratedContent.length);
-      console.log('Sample chunk content:', rewrittenChunks[0]?.rewritten?.substring(0, 100));
-      console.log('Sample new content:', newGeneratedContent[0]?.generatedContent?.substring(0, 100));
+      // Collect rewritten chunks
+      for (const chunk of selectedChunks) {
+        const chunkState = chunks.find(c => c.id === chunk.id);
+        if (chunkState?.rewritten) {
+          allRewrittenParts.push(chunkState.rewritten);
+          console.log(`Added rewritten chunk: ${chunkState.rewritten.substring(0, 50)}...`);
+        }
+      }
       
-      const rewrittenText = rewrittenChunks
-        .map(chunk => chunk.rewritten)
-        .join('\n\n');
-        
-      const newContentText = newGeneratedContent
-        .map(item => item.generatedContent)
-        .join('\n\n');
+      // Collect new content
+      for (const item of selectedNewContent) {
+        const itemState = newContentItems.find(i => i.id === item.id);
+        if (itemState?.generatedContent) {
+          allRewrittenParts.push(itemState.generatedContent);
+          console.log(`Added new content: ${itemState.generatedContent.substring(0, 50)}...`);
+        }
+      }
       
-      // Combine rewritten content and new content
-      const fullRewrittenText = [rewrittenText, newContentText]
-        .filter(text => text && text.trim())
-        .join('\n\n');
+      console.log(`Total parts assembled: ${allRewrittenParts.length}`);
+      
+      const rewrittenText = '';
+      const newContentText = '';
+      
+      // Use the collected parts as the final text
+      const fullRewrittenText = allRewrittenParts.join('\n\n');
       
       console.log('Final assembled text length:', fullRewrittenText.length);
 
