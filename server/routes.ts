@@ -1090,6 +1090,74 @@ Return only the rewritten text without any additional comments, explanations, or
     }
   });
 
+  app.post('/api/generate-new-chunk', async (req: Request, res: Response) => {
+    try {
+      const { originalContent, newChunkInstructions, existingContent, model, chatContext, chunkNumber, totalNewChunks } = req.body;
+      
+      if (!originalContent || !newChunkInstructions) {
+        return res.status(400).json({ error: 'Original content and new chunk instructions are required' });
+      }
+
+      let prompt = `Based on the original document content and the existing rewritten content, generate new content according to these specific instructions: ${newChunkInstructions}\n\n`;
+      
+      if (chatContext) {
+        prompt += `Chat context for reference:\n${chatContext}\n\n`;
+      }
+
+      prompt += `Original document context:\n${originalContent.substring(0, 2000)}...\n\n`;
+      
+      if (existingContent) {
+        prompt += `Existing content (to maintain consistency):\n${existingContent.substring(0, 1000)}...\n\n`;
+      }
+
+      prompt += `Generate new content chunk ${chunkNumber} of ${totalNewChunks}. This should be substantial content (approximately 500 words) that:\n`;
+      prompt += `- Follows the instructions: ${newChunkInstructions}\n`;
+      prompt += `- Maintains consistency with the existing content\n`;
+      prompt += `- Provides valuable additional information\n`;
+      prompt += `- Uses the same writing style and tone as the original document\n\n`;
+      
+      prompt += `IMPORTANT: If including mathematical expressions or formulas:
+- Use proper LaTeX formatting with \\(...\\) for inline math and $$...$$ for display math
+- Do not escape or convert LaTeX symbols
+- Keep all mathematical notation in proper LaTeX format
+
+Return only the new content without any additional comments, explanations, or headers.`;
+
+      let result: string;
+      
+      if (model === 'claude') {
+        result = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      } else if (model === 'gpt4') {
+        const OpenAI = require('openai');
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+          max_tokens: 4000
+        });
+        
+        result = response.choices[0].message.content || '';
+      } else {
+        // Fallback to Claude
+        result = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      }
+      
+      res.json({ newChunkContent: result });
+      
+    } catch (error) {
+      console.error('Generate new chunk error:', error);
+      res.status(500).json({ error: 'Failed to generate new chunk' });
+    }
+  });
+
   // Setup HTTP server and WebSocket
   const httpServer = createServer(app);
   
