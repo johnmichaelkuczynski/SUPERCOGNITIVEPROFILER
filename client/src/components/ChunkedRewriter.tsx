@@ -586,10 +586,19 @@ Write the content in a clear, engaging style with proper headings and structure.
           </div>
         </div>
 
+        {/* Hybrid Mode Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">🔄 Hybrid Mode Available</h3>
+          <p className="text-blue-800 text-sm">
+            You can <strong>simultaneously</strong> rewrite existing sections AND add brand new content! 
+            Select any existing chunks below, then add new content sections, and process everything together in one operation.
+          </p>
+        </div>
+
         {/* Chunk Selection */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Text Chunks ({chunks.length})</h3>
+            <h3 className="text-lg font-semibold">📝 Existing Text Chunks ({chunks.length})</h3>
             <div className="space-x-2">
               <Button size="sm" variant="outline" onClick={selectAllChunks}>
                 Select All
