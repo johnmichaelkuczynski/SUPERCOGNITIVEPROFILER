@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { Download, Mail, Eye, Play, Pause, RotateCcw } from 'lucide-react';
+import { Download, Mail, Eye, Play, Pause, RotateCcw, X, Bomb } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -73,6 +73,37 @@ export default function ChunkedRewriter({
     toast({
       title: "Cancelling Rewrite",
       description: "Stopping the rewrite process...",
+    });
+  };
+
+  const nukeEverything = () => {
+    // Reset absolutely everything
+    setIsProcessing(false);
+    setIsCancelled(false);
+    setCurrentChunkIndex(0);
+    setProgress(0);
+    setShowLiveProgress(false);
+    setShowResultsPopup(false);
+    setShowRerewriteForm(false);
+    setIsRerewriting(false);
+    setPreviewChunk(null);
+    setRerewriteInstructions('');
+    setRewriteChunks([]);
+    setLiveProgressChunks([]);
+    
+    // Reset all chunks
+    setChunks(prev => prev.map(chunk => ({
+      ...chunk,
+      rewritten: undefined,
+      isProcessing: false,
+      isComplete: false,
+      selected: false
+    })));
+    
+    toast({
+      title: "🧨 NUKED!",
+      description: "Everything has been reset. Fresh start!",
+      variant: "destructive"
     });
   };
 
@@ -876,7 +907,7 @@ export default function ChunkedRewriter({
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {!isProcessing ? (
             <Button 
               onClick={startRewrite} 
@@ -896,6 +927,15 @@ export default function ChunkedRewriter({
               <span>Cancel Rewrite</span>
             </Button>
           )}
+
+          <Button 
+            onClick={nukeEverything} 
+            variant="destructive"
+            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700"
+          >
+            <Bomb className="w-4 h-4" />
+            <span>🧨 NUKE</span>
+          </Button>
 
           <Button 
             variant="outline" 
