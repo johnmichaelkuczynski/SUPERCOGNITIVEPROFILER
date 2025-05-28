@@ -43,6 +43,11 @@ interface ChunkedRewriterProps {
   chatHistory?: Array<{role: string; content: string}>;
 }
 
+interface CompletedRewrite {
+  content: string;
+  metadata: any;
+}
+
 export default function ChunkedRewriter({ 
   originalText, 
   onRewriteComplete, 
@@ -57,6 +62,8 @@ export default function ChunkedRewriter({
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [completedRewrite, setCompletedRewrite] = useState<CompletedRewrite | null>(null);
+  const [showResultsPopup, setShowResultsPopup] = useState(false);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
   const [newContentTopic, setNewContentTopic] = useState('');
@@ -327,10 +334,11 @@ Write the content in a clear, engaging style with proper headings and structure.
       const rewrittenText = '';
       const newContentText = '';
       
-      // Use the collected parts as the final text
-      const fullRewrittenText = allRewrittenParts.join('\n\n');
+      // Use the tracked content directly
+      const fullRewrittenText = generatedContent.join('\n\n');
       
       console.log('Final assembled text length:', fullRewrittenText.length);
+      console.log('Generated content array length:', generatedContent.length);
 
       const metadata = {
         originalLength: originalText.length,
@@ -357,8 +365,9 @@ Write the content in a clear, engaging style with proper headings and structure.
         duration: 8000,
       });
 
-      // Save the completed rewrite and let user see the results
-      onRewriteComplete(fullRewrittenText, metadata);
+      // Show the results popup instead of calling onRewriteComplete
+      setCompletedRewrite({ content: fullRewrittenText, metadata });
+      setShowResultsPopup(true);
 
     } catch (error) {
       console.error('Rewrite error:', error);
