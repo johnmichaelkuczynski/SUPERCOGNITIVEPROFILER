@@ -9,7 +9,6 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Analytics from "@/pages/Analytics";
 import Documents from "@/pages/Documents";
-import Rewrites from "@/pages/Rewrites";
 import Conversations from "@/pages/Conversations";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
@@ -60,7 +59,6 @@ function Router() {
           <Route path="/" component={() => <ProtectedRoute component={Home} />} />
           <Route path="/analytics" component={() => <ProtectedRoute component={Analytics} />} />
           <Route path="/documents" component={() => <ProtectedRoute component={Documents} />} />
-          <Route path="/rewrites" component={() => <ProtectedRoute component={Rewrites} />} />
           <Route path="/conversations" component={() => <ProtectedRoute component={Conversations} />} />
           <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
           <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />

@@ -248,35 +248,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Create document route (for saving rewrites)
-  app.post('/api/documents', async (req: Request, res: Response) => {
-    try {
-      const { title, content, type, metadata } = req.body;
-      const userId = 1; // Mock user ID for now
-      
-      const docId = `doc_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-      
-      const document = await storage.createDocument({
-        id: docId,
-        userId,
-        title,
-        content,
-        type: type || 'document',
-        model: metadata?.model || 'claude',
-        excerpt: content.substring(0, 200),
-        date: new Date(),
-        metadata: JSON.stringify(metadata || {}),
-        chunks: '[]'
-      });
-      
-      console.log(`Saved document "${title}" with type "${type}"`);
-      res.json(document);
-    } catch (error) {
-      console.error('Error creating document:', error);
-      res.status(500).json({ message: 'Failed to create document', error: (error as Error).message });
-    }
-  });
-
   // Get documents route
   app.get('/api/documents', async (req: Request, res: Response) => {
     try {
@@ -960,60 +931,6 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
   
-  // Download rewrite endpoint
-  app.post('/api/download-rewrite', async (req: Request, res: Response) => {
-    try {
-      const { content, format, title } = req.body;
-      
-      if (!content || !format) {
-        return res.status(400).json({ error: 'Content and format are required' });
-      }
-      
-      const filename = title || 'rewritten-document';
-      
-      if (format === 'pdf') {
-        const PDFDocument = await import('pdfkit');
-        const doc = new PDFDocument.default();
-        
-        let buffer: Buffer;
-        const chunks: Buffer[] = [];
-        
-        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-        doc.on('end', () => {
-          buffer = Buffer.concat(chunks);
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
-          res.send(buffer);
-        });
-        
-        doc.fontSize(12).text(content, { width: 500 });
-        doc.end();
-        
-      } else if (format === 'docx') {
-        const { Document, Packer, Paragraph, TextRun } = await import('docx');
-        
-        const doc = new Document({
-          sections: [{
-            properties: {},
-            children: content.split('\n').map((line: string) => 
-              new Paragraph({
-                children: [new TextRun(line || ' ')],
-              })
-            ),
-          }],
-        });
-        
-        const buffer = await Packer.toBuffer(doc);
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}.docx"`);
-        res.send(buffer);
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      res.status(500).json({ error: 'Failed to generate download' });
-    }
-  });
-
   // Chunked rewriter API endpoints
   app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
     try {
@@ -1040,26 +957,10 @@ Return only the rewritten text without any additional comments, explanations, or
       let result: string;
       
       if (model === 'claude') {
-        try {
-          result = await processClaude(prompt, {
-            temperature: 0.7,
-            maxTokens: 4000
-          });
-        } catch (claudeError: any) {
-          console.log('Claude overloaded, falling back to GPT-4...');
-          // Fallback to GPT-4 when Claude is overloaded
-          const OpenAI = require('openai');
-          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-          
-          const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.7,
-            max_tokens: 4000
-          });
-          
-          result = response.choices[0].message.content || '';
-        }
+        result = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
       } else if (model === 'gpt4') {
         const OpenAI = require('openai');
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -1163,7 +1064,7 @@ Return only the rewritten text without any additional comments, explanations, or
 
       const emailParams = {
         to: recipientEmail,
-        from: process.env.SENDGRID_FROM_EMAIL || 'your-verified-email@example.com',
+        from: 'noreply@textmind.app',
         subject: subject || 'Rewritten Document',
         html: `
           <h2>Rewritten Document</h2>

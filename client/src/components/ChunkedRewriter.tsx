@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,16 +25,6 @@ interface TextChunk {
   isComplete?: boolean;
 }
 
-interface NewContentItem {
-  id: string;
-  topic: string;
-  description: string;
-  selected: boolean;
-  generatedContent?: string;
-  isProcessing?: boolean;
-  isComplete?: boolean;
-}
-
 interface ChunkedRewriterProps {
   originalText: string;
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
@@ -50,7 +39,6 @@ export default function ChunkedRewriter({
   chatHistory = []
 }: ChunkedRewriterProps) {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
-  const [newContentItems, setNewContentItems] = useState<NewContentItem[]>([]);
   const [instructions, setInstructions] = useState('');
   const [includeChatContext, setIncludeChatContext] = useState(false);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
@@ -59,8 +47,6 @@ export default function ChunkedRewriter({
   const [progress, setProgress] = useState(0);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
-  const [newContentTopic, setNewContentTopic] = useState('');
-  const [newContentDescription, setNewContentDescription] = useState('');
   const { toast } = useToast();
 
   // Split text into chunks of approximately 500 words
@@ -103,56 +89,12 @@ export default function ChunkedRewriter({
     setChunks(prev => prev.map(chunk => ({ ...chunk, selected: false })));
   };
 
-  // New content management functions
-  const addNewContentItem = () => {
-    if (!newContentTopic.trim()) {
-      toast({
-        title: "Topic required",
-        description: "Please enter a topic for the new content section.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newItem: NewContentItem = {
-      id: `new_${Date.now()}_${Math.random().toString(36).substring(2)}`,
-      topic: newContentTopic.trim(),
-      description: newContentDescription.trim(),
-      selected: true,
-      isProcessing: false,
-      isComplete: false
-    };
-
-    setNewContentItems(prev => [...prev, newItem]);
-    setNewContentTopic('');
-    setNewContentDescription('');
-    
-    toast({
-      title: "New section added",
-      description: `Added "${newItem.topic}" to the content generation list.`,
-    });
-  };
-
-  const toggleNewContentSelection = (itemId: string) => {
-    setNewContentItems(prev => prev.map(item => 
-      item.id === itemId 
-        ? { ...item, selected: !item.selected }
-        : item
-    ));
-  };
-
-  const removeNewContentItem = (itemId: string) => {
-    setNewContentItems(prev => prev.filter(item => item.id !== itemId));
-  };
-
   const startRewrite = async () => {
     const selectedChunks = chunks.filter(chunk => chunk.selected);
-    const selectedNewContent = newContentItems.filter(item => item.selected);
-    
-    if (selectedChunks.length === 0 && selectedNewContent.length === 0) {
+    if (selectedChunks.length === 0) {
       toast({
-        title: "No content selected",
-        description: "Please select at least one chunk to rewrite or add new content sections.",
+        title: "No chunks selected",
+        description: "Please select at least one chunk to rewrite.",
         variant: "destructive"
       });
       return;
@@ -162,17 +104,10 @@ export default function ChunkedRewriter({
     setCurrentChunkIndex(0);
     setProgress(0);
 
-    // Reset all chunks and new content items
+    // Reset all chunks
     setChunks(prev => prev.map(chunk => ({
       ...chunk,
       rewritten: undefined,
-      isProcessing: false,
-      isComplete: false
-    })));
-    
-    setNewContentItems(prev => prev.map(item => ({
-      ...item,
-      generatedContent: undefined,
       isProcessing: false,
       isComplete: false
     })));
@@ -184,13 +119,9 @@ export default function ChunkedRewriter({
           chatHistory.slice(-10).map(msg => `${msg.role}: ${msg.content}`).join('\n');
       }
 
-      const totalTasks = selectedChunks.length + selectedNewContent.length;
-      let completedTasks = 0;
-
-      // Process existing chunks for rewriting
       for (let i = 0; i < selectedChunks.length; i++) {
         const chunk = selectedChunks[i];
-        setCurrentChunkIndex(completedTasks);
+        setCurrentChunkIndex(i);
         
         // Mark current chunk as processing
         setChunks(prev => prev.map(c => 
@@ -232,120 +163,30 @@ export default function ChunkedRewriter({
             : c
         ));
 
-        completedTasks++;
-        setProgress((completedTasks / totalTasks) * 100);
+        setProgress(((i + 1) / selectedChunks.length) * 100);
       }
 
-      // Process new content generation
-      for (let i = 0; i < selectedNewContent.length; i++) {
-        const item = selectedNewContent[i];
-        
-        // Mark current item as processing
-        setNewContentItems(prev => prev.map(item => 
-          item.id === selectedNewContent[i].id 
-            ? { ...item, isProcessing: true }
-            : item
-        ));
+      toast({
+        title: "Rewrite complete!",
+        description: `Successfully rewrote ${selectedChunks.length} chunks.`,
+      });
 
-        const contentPrompt = `Write a comprehensive section about "${item.topic}".
-        
-${item.description ? `Description: ${item.description}` : ''}
-
-Context: This is being added to a document that already contains content about similar topics. 
-Please write a well-structured, informative section that would fit naturally with academic or professional content.
-
-${instructions ? `Additional instructions: ${instructions}` : ''}
-${chatContext}
-
-Write the content in a clear, engaging style with proper headings and structure.`;
-
-        const response = await fetch('/api/rewrite-chunk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: contentPrompt,
-            instructions: `Generate new content about: ${item.topic}`,
-            model: selectedModel,
-            chatContext: includeChatContext ? chatContext : undefined,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to generate content for "${item.topic}"`);
-        }
-
-        const result = await response.json();
-
-        // Update item with generated content
-        setNewContentItems(prev => prev.map(i => 
-          i.id === item.id 
-            ? { 
-                ...i, 
-                generatedContent: result.rewrittenContent,
-                isProcessing: false,
-                isComplete: true 
-              }
-            : i
-        ));
-
-        completedTasks++;
-        setProgress((completedTasks / totalTasks) * 100);
-      }
-
-      // Compile the full text: rewritten chunks + new content
-      const rewrittenChunks = chunks.filter(chunk => chunk.selected && chunk.rewritten);
-      const newGeneratedContent = newContentItems.filter(item => item.selected && item.generatedContent);
-      
-      console.log('Rewritten chunks for assembly:', rewrittenChunks.length);
-      console.log('New content sections for assembly:', newGeneratedContent.length);
-      console.log('Sample chunk content:', rewrittenChunks[0]?.rewritten?.substring(0, 100));
-      console.log('Sample new content:', newGeneratedContent[0]?.generatedContent?.substring(0, 100));
-      
-      const rewrittenText = rewrittenChunks
+      // Compile the full rewritten text
+      const fullRewrittenText = chunks
+        .filter(chunk => chunk.selected && chunk.rewritten)
         .map(chunk => chunk.rewritten)
         .join('\n\n');
-        
-      const newContentText = newGeneratedContent
-        .map(item => item.generatedContent)
-        .join('\n\n');
-      
-      // Combine rewritten content and new content
-      const fullRewrittenText = [rewrittenText, newContentText]
-        .filter(text => text && text.trim())
-        .join('\n\n');
-      
-      console.log('Final assembled text length:', fullRewrittenText.length);
 
       const metadata = {
         originalLength: originalText.length,
         rewrittenLength: fullRewrittenText.length,
         chunksProcessed: selectedChunks.length,
-        newContentSections: selectedNewContent.length,
         model: selectedModel,
         instructions: instructions,
         includedChatContext: includeChatContext
       };
 
-      let successMessage = '';
-      if (selectedChunks.length > 0 && selectedNewContent.length > 0) {
-        successMessage = `Successfully rewrote ${selectedChunks.length} chunks and added ${selectedNewContent.length} new content sections.`;
-      } else if (selectedChunks.length > 0) {
-        successMessage = `Successfully rewrote ${selectedChunks.length} chunks.`;
-      } else {
-        successMessage = `Successfully added ${selectedNewContent.length} new content sections.`;
-      }
-
-      // Save the completed rewrite and let user see the results
       onRewriteComplete(fullRewrittenText, metadata);
-      
-      // Show the actual rewritten content immediately
-      setCompletedRewrite({
-        content: fullRewrittenText,
-        metadata: metadata,
-        successMessage: successMessage
-      });
 
     } catch (error) {
       console.error('Rewrite error:', error);
@@ -646,190 +487,19 @@ Write the content in a clear, engaging style with proper headings and structure.
           </div>
         </div>
 
-        {/* Add New Content Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Add New Content Sections</h3>
-            <Badge variant="outline">{newContentItems.length} sections</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Add entirely new sections to your document on topics you specify. These will be generated as additional content alongside your existing text.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-            <div className="space-y-2">
-              <Label htmlFor="newTopic">Topic/Section Title</Label>
-              <Input
-                id="newTopic"
-                placeholder="e.g., Knowledge of the Past"
-                value={newContentTopic}
-                onChange={(e) => setNewContentTopic(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newDescription">Detailed Instructions (Optional)</Label>
-              <Textarea
-                id="newDescription"
-                placeholder="Detailed instructions for what to include in this section. You can provide extensive guidance, examples, specific points to cover, writing style preferences, etc."
-                value={newContentDescription}
-                onChange={(e) => setNewContentDescription(e.target.value)}
-                rows={4}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Button onClick={addNewContentItem} className="w-full">
-                Add New Section
-              </Button>
-            </div>
-          </div>
-
-          {/* Display Added New Content Items */}
-          {newContentItems.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {newContentItems.map((item, index) => (
-                <Card key={item.id} className={`cursor-pointer transition-colors ${
-                  item.selected ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800' : ''
-                }`}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium">
-                        {item.topic}
-                      </CardTitle>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeNewContentItem(item.id)}
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                        >
-                          ×
-                        </Button>
-                        <Checkbox
-                          checked={item.selected}
-                          onCheckedChange={() => toggleNewContentSelection(item.id)}
-                        />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-muted-foreground">
-                      {item.description || 'Will generate content about this topic'}
-                    </p>
-                    {item.isProcessing && (
-                      <div className="mt-2 text-xs text-yellow-600 dark:text-yellow-400">
-                        Generating content...
-                      </div>
-                    )}
-                    {item.isComplete && (
-                      <div className="mt-2 text-xs text-green-600 dark:text-green-400">
-                        ✓ Content generated
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* Progress Section */}
         {isProcessing && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Processing {currentChunkIndex + 1} of {chunks.filter(c => c.selected).length + newContentItems.filter(item => item.selected).length} items</span>
+              <span>Processing chunk {currentChunkIndex + 1} of {chunks.filter(c => c.selected).length}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="w-full" />
           </div>
         )}
 
-        {/* Completed Rewrite Display */}
-        {chunks.some(c => c.rewritten) && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-green-600">✓ Rewrite Complete!</h3>
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                {chunks.filter(c => c.rewritten).length} chunks rewritten
-              </Badge>
-            </div>
-            
-            <Card className="bg-green-50 border-green-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-green-800">Your Rewritten Document</CardTitle>
-                <CardDescription>
-                  Document is ready for download, sharing, or adding to your chat
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Button 
-                    onClick={addToChat}
-                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Add to Chat</span>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    onClick={() => downloadRewrite('pdf')}
-                    className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-100"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download PDF</span>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    onClick={() => downloadRewrite('docx')}
-                    className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-100"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download Word</span>
-                  </Button>
-
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline"
-                        className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-100"
-                      >
-                        <Mail className="w-4 h-4" />
-                        <span>Email</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Share Rewritten Document</DialogTitle>
-                        <DialogDescription>
-                          Send your rewritten document via email
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Input
-                          placeholder="Enter email address..."
-                          value={emailAddress}
-                          onChange={(e) => setEmailAddress(e.target.value)}
-                        />
-                        <Button 
-                          onClick={shareViaEmail}
-                          disabled={!emailAddress}
-                          className="w-full"
-                        >
-                          Send Email
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Button 
             onClick={startRewrite} 
             disabled={isProcessing || chunks.filter(c => c.selected).length === 0}
@@ -841,25 +511,52 @@ Write the content in a clear, engaging style with proper headings and structure.
 
           <Button 
             variant="outline" 
-            onClick={() => {
-              setChunks(prev => prev.map(chunk => ({
-                ...chunk,
-                rewritten: undefined,
-                isProcessing: false,
-                isComplete: false
-              })));
-              setProgress(0);
-              setCurrentChunkIndex(0);
-            }}
-            disabled={isProcessing}
+            onClick={addToChat}
+            disabled={!chunks.some(c => c.rewritten)}
             className="flex items-center space-x-2"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Reset</span>
+            <span>Add to Chat</span>
+          </Button>
+
+          <Button 
+            variant="outline" 
+            onClick={() => downloadRewrite('pdf')}
+            disabled={!chunks.some(c => c.rewritten)}
+            className="flex items-center space-x-2"
+          >
+            <Download className="w-4 h-4" />
+            <span>PDF</span>
+          </Button>
+
+          <Button 
+            variant="outline" 
+            onClick={() => downloadRewrite('docx')}
+            disabled={!chunks.some(c => c.rewritten)}
+            className="flex items-center space-x-2"
+          >
+            <Download className="w-4 h-4" />
+            <span>Word</span>
           </Button>
         </div>
 
-
+        {/* Email Sharing */}
+        <div className="flex space-x-2">
+          <Input
+            placeholder="Enter email address to share..."
+            value={emailAddress}
+            onChange={(e) => setEmailAddress(e.target.value)}
+            disabled={!chunks.some(c => c.rewritten)}
+          />
+          <Button 
+            onClick={shareViaEmail}
+            disabled={!chunks.some(c => c.rewritten) || !emailAddress}
+            className="flex items-center space-x-2"
+          >
+            <Mail className="w-4 h-4" />
+            <span>Share</span>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

@@ -14,11 +14,9 @@ import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 import AIDetectionPopover from '@/components/AIDetectionPopover';
 import { useLocation } from 'wouter';
-import { useToast } from '@/hooks/use-toast';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
-import CompletedRewritesViewer from '@/components/CompletedRewritesViewer';
 
 interface Message {
   id: number;
@@ -63,9 +61,6 @@ export default function Home() {
   const [isChunkedRewriterOpen, setIsChunkedRewriterOpen] = useState(false);
   const [rewriterText, setRewriterText] = useState<string>('');
   const [rewriterTitle, setRewriterTitle] = useState<string>('');
-  
-  // Completed rewrites viewer state
-  const [isCompletedRewritesOpen, setIsCompletedRewritesOpen] = useState(false);
   
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
@@ -497,42 +492,23 @@ Document text: ${extractedText}`;
 
   // Handle chunked rewriter completion
   const handleChunkedRewriteComplete = async (rewrittenText: string, metadata: any) => {
-    // Store the rewritten document in the documents section with proper marking
-    console.log('handleChunkedRewriteComplete called with:', { 
-      textLength: rewrittenText?.length || 0, 
-      textPreview: rewrittenText?.substring(0, 100) || 'NO TEXT',
-      metadata 
-    });
-    
+    // Store the rewritten document in the documents section
     try {
-      const rewriteMetadata = {
-        ...metadata,
-        isRewrite: true,
-        originalTitle: rewriterTitle,
-        rewriteInstructions: metadata.instructions,
-        totalChunks: metadata.chunksProcessed
-      };
-
       const response = await fetch('/api/documents', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: `Rewritten: ${rewriterTitle}`,
+          title: `${rewriterTitle} (Rewritten)`,
           content: rewrittenText,
           type: 'rewrite',
-          metadata: rewriteMetadata
+          metadata: metadata
         }),
       });
 
       if (response.ok) {
         console.log('Rewritten document saved to Documents section');
-        toast({
-          title: "Rewrite saved!",
-          description: "Your completed rewrite is now available in the 'View Completed Rewrites' section.",
-          duration: 5000,
-        });
       }
     } catch (error) {
       console.error('Failed to save rewritten document:', error);
@@ -1117,10 +1093,24 @@ Document text: ${extractedText}`;
                       </DialogContent>
                     </Dialog>
                     
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex flex-col items-center px-3 py-2 h-auto"
+                      onClick={() => {
+                        if (Object.entries(uploadedDocuments).length > 0) {
+                          const [[firstFilename, firstContent]] = Object.entries(uploadedDocuments);
+                          setDocumentContent(firstContent);
+                          setDocumentName(firstFilename);
+                          setIsRewriterOpen(true);
+                        }
+                      }}
+                    >
+                      <FileText className="h-6 w-6 mb-1" />
+                      <span className="text-xs">Rewrite</span>
+                    </Button>
                   </div>
                 )}
-                
-
               </div>
               
               {/* File Upload UI */}
@@ -1217,12 +1207,6 @@ Document text: ${extractedText}`;
           />
         </DialogContent>
       </Dialog>
-
-      {/* Completed Rewrites Viewer */}
-      <CompletedRewritesViewer
-        isOpen={isCompletedRewritesOpen}
-        onClose={() => setIsCompletedRewritesOpen(false)}
-      />
     </main>
   );
 }
