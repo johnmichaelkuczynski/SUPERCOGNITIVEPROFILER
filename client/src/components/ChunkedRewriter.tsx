@@ -976,6 +976,10 @@ export default function ChunkedRewriter({
             <Button 
               onClick={async () => {
                 try {
+                  // Add timeout to prevent hanging
+                  const controller = new AbortController();
+                  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
                   const response = await fetch('/api/download-rewrite', {
                     method: 'POST',
                     headers: {
@@ -987,9 +991,14 @@ export default function ChunkedRewriter({
                       title: 'Rewrite Results',
                       metadata: rewriteMetadata
                     }),
+                    signal: controller.signal
                   });
 
-                  if (!response.ok) throw new Error('PDF generation failed');
+                  clearTimeout(timeoutId);
+
+                  if (!response.ok) {
+                    throw new Error(`PDF generation failed: ${response.status}`);
+                  }
 
                   const blob = await response.blob();
                   const url = window.URL.createObjectURL(blob);
@@ -1001,13 +1010,27 @@ export default function ChunkedRewriter({
                   a.click();
                   window.URL.revokeObjectURL(url);
                   document.body.removeChild(a);
+
+                  toast({
+                    title: "PDF downloaded!",
+                    description: "Your rewrite has been saved as PDF.",
+                  });
                 } catch (error) {
                   console.error('PDF download failed:', error);
-                  toast({
-                    title: "PDF generation failed",
-                    description: "Unable to generate PDF. Try the Word download instead.",
-                    variant: "destructive"
-                  });
+                  
+                  if (error.name === 'AbortError') {
+                    toast({
+                      title: "PDF generation timed out",
+                      description: "The PDF is taking too long to generate. Try the Word download instead.",
+                      variant: "destructive"
+                    });
+                  } else {
+                    toast({
+                      title: "PDF generation failed",
+                      description: "Unable to generate PDF. Try the Word download instead.",
+                      variant: "destructive"
+                    });
+                  }
                 }
               }}
               className="flex items-center space-x-2"
