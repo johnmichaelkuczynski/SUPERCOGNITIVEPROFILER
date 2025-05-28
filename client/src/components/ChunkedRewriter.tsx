@@ -43,11 +43,6 @@ interface ChunkedRewriterProps {
   chatHistory?: Array<{role: string; content: string}>;
 }
 
-interface CompletedRewrite {
-  content: string;
-  metadata: any;
-}
-
 export default function ChunkedRewriter({ 
   originalText, 
   onRewriteComplete, 
@@ -62,8 +57,6 @@ export default function ChunkedRewriter({
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [completedRewrite, setCompletedRewrite] = useState<CompletedRewrite | null>(null);
-  const [showResultsPopup, setShowResultsPopup] = useState(false);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
   const [newContentTopic, setNewContentTopic] = useState('');
@@ -169,9 +162,6 @@ export default function ChunkedRewriter({
     setCurrentChunkIndex(0);
     setProgress(0);
 
-    // Track all content as it's generated
-    const generatedContent: string[] = [];
-
     // Reset all chunks and new content items
     setChunks(prev => prev.map(chunk => ({
       ...chunk,
@@ -229,10 +219,6 @@ export default function ChunkedRewriter({
         }
 
         const result = await response.json();
-
-        // CRITICAL: Store content immediately in our tracking array
-        generatedContent.push(result.rewrittenContent);
-        console.log(`STORED chunk content: ${result.rewrittenContent.substring(0, 100)}...`);
 
         // Update chunk with rewritten content
         setChunks(prev => prev.map(c => 
@@ -308,37 +294,29 @@ Write the content in a clear, engaging style with proper headings and structure.
         setProgress((completedTasks / totalTasks) * 100);
       }
 
-      // Build text by collecting all rewritten content directly
-      let allRewrittenParts: string[] = [];
+      // Compile the full text: rewritten chunks + new content
+      const rewrittenChunks = chunks.filter(chunk => chunk.selected && chunk.rewritten);
+      const newGeneratedContent = newContentItems.filter(item => item.selected && item.generatedContent);
       
-      // Collect rewritten chunks
-      for (const chunk of selectedChunks) {
-        const chunkState = chunks.find(c => c.id === chunk.id);
-        if (chunkState?.rewritten) {
-          allRewrittenParts.push(chunkState.rewritten);
-          console.log(`Added rewritten chunk: ${chunkState.rewritten.substring(0, 50)}...`);
-        }
-      }
+      console.log('Rewritten chunks for assembly:', rewrittenChunks.length);
+      console.log('New content sections for assembly:', newGeneratedContent.length);
+      console.log('Sample chunk content:', rewrittenChunks[0]?.rewritten?.substring(0, 100));
+      console.log('Sample new content:', newGeneratedContent[0]?.generatedContent?.substring(0, 100));
       
-      // Collect new content
-      for (const item of selectedNewContent) {
-        const itemState = newContentItems.find(i => i.id === item.id);
-        if (itemState?.generatedContent) {
-          allRewrittenParts.push(itemState.generatedContent);
-          console.log(`Added new content: ${itemState.generatedContent.substring(0, 50)}...`);
-        }
-      }
+      const rewrittenText = rewrittenChunks
+        .map(chunk => chunk.rewritten)
+        .join('\n\n');
+        
+      const newContentText = newGeneratedContent
+        .map(item => item.generatedContent)
+        .join('\n\n');
       
-      console.log(`Total parts assembled: ${allRewrittenParts.length}`);
-      
-      const rewrittenText = '';
-      const newContentText = '';
-      
-      // Use the tracked content directly
-      const fullRewrittenText = generatedContent.join('\n\n');
+      // Combine rewritten content and new content
+      const fullRewrittenText = [rewrittenText, newContentText]
+        .filter(text => text && text.trim())
+        .join('\n\n');
       
       console.log('Final assembled text length:', fullRewrittenText.length);
-      console.log('Generated content array length:', generatedContent.length);
 
       const metadata = {
         originalLength: originalText.length,
@@ -365,9 +343,8 @@ Write the content in a clear, engaging style with proper headings and structure.
         duration: 8000,
       });
 
-      // Show the results popup instead of calling onRewriteComplete
-      setCompletedRewrite({ content: fullRewrittenText, metadata });
-      setShowResultsPopup(true);
+      // Save the completed rewrite and let user see the results
+      onRewriteComplete(fullRewrittenText, metadata);
 
     } catch (error) {
       console.error('Rewrite error:', error);
@@ -586,19 +563,10 @@ Write the content in a clear, engaging style with proper headings and structure.
           </div>
         </div>
 
-        {/* Hybrid Mode Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">🔄 Hybrid Mode Available</h3>
-          <p className="text-blue-800 text-sm">
-            You can <strong>simultaneously</strong> rewrite existing sections AND add brand new content! 
-            Select any existing chunks below, then add new content sections, and process everything together in one operation.
-          </p>
-        </div>
-
         {/* Chunk Selection */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">📝 Existing Text Chunks ({chunks.length})</h3>
+            <h3 className="text-lg font-semibold">Text Chunks ({chunks.length})</h3>
             <div className="space-x-2">
               <Button size="sm" variant="outline" onClick={selectAllChunks}>
                 Select All
@@ -687,7 +655,7 @@ Write the content in a clear, engaging style with proper headings and structure.
             Add entirely new sections to your document on topics you specify. These will be generated as additional content alongside your existing text.
           </p>
           
-          <div className="grid grid-cols-1 gap-4 p-4 bg-muted/50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
             <div className="space-y-2">
               <Label htmlFor="newTopic">Topic/Section Title</Label>
               <Input
@@ -701,14 +669,14 @@ Write the content in a clear, engaging style with proper headings and structure.
               <Label htmlFor="newDescription">Detailed Instructions (Optional)</Label>
               <Textarea
                 id="newDescription"
-                placeholder="Detailed instructions for what to include in this section. You can provide extensive guidance, examples, specific points to cover, writing style preferences, etc. Add as much detail as needed - this field can handle multiple paragraphs of instructions."
+                placeholder="Detailed instructions for what to include in this section. You can provide extensive guidance, examples, specific points to cover, writing style preferences, etc."
                 value={newContentDescription}
                 onChange={(e) => setNewContentDescription(e.target.value)}
-                rows={8}
-                className="min-h-[200px] w-full resize-y"
+                rows={4}
+                className="min-h-[100px]"
               />
             </div>
-            <div>
+            <div className="md:col-span-2">
               <Button onClick={addNewContentItem} className="w-full">
                 Add New Section
               </Button>
@@ -890,80 +858,6 @@ Write the content in a clear, engaging style with proper headings and structure.
           </Button>
         </div>
 
-        {/* Results Popup */}
-        {showResultsPopup && completedRewrite && (
-          <Dialog open={showResultsPopup} onOpenChange={setShowResultsPopup}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-xl text-green-600">✓ Rewrite Complete!</DialogTitle>
-                <DialogDescription>
-                  Your document has been successfully rewritten. Here's your new content:
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                {/* Preview of rewritten content */}
-                <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
-                  <h4 className="font-semibold mb-2">Rewritten Content Preview:</h4>
-                  <div className="text-sm whitespace-pre-wrap">
-                    {completedRewrite.content.substring(0, 2000)}
-                    {completedRewrite.content.length > 2000 && '...'}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    Total: {completedRewrite.content.length} characters
-                  </div>
-                </div>
-
-                {/* Download and Share Options */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <Button 
-                    onClick={() => downloadRewrite('pdf')}
-                    className="flex items-center space-x-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    <span>Download PDF</span>
-                  </Button>
-                  <Button 
-                    onClick={() => downloadRewrite('docx')}
-                    variant="outline"
-                    className="flex items-center space-x-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    <span>Download Word</span>
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      setEmailAddress('');
-                    }}
-                    variant="outline"
-                    className="flex items-center space-x-2"
-                  >
-                    <Mail className="h-4 w-4" />
-                    <span>Share via Email</span>
-                  </Button>
-                </div>
-
-                {/* Email sharing section */}
-                <div className="space-y-2">
-                  <Label htmlFor="popup-email">Email Address (for sharing)</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      id="popup-email"
-                      type="email"
-                      placeholder="Enter email address..."
-                      value={emailAddress}
-                      onChange={(e) => setEmailAddress(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button onClick={shareViaEmail} disabled={!emailAddress}>
-                      Send
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
 
       </CardContent>
     </Card>
