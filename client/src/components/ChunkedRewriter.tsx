@@ -536,12 +536,39 @@ export default function ChunkedRewriter({
         rerewriteModel: rerewriteModel
       }));
 
+      // Save the re-rewritten content to Documents section
+      try {
+        const saveResponse = await fetch('/api/documents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: `Re-rewritten: ${rewriteMetadata?.title || 'Document'}`,
+            content: rerewrittenContent,
+            type: 'rewrite',
+            originalLength: rewriteMetadata?.originalLength || 0,
+            rewrittenLength: rerewrittenContent.length,
+            model: rerewriteModel,
+            instructions: rerewriteInstructions
+          }),
+        });
+
+        if (saveResponse.ok) {
+          console.log("Re-rewritten document saved to Documents section");
+        } else {
+          console.warn("Failed to save re-rewritten document to Documents section");
+        }
+      } catch (saveError) {
+        console.error("Error saving re-rewritten document:", saveError);
+      }
+
       setShowRerewriteForm(false);
       setRerewriteInstructions('');
 
       toast({
         title: "Re-rewrite complete!",
-        description: `Successfully re-rewrote ${selectedChunks.length} chunk(s).`,
+        description: `Successfully re-rewrote ${selectedChunks.length} chunk(s) and saved to Documents.`,
       });
 
     } catch (error) {
@@ -843,15 +870,23 @@ export default function ChunkedRewriter({
     <Dialog open={showResultsPopup} onOpenChange={setShowResultsPopup}>
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-xl">Rewrite Results - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}</DialogTitle>
+          <DialogTitle className="text-xl">
+            {rewriteMetadata?.isRerewrite ? '🔄 Re-rewritten Content' : 'Rewrite Results'} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
+          </DialogTitle>
           <DialogDescription>
             {rewriteMetadata && (
               <div className="text-sm space-y-1">
+                {rewriteMetadata.isRerewrite && (
+                  <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
+                )}
                 <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
                 <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
                 {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
                 {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
-                <div>Model: {rewriteMetadata.model.toUpperCase()}</div>
+                <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>
+                {rewriteMetadata.isRerewrite && (
+                  <div className="text-blue-600">Re-rewrite instructions: {rewriteMetadata.rerewriteInstructions}</div>
+                )}
               </div>
             )}
           </DialogDescription>
