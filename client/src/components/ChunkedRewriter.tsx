@@ -221,8 +221,8 @@ export default function ChunkedRewriter({
             .join('\n\n');
         }
       } else if (rewriteMode === 'add') {
-        // For add-only mode, keep original chunks unchanged
-        finalContent = chunks.map(chunk => chunk.content).join('\n\n');
+        // For add-only mode, keep original content unchanged
+        finalContent = originalText;
       }
 
       // Step 2: Generate new chunks if needed
