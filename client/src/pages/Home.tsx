@@ -540,10 +540,8 @@ Document text: ${extractedText}`;
       console.error('Failed to save rewritten document:', error);
     }
 
-    // THIRD: Close modal AFTER everything is done (with delay to ensure chat update happens)
-    setTimeout(() => {
-      setIsChunkedRewriterOpen(false);
-    }, 100);
+    // Keep modal open so user can see results and use rewrite-the-rewrite feature
+    // setIsChunkedRewriterOpen(false); // Don't auto-close anymore
   };
 
   // Handle adding chunked rewrite content to chat
@@ -665,6 +663,114 @@ Document text: ${extractedText}`;
                         <span className="text-xs text-muted-foreground">
                           {message.timestamp.toLocaleTimeString()}
                         </span>
+                        
+                        {/* Download and Share buttons for each message */}
+                        <div className="flex items-center space-x-1 ml-4">
+                          {/* Print/Save as PDF button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => {
+                              const printWindow = window.open('', '_blank');
+                              printWindow.document.write(`
+                                <html>
+                                  <head>
+                                    <title>Chat Message</title>
+                                    <style>
+                                      body { font-family: Arial, sans-serif; padding: 20px; }
+                                      .message { margin-bottom: 20px; }
+                                      .role { font-weight: bold; margin-bottom: 10px; }
+                                      .content { line-height: 1.6; }
+                                    </style>
+                                  </head>
+                                  <body>
+                                    <div class="message">
+                                      <div class="role">${message.role === "user" ? "You" : "AI"} - ${message.timestamp.toLocaleString()}</div>
+                                      <div class="content">${message.content.replace(/\n/g, '<br>')}</div>
+                                    </div>
+                                  </body>
+                                </html>
+                              `);
+                              printWindow.document.close();
+                              printWindow.print();
+                            }}
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          
+                          {/* Download as Word button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch('/api/download-rewrite', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    content: message.content,
+                                    format: 'docx',
+                                    title: `Chat Message - ${message.role} - ${message.timestamp.toLocaleString()}`
+                                  }),
+                                });
+
+                                if (!response.ok) throw new Error('Download failed');
+
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download = `chat-message-${message.id}.docx`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              } catch (error) {
+                                console.error('Download failed:', error);
+                              }
+                            }}
+                          >
+                            <FileText className="h-3 w-3" />
+                          </Button>
+                          
+                          {/* Share via email button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => {
+                              const email = prompt("Enter email address to share this message:");
+                              if (email) {
+                                fetch('/api/share-rewrite', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    content: message.content,
+                                    recipientEmail: email,
+                                    subject: `Chat Message from ${message.role} - ${message.timestamp.toLocaleString()}`
+                                  }),
+                                }).then(response => {
+                                  if (response.ok) {
+                                    alert(`Message sent to ${email}`);
+                                  } else {
+                                    alert('Failed to send email');
+                                  }
+                                }).catch(() => {
+                                  alert('Failed to send email');
+                                });
+                              }
+                            }}
+                          >
+                            <Mail className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                       
                       {/* File list for messages with attachments */}
