@@ -47,10 +47,15 @@ export default function ChunkedRewriter({
   const [progress, setProgress] = useState(0);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
-  const [showRewriteRewrite, setShowRewriteRewrite] = useState(false);
-  const [rewriteInstructions, setRewriteInstructions] = useState('');
-  const [isRewritingRewrite, setIsRewritingRewrite] = useState(false);
-  const [rewriteProgress, setRewriteProgress] = useState(0);
+  
+  // New rewriting mode options
+  const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
+  const [newChunkInstructions, setNewChunkInstructions] = useState('');
+  const [numberOfNewChunks, setNumberOfNewChunks] = useState(2);
+  const [showResultsPopup, setShowResultsPopup] = useState(false);
+  const [finalRewrittenContent, setFinalRewrittenContent] = useState('');
+  const [rewriteMetadata, setRewriteMetadata] = useState<any>(null);
+  
   const { toast } = useToast();
 
   // Split text into chunks of approximately 500 words
@@ -94,14 +99,28 @@ export default function ChunkedRewriter({
   };
 
   const startRewrite = async () => {
-    const selectedChunks = chunks.filter(chunk => chunk.selected);
-    if (selectedChunks.length === 0) {
-      toast({
-        title: "No chunks selected",
-        description: "Please select at least one chunk to rewrite.",
-        variant: "destructive"
-      });
-      return;
+    // Validation based on rewrite mode
+    if (rewriteMode === 'rewrite' || rewriteMode === 'both') {
+      const selectedChunks = chunks.filter(chunk => chunk.selected);
+      if (selectedChunks.length === 0) {
+        toast({
+          title: "No chunks selected",
+          description: "Please select at least one chunk to rewrite.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
+    if (rewriteMode === 'add' || rewriteMode === 'both') {
+      if (!newChunkInstructions.trim()) {
+        toast({
+          title: "Missing new chunk instructions",
+          description: "Please provide instructions for the new content to be added.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -123,74 +142,152 @@ export default function ChunkedRewriter({
           chatHistory.slice(-10).map(msg => `${msg.role}: ${msg.content}`).join('\n');
       }
 
-      for (let i = 0; i < selectedChunks.length; i++) {
-        const chunk = selectedChunks[i];
-        setCurrentChunkIndex(i);
-        
-        // Mark current chunk as processing
-        setChunks(prev => prev.map(c => 
-          c.id === chunk.id 
-            ? { ...c, isProcessing: true }
-            : c
-        ));
+      let finalContent = '';
+      let processedChunks = 0;
+      let totalOperations = 0;
 
-        const response = await fetch('/api/rewrite-chunk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: chunk.content,
-            instructions: instructions || 'Improve clarity, coherence, and readability while maintaining the original meaning.',
-            model: selectedModel,
-            chatContext: includeChatContext ? chatContext : undefined,
-            chunkIndex: i,
-            totalChunks: selectedChunks.length
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to rewrite chunk ${i + 1}`);
-        }
-
-        const result = await response.json();
-
-        // Update chunk with rewritten content
-        setChunks(prev => prev.map(c => 
-          c.id === chunk.id 
-            ? { 
-                ...c, 
-                rewritten: result.rewrittenContent,
-                isProcessing: false,
-                isComplete: true 
-              }
-            : c
-        ));
-
-        setProgress(((i + 1) / selectedChunks.length) * 100);
+      // Calculate total operations for progress tracking
+      if (rewriteMode === 'rewrite' || rewriteMode === 'both') {
+        totalOperations += chunks.filter(chunk => chunk.selected).length;
+      }
+      if (rewriteMode === 'add' || rewriteMode === 'both') {
+        totalOperations += numberOfNewChunks;
       }
 
-      toast({
-        title: "Rewrite complete!",
-        description: `Successfully rewrote ${selectedChunks.length} chunks.`,
-      });
+      // Step 1: Handle existing chunks
+      if (rewriteMode === 'rewrite' || rewriteMode === 'both') {
+        const selectedChunks = chunks.filter(chunk => chunk.selected);
+        
+        for (let i = 0; i < selectedChunks.length; i++) {
+          const chunk = selectedChunks[i];
+          setCurrentChunkIndex(i);
+          
+          // Mark current chunk as processing
+          setChunks(prev => prev.map(c => 
+            c.id === chunk.id 
+              ? { ...c, isProcessing: true }
+              : c
+          ));
 
-      // Compile the full rewritten text
-      const fullRewrittenText = chunks
-        .filter(chunk => chunk.selected && chunk.rewritten)
-        .map(chunk => chunk.rewritten)
-        .join('\n\n');
+          const response = await fetch('/api/rewrite-chunk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              content: chunk.content,
+              instructions: instructions || 'Improve clarity, coherence, and readability while maintaining the original meaning.',
+              model: selectedModel,
+              chatContext: includeChatContext ? chatContext : undefined,
+              chunkIndex: i,
+              totalChunks: selectedChunks.length,
+              mode: rewriteMode
+            }),
+          });
 
+          if (!response.ok) {
+            throw new Error(`Failed to rewrite chunk ${i + 1}`);
+          }
+
+          const result = await response.json();
+
+          // Update chunk with rewritten content
+          setChunks(prev => prev.map(c => 
+            c.id === chunk.id 
+              ? { 
+                  ...c, 
+                  rewritten: result.rewrittenContent,
+                  isProcessing: false,
+                  isComplete: true 
+                }
+              : c
+          ));
+
+          processedChunks++;
+          setProgress((processedChunks / totalOperations) * 100);
+        }
+
+        // Compile rewritten chunks
+        if (rewriteMode === 'rewrite') {
+          finalContent = chunks
+            .filter(chunk => chunk.selected && chunk.rewritten)
+            .map(chunk => chunk.rewritten)
+            .join('\n\n');
+        } else {
+          // For 'both' mode, we'll add the rewritten chunks first
+          finalContent = chunks
+            .filter(chunk => chunk.selected && chunk.rewritten)
+            .map(chunk => chunk.rewritten)
+            .join('\n\n');
+        }
+      } else if (rewriteMode === 'add') {
+        // For add-only mode, keep original content unchanged
+        finalContent = originalText;
+      }
+
+      // Step 2: Generate new chunks if needed
+      if (rewriteMode === 'add' || rewriteMode === 'both') {
+        for (let i = 0; i < numberOfNewChunks; i++) {
+          // Update current chunk index for new chunks
+          setCurrentChunkIndex(processedChunks);
+          
+          const response = await fetch('/api/generate-new-chunk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              originalContent: originalText,
+              newChunkInstructions: newChunkInstructions,
+              existingContent: finalContent,
+              model: selectedModel,
+              chatContext: includeChatContext ? chatContext : undefined,
+              chunkNumber: i + 1,
+              totalNewChunks: numberOfNewChunks
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to generate new chunk ${i + 1}`);
+          }
+
+          const result = await response.json();
+          
+          // Add new chunk to final content
+          finalContent += '\n\n' + result.newChunkContent;
+
+          processedChunks++;
+          setProgress((processedChunks / totalOperations) * 100);
+        }
+      }
+
+      // Prepare metadata
       const metadata = {
         originalLength: originalText.length,
-        rewrittenLength: fullRewrittenText.length,
-        chunksProcessed: selectedChunks.length,
+        rewrittenLength: finalContent.length,
+        chunksProcessed: chunks.filter(chunk => chunk.selected).length,
+        newChunksAdded: rewriteMode === 'add' || rewriteMode === 'both' ? numberOfNewChunks : 0,
         model: selectedModel,
         instructions: instructions,
+        newChunkInstructions: newChunkInstructions,
+        rewriteMode: rewriteMode,
         includedChatContext: includeChatContext
       };
 
-      onRewriteComplete(fullRewrittenText, metadata);
+      // Store results for popup display - force it to show!
+      console.log("Setting popup content:", finalContent.length, "characters");
+      console.log("Setting popup metadata:", metadata);
+      setFinalRewrittenContent(finalContent);
+      setRewriteMetadata(metadata);
+      setShowResultsPopup(true);
+      console.log("Popup state set to true - should display now!");
+
+      toast({
+        title: "Rewrite complete!",
+        description: `Successfully processed content with ${metadata.chunksProcessed} rewritten chunks${metadata.newChunksAdded ? ` and ${metadata.newChunksAdded} new chunks` : ''}.`,
+      });
+
+      onRewriteComplete(finalContent, metadata);
 
     } catch (error) {
       console.error('Rewrite error:', error);
@@ -348,157 +445,6 @@ export default function ChunkedRewriter({
     });
   };
 
-  const rewriteTheRewrite = async () => {
-    const completedChunks = chunks.filter(chunk => chunk.selected && chunk.rewritten);
-    if (completedChunks.length === 0) {
-      toast({
-        title: "No content to rewrite",
-        description: "Please complete the initial rewrite first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!rewriteInstructions.trim()) {
-      toast({
-        title: "Instructions required",
-        description: "Please provide instructions for the rewrite.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsRewritingRewrite(true);
-    setRewriteProgress(0);
-
-    try {
-      for (let i = 0; i < completedChunks.length; i++) {
-        const chunk = completedChunks[i];
-        
-        const response = await fetch('/api/rewrite-chunk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: chunk.rewritten, // Rewrite the already rewritten content
-            instructions: rewriteInstructions,
-            model: selectedModel,
-            chunkIndex: i,
-            totalChunks: completedChunks.length
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to rewrite chunk ${i + 1}`);
-        }
-
-        const result = await response.json();
-
-        // Update chunk with newly rewritten content
-        setChunks(prev => prev.map(c => 
-          c.id === chunk.id 
-            ? { 
-                ...c, 
-                rewritten: result.rewrittenContent,
-              }
-            : c
-        ));
-
-        setRewriteProgress(((i + 1) / completedChunks.length) * 100);
-      }
-
-      toast({
-        title: "Rewrite complete!",
-        description: `Successfully re-rewrote ${completedChunks.length} chunks.`,
-      });
-
-      setShowRewriteRewrite(false);
-      setRewriteInstructions('');
-
-    } catch (error) {
-      console.error('Rewrite-rewrite error:', error);
-      toast({
-        title: "Rewrite failed",
-        description: error instanceof Error ? error.message : "An error occurred during rewriting.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRewritingRewrite(false);
-    }
-  };
-
-  const printAsPDF = () => {
-    const rewrittenText = chunks
-      .filter(chunk => chunk.selected && chunk.rewritten)
-      .map(chunk => chunk.rewritten)
-      .join('\n\n');
-
-    if (!rewrittenText) {
-      toast({
-        title: "No content to print",
-        description: "Please complete the rewrite first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Create a new window with the content formatted for printing
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Rewritten Document</title>
-          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-          <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-          <script>
-            window.MathJax = {
-              tex: {
-                inlineMath: [['\\\\(', '\\\\)'], ['$', '$']],
-                displayMath: [['\\\\[', '\\\\]'], ['$$', '$$']],
-                processEscapes: true
-              }
-            };
-          </script>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              line-height: 1.6; 
-              max-width: 800px; 
-              margin: 0 auto; 
-              padding: 20px; 
-            }
-            h1, h2, h3 { color: #333; }
-            p { margin-bottom: 1em; }
-            @media print {
-              body { margin: 0; padding: 15px; }
-            }
-          </style>
-        </head>
-        <body>
-          <div id="content">${rewrittenText.replace(/\n/g, '<br>')}</div>
-          <script>
-            // Wait for MathJax to finish, then print
-            window.addEventListener('load', function() {
-              setTimeout(function() {
-                window.print();
-              }, 1000);
-            });
-          </script>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
-    }
-
-    toast({
-      title: "Print dialog opened",
-      description: "Choose 'Save as PDF' in the print dialog to preserve math notation.",
-    });
-  };
-
   const formatContent = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
@@ -515,26 +461,86 @@ export default function ChunkedRewriter({
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Smart Document Rewriter</CardTitle>
-        <CardDescription>
-          Rewrite large documents chunk by chunk with full control and real-time preview
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Configuration Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="instructions">Rewrite Instructions</Label>
-            <Textarea
-              id="instructions"
-              placeholder="Enter specific instructions for how you want the text rewritten..."
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              rows={3}
-            />
+    <>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Smart Document Rewriter</CardTitle>
+          <CardDescription>
+            Rewrite large documents chunk by chunk with full control and real-time preview
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+        {/* Rewrite Mode Selection */}
+        <div className="space-y-4">
+          <Label className="text-lg font-semibold">Rewriting Mode</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className={`cursor-pointer transition-all ${rewriteMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                  onClick={() => setRewriteMode('rewrite')}>
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Rewrite Existing Only</h3>
+                <p className="text-sm text-muted-foreground mt-2">Modify existing chunks without adding new content</p>
+              </CardContent>
+            </Card>
+            <Card className={`cursor-pointer transition-all ${rewriteMode === 'add' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                  onClick={() => setRewriteMode('add')}>
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Add New Chunks Only</h3>
+                <p className="text-sm text-muted-foreground mt-2">Keep existing content unchanged, add new material</p>
+              </CardContent>
+            </Card>
+            <Card className={`cursor-pointer transition-all ${rewriteMode === 'both' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                  onClick={() => setRewriteMode('both')}>
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Both Rewrite & Add</h3>
+                <p className="text-sm text-muted-foreground mt-2">Modify existing chunks AND add new content</p>
+              </CardContent>
+            </Card>
           </div>
+        </div>
+
+        {/* Configuration Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            {(rewriteMode === 'rewrite' || rewriteMode === 'both') && (
+              <div className="space-y-2">
+                <Label htmlFor="instructions">Rewrite Instructions for Existing Content</Label>
+                <Textarea
+                  id="instructions"
+                  placeholder="Enter specific instructions for how you want the existing text rewritten..."
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            )}
+            
+            {(rewriteMode === 'add' || rewriteMode === 'both') && (
+              <div className="space-y-2">
+                <Label htmlFor="newChunkInstructions">Instructions for New Content</Label>
+                <Textarea
+                  id="newChunkInstructions"
+                  placeholder="Provide detailed instructions for what new content should be added. Be specific about topics, themes, examples, or sections you want included..."
+                  value={newChunkInstructions}
+                  onChange={(e) => setNewChunkInstructions(e.target.value)}
+                  rows={6}
+                  className="min-h-[120px]"
+                />
+                <div className="flex items-center space-x-2 mt-2">
+                  <Label htmlFor="numberOfNewChunks" className="text-sm">Number of new chunks:</Label>
+                  <input
+                    type="number"
+                    id="numberOfNewChunks"
+                    min="1"
+                    max="10"
+                    value={numberOfNewChunks}
+                    onChange={(e) => setNumberOfNewChunks(parseInt(e.target.value) || 1)}
+                    className="w-20 px-2 py-1 border rounded text-sm"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="model">AI Model</Label>
@@ -555,7 +561,7 @@ export default function ChunkedRewriter({
                 checked={includeChatContext}
                 onCheckedChange={(checked) => setIncludeChatContext(!!checked)}
               />
-              <Label htmlFor="chatContext">Include chat context in rewrite</Label>
+              <Label htmlFor="chatContext">Include chat context</Label>
             </div>
           </div>
         </div>
@@ -646,7 +652,14 @@ export default function ChunkedRewriter({
         {isProcessing && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Processing chunk {currentChunkIndex + 1} of {chunks.filter(c => c.selected).length}</span>
+              <span>
+                {rewriteMode === 'add' 
+                  ? `Generating new chunk ${currentChunkIndex + 1} of ${numberOfNewChunks}`
+                  : rewriteMode === 'rewrite' 
+                    ? `Rewriting chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length}`
+                    : `Processing chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length + numberOfNewChunks}`
+                }
+              </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="w-full" />
@@ -712,124 +725,150 @@ export default function ChunkedRewriter({
             <span>Share</span>
           </Button>
         </div>
-
-        {/* Rewrite the Rewrite Section */}
-        {chunks.some(c => c.rewritten) && (
-          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
-            <CardHeader>
-              <CardTitle className="text-lg text-blue-800 dark:text-blue-200">
-                Rewrite the Rewrite
-              </CardTitle>
-              <CardDescription>
-                Iteratively improve your rewritten content with additional instructions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!showRewriteRewrite ? (
-                <Button 
-                  onClick={() => setShowRewriteRewrite(true)}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Start Rewrite Iteration
-                </Button>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rewrite-instructions">Additional Instructions</Label>
-                    <Textarea
-                      id="rewrite-instructions"
-                      placeholder="Enter instructions for improving the rewritten content..."
-                      value={rewriteInstructions}
-                      onChange={(e) => setRewriteInstructions(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Progress for re-rewrite */}
-                  {isRewritingRewrite && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Re-rewriting content...</span>
-                        <span>{Math.round(rewriteProgress)}%</span>
-                      </div>
-                      <Progress value={rewriteProgress} className="w-full" />
-                    </div>
-                  )}
-
-                  <div className="flex space-x-2">
-                    <Button 
-                      onClick={rewriteTheRewrite}
-                      disabled={isRewritingRewrite || !rewriteInstructions.trim()}
-                      className="flex-1"
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      {isRewritingRewrite ? 'Rewriting...' : 'Apply Changes'}
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        setShowRewriteRewrite(false);
-                        setRewriteInstructions('');
-                      }}
-                      disabled={isRewritingRewrite}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Enhanced Download and Share Options */}
-              <div className="border-t pt-4 space-y-3">
-                <h4 className="font-medium text-sm">Export Options</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={printAsPDF}
-                    disabled={!chunks.some(c => c.rewritten)}
-                    className="flex items-center space-x-1 text-xs"
-                  >
-                    <Download className="w-3 h-3" />
-                    <span>Print PDF</span>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    onClick={() => downloadRewrite('docx')}
-                    disabled={!chunks.some(c => c.rewritten)}
-                    className="flex items-center space-x-1 text-xs"
-                  >
-                    <Download className="w-3 h-3" />
-                    <span>Word</span>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    onClick={() => downloadRewrite('pdf')}
-                    disabled={!chunks.some(c => c.rewritten)}
-                    className="flex items-center space-x-1 text-xs"
-                  >
-                    <Download className="w-3 h-3" />
-                    <span>PDF</span>
-                  </Button>
-
-                  <Button 
-                    variant="outline" 
-                    onClick={shareViaEmail}
-                    disabled={!chunks.some(c => c.rewritten) || !emailAddress}
-                    className="flex items-center space-x-1 text-xs"
-                  >
-                    <Mail className="w-3 h-3" />
-                    <span>Email</span>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </CardContent>
     </Card>
+
+    {/* Persistent Results Popup */}
+    <Dialog open={showResultsPopup} onOpenChange={setShowResultsPopup}>
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="text-xl">Rewrite Results - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}</DialogTitle>
+          <DialogDescription>
+            {rewriteMetadata && (
+              <div className="text-sm space-y-1">
+                <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
+                <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
+                {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
+                {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
+                <div>Model: {rewriteMetadata.model.toUpperCase()}</div>
+              </div>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="flex flex-col h-[75vh]">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded-lg">
+            <Button 
+              onClick={() => window.print()}
+              className="flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Print/Save as PDF</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/download-rewrite', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      content: finalRewrittenContent,
+                      format: 'docx',
+                      title: 'Rewritten Document'
+                    }),
+                  });
+
+                  if (!response.ok) throw new Error('Download failed');
+
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.style.display = 'none';
+                  a.href = url;
+                  a.download = 'rewritten-document.docx';
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+
+                  toast({
+                    title: "Download started",
+                    description: "Your Word document is downloading.",
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Download failed",
+                    description: "Unable to download the file. Please try again.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              className="flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download Word</span>
+            </Button>
+
+            <div className="flex space-x-2 flex-1 max-w-md">
+              <Input
+                placeholder="Enter email address to share..."
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                onClick={async () => {
+                  if (!emailAddress) {
+                    toast({
+                      title: "Email required",
+                      description: "Please enter an email address.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+
+                  try {
+                    const response = await fetch('/api/share-rewrite', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        content: finalRewrittenContent,
+                        recipientEmail: emailAddress,
+                        subject: 'Rewritten Document'
+                      }),
+                    });
+
+                    if (!response.ok) throw new Error('Email sharing failed');
+
+                    toast({
+                      title: "Email sent!",
+                      description: `Rewritten document sent to ${emailAddress}`,
+                    });
+
+                    setEmailAddress('');
+                  } catch (error) {
+                    toast({
+                      title: "Email failed",
+                      description: "Unable to send email. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                disabled={!emailAddress}
+                className="flex items-center space-x-2"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Share</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Content Display */}
+          <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white">
+            <div id="rewrite-content" className="prose max-w-none">
+              {formatContent(finalRewrittenContent)}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
