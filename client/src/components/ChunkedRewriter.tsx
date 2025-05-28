@@ -470,31 +470,44 @@ export default function ChunkedRewriter({
           </div>
           <div id="content"></div>
           <script>
-            // Convert markdown-like content to HTML and render math
-            const content = ${JSON.stringify(rewrittenText)};
-            const contentDiv = document.getElementById('content');
+            function loadContent() {
+              const content = ${JSON.stringify(rewrittenText)};
+              const contentDiv = document.getElementById('content');
+              
+              // Clean up markdown formatting for PDF
+              let cleanContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+                .replace(/\(\*(.*?)\*\)/g, '($1)') // Remove asterisks around stage directions
+                .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining single asterisks
+              
+              let html = cleanContent
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/\\n\\n/g, '</p><p>')
+                .replace(/\\n/g, '<br>');
+              
+              contentDiv.innerHTML = '<p>' + html + '</p>';
+              
+              // Re-render MathJax after content is loaded
+              if (window.MathJax) {
+                MathJax.typesetPromise([contentDiv]).then(() => {
+                  console.log('MathJax rendering complete');
+                });
+              }
+            }
             
-            // Clean up markdown formatting for PDF
-            let cleanContent = content
-              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-              .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
-              .replace(/\(\*(.*?)\*\)/g, '($1)') // Remove asterisks around stage directions
-              .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining single asterisks
-            
-            let html = cleanContent
-              .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-              .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-              .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-              .replace(/\\n\\n/g, '</p><p>')
-              .replace(/\\n/g, '<br>');
-            
-            contentDiv.innerHTML = '<p>' + html + '</p>';
-            
-            // Re-render MathJax after content is loaded
+            // Wait for MathJax to load
             if (window.MathJax) {
-              MathJax.typesetPromise([contentDiv]).then(() => {
-                console.log('MathJax rendering complete');
-              });
+              loadContent();
+            } else {
+              const script = document.getElementById('MathJax-script');
+              if (script) {
+                script.onload = loadContent;
+              } else {
+                setTimeout(loadContent, 1000); // Fallback
+              }
             }
           </script>
         </body>
@@ -1151,29 +1164,43 @@ export default function ChunkedRewriter({
                       </div>
                       <div id="content"></div>
                       <script>
-                        const content = ${JSON.stringify(finalRewrittenContent)};
-                        const contentDiv = document.getElementById('content');
+                        function loadContent() {
+                          const content = ${JSON.stringify(finalRewrittenContent)};
+                          const contentDiv = document.getElementById('content');
+                          
+                          // Clean up markdown formatting for PDF
+                          let cleanContent = content
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                            .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+                            .replace(/\(\*(.*?)\*\)/g, '($1)') // Remove asterisks around stage directions
+                            .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining single asterisks
+                          
+                          let html = cleanContent
+                            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                            .replace(/\\n\\n/g, '</p><p>')
+                            .replace(/\\n/g, '<br>');
+                          
+                          contentDiv.innerHTML = '<p>' + html + '</p>';
+                          
+                          if (window.MathJax) {
+                            MathJax.typesetPromise([contentDiv]).then(() => {
+                              console.log('MathJax rendering complete');
+                            });
+                          }
+                        }
                         
-                        // Clean up markdown formatting for PDF
-                        let cleanContent = content
-                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-                          .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
-                          .replace(/\(\*(.*?)\*\)/g, '($1)') // Remove asterisks around stage directions
-                          .replace(/\*([^*]+)\*/g, '$1'); // Remove remaining single asterisks
-                        
-                        let html = cleanContent
-                          .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-                          .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                          .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-                          .replace(/\\n\\n/g, '</p><p>')
-                          .replace(/\\n/g, '<br>');
-                        
-                        contentDiv.innerHTML = '<p>' + html + '</p>';
-                        
+                        // Wait for MathJax to load
                         if (window.MathJax) {
-                          MathJax.typesetPromise([contentDiv]).then(() => {
-                            console.log('MathJax rendering complete');
-                          });
+                          loadContent();
+                        } else {
+                          const script = document.getElementById('MathJax-script');
+                          if (script) {
+                            script.onload = loadContent;
+                          } else {
+                            setTimeout(loadContent, 1000); // Fallback
+                          }
                         }
                       </script>
                     </body>
