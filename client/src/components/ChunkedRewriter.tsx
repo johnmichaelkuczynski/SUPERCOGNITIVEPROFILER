@@ -274,10 +274,13 @@ export default function ChunkedRewriter({
         includedChatContext: includeChatContext
       };
 
-      // Store results for popup display
+      // Store results for popup display - force it to show!
+      console.log("Setting popup content:", finalContent.length, "characters");
+      console.log("Setting popup metadata:", metadata);
       setFinalRewrittenContent(finalContent);
       setRewriteMetadata(metadata);
       setShowResultsPopup(true);
+      console.log("Popup state set to true - should display now!");
 
       toast({
         title: "Rewrite complete!",
