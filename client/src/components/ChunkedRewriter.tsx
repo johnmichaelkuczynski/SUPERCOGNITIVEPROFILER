@@ -26,6 +26,16 @@ interface TextChunk {
   isComplete?: boolean;
 }
 
+interface NewContentItem {
+  id: string;
+  topic: string;
+  description: string;
+  selected: boolean;
+  generatedContent?: string;
+  isProcessing?: boolean;
+  isComplete?: boolean;
+}
+
 interface ChunkedRewriterProps {
   originalText: string;
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
@@ -40,6 +50,7 @@ export default function ChunkedRewriter({
   chatHistory = []
 }: ChunkedRewriterProps) {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
+  const [newContentItems, setNewContentItems] = useState<NewContentItem[]>([]);
   const [instructions, setInstructions] = useState('');
   const [includeChatContext, setIncludeChatContext] = useState(false);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
@@ -48,6 +59,8 @@ export default function ChunkedRewriter({
   const [progress, setProgress] = useState(0);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
+  const [newContentTopic, setNewContentTopic] = useState('');
+  const [newContentDescription, setNewContentDescription] = useState('');
   const { toast } = useToast();
 
   // Split text into chunks of approximately 500 words
@@ -90,12 +103,56 @@ export default function ChunkedRewriter({
     setChunks(prev => prev.map(chunk => ({ ...chunk, selected: false })));
   };
 
+  // New content management functions
+  const addNewContentItem = () => {
+    if (!newContentTopic.trim()) {
+      toast({
+        title: "Topic required",
+        description: "Please enter a topic for the new content section.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newItem: NewContentItem = {
+      id: `new_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      topic: newContentTopic.trim(),
+      description: newContentDescription.trim(),
+      selected: true,
+      isProcessing: false,
+      isComplete: false
+    };
+
+    setNewContentItems(prev => [...prev, newItem]);
+    setNewContentTopic('');
+    setNewContentDescription('');
+    
+    toast({
+      title: "New section added",
+      description: `Added "${newItem.topic}" to the content generation list.`,
+    });
+  };
+
+  const toggleNewContentSelection = (itemId: string) => {
+    setNewContentItems(prev => prev.map(item => 
+      item.id === itemId 
+        ? { ...item, selected: !item.selected }
+        : item
+    ));
+  };
+
+  const removeNewContentItem = (itemId: string) => {
+    setNewContentItems(prev => prev.filter(item => item.id !== itemId));
+  };
+
   const startRewrite = async () => {
     const selectedChunks = chunks.filter(chunk => chunk.selected);
-    if (selectedChunks.length === 0) {
+    const selectedNewContent = newContentItems.filter(item => item.selected);
+    
+    if (selectedChunks.length === 0 && selectedNewContent.length === 0) {
       toast({
-        title: "No chunks selected",
-        description: "Please select at least one chunk to rewrite.",
+        title: "No content selected",
+        description: "Please select at least one chunk to rewrite or add new content sections.",
         variant: "destructive"
       });
       return;
@@ -105,10 +162,17 @@ export default function ChunkedRewriter({
     setCurrentChunkIndex(0);
     setProgress(0);
 
-    // Reset all chunks
+    // Reset all chunks and new content items
     setChunks(prev => prev.map(chunk => ({
       ...chunk,
       rewritten: undefined,
+      isProcessing: false,
+      isComplete: false
+    })));
+    
+    setNewContentItems(prev => prev.map(item => ({
+      ...item,
+      generatedContent: undefined,
       isProcessing: false,
       isComplete: false
     })));
@@ -120,6 +184,10 @@ export default function ChunkedRewriter({
           chatHistory.slice(-10).map(msg => `${msg.role}: ${msg.content}`).join('\n');
       }
 
+      const totalTasks = selectedChunks.length + selectedNewContent.length;
+      let completedTasks = 0;
+
+      // Process existing chunks for rewriting
       for (let i = 0; i < selectedChunks.length; i++) {
         const chunk = selectedChunks[i];
         setCurrentChunkIndex(i);
