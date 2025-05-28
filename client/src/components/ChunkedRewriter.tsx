@@ -185,10 +185,11 @@ export default function ChunkedRewriter({
       toast({
         title: "Rewrite complete!",
         description: `Successfully rewrote ${selectedChunks.length} chunks. Document saved and ready for download/sharing.`,
-        duration: 5000,
+        duration: 8000,
       });
 
-      onRewriteComplete(fullRewrittenText, metadata);
+      // Don't auto-close - let user see the results
+      // onRewriteComplete(fullRewrittenText, metadata);
 
     } catch (error) {
       console.error('Rewrite error:', error);

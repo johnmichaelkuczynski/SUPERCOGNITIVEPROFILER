@@ -15,6 +15,7 @@ export const documents = pgTable("documents", {
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
   model: text("model").notNull(),
+  type: text("type").default('document'), // 'document' or 'rewrite'
   date: timestamp("date").notNull(),
   metadata: text("metadata"), // For AI detection and other metadata (JSON formatted)
   chunks: json("chunks").default('[]'), // Array of document chunks for better analysis
