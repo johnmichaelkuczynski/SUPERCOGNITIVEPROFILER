@@ -942,7 +942,42 @@ export default function ChunkedRewriter({
             </Button>
 
             <Button 
-              onClick={() => window.print()}
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/download-rewrite', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      content: finalRewrittenContent,
+                      format: 'pdf',
+                      title: 'Rewrite Results',
+                      metadata: rewriteMetadata
+                    }),
+                  });
+
+                  if (!response.ok) throw new Error('PDF generation failed');
+
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.style.display = 'none';
+                  a.href = url;
+                  a.download = `rewrite-results-${Date.now()}.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                  document.body.removeChild(a);
+                } catch (error) {
+                  console.error('PDF download failed:', error);
+                  toast({
+                    title: "PDF generation failed",
+                    description: "Unable to generate PDF. Try the Word download instead.",
+                    variant: "destructive"
+                  });
+                }
+              }}
               className="flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
