@@ -47,6 +47,10 @@ export default function ChunkedRewriter({
   const [progress, setProgress] = useState(0);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
+  const [showRewriteRewrite, setShowRewriteRewrite] = useState(false);
+  const [rewriteInstructions, setRewriteInstructions] = useState('');
+  const [isRewritingRewrite, setIsRewritingRewrite] = useState(false);
+  const [rewriteProgress, setRewriteProgress] = useState(0);
   const { toast } = useToast();
 
   // Split text into chunks of approximately 500 words
@@ -344,6 +348,157 @@ export default function ChunkedRewriter({
     });
   };
 
+  const rewriteTheRewrite = async () => {
+    const completedChunks = chunks.filter(chunk => chunk.selected && chunk.rewritten);
+    if (completedChunks.length === 0) {
+      toast({
+        title: "No content to rewrite",
+        description: "Please complete the initial rewrite first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!rewriteInstructions.trim()) {
+      toast({
+        title: "Instructions required",
+        description: "Please provide instructions for the rewrite.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRewritingRewrite(true);
+    setRewriteProgress(0);
+
+    try {
+      for (let i = 0; i < completedChunks.length; i++) {
+        const chunk = completedChunks[i];
+        
+        const response = await fetch('/api/rewrite-chunk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: chunk.rewritten, // Rewrite the already rewritten content
+            instructions: rewriteInstructions,
+            model: selectedModel,
+            chunkIndex: i,
+            totalChunks: completedChunks.length
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to rewrite chunk ${i + 1}`);
+        }
+
+        const result = await response.json();
+
+        // Update chunk with newly rewritten content
+        setChunks(prev => prev.map(c => 
+          c.id === chunk.id 
+            ? { 
+                ...c, 
+                rewritten: result.rewrittenContent,
+              }
+            : c
+        ));
+
+        setRewriteProgress(((i + 1) / completedChunks.length) * 100);
+      }
+
+      toast({
+        title: "Rewrite complete!",
+        description: `Successfully re-rewrote ${completedChunks.length} chunks.`,
+      });
+
+      setShowRewriteRewrite(false);
+      setRewriteInstructions('');
+
+    } catch (error) {
+      console.error('Rewrite-rewrite error:', error);
+      toast({
+        title: "Rewrite failed",
+        description: error instanceof Error ? error.message : "An error occurred during rewriting.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRewritingRewrite(false);
+    }
+  };
+
+  const printAsPDF = () => {
+    const rewrittenText = chunks
+      .filter(chunk => chunk.selected && chunk.rewritten)
+      .map(chunk => chunk.rewritten)
+      .join('\n\n');
+
+    if (!rewrittenText) {
+      toast({
+        title: "No content to print",
+        description: "Please complete the rewrite first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Create a new window with the content formatted for printing
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Rewritten Document</title>
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+          <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+          <script>
+            window.MathJax = {
+              tex: {
+                inlineMath: [['\\\\(', '\\\\)'], ['$', '$']],
+                displayMath: [['\\\\[', '\\\\]'], ['$$', '$$']],
+                processEscapes: true
+              }
+            };
+          </script>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              line-height: 1.6; 
+              max-width: 800px; 
+              margin: 0 auto; 
+              padding: 20px; 
+            }
+            h1, h2, h3 { color: #333; }
+            p { margin-bottom: 1em; }
+            @media print {
+              body { margin: 0; padding: 15px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div id="content">${rewrittenText.replace(/\n/g, '<br>')}</div>
+          <script>
+            // Wait for MathJax to finish, then print
+            window.addEventListener('load', function() {
+              setTimeout(function() {
+                window.print();
+              }, 1000);
+            });
+          </script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+
+    toast({
+      title: "Print dialog opened",
+      description: "Choose 'Save as PDF' in the print dialog to preserve math notation.",
+    });
+  };
+
   const formatContent = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
@@ -557,6 +712,123 @@ export default function ChunkedRewriter({
             <span>Share</span>
           </Button>
         </div>
+
+        {/* Rewrite the Rewrite Section */}
+        {chunks.some(c => c.rewritten) && (
+          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+            <CardHeader>
+              <CardTitle className="text-lg text-blue-800 dark:text-blue-200">
+                Rewrite the Rewrite
+              </CardTitle>
+              <CardDescription>
+                Iteratively improve your rewritten content with additional instructions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!showRewriteRewrite ? (
+                <Button 
+                  onClick={() => setShowRewriteRewrite(true)}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Start Rewrite Iteration
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rewrite-instructions">Additional Instructions</Label>
+                    <Textarea
+                      id="rewrite-instructions"
+                      placeholder="Enter instructions for improving the rewritten content..."
+                      value={rewriteInstructions}
+                      onChange={(e) => setRewriteInstructions(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Progress for re-rewrite */}
+                  {isRewritingRewrite && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Re-rewriting content...</span>
+                        <span>{Math.round(rewriteProgress)}%</span>
+                      </div>
+                      <Progress value={rewriteProgress} className="w-full" />
+                    </div>
+                  )}
+
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={rewriteTheRewrite}
+                      disabled={isRewritingRewrite || !rewriteInstructions.trim()}
+                      className="flex-1"
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      {isRewritingRewrite ? 'Rewriting...' : 'Apply Changes'}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setShowRewriteRewrite(false);
+                        setRewriteInstructions('');
+                      }}
+                      disabled={isRewritingRewrite}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Enhanced Download and Share Options */}
+              <div className="border-t pt-4 space-y-3">
+                <h4 className="font-medium text-sm">Export Options</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={printAsPDF}
+                    disabled={!chunks.some(c => c.rewritten)}
+                    className="flex items-center space-x-1 text-xs"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Print PDF</span>
+                  </Button>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={() => downloadRewrite('docx')}
+                    disabled={!chunks.some(c => c.rewritten)}
+                    className="flex items-center space-x-1 text-xs"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>Word</span>
+                  </Button>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={() => downloadRewrite('pdf')}
+                    disabled={!chunks.some(c => c.rewritten)}
+                    className="flex items-center space-x-1 text-xs"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>PDF</span>
+                  </Button>
+
+                  <Button 
+                    variant="outline" 
+                    onClick={shareViaEmail}
+                    disabled={!chunks.some(c => c.rewritten) || !emailAddress}
+                    className="flex items-center space-x-1 text-xs"
+                  >
+                    <Mail className="w-3 h-3" />
+                    <span>Email</span>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </CardContent>
     </Card>
   );
