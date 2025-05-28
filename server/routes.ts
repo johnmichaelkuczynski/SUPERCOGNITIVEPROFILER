@@ -998,127 +998,53 @@ Return only the rewritten text without any additional comments, explanations, or
       }
       
       const filename = title || 'rewritten-document';
+      let processedContent = content;
       
-      if (format === 'pdf') {
-        // For now, return the content as plain text with PDF headers
-        // This allows the download to work while we fix the PDF generation
-        let processedContent = content;
-        
-        // Convert common LaTeX symbols to Unicode mathematical symbols
-        const latexToUnicode = {
-          '\\mathcal{P}': '𝒫',
-          '\\mathcal{L}': '𝒟',
-          '\\mathcal{A}': '𝒜',
-          '\\mathcal{R}': '𝒯',
-          '\\mathcal{E}': 'ℰ',
-          '\\mathcal{H}': 'ℋ',
-          '\\mathcal{D}': '𝒟',
-          '\\rightarrow': '→',
-          '\\leftarrow': '←',
-          '\\Rightarrow': '⇒',
-          '\\Leftarrow': '⇐',
-          '\\leftrightarrow': '↔',
-          '\\Leftrightarrow': '⇔',
-          '\\theta': 'θ',
-          '\\alpha': 'α',
-          '\\beta': 'β',
-          '\\gamma': 'γ',
-          '\\delta': 'δ',
-          '\\epsilon': 'ε',
-          '\\lambda': 'λ',
-          '\\mu': 'μ',
-          '\\pi': 'π',
-          '\\sigma': 'σ',
-          '\\tau': 'τ',
-          '\\phi': 'φ',
-          '\\omega': 'ω',
-          '\\Theta': 'Θ',
-          '\\Alpha': 'Α',
-          '\\Beta': 'Β',
-          '\\Gamma': 'Γ',
-          '\\Delta': 'Δ',
-          '\\Lambda': 'Λ',
-          '\\Pi': 'Π',
-          '\\Sigma': 'Σ',
-          '\\Phi': 'Φ',
-          '\\Omega': 'Ω',
-          '\\nabla': '∇',
-          '\\partial': '∂',
-          '\\sum': '∑',
-          '\\prod': '∏',
-          '\\int': '∫',
-          '\\infty': '∞',
-          '\\leq': '≤',
-          '\\geq': '≥',
-          '\\neq': '≠',
-          '\\approx': '≈',
-          '\\equiv': '≡',
-          '\\subset': '⊂',
-          '\\supset': '⊃',
-          '\\subseteq': '⊆',
-          '\\supseteq': '⊇',
-          '\\in': '∈',
-          '\\notin': '∉',
-          '\\cup': '∪',
-          '\\cap': '∩',
-          '\\emptyset': '∅',
-          '\\forall': '∀',
-          '\\exists': '∃',
-          '\\times': '×',
-          '\\cdot': '⋅',
-          '\\pm': '±',
-          '\\mp': '∓'
-        };
-        
-        // Apply LaTeX to Unicode conversions
-        for (const [latex, unicode] of Object.entries(latexToUnicode)) {
-          processedContent = processedContent.replace(new RegExp(latex.replace(/\\/g, '\\\\'), 'g'), unicode);
-        }
-        
-        // Remove common LaTeX delimiters and clean up
-        processedContent = processedContent.replace(/\$\$([^$]+)\$\$/g, '$1'); // Display math
-        processedContent = processedContent.replace(/\$([^$]+)\$/g, '$1'); // Inline math
-        processedContent = processedContent.replace(/\\begin\{equation\}(.*?)\\end\{equation\}/gs, '$1');
-        processedContent = processedContent.replace(/\\begin\{align\}(.*?)\\end\{align\}/gs, '$1');
-        processedContent = processedContent.replace(/\\left\(/g, '(');
-        processedContent = processedContent.replace(/\\right\)/g, ')');
-        processedContent = processedContent.replace(/\\left\[/g, '[');
-        processedContent = processedContent.replace(/\\right\]/g, ']');
-        processedContent = processedContent.replace(/\\{/g, '{');
-        processedContent = processedContent.replace(/\\}/g, '}');
-        
-        // Return as text file with proper math symbols
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}.txt"`);
-        res.send(processedContent);
-        return;
-      } else if (format === 'docx') {
-        const docx = await import('docx');
-        const { Document, Packer, Paragraph, TextRun } = docx;
-        
-        const doc = new Document({
-          sections: [{
-            properties: {},
-            children: content.split('\n').map((line: string) => 
-              new Paragraph({
-                children: [new TextRun(line)]
-              })
-            )
-          }]
-        });
-        
-        buffer = await Packer.toBuffer(doc);
-        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        fileExtension = 'docx';
-      } else {
-        buffer = Buffer.from(content, 'utf-8');
-        contentType = 'text/plain';
-        fileExtension = 'txt';
+      // Convert LaTeX symbols to Unicode mathematical symbols
+      const latexToUnicode = {
+        '\\mathcal{P}': '𝒫',
+        '\\mathcal{L}': '𝒟',
+        '\\mathcal{A}': '𝒜',
+        '\\rightarrow': '→',
+        '\\leftarrow': '←',
+        '\\theta': 'θ',
+        '\\alpha': 'α',
+        '\\beta': 'β',
+        '\\gamma': 'γ',
+        '\\delta': 'δ',
+        '\\lambda': 'λ',
+        '\\pi': 'π',
+        '\\sigma': 'σ',
+        '\\nabla': '∇',
+        '\\partial': '∂',
+        '\\sum': '∑',
+        '\\int': '∫',
+        '\\infty': '∞',
+        '\\leq': '≤',
+        '\\geq': '≥',
+        '\\in': '∈',
+        '\\times': '×',
+        '\\cdot': '⋅',
+        '\\pm': '±'
+      };
+      
+      // Apply LaTeX to Unicode conversions
+      for (const [latex, unicode] of Object.entries(latexToUnicode)) {
+        processedContent = processedContent.replace(new RegExp(latex.replace(/\\/g, '\\\\'), 'g'), unicode);
       }
       
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}.${fileExtension}"`);
-      res.send(buffer);
+      // Remove LaTeX delimiters but keep the math content
+      processedContent = processedContent.replace(/\$\$([^$]+)\$\$/g, '$1');
+      processedContent = processedContent.replace(/\$([^$]+)\$/g, '$1');
+      processedContent = processedContent.replace(/\\left\(/g, '(');
+      processedContent = processedContent.replace(/\\right\)/g, ')');
+      processedContent = processedContent.replace(/\\{/g, '{');
+      processedContent = processedContent.replace(/\\}/g, '}');
+      
+      // Return as text file with UTF-8 encoding to preserve math symbols
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.txt"`);
+      res.send(processedContent);
       
     } catch (error) {
       console.error('Download rewrite error:', error);
