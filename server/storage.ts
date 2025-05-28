@@ -90,12 +90,14 @@ export class MemStorage implements IStorage {
   }
   
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
-    const id = `doc_${this.documentId++}`;
+    // Use the provided ID from the route instead of generating a new one
+    const id = insertDocument.id || `doc_${this.documentId++}`;
     const document: Document = { 
       ...insertDocument, 
       id,
       metadata: insertDocument.metadata || null 
     };
+    console.log(`MemStorage: Saving document with ID ${id}, content length: ${insertDocument.content?.length || 0}`);
     this.documents.set(id, document);
     return document;
   }
