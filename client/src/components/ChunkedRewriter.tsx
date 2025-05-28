@@ -1234,6 +1234,69 @@ export default function ChunkedRewriter({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Live Progress Popup */}
+    <Dialog open={showLiveProgress} onOpenChange={() => {}}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>🔄 Rewriting in Progress</DialogTitle>
+          <DialogDescription>
+            Watch each chunk being processed in real-time - you're not being strung along!
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+          {liveProgressChunks.map((chunk, index) => (
+            <div 
+              key={index}
+              className={`p-4 border rounded-lg transition-all ${
+                chunk.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div className="flex items-center space-x-2 mb-2">
+                {chunk.completed ? (
+                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                )}
+                <h3 className="font-medium">{chunk.title}</h3>
+                <span className="text-sm text-gray-500">
+                  {chunk.completed ? '✓ Complete' : '⏳ Processing...'}
+                </span>
+              </div>
+              
+              {chunk.completed && chunk.content && (
+                <div className="mt-2 p-3 bg-white rounded border text-sm">
+                  <div className="text-gray-600 mb-1">Content preview:</div>
+                  <div className="line-clamp-3">
+                    {chunk.content.substring(0, 200)}
+                    {chunk.content.length > 200 && '...'}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        <div className="flex justify-between items-center pt-4 border-t">
+          <div className="text-sm text-gray-600">
+            {liveProgressChunks.filter(c => c.completed).length} of {liveProgressChunks.length} chunks completed
+          </div>
+          <div className="w-32 bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ 
+                width: `${liveProgressChunks.length > 0 ? (liveProgressChunks.filter(c => c.completed).length / liveProgressChunks.length) * 100 : 0}%` 
+              }}
+            ></div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }
