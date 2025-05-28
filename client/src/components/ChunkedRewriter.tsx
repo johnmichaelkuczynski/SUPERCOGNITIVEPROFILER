@@ -736,7 +736,7 @@ Write the content in a clear, engaging style with proper headings and structure.
         {isProcessing && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Processing chunk {currentChunkIndex + 1} of {chunks.filter(c => c.selected).length}</span>
+              <span>Processing {currentChunkIndex + 1} of {chunks.filter(c => c.selected).length + newContentItems.filter(item => item.selected).length} items</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="w-full" />
