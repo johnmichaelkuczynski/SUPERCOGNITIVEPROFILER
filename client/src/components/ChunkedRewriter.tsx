@@ -232,16 +232,88 @@ export default function ChunkedRewriter({
             : c
         ));
 
-        setProgress(((i + 1) / selectedChunks.length) * 100);
+        completedTasks++;
+        setProgress((completedTasks / totalTasks) * 100);
       }
 
-      // Compile the full rewritten text
+      // Process new content generation
+      for (let i = 0; i < selectedNewContent.length; i++) {
+        const item = selectedNewContent[i];
+        
+        // Mark current item as processing
+        setNewContentItems(prev => prev.map(item => 
+          item.id === selectedNewContent[i].id 
+            ? { ...item, isProcessing: true }
+            : item
+        ));
+
+        const contentPrompt = `Write a comprehensive section about "${item.topic}".
+        
+${item.description ? `Description: ${item.description}` : ''}
+
+Context: This is being added to a document that already contains content about similar topics. 
+Please write a well-structured, informative section that would fit naturally with academic or professional content.
+
+${instructions ? `Additional instructions: ${instructions}` : ''}
+${chatContext}
+
+Write the content in a clear, engaging style with proper headings and structure.`;
+
+        const response = await fetch('/api/rewrite-chunk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: contentPrompt,
+            instructions: `Generate new content about: ${item.topic}`,
+            model: selectedModel,
+            chatContext: includeChatContext ? chatContext : undefined,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to generate content for "${item.topic}"`);
+        }
+
+        const result = await response.json();
+
+        // Update item with generated content
+        setNewContentItems(prev => prev.map(i => 
+          i.id === item.id 
+            ? { 
+                ...i, 
+                generatedContent: result.rewrittenContent,
+                isProcessing: false,
+                isComplete: true 
+              }
+            : i
+        ));
+
+        completedTasks++;
+        setProgress((completedTasks / totalTasks) * 100);
+      }
+
+      // Compile the full text: rewritten chunks + new content
       const rewrittenChunks = chunks.filter(chunk => chunk.selected && chunk.rewritten);
-      console.log('Rewritten chunks for assembly:', rewrittenChunks.length);
-      console.log('Sample chunk content:', rewrittenChunks[0]?.rewritten?.substring(0, 100));
+      const newGeneratedContent = newContentItems.filter(item => item.selected && item.generatedContent);
       
-      const fullRewrittenText = rewrittenChunks
+      console.log('Rewritten chunks for assembly:', rewrittenChunks.length);
+      console.log('New content sections for assembly:', newGeneratedContent.length);
+      console.log('Sample chunk content:', rewrittenChunks[0]?.rewritten?.substring(0, 100));
+      console.log('Sample new content:', newGeneratedContent[0]?.generatedContent?.substring(0, 100));
+      
+      const rewrittenText = rewrittenChunks
         .map(chunk => chunk.rewritten)
+        .join('\n\n');
+        
+      const newContentText = newGeneratedContent
+        .map(item => item.generatedContent)
+        .join('\n\n');
+      
+      // Combine rewritten content and new content
+      const fullRewrittenText = [rewrittenText, newContentText]
+        .filter(text => text && text.trim())
         .join('\n\n');
       
       console.log('Final assembled text length:', fullRewrittenText.length);
@@ -250,14 +322,24 @@ export default function ChunkedRewriter({
         originalLength: originalText.length,
         rewrittenLength: fullRewrittenText.length,
         chunksProcessed: selectedChunks.length,
+        newContentSections: selectedNewContent.length,
         model: selectedModel,
         instructions: instructions,
         includedChatContext: includeChatContext
       };
 
+      let successMessage = '';
+      if (selectedChunks.length > 0 && selectedNewContent.length > 0) {
+        successMessage = `Successfully rewrote ${selectedChunks.length} chunks and added ${selectedNewContent.length} new content sections.`;
+      } else if (selectedChunks.length > 0) {
+        successMessage = `Successfully rewrote ${selectedChunks.length} chunks.`;
+      } else {
+        successMessage = `Successfully added ${selectedNewContent.length} new content sections.`;
+      }
+
       toast({
-        title: "Rewrite complete!",
-        description: `Successfully rewrote ${selectedChunks.length} chunks. Document saved and ready for download/sharing.`,
+        title: "Process complete!",
+        description: `${successMessage} Document saved and ready for download/sharing.`,
         duration: 8000,
       });
 
@@ -561,6 +643,91 @@ export default function ChunkedRewriter({
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* Add New Content Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Add New Content Sections</h3>
+            <Badge variant="outline">{newContentItems.length} sections</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Add entirely new sections to your document on topics you specify. These will be generated as additional content alongside your existing text.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+            <div className="space-y-2">
+              <Label htmlFor="newTopic">Topic/Section Title</Label>
+              <Input
+                id="newTopic"
+                placeholder="e.g., Knowledge of the Past"
+                value={newContentTopic}
+                onChange={(e) => setNewContentTopic(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newDescription">Description (Optional)</Label>
+              <Input
+                id="newDescription"
+                placeholder="Brief description of what to cover..."
+                value={newContentDescription}
+                onChange={(e) => setNewContentDescription(e.target.value)}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Button onClick={addNewContentItem} className="w-full">
+                Add New Section
+              </Button>
+            </div>
+          </div>
+
+          {/* Display Added New Content Items */}
+          {newContentItems.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {newContentItems.map((item, index) => (
+                <Card key={item.id} className={`cursor-pointer transition-colors ${
+                  item.selected ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800' : ''
+                }`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium">
+                        {item.topic}
+                      </CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeNewContentItem(item.id)}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        >
+                          ×
+                        </Button>
+                        <Checkbox
+                          checked={item.selected}
+                          onCheckedChange={() => toggleNewContentSelection(item.id)}
+                        />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground">
+                      {item.description || 'Will generate content about this topic'}
+                    </p>
+                    {item.isProcessing && (
+                      <div className="mt-2 text-xs text-yellow-600 dark:text-yellow-400">
+                        Generating content...
+                      </div>
+                    )}
+                    {item.isComplete && (
+                      <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                        ✓ Content generated
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Progress Section */}
