@@ -162,6 +162,9 @@ export default function ChunkedRewriter({
     setCurrentChunkIndex(0);
     setProgress(0);
 
+    // Track all content as it's generated
+    const generatedContent: string[] = [];
+
     // Reset all chunks and new content items
     setChunks(prev => prev.map(chunk => ({
       ...chunk,
@@ -219,6 +222,10 @@ export default function ChunkedRewriter({
         }
 
         const result = await response.json();
+
+        // CRITICAL: Store content immediately in our tracking array
+        generatedContent.push(result.rewrittenContent);
+        console.log(`STORED chunk content: ${result.rewrittenContent.substring(0, 100)}...`);
 
         // Update chunk with rewritten content
         setChunks(prev => prev.map(c => 
