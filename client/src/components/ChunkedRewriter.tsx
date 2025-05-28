@@ -56,6 +56,13 @@ export default function ChunkedRewriter({
   const [finalRewrittenContent, setFinalRewrittenContent] = useState('');
   const [rewriteMetadata, setRewriteMetadata] = useState<any>(null);
   
+  // Re-rewrite state
+  const [isRerewriting, setIsRerewriting] = useState(false);
+  const [showRerewriteForm, setShowRerewriteForm] = useState(false);
+  const [rerewriteInstructions, setRerewriteInstructions] = useState('');
+  const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
+  const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
+  
   const { toast } = useToast();
 
   // Split text into chunks of approximately 500 words
@@ -445,6 +452,110 @@ export default function ChunkedRewriter({
     });
   };
 
+  // Split content into chunks for re-rewriting
+  const splitContentIntoRewriteChunks = (content: string) => {
+    const words = content.split(/\s+/);
+    const chunkSize = 500;
+    const chunks: Array<{id: string, content: string, selected: boolean}> = [];
+
+    for (let i = 0; i < words.length; i += chunkSize) {
+      const chunkWords = words.slice(i, i + chunkSize);
+      const chunkContent = chunkWords.join(' ');
+      
+      chunks.push({
+        id: `rewrite_chunk_${i / chunkSize}`,
+        content: chunkContent,
+        selected: true
+      });
+    }
+
+    return chunks;
+  };
+
+  // Handle re-rewrite process
+  const startRerewrite = async () => {
+    if (!rerewriteInstructions.trim()) {
+      toast({
+        title: "Instructions required",
+        description: "Please provide instructions for the re-rewrite.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const selectedChunks = rewriteChunks.filter(chunk => chunk.selected);
+    if (selectedChunks.length === 0) {
+      toast({
+        title: "No chunks selected",
+        description: "Please select at least one chunk to re-rewrite.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRerewriting(true);
+
+    try {
+      let rerewrittenContent = '';
+      
+      for (let i = 0; i < selectedChunks.length; i++) {
+        const chunk = selectedChunks[i];
+        
+        const response = await fetch('/api/rewrite-chunk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: chunk.content,
+            instructions: rerewriteInstructions,
+            model: rerewriteModel,
+            chunkIndex: i,
+            totalChunks: selectedChunks.length,
+            mode: 'rewrite'
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to re-rewrite chunk ${i + 1}`);
+        }
+
+        const result = await response.json();
+        rerewrittenContent += (i > 0 ? '\n\n' : '') + result.rewrittenContent;
+      }
+
+      // Update the final content with re-rewritten version
+      setFinalRewrittenContent(rerewrittenContent);
+      
+      // Update metadata
+      setRewriteMetadata((prev: any) => ({
+        ...prev,
+        rewrittenLength: rerewrittenContent.length,
+        isRerewrite: true,
+        rerewriteInstructions: rerewriteInstructions,
+        rerewriteModel: rerewriteModel
+      }));
+
+      setShowRerewriteForm(false);
+      setRerewriteInstructions('');
+
+      toast({
+        title: "Re-rewrite complete!",
+        description: `Successfully re-rewrote ${selectedChunks.length} chunk(s).`,
+      });
+
+    } catch (error) {
+      console.error('Re-rewrite error:', error);
+      toast({
+        title: "Re-rewrite failed",
+        description: error instanceof Error ? error.message : "An error occurred during re-rewriting.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRerewriting(false);
+    }
+  };
+
   const formatContent = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
@@ -750,6 +861,20 @@ export default function ChunkedRewriter({
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded-lg">
             <Button 
+              onClick={() => {
+                // Split content into chunks for potential re-rewriting
+                const chunks = splitContentIntoRewriteChunks(finalRewrittenContent);
+                setRewriteChunks(chunks);
+                setShowRerewriteForm(!showRerewriteForm);
+              }}
+              variant="outline"
+              className="flex items-center space-x-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Rewrite the Rewrite</span>
+            </Button>
+            
+            <Button 
               onClick={() => window.print()}
               className="flex items-center space-x-2"
             >
@@ -859,6 +984,112 @@ export default function ChunkedRewriter({
               </Button>
             </div>
           </div>
+
+          {/* Re-rewrite Form */}
+          {showRerewriteForm && (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
+              <h3 className="text-lg font-semibold text-blue-900">Rewrite the Rewrite</h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="rerewrite-instructions">Custom Instructions</Label>
+                  <Textarea
+                    id="rerewrite-instructions"
+                    placeholder="Provide specific instructions for how you want to rewrite this content..."
+                    value={rerewriteInstructions}
+                    onChange={(e) => setRerewriteInstructions(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <Label htmlFor="rerewrite-model">AI Model</Label>
+                    <Select value={rerewriteModel} onValueChange={(value: 'claude' | 'gpt4' | 'perplexity') => setRerewriteModel(value)}>
+                      <SelectTrigger id="rerewrite-model" className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="claude">Claude</SelectItem>
+                        <SelectItem value="gpt4">GPT-4</SelectItem>
+                        <SelectItem value="perplexity">Perplexity</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Chunk Selection for multi-chunk content */}
+                {rewriteChunks.length > 1 && (
+                  <div className="space-y-2">
+                    <Label>Select Chunks to Re-rewrite ({rewriteChunks.filter(c => c.selected).length} of {rewriteChunks.length} selected)</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+                      {rewriteChunks.map((chunk, index) => (
+                        <div key={chunk.id} className="flex items-center space-x-2 p-2 border rounded">
+                          <Checkbox
+                            checked={chunk.selected}
+                            onCheckedChange={(checked) => {
+                              setRewriteChunks(prev => prev.map(c => 
+                                c.id === chunk.id ? { ...c, selected: !!checked } : c
+                              ));
+                            }}
+                          />
+                          <span className="text-sm">Chunk {index + 1}</span>
+                          <span className="text-xs text-gray-500 truncate">
+                            ({chunk.content.substring(0, 50)}...)
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setRewriteChunks(prev => prev.map(c => ({ ...c, selected: true })))}
+                      >
+                        Select All
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setRewriteChunks(prev => prev.map(c => ({ ...c, selected: false })))}
+                      >
+                        Deselect All
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={startRerewrite}
+                    disabled={isRerewriting || !rerewriteInstructions.trim()}
+                    className="flex items-center space-x-2"
+                  >
+                    {isRerewriting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Re-rewriting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4" />
+                        <span>Start Re-rewrite</span>
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowRerewriteForm(false);
+                      setRerewriteInstructions('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Content Display */}
           <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white">
