@@ -262,8 +262,8 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   };
 
   return (
-    <div className="border-t bg-white">
-      <Card className="rounded-none border-0 border-t">
+    <div className="h-full">
+      <Card className="h-full flex flex-col shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">Auxiliary AI Chat</CardTitle>
@@ -383,6 +383,15 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4 mr-1" />
+                Upload File
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setMessages([])}
                 disabled={messages.length === 0}
               >
@@ -392,9 +401,9 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
+        <CardContent className="p-0 flex-1 flex flex-col">
           {/* Messages */}
-          <ScrollArea className="h-80 px-4">
+          <ScrollArea className="flex-1 px-4">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground">
                 <div className="text-center">
