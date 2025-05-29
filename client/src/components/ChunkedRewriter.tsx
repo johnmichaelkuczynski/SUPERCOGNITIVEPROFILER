@@ -1096,6 +1096,25 @@ export default function ChunkedRewriter({
 
             <Button 
               onClick={() => {
+                // Close popup and go straight back to chat
+                setShowResultsPopup(false);
+                setFinalRewrittenContent('');
+                setRewriteMetadata(null);
+                onAddToChat(`**Rewritten Document:**\n\n${finalRewrittenContent}`, rewriteMetadata);
+                toast({
+                  title: "Back to chat!",
+                  description: "Content added and returned to main chat.",
+                });
+              }}
+              variant="outline"
+              className="flex items-center space-x-2 border-green-500 text-green-700 hover:bg-green-50"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Chat</span>
+            </Button>
+
+            <Button 
+              onClick={() => {
                 // Create proper PDF with MathJax like the working chat version
                 const printWindow = window.open('', '_blank', 'width=800,height=600');
                 if (!printWindow) {
