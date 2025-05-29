@@ -1250,9 +1250,26 @@ export default function ChunkedRewriter({
 
             <div className="flex space-x-2 flex-1 max-w-md">
               <Input
+                type="email"
                 placeholder="Enter email address to share..."
                 value={emailAddress}
-                onChange={(e) => setEmailAddress(e.target.value)}
+                onChange={(e) => {
+                  setEmailAddress(e.target.value);
+                  // Save to localStorage for next time
+                  if (e.target.value) {
+                    localStorage.setItem('userEmail', e.target.value);
+                  }
+                }}
+                onFocus={() => {
+                  // Auto-fill from localStorage if empty
+                  if (!emailAddress) {
+                    const savedEmail = localStorage.getItem('userEmail');
+                    if (savedEmail) {
+                      setEmailAddress(savedEmail);
+                    }
+                  }
+                }}
+                autoComplete="email"
                 className="flex-1"
               />
               <Button 
