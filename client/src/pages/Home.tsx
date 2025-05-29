@@ -606,38 +606,38 @@ Document text: ${extractedText}`;
       <div className="flex-1">
         <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
         
-        {/* Two chat interface side by side */}
-        <div className="grid grid-cols-2 gap-6 h-[700px]">
-          {/* Main Chat */}
-          <Card className="shadow-sm flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Chat with AI</CardTitle>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant={selectedModel === 'claude' ? 'default' : 'outline'} 
-                    size="sm"
-                    onClick={() => setSelectedModel('claude')}
-                  >
-                    Claude
-                  </Button>
-                  <Button 
-                    variant={selectedModel === 'gpt4' ? 'default' : 'outline'} 
-                    size="sm"
-                    onClick={() => setSelectedModel('gpt4')}
-                  >
-                    GPT-4
-                  </Button>
-                  <Button 
-                    variant={selectedModel === 'perplexity' ? 'default' : 'outline'} 
-                    size="sm"
-                    onClick={() => setSelectedModel('perplexity')}
-                  >
-                    Perplexity
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
+        <Card className="shadow-sm flex flex-col mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Chat with AI</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-2">
+              <Button 
+                variant={selectedModel === 'claude' ? 'default' : 'outline'} 
+                onClick={() => setSelectedModel('claude')}
+              >
+                Claude
+              </Button>
+              <Button 
+                variant={selectedModel === 'gpt4' ? 'default' : 'outline'} 
+                onClick={() => setSelectedModel('gpt4')}
+              >
+                GPT-4
+              </Button>
+              <Button 
+                variant={selectedModel === 'perplexity' ? 'default' : 'outline'} 
+                onClick={() => setSelectedModel('perplexity')}
+              >
+                Perplexity
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-sm flex flex-col" style={{ minHeight: '600px' }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Conversation</CardTitle>
+          </CardHeader>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Conversation</CardTitle>
           </CardHeader>
