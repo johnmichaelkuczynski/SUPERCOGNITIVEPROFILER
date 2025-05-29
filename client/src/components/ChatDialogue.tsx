@@ -30,7 +30,13 @@ interface ChatDialogueProps {
   onRewriteChunk?: (chunk: string, index: number, total: number) => void;
 }
 
-export default function ChatDialogue({ onRewriteChunk }: ChatDialogueProps) {
+export interface ChatDialogueRef {
+  addRewriteChunk: (chunk: string, index: number, total: number) => void;
+  addMessage: (content: string, metadata?: any) => void;
+}
+
+const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
+  ({ onRewriteChunk }, ref) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -49,25 +55,31 @@ export default function ChatDialogue({ onRewriteChunk }: ChatDialogueProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Add rewrite chunk to chat
-  useEffect(() => {
-    if (onRewriteChunk) {
-      // This will be called from parent when rewrite chunks are generated
+  // Expose methods via ref
+  React.useImperativeHandle(ref, () => ({
+    addRewriteChunk: (chunk: string, index: number, total: number) => {
+      const chunkMessage: ChatMessage = {
+        id: Date.now() + index,
+        content: `**Rewrite Chunk ${index + 1}/${total}:**\n\n${chunk}`,
+        role: 'assistant',
+        timestamp: new Date(),
+        isRewriteChunk: true,
+        chunkIndex: index,
+        totalChunks: total
+      };
+      setMessages(prev => [...prev, chunkMessage]);
+    },
+    addMessage: (content: string, metadata?: any) => {
+      const message: ChatMessage = {
+        id: Date.now(),
+        content,
+        role: 'assistant',
+        timestamp: new Date(),
+        ...metadata
+      };
+      setMessages(prev => [...prev, message]);
     }
-  }, [onRewriteChunk]);
-
-  const addRewriteChunk = (chunk: string, index: number, total: number) => {
-    const chunkMessage: ChatMessage = {
-      id: Date.now() + index,
-      content: `**Rewrite Chunk ${index + 1}/${total}:**\n\n${chunk}`,
-      role: 'assistant',
-      timestamp: new Date(),
-      isRewriteChunk: true,
-      chunkIndex: index,
-      totalChunks: total
-    };
-    setMessages(prev => [...prev, chunkMessage]);
-  };
+  }));
 
   const formatMessage = (content: string) => {
     return (
@@ -484,7 +496,9 @@ export default function ChatDialogue({ onRewriteChunk }: ChatDialogueProps) {
       </Dialog>
     </div>
   );
-}
+});
 
-// Export the addRewriteChunk function for external use
-export { ChatDialogue };
+ChatDialogue.displayName = 'ChatDialogue';
+
+export default ChatDialogue;
+export type { ChatDialogueRef };

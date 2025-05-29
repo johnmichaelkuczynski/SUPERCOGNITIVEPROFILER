@@ -14,6 +14,7 @@ import { detectAIContent } from "./services/aiDetection";
 import { rewriteDocument } from "./services/documentRewriter";
 import { WebSocketServer } from 'ws';
 import { sendEmail } from './services/email';
+import { Document, Paragraph, TextRun, Packer } from 'docx';
 
 // Configure multer for file uploads
 const upload = multer({ 

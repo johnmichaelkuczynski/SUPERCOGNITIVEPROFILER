@@ -290,6 +290,17 @@ export default function ChunkedRewriter({
             } : item
           ));
 
+          // Add rewritten chunk to chat dialogue
+          onAddToChat(
+            `**Rewrite Chunk ${i + 1}/${selectedChunks.length} Complete:**\n\n${result.rewrittenContent}`,
+            { 
+              type: 'rewrite_chunk',
+              chunkIndex: i,
+              totalChunks: selectedChunks.length,
+              originalContent: chunk.content 
+            }
+          );
+
           processedChunks++;
           setProgress((processedChunks / totalOperations) * 100);
         }

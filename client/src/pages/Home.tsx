@@ -17,7 +17,7 @@ import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
-import ChatDialogue from '@/components/ChatDialogue';
+import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
 
 interface Message {
   id: number;
@@ -37,6 +37,7 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatDialogueRef = useRef<ChatDialogueRef>(null);
   const [, setLocation] = useLocation();
   
   // Document rewriter modal state
