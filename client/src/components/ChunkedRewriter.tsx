@@ -90,8 +90,14 @@ export default function ChunkedRewriter({
     setRerewriteInstructions('');
     setRewriteChunks([]);
     setLiveProgressChunks([]);
+    setFinalRewrittenContent('');
+    setRewriteMetadata(null);
     
-    // Reset all chunks
+    // Clear any cached document content to force fresh processing
+    localStorage.removeItem('cachedDocumentContent');
+    localStorage.removeItem('lastProcessedDocument');
+    
+    // Reset all chunks and force regeneration from original text
     setChunks(prev => prev.map(chunk => ({
       ...chunk,
       rewritten: undefined,
