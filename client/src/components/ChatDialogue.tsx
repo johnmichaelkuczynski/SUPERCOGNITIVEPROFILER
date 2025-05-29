@@ -266,7 +266,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
       <Card className="rounded-none border-0 border-t">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Chat with AI</CardTitle>
+            <CardTitle className="text-lg font-semibold">Auxiliary AI Chat</CardTitle>
             <div className="flex items-center space-x-2">
               <Select value={selectedModel} onValueChange={(value) => setSelectedModel(value as LLMModel)}>
                 <SelectTrigger className="w-32">
@@ -278,6 +278,108 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                   <SelectItem value="perplexity">Perplexity</SelectItem>
                 </SelectContent>
               </Select>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={messages.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Export
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Export Auxiliary Chat</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <p className="text-sm text-slate-600">Export your entire auxiliary chat conversation with perfect mathematical notation:</p>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        onClick={async () => {
+                          if (messages.length > 0) {
+                            const chatContent = messages.map(msg => 
+                              `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n\n${msg.content}\n\n`
+                            ).join('---\n\n');
+                            
+                            try {
+                              const response = await fetch('/api/export-chat-message', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  content: chatContent,
+                                  format: 'pdf',
+                                  filename: `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}`
+                                })
+                              });
+
+                              if (response.ok) {
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}.html`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              }
+                            } catch (error) {
+                              console.error('Error exporting chat:', error);
+                            }
+                          }
+                        }}
+                        variant="outline"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export as Math-Perfect PDF
+                      </Button>
+                      
+                      <Button 
+                        onClick={async () => {
+                          if (messages.length > 0) {
+                            const chatContent = messages.map(msg => 
+                              `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n\n${msg.content}\n\n`
+                            ).join('---\n\n');
+                            
+                            try {
+                              const response = await fetch('/api/export-chat-message', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  content: chatContent,
+                                  format: 'docx',
+                                  filename: `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}`
+                                })
+                              });
+
+                              if (response.ok) {
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}.docx`;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(a);
+                              }
+                            } catch (error) {
+                              console.error('Error exporting chat:', error);
+                            }
+                          }
+                        }}
+                        variant="outline"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export as Word Document
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -433,7 +535,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyPress}
                   placeholder="Ask anything about your documents or chat with the AI..."
-                  className="min-h-[60px] pr-24 resize-none"
+                  className="min-h-[120px] max-h-[400px] pr-24 resize-y"
                   disabled={isLoading}
                 />
                 <div className="absolute bottom-2 right-2 flex space-x-1">
