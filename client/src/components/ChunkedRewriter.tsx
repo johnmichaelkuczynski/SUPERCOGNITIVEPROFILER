@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { Download, Mail, Eye, Play, Pause, RotateCcw, X, Bomb } from 'lucide-react';
+import { Download, Mail, Eye, Play, Pause, RotateCcw, X, Bomb, ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -1121,8 +1121,8 @@ export default function ChunkedRewriter({
 
             <Button 
               onClick={() => {
-                // Create proper PDF with MathJax like the working chat version
-                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                // Use the working PDF approach from chat
+                const printWindow = window.open('', '_blank');
                 if (!printWindow) {
                   toast({
                     title: "Pop-up blocked",
@@ -1132,92 +1132,58 @@ export default function ChunkedRewriter({
                   return;
                 }
 
-                // Clean content but preserve LaTeX math
-                let cleanContent = finalRewrittenContent
-                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                  .replace(/\*([^$*]*)\*/g, '<em>$1</em>')
-                  .replace(/\(\*([^)]*)\*\)/g, '($1)')
-                  .replace(/\n\n/g, '</p><p>')
-                  .replace(/\n/g, '<br>');
-
-                const htmlContent = `
-                  <!DOCTYPE html>
-                  <html>
-                    <head>
-                      <title>Rewrite Results</title>
-                      <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-                      <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-                      <script>
-                        window.MathJax = {
-                          tex: {
-                            inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                            displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-                            processEscapes: true,
-                            processEnvironments: true
-                          },
-                          options: {
-                            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-                          },
-                          startup: {
-                            ready: () => {
-                              MathJax.startup.defaultReady();
-                              setTimeout(() => {
-                                document.getElementById('loading').style.display = 'none';
-                                document.getElementById('content').style.display = 'block';
-                              }, 1000);
-                            }
-                          }
-                        };
-                      </script>
-                      <style>
-                        body { 
-                          font-family: 'Times New Roman', serif; 
-                          line-height: 1.6; 
-                          max-width: 8.5in; 
-                          margin: 0 auto; 
-                          padding: 1in;
-                          color: black;
-                          background: white;
-                        }
-                        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
-                        p { margin-bottom: 12px; }
-                        .MathJax { font-size: 1em !important; }
-                        #loading { text-align: center; padding: 50px; }
-                        #content { display: none; }
-                        .controls { text-align: center; margin: 20px 0; }
-                        .controls button { 
-                          margin: 0 10px; padding: 10px 20px; 
-                          background: #007bff; color: white; 
-                          border: none; border-radius: 4px; cursor: pointer; 
-                        }
-                        .controls button:hover { background: #0056b3; }
-                        .controls .close { background: #6c757d; }
-                        .controls .close:hover { background: #545b62; }
-                        @media print {
-                          .controls { display: none; }
-                          body { margin: 0.5in; }
-                        }
-                      </style>
-                    </head>
-                    <body>
-                      <div id="loading">Loading math notation...</div>
-                      <div id="content">
-                        <div class="controls">
-                          <button onclick="window.print()">📄 Save as PDF</button>
-                          <button class="close" onclick="window.close()">Close</button>
-                        </div>
-                        <div id="text-content"><p>${cleanContent}</p></div>
-                      </div>
-                    </body>
-                  </html>
-                `;
+                // Use the exact same working HTML structure as the chat PDF
+                const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <title>Rewrite Results</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Times New Roman', serif; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in; color: black; background: white; }
+        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
+        p { margin-bottom: 12px; }
+        .MathJax { font-size: 1em !important; }
+        .print-button { text-align: center; margin: 20px 0; }
+        .print-button button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        @media print { .print-button { display: none; } body { margin: 0.5in; } }
+    </style>
+</head>
+<body>
+    <div class="print-button">
+        <button onclick="window.print()">📄 Save as PDF</button>
+        <button onclick="window.close()" style="background: #6c757d; margin-left: 10px;">Close</button>
+    </div>
+    <div id="content">${finalRewrittenContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')}</div>
+    <script>
+        if (window.MathJax) {
+            MathJax.typesetPromise([document.getElementById('content')]).then(() => {
+                console.log('MathJax rendering complete');
+            });
+        }
+    </script>
+</body>
+</html>`;
 
                 printWindow.document.write(htmlContent);
                 printWindow.document.close();
 
                 toast({
-                  title: "PDF window opened!",
-                  description: "Math notation will render in a moment, then click 'Save as PDF'",
+                  title: "PDF ready!",
+                  description: "Click 'Save as PDF' in the new window",
                 });
               }}
               className="flex items-center space-x-2"
