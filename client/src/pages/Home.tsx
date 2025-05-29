@@ -1260,18 +1260,6 @@ Document text: ${extractedText}`;
             </div>
           </CardFooter>
         </Card>
-          
-          {/* Auxiliary Chat */}
-          <div className="flex flex-col h-full">
-            <ChatDialogue 
-              ref={chatDialogueRef}
-              onRewriteChunk={(chunk: string, index: number, total: number) => {
-                // This will be called when rewrite chunks are generated
-                // The ChatDialogue component will handle adding them to its own state
-              }}
-            />
-          </div>
-        </div>
       </div>
       
       {/* Document Viewer Dialog */}
