@@ -501,4 +501,3 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
 ChatDialogue.displayName = 'ChatDialogue';
 
 export default ChatDialogue;
-export type { ChatDialogueRef };

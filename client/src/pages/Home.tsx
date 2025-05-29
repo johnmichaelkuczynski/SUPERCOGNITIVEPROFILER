@@ -548,21 +548,13 @@ Document text: ${extractedText}`;
 
   // Handle adding chunked rewrite content to chat
   const handleAddChunkedRewriteToChat = (content: string, metadata: any) => {
-    const userMessage: Message = {
-      id: Date.now(),
-      content: `I've completed a chunked rewrite of "${rewriterTitle}" using ${metadata.model}. Instructions: ${metadata.instructions}`,
-      role: 'user',
-      timestamp: new Date()
-    };
-    
-    const aiMessage: Message = {
-      id: Date.now() + 1,
-      content: content,
-      role: 'assistant',
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMessage, aiMessage]);
+    // Add to the chat dialogue component instead of the main messages
+    if (chatDialogueRef.current) {
+      chatDialogueRef.current.addMessage(content, {
+        type: 'rewrite_result',
+        metadata
+      });
+    }
   };
 
   // Open chunked rewriter with document content
@@ -1348,7 +1340,8 @@ Document text: ${extractedText}`;
 
       {/* Chat Dialogue at the bottom */}
       <ChatDialogue 
-        onRewriteChunk={(chunk, index, total) => {
+        ref={chatDialogueRef}
+        onRewriteChunk={(chunk: string, index: number, total: number) => {
           // This will be called when rewrite chunks are generated
           // The ChatDialogue component will handle adding them to its own state
         }}
