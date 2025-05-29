@@ -1304,5 +1304,125 @@ Return only the new content without any additional comments, explanations, or he
     });
   });
 
+  // Chat message export endpoint
+  app.post('/api/export-chat-message', async (req: Request, res: Response) => {
+    try {
+      const { content, format = 'pdf', filename = 'chat-message' } = req.body;
+
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      let processedContent = content;
+      
+      // Clean up markdown for better presentation
+      processedContent = processedContent.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove bold markdown
+      processedContent = processedContent.replace(/\*(.*?)\*/g, '$1'); // Remove italic markdown
+
+      if (format === 'pdf') {
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.html"`);
+        
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${filename}</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']]
+            }
+        };
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .math { font-family: 'Times New Roman', serif; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        code { background: #f5f5f5; padding: 2px 4px; border-radius: 3px; }
+        h1, h2, h3 { color: #333; }
+        blockquote { border-left: 4px solid #ccc; margin: 0; padding-left: 20px; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div>${processedContent.replace(/\n/g, '<br>')}</div>
+    <script>
+        window.onload = function() {
+            if (window.MathJax) {
+                MathJax.typesetPromise().then(() => {
+                    console.log('MathJax rendering complete');
+                });
+            }
+        };
+    </script>
+</body>
+</html>`;
+        
+        res.send(htmlContent);
+      } else if (format === 'docx') {
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: processedContent.split('\n').map((line: any) => 
+              new Paragraph({
+                children: [new TextRun(line)]
+              })
+            )
+          }]
+        });
+
+        const buffer = await Packer.toBuffer(doc);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.docx"`);
+        res.send(buffer);
+      } else if (format === 'txt') {
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.txt"`);
+        res.send(processedContent);
+      } else {
+        res.status(400).json({ error: 'Unsupported format' });
+      }
+    } catch (error) {
+      console.error('Error exporting chat message:', error);
+      res.status(500).json({ error: 'Failed to export chat message' });
+    }
+  });
+
+  // Chat message sharing endpoint
+  app.post('/api/share-chat-message', async (req: Request, res: Response) => {
+    try {
+      const { content, email, subject = 'Chat Message from TextMind' } = req.body;
+
+      if (!content || !email) {
+        return res.status(400).json({ error: 'Content and email are required' });
+      }
+
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ error: 'Email service not configured' });
+      }
+
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+      const msg = {
+        to: email,
+        from: 'textmind@yourdomain.com',
+        subject: subject,
+        text: content,
+        html: content.replace(/\n/g, '<br>')
+      };
+
+      await sgMail.send(msg);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error sharing chat message:', error);
+      res.status(500).json({ error: 'Failed to share chat message' });
+    }
+  });
+
   return httpServer;
 }

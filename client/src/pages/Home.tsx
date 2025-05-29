@@ -17,6 +17,7 @@ import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
+import ChatDialogue from '@/components/ChatDialogue';
 
 interface Message {
   id: number;
@@ -1343,6 +1344,14 @@ Document text: ${extractedText}`;
           />
         </DialogContent>
       </Dialog>
+
+      {/* Chat Dialogue at the bottom */}
+      <ChatDialogue 
+        onRewriteChunk={(chunk, index, total) => {
+          // This will be called when rewrite chunks are generated
+          // The ChatDialogue component will handle adding them to its own state
+        }}
+      />
     </main>
   );
 }
