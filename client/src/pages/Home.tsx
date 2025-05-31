@@ -458,21 +458,42 @@ Document text: ${extractedText}`;
   
   // Format message content - clean text without markdown formatting
   const formatMessage = (content: string) => {
-    // Clean up markdown formatting for better readability
+    // Comprehensive cleanup of all markdown formatting for clean text display
     let cleanContent = content
-      // Remove bold formatting
+      // Remove all header formatting (### Exercises -> Exercises)
+      .replace(/^#{1,6}\s*/gm, '')
+      // Remove bold formatting (**text** -> text)
       .replace(/\*\*(.*?)\*\*/g, '$1')
-      // Remove italic formatting  
+      // Remove italic formatting (*text* -> text)  
       .replace(/\*(.*?)\*/g, '$1')
-      // Remove emphasis formatting
+      // Remove emphasis formatting (_text_ -> text)
       .replace(/_(.*?)_/g, '$1')
-      // Clean up header formatting
-      .replace(/^#{1,6}\s+/gm, '')
-      // Remove blockquote formatting
-      .replace(/^>\s+/gm, '')
-      // Clean up list formatting
+      // Remove strikethrough (~~text~~ -> text)
+      .replace(/~~(.*?)~~/g, '$1')
+      // Remove inline code (`code` -> code)
+      .replace(/`([^`]+)`/g, '$1')
+      // Remove code blocks (```code``` -> code)
+      .replace(/```[\s\S]*?```/g, (match) => {
+        return match.replace(/```.*?\n?/g, '').replace(/```/g, '');
+      })
+      // Remove blockquote formatting (> text -> text)
+      .replace(/^>\s*/gm, '')
+      // Clean up list formatting (- item -> • item)
       .replace(/^[-*+]\s+/gm, '• ')
-      .replace(/^\d+\.\s+/gm, '');
+      // Clean up numbered lists (1. item -> item)
+      .replace(/^\d+\.\s+/gm, '')
+      // Remove horizontal rules (--- -> empty)
+      .replace(/^---+$/gm, '')
+      // Remove link formatting [text](url) -> text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // Remove image formatting ![alt](url) -> alt
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+      // Clean up any remaining markdown artifacts
+      .replace(/\*+/g, '')
+      .replace(/#+/g, '')
+      // Clean up extra whitespace
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .trim();
 
     return (
       <div className="whitespace-pre-wrap">
