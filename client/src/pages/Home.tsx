@@ -456,17 +456,28 @@ Document text: ${extractedText}`;
     }
   };
   
-  // Format markdown with MathJax support
+  // Format message content - clean text without markdown formatting
   const formatMessage = (content: string) => {
+    // Clean up markdown formatting for better readability
+    let cleanContent = content
+      // Remove bold formatting
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      // Remove italic formatting  
+      .replace(/\*(.*?)\*/g, '$1')
+      // Remove emphasis formatting
+      .replace(/_(.*?)_/g, '$1')
+      // Clean up header formatting
+      .replace(/^#{1,6}\s+/gm, '')
+      // Remove blockquote formatting
+      .replace(/^>\s+/gm, '')
+      // Clean up list formatting
+      .replace(/^[-*+]\s+/gm, '• ')
+      .replace(/^\d+\.\s+/gm, '');
+
     return (
-      <div className="prose dark:prose-invert prose-sm max-w-none">
+      <div className="whitespace-pre-wrap">
         <MathJax>
-          <ReactMarkdown
-            rehypePlugins={[rehypeKatex]}
-            remarkPlugins={[remarkMath]}
-          >
-            {content}
-          </ReactMarkdown>
+          {cleanContent}
         </MathJax>
       </div>
     );
