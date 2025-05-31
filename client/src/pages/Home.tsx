@@ -1205,6 +1205,39 @@ Document text: ${extractedText}`;
                     <Trash2 className="h-4 w-4 mr-2" />
                     Clear Chat
                   </Button>
+                  
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={async () => {
+                      if (confirm('NUKE: This will clear ALL data - chat, documents, conversations. Are you sure?')) {
+                        // Clear all local state
+                        setMessages([]);
+                        setUploadedDocuments({});
+                        setDocumentContent('');
+                        setDocumentName('');
+                        setViewingDocumentContent('');
+                        setViewingDocumentName('');
+                        setIsRewriterOpen(false);
+                        setIsDocumentViewerOpen(false);
+                        setIsChunkSelectorOpen(false);
+                        
+                        // Clear all server data
+                        try {
+                          await fetch('/api/nuke', { method: 'POST' });
+                          console.log('Server data cleared');
+                        } catch (error) {
+                          console.error('Error clearing server data:', error);
+                        }
+                        
+                        // Force page reload to completely reset
+                        window.location.reload();
+                      }
+                    }}
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    NUKE
+                  </Button>
                 </div>
                 
                 {/* Document Actions */}
