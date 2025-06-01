@@ -1,10 +1,20 @@
 import OpenAI from 'openai';
 import { createReadStream } from 'fs';
 
-// Create a client instance
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Create a client instance only when needed
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OpenAI API key not configured');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. 
 // Do not change this unless explicitly requested by the user
@@ -15,7 +25,7 @@ interface GPT4Options {
   stream?: boolean;
   chunkSize?: string;
   maxTokens?: number;
-  previousMessages?: Array<{role: string; content: string}>;
+  previousMessages?: Array<{role: 'user' | 'assistant' | 'system'; content: string}>;
 }
 
 /**
@@ -34,7 +44,7 @@ export async function processGPT4(
 
   const messages = [
     ...previousMessages,
-    { role: 'user', content: prompt }
+    { role: 'user' as const, content: prompt }
   ];
 
   if (stream) {
@@ -42,7 +52,8 @@ export async function processGPT4(
   }
 
   try {
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: DEFAULT_MODEL,
       messages,
       temperature,
@@ -66,7 +77,8 @@ async function processWithChunking(
   const { temperature = 0.7, chunkSize = 'medium', maxTokens = 4000 } = options;
 
   try {
-    const stream = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const stream = await client.chat.completions.create({
       model: DEFAULT_MODEL,
       messages: [{ role: 'user', content: prompt }],
       temperature,
@@ -97,7 +109,8 @@ export async function summarizeDocumentChunk(text: string): Promise<string> {
       text.substring(0, 3000) + '...' : 
       text;
     
-    const response = await openai.chat.completions.create({
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
       model: DEFAULT_MODEL,
       messages: [
         {
