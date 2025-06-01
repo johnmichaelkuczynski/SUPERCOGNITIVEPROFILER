@@ -539,10 +539,10 @@ export default function DocumentRewrite() {
 
   // Handle email sharing
   const handleShareViaEmail = async () => {
-    if (!rewrittenContent || !emailRecipient || !senderEmail) {
+    if (!rewrittenContent || !emailRecipient) {
       toast({
         title: "Missing Information",
-        description: "Please provide both recipient and sender email addresses, and rewrite the document first.",
+        description: "Please provide a recipient email address and rewrite the document first.",
         variant: "destructive"
       });
       return;
@@ -558,23 +558,12 @@ export default function DocumentRewrite() {
       return;
     }
     
-    // Validate sender email
-    if (!senderEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      toast({
-        title: "Invalid Sender Email",
-        description: "Please enter a valid sender email address. This must be verified in your SendGrid account.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setIsSending(true);
     
     try {
       console.log("Sending email with params:", {
         content: rewrittenContent ? rewrittenContent.substring(0, 50) + "..." : "missing",
         recipient: emailRecipient,
-        sender: senderEmail,
         documentName: document?.name || 'Document'
       });
       
@@ -584,7 +573,6 @@ export default function DocumentRewrite() {
         body: JSON.stringify({
           content: rewrittenContent,
           recipient: emailRecipient,
-          senderEmail: senderEmail,
           documentName: document?.name || 'Document',
           format: 'pdf' // Default format for sharing
         }),
@@ -601,15 +589,8 @@ export default function DocumentRewrite() {
         description: `Your document has been sent to ${emailRecipient}.`,
       });
       
-      // Clear recipient email but keep sender email for future use
+      // Clear recipient email for next use
       setEmailRecipient('');
-      
-      // Save sender email to localStorage for future use
-      try {
-        localStorage.setItem('lastUsedSenderEmail', senderEmail);
-      } catch (e) {
-        console.warn('Could not save sender email to localStorage', e);
-      }
     } catch (error) {
       console.error('Error sharing document:', error);
       toast({
@@ -1130,25 +1111,20 @@ export default function DocumentRewrite() {
                       onChange={(e) => setEmailRecipient(e.target.value)}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="sender-email">Your Verified Sender Email</Label>
-                    <Input 
-                      id="sender-email" 
-                      type="email" 
-                      placeholder="your-verified@sender.com"
-                      value={senderEmail}
-                      onChange={(e) => setSenderEmail(e.target.value)}
-                    />
-                    <p className="text-xs text-red-600 font-medium mt-1">
-                      Important: This MUST be a verified sender email in your SendGrid account.
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      You can verify a sender address in your SendGrid dashboard.
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-sm text-green-800 font-medium">
+                        Verified Sender Configured
+                      </span>
+                    </div>
+                    <p className="text-xs text-green-700 mt-1">
+                      Emails will be sent from JM@ANALYTICPHILOSOPHY.AI
                     </p>
                   </div>
                   <Button 
                     onClick={handleShareViaEmail} 
-                    disabled={!emailRecipient || !senderEmail || isSending}
+                    disabled={!emailRecipient || isSending}
                     className="w-full"
                   >
                     {isSending ? (
