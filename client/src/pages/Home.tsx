@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3, Mail, AlertTriangle } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3, Mail, AlertTriangle, Play } from 'lucide-react';
 import { downloadOutput } from '@/lib/llm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -66,6 +66,12 @@ export default function Home() {
   
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
+  
+  // Direct text processor state
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
+  const [directInputText, setDirectInputText] = useState<string>('');
+  const [isDirectProcessing, setIsDirectProcessing] = useState(false);
+  const directFileInputRef = useRef<HTMLInputElement>(null);
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -597,9 +603,97 @@ Document text: ${extractedText}`;
   };
 
   return (
-    <main className="container mx-auto px-4 py-6 flex">
-      {/* Document Sidebar */}
-      {allDocuments.length > 0 && (
+    <main className="container mx-auto px-4 py-6">
+      {/* Direct Text Processing Interface */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>AI Text Processor</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Mode Selection */}
+          <div className="grid grid-cols-2 gap-4">
+            <Card 
+              className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+              onClick={() => setProcessingMode('rewrite')}
+            >
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Rewrite Mode</h3>
+                <p className="text-sm text-muted-foreground mt-2">Transform and improve existing text</p>
+              </CardContent>
+            </Card>
+            <Card 
+              className={`cursor-pointer transition-all ${processingMode === 'homework' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:bg-gray-50'}`}
+              onClick={() => setProcessingMode('homework')}
+            >
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Homework Mode</h3>
+                <p className="text-sm text-muted-foreground mt-2">Complete assignments, answer questions, follow instructions</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Text Input */}
+          <div className="space-y-2">
+            <textarea 
+              placeholder={processingMode === 'homework' 
+                ? "Paste exam questions, homework assignments, or instructions here..." 
+                : "Paste your text to rewrite, improve, or transform here..."
+              }
+              className="w-full h-40 p-4 border rounded-lg resize-none"
+              value={directInputText}
+              onChange={(e) => setDirectInputText(e.target.value)}
+            />
+            <div className="flex justify-between items-center">
+              <input 
+                type="file" 
+                className="hidden" 
+                ref={directFileInputRef}
+                accept=".pdf,.docx,.txt,.jpg,.png"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  await handleFileUpload([file]);
+                  if (Object.keys(uploadedDocuments).length > 0) {
+                    const [[filename, content]] = Object.entries(uploadedDocuments);
+                    setDirectInputText(content);
+                  }
+                }}
+              />
+              <Button 
+                variant="outline" 
+                className="flex items-center space-x-2"
+                onClick={() => directFileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4" />
+                <span>Upload File</span>
+              </Button>
+              <Button 
+                className="flex items-center space-x-2"
+                disabled={!directInputText.trim() || isDirectProcessing}
+                onClick={async () => {
+                  if (!directInputText.trim()) return;
+                  setIsDirectProcessing(true);
+                  
+                  if (processingMode === 'homework') {
+                    openChunkedRewriter(directInputText, 'Direct Input - Homework Mode');
+                  } else {
+                    openChunkedRewriter(directInputText, 'Direct Input - Rewrite Mode');
+                  }
+                  
+                  setIsDirectProcessing(false);
+                }}
+              >
+                <Play className="h-4 w-4" />
+                <span>{isDirectProcessing ? 'Processing...' : (processingMode === 'homework' ? 'Complete Assignment' : 'Rewrite Text')}</span>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex">
+        {/* Document Sidebar */}
+        {allDocuments.length > 0 && (
         <div className="w-16 bg-slate-50 rounded-lg flex flex-col items-center py-4 mr-4 h-[calc(100vh-3rem)] overflow-y-auto sticky top-6">
           {allDocuments.map((doc, index) => (
             <div 
@@ -1325,6 +1419,7 @@ Document text: ${extractedText}`;
             </div>
           </CardFooter>
         </Card>
+      </div>
       </div>
       
       {/* Document Viewer Dialog */}
