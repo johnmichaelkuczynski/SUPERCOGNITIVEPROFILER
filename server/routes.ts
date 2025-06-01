@@ -1001,6 +1001,16 @@ Return only the rewritten text without any additional comments, explanations, or
       const filename = title || 'rewritten-document';
       let processedContent = content;
       
+      // Clean markdown formatting first
+      processedContent = processedContent.replace(/^#{1,6}\s+/gm, ''); // Remove markdown headers
+      processedContent = processedContent.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove bold markdown
+      processedContent = processedContent.replace(/\*(.*?)\*/g, '$1'); // Remove italic markdown
+      processedContent = processedContent.replace(/`(.*?)`/g, '$1'); // Remove code markdown
+      processedContent = processedContent.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // Remove links
+      processedContent = processedContent.replace(/^>\s*/gm, ''); // Remove blockquotes
+      processedContent = processedContent.replace(/^[-*+]\s+/gm, '• '); // Convert lists to bullet points
+      processedContent = processedContent.replace(/^\d+\.\s+/gm, ''); // Remove numbered list markers
+      
       // Convert LaTeX symbols to Unicode mathematical symbols
       const latexToUnicode = {
         '\\mathcal{P}': '𝒫',
@@ -1042,10 +1052,60 @@ Return only the rewritten text without any additional comments, explanations, or
       processedContent = processedContent.replace(/\\{/g, '{');
       processedContent = processedContent.replace(/\\}/g, '}');
       
-      // Return as text file with UTF-8 encoding to preserve math symbols
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}.txt"`);
-      res.send(processedContent);
+      if (format === 'pdf') {
+        // For PDF, return HTML for print preview
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.html"`);
+        
+        const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${filename}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            color: #333;
+        }
+        @media print {
+            body { margin: 0; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div>${processedContent.replace(/\n/g, '<br>')}</div>
+</body>
+</html>`;
+        res.send(htmlContent);
+      } else if (format === 'docx') {
+        // For Word, we need to import the docx library and create a proper document
+        const { Document, Packer, Paragraph, TextRun } = require('docx');
+        
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: processedContent.split('\n').filter(line => line.trim()).map((line: string) => 
+              new Paragraph({
+                children: [new TextRun(line.trim())]
+              })
+            )
+          }]
+        });
+
+        const buffer = await Packer.toBuffer(doc);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.docx"`);
+        res.send(buffer);
+      } else {
+        // Default to text file
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.txt"`);
+        res.send(processedContent);
+      }
       
     } catch (error) {
       console.error('Download rewrite error:', error);
