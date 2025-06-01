@@ -72,6 +72,60 @@ export default function Home() {
   const [directInputText, setDirectInputText] = useState<string>('');
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle file upload for direct interface
+  const handleDirectFileUpload = async (uploadedFiles: File[]) => {
+    if (uploadedFiles.length === 0) return;
+    
+    const file = uploadedFiles[0];
+    setIsDirectProcessing(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const extractedText = data.text || data.content || '';
+      
+      // Set the extracted text in the direct input
+      setDirectInputText(extractedText);
+      
+      // Add to uploaded documents
+      setUploadedDocuments(prev => ({
+        ...prev,
+        [file.name]: extractedText
+      }));
+      
+      // Add to all documents for sidebar
+      setAllDocuments(prev => [...prev, { name: file.name, content: extractedText }]);
+      
+    } catch (error) {
+      console.error('Error processing file:', error);
+      // Handle text files directly with FileReader
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setDirectInputText(content);
+        setUploadedDocuments(prev => ({
+          ...prev,
+          [file.name]: content
+        }));
+        setAllDocuments(prev => [...prev, { name: file.name, content }]);
+      };
+      reader.readAsText(file);
+    } finally {
+      setIsDirectProcessing(false);
+    }
+  };
   
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -652,11 +706,7 @@ Document text: ${extractedText}`;
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  await handleFileUpload([file]);
-                  if (Object.keys(uploadedDocuments).length > 0) {
-                    const [[filename, content]] = Object.entries(uploadedDocuments);
-                    setDirectInputText(content);
-                  }
+                  await handleDirectFileUpload([file]);
                 }}
               />
               <Button 
@@ -674,10 +724,17 @@ Document text: ${extractedText}`;
                   if (!directInputText.trim()) return;
                   setIsDirectProcessing(true);
                   
+                  const title = processingMode === 'homework' 
+                    ? 'Direct Input - Homework Mode' 
+                    : 'Direct Input - Rewrite Mode';
+                  
+                  // Set the instructions based on mode
                   if (processingMode === 'homework') {
-                    openChunkedRewriter(directInputText, 'Direct Input - Homework Mode');
+                    setRewriterText(directInputText);
+                    setRewriterTitle(title);
+                    setIsChunkedRewriterOpen(true);
                   } else {
-                    openChunkedRewriter(directInputText, 'Direct Input - Rewrite Mode');
+                    openChunkedRewriter(directInputText, title);
                   }
                   
                   setIsDirectProcessing(false);
