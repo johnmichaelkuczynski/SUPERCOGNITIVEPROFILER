@@ -813,9 +813,7 @@ YOUR REWRITTEN DOCUMENT:`;
         return res.status(400).json({ error: 'Missing document name parameter' });
       }
       
-      if (!senderEmailAddress) {
-        return res.status(400).json({ error: 'Sender email is required' });
-      }
+      // Sender email no longer required - using verified sender automatically
       
       console.log(`Preparing to share document "${documentName}" to ${recipientEmail} from ${senderEmailAddress}`);
       
@@ -1116,14 +1114,10 @@ Return only the rewritten text without any additional comments, explanations, or
 
   app.post('/api/share-rewrite', async (req: Request, res: Response) => {
     try {
-      const { content, recipientEmail, senderEmail, subject } = req.body;
+      const { content, recipientEmail, subject } = req.body;
       
       if (!content || !recipientEmail) {
         return res.status(400).json({ error: 'Content and recipient email are required' });
-      }
-
-      if (!senderEmail) {
-        return res.status(400).json({ error: 'Verified sender email is required' });
       }
 
       const emailParams = {

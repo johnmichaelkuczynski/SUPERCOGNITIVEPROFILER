@@ -107,7 +107,7 @@ export default function DocumentRewrite() {
   const [aiDetectionResult, setAiDetectionResult] = useState<AIDetectionResult | null>(null);
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [emailRecipient, setEmailRecipient] = useState<string>('');
-  const [senderEmail, setSenderEmail] = useState<string>('');
+  const [senderEmail, setSenderEmail] = useState<string>('JM@ANALYTICPHILOSOPHY.AI');
   const [isSending, setIsSending] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('rewrite'); // Keep only for compatibility with existing code
   const [, setLocation] = useLocation();
@@ -539,10 +539,10 @@ export default function DocumentRewrite() {
 
   // Handle email sharing
   const handleShareViaEmail = async () => {
-    if (!rewrittenContent || !emailRecipient) {
+    if (!rewrittenContent || !emailRecipient || !senderEmail) {
       toast({
         title: "Missing Information",
-        description: "Please provide a recipient email address and rewrite the document first.",
+        description: "Please provide both recipient and sender email addresses, and rewrite the document first.",
         variant: "destructive"
       });
       return;
@@ -558,12 +558,23 @@ export default function DocumentRewrite() {
       return;
     }
     
+    // Validate sender email
+    if (!senderEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast({
+        title: "Invalid Sender Email",
+        description: "Please enter a valid sender email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSending(true);
     
     try {
       console.log("Sending email with params:", {
         content: rewrittenContent ? rewrittenContent.substring(0, 50) + "..." : "missing",
         recipient: emailRecipient,
+        sender: senderEmail,
         documentName: document?.name || 'Document'
       });
       
@@ -573,6 +584,7 @@ export default function DocumentRewrite() {
         body: JSON.stringify({
           content: rewrittenContent,
           recipient: emailRecipient,
+          senderEmail: senderEmail,
           documentName: document?.name || 'Document',
           format: 'pdf' // Default format for sharing
         }),
@@ -1111,20 +1123,22 @@ export default function DocumentRewrite() {
                       onChange={(e) => setEmailRecipient(e.target.value)}
                     />
                   </div>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="flex items-center space-x-2">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="text-sm text-green-800 font-medium">
-                        Verified Sender Configured
-                      </span>
-                    </div>
+                  <div>
+                    <Label htmlFor="sender-email">Verified Sender Email</Label>
+                    <Input 
+                      id="sender-email" 
+                      type="email" 
+                      value={senderEmail}
+                      onChange={(e) => setSenderEmail(e.target.value)}
+                      placeholder="JM@ANALYTICPHILOSOPHY.AI"
+                    />
                     <p className="text-xs text-green-700 mt-1">
-                      Emails will be sent from JM@ANALYTICPHILOSOPHY.AI
+                      Use your verified SendGrid sender address
                     </p>
                   </div>
                   <Button 
                     onClick={handleShareViaEmail} 
-                    disabled={!emailRecipient || isSending}
+                    disabled={!emailRecipient || !senderEmail || isSending}
                     className="w-full"
                   >
                     {isSending ? (
