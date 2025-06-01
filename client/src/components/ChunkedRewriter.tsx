@@ -49,7 +49,8 @@ export default function ChunkedRewriter({
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
   
-  // New rewriting mode options
+  // Processing mode options
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
   const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);
@@ -153,6 +154,82 @@ export default function ChunkedRewriter({
     setChunks(prev => prev.map(chunk => ({ ...chunk, selected: false })));
   };
 
+  const processHomeworkMode = async () => {
+    try {
+      let chatContext = '';
+      if (includeChatContext && chatHistory.length > 0) {
+        chatContext = '\n\nChat Context (for reference):\n' + 
+          chatHistory.slice(-10).map(msg => `${msg.role}: ${msg.content}`).join('\n');
+      }
+
+      setProgress(50);
+
+      const response = await fetch('/api/homework-mode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructions: originalText, // The text contains the instructions to follow
+          userPrompt: instructions, // User's additional guidance
+          model: selectedModel,
+          chatContext: includeChatContext ? chatContext : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process homework');
+      }
+
+      const result = await response.json();
+      
+      setProgress(100);
+
+      // Prepare metadata
+      const metadata = {
+        originalLength: originalText.length,
+        rewrittenLength: result.response.length,
+        mode: 'homework',
+        model: selectedModel,
+        instructions: instructions,
+        includedChatContext: includeChatContext
+      };
+
+      // Store results for popup display
+      setFinalRewrittenContent(result.response);
+      setRewriteMetadata(metadata);
+      setShowResultsPopup(true);
+
+      toast({
+        title: "Homework Complete!",
+        description: "Successfully completed the assignment.",
+      });
+
+      // Add to chat immediately
+      onAddToChat(
+        `**Homework Assignment Completed:**\n\n${result.response}`,
+        { 
+          type: 'homework_completion',
+          originalInstructions: originalText,
+          userGuidance: instructions
+        }
+      );
+
+      // Save as document
+      onRewriteComplete(result.response, metadata);
+
+    } catch (error) {
+      console.error('Homework processing error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process homework",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const startRewrite = async () => {
     // Validation based on rewrite mode
     if (rewriteMode === 'rewrite' || rewriteMode === 'both') {
@@ -191,6 +268,11 @@ export default function ChunkedRewriter({
     })));
 
     try {
+      // Handle homework mode differently
+      if (processingMode === 'homework') {
+        await processHomeworkMode();
+        return;
+      }
       let chatContext = '';
       if (includeChatContext && chatHistory.length > 0) {
         chatContext = '\n\nChat Context (for reference):\n' + 
@@ -780,7 +862,29 @@ export default function ChunkedRewriter({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-        {/* Rewrite Mode Selection */}
+        {/* Processing Mode Selection */}
+        <div className="space-y-4">
+          <Label className="text-lg font-semibold">Processing Mode</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
+                  onClick={() => setProcessingMode('rewrite')}>
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Rewrite Mode</h3>
+                <p className="text-sm text-muted-foreground mt-2">Transform and improve the existing text</p>
+              </CardContent>
+            </Card>
+            <Card className={`cursor-pointer transition-all ${processingMode === 'homework' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:bg-gray-50'}`}
+                  onClick={() => setProcessingMode('homework')}>
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Homework Mode</h3>
+                <p className="text-sm text-muted-foreground mt-2">Follow instructions, complete assignments, answer questions</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Rewrite Mode Selection - only show in rewrite mode */}
+        {processingMode === 'rewrite' && (
         <div className="space-y-4">
           <Label className="text-lg font-semibold">Rewriting Mode</Label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -807,11 +911,23 @@ export default function ChunkedRewriter({
             </Card>
           </div>
         </div>
+        )}
 
         {/* Configuration Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            {(rewriteMode === 'rewrite' || rewriteMode === 'both') && (
+            {processingMode === 'homework' ? (
+              <div className="space-y-2">
+                <Label htmlFor="instructions">Additional Guidance (Optional)</Label>
+                <Textarea
+                  id="instructions"
+                  placeholder="Provide any additional guidance for completing the assignment (e.g., 'show all work', 'explain your reasoning', 'use specific examples')..."
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            ) : (rewriteMode === 'rewrite' || rewriteMode === 'both') && (
               <div className="space-y-2">
                 <Label htmlFor="instructions">Rewrite Instructions for Existing Content</Label>
                 <Textarea

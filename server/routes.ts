@@ -1425,6 +1425,49 @@ Return only the new content without any additional comments, explanations, or he
     }
   });
 
+  // Homework mode endpoint - follows instructions instead of rewriting
+  app.post('/api/homework-mode', async (req: Request, res: Response) => {
+    try {
+      const { instructions, userPrompt, model, chatContext } = req.body;
+      
+      if (!instructions) {
+        return res.status(400).json({ error: 'Instructions are required' });
+      }
+
+      // Create a prompt that asks the AI to follow the instructions
+      let prompt = `You are given the following instructions/assignment/exam/homework. Please complete it thoroughly and accurately:
+
+INSTRUCTIONS TO FOLLOW:
+${instructions}
+
+${userPrompt ? `ADDITIONAL GUIDANCE FROM USER: ${userPrompt}` : ''}
+
+${chatContext ? `CONTEXT FROM PREVIOUS CONVERSATION: ${chatContext}` : ''}
+
+Please complete the assignment, answer the questions, or follow the instructions as requested. Provide a complete and thorough response.`;
+
+      // Process with the selected model
+      let response;
+      if (model === 'claude') {
+        response = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      } else {
+        // For other models, fall back to Claude
+        response = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      }
+
+      res.json({ response });
+    } catch (error) {
+      console.error('Homework mode error:', error);
+      res.status(500).json({ error: 'Failed to process homework' });
+    }
+  });
+
   // NUKE endpoint - clears all data
   app.post('/api/nuke', async (req: Request, res: Response) => {
     try {
