@@ -952,28 +952,30 @@ Document text: ${extractedText}`;
                             <Mail className="h-3 w-3" />
                           </Button>
                           
-                          {/* Send to Input button */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => {
-                              setDirectInputText(message.content);
-                              // Auto-focus the input area
-                              const textarea = document.querySelector('textarea[placeholder*="Type your message"]') as HTMLTextAreaElement;
-                              if (textarea) {
-                                textarea.focus();
-                                textarea.scrollIntoView({ behavior: 'smooth' });
-                              }
-                            }}
-                            title="Send to Input"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="m7 4 4-4 4 4"/>
-                              <path d="M11 0v16"/>
-                              <path d="M4 20h14"/>
-                            </svg>
-                          </Button>
+                          {/* Send to Input button - only show for AI messages */}
+                          {message.role === "assistant" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => {
+                                setDirectInputText(message.content);
+                                // Auto-focus the input area
+                                const textarea = document.querySelector('textarea[placeholder*="Type your message"]') as HTMLTextAreaElement;
+                                if (textarea) {
+                                  textarea.focus();
+                                  textarea.scrollIntoView({ behavior: 'smooth' });
+                                }
+                              }}
+                              title="Send to Input"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="m7 4 4-4 4 4"/>
+                                <path d="M11 0v16"/>
+                                <path d="M4 20h14"/>
+                              </svg>
+                            </Button>
+                          )}
                         </div>
                       </div>
                       
