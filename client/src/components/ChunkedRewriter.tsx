@@ -607,10 +607,10 @@ export default function ChunkedRewriter({
   };
 
   const shareViaEmail = async () => {
-    if (!emailAddress) {
+    if (!emailAddress || !senderEmail) {
       toast({
-        title: "Email required",
-        description: "Please enter an email address.",
+        title: "Email addresses required",
+        description: "Please enter both recipient and verified sender email addresses.",
         variant: "destructive"
       });
       return;

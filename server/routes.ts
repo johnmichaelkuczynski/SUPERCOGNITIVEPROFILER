@@ -1083,7 +1083,8 @@ Return only the rewritten text without any additional comments, explanations, or
         res.send(htmlContent);
       } else if (format === 'docx') {
         // For Word, we need to import the docx library and create a proper document
-        const { Document, Packer, Paragraph, TextRun } = require('docx');
+        const docx = await import('docx');
+        const { Document, Packer, Paragraph, TextRun } = docx;
         
         const doc = new Document({
           sections: [{
