@@ -1123,7 +1123,7 @@ Return only the rewritten text without any additional comments, explanations, or
 
       const emailParams = {
         to: recipientEmail,
-        from: 'noreply@textmind.app',
+        from: senderEmailAddress, // Use the verified sender email provided by user
         subject: subject || 'Rewritten Document',
         html: `
           <h2>Rewritten Document</h2>
