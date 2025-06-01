@@ -221,6 +221,8 @@ export default function ChunkedRewriter({
       }));
 
       // Step 1: Handle existing chunks
+      const rewrittenChunks: string[] = [];
+      
       if (rewriteMode === 'rewrite' || rewriteMode === 'both') {
         const selectedChunks = chunks.filter(chunk => chunk.selected);
         
@@ -269,6 +271,9 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
 
+          // Store the rewritten content immediately
+          rewrittenChunks.push(result.rewrittenContent);
+
           // Update chunk with rewritten content
           setChunks(prev => prev.map(c => 
             c.id === chunk.id 
@@ -305,19 +310,8 @@ export default function ChunkedRewriter({
           setProgress((processedChunks / totalOperations) * 100);
         }
 
-        // Compile rewritten chunks
-        if (rewriteMode === 'rewrite') {
-          finalContent = chunks
-            .filter(chunk => chunk.selected && chunk.rewritten)
-            .map(chunk => chunk.rewritten)
-            .join('\n\n');
-        } else {
-          // For 'both' mode, we'll add the rewritten chunks first
-          finalContent = chunks
-            .filter(chunk => chunk.selected && chunk.rewritten)
-            .map(chunk => chunk.rewritten)
-            .join('\n\n');
-        }
+        // Compile rewritten chunks from our immediate storage
+        finalContent = rewrittenChunks.join('\n\n');
       } else if (rewriteMode === 'add') {
         // For add-only mode, keep original content unchanged
         finalContent = originalText;
