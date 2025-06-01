@@ -1475,7 +1475,7 @@ Please complete the assignment, answer the questions, or follow the instructions
       
       // Clear all data from storage
       // Since we're using memory storage, we can clear by creating new instances
-      if (storage instanceof DatabaseStorage) {
+      if (storage.constructor.name === 'DatabaseStorage') {
         // For database storage, we'd need to implement clear methods
         // For now, this will work with memory storage fallback
         console.log('NUKE: Database storage detected, clearing via memory fallback');

@@ -1097,11 +1097,11 @@ export default function ChunkedRewriter({
           {!isProcessing ? (
             <Button 
               onClick={startRewrite} 
-              disabled={chunks.filter(c => c.selected).length === 0}
+              disabled={processingMode === 'rewrite' ? chunks.filter(c => c.selected).length === 0 : false}
               className="flex items-center space-x-2"
             >
               <Play className="w-4 h-4" />
-              <span>Start Rewrite</span>
+              <span>{processingMode === 'homework' ? 'Start Homework' : 'Start Rewrite'}</span>
             </Button>
           ) : (
             <Button 
