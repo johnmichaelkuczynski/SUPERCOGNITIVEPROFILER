@@ -1115,15 +1115,19 @@ Return only the rewritten text without any additional comments, explanations, or
 
   app.post('/api/share-rewrite', async (req: Request, res: Response) => {
     try {
-      const { content, recipientEmail, subject } = req.body;
+      const { content, recipientEmail, senderEmail, subject } = req.body;
       
       if (!content || !recipientEmail) {
         return res.status(400).json({ error: 'Content and recipient email are required' });
       }
 
+      if (!senderEmail) {
+        return res.status(400).json({ error: 'Verified sender email is required' });
+      }
+
       const emailParams = {
         to: recipientEmail,
-        from: senderEmailAddress, // Use the verified sender email provided by user
+        from: senderEmail, // Use the verified sender email provided by user
         subject: subject || 'Rewritten Document',
         html: `
           <h2>Rewritten Document</h2>

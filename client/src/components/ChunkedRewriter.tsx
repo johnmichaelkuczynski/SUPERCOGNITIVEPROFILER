@@ -48,6 +48,7 @@ export default function ChunkedRewriter({
   const [progress, setProgress] = useState(0);
   const [previewChunk, setPreviewChunk] = useState<TextChunk | null>(null);
   const [emailAddress, setEmailAddress] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
   
   // Processing mode options
   const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
@@ -638,6 +639,7 @@ export default function ChunkedRewriter({
         body: JSON.stringify({
           content: rewrittenText,
           recipientEmail: emailAddress,
+          senderEmail: senderEmail,
           subject: 'Rewritten Document'
         }),
       });
@@ -1145,21 +1147,34 @@ export default function ChunkedRewriter({
         </div>
 
         {/* Email Sharing */}
-        <div className="flex space-x-2">
-          <Input
-            placeholder="Enter email address to share..."
-            value={emailAddress}
-            onChange={(e) => setEmailAddress(e.target.value)}
-            disabled={!chunks.some(c => c.rewritten)}
-          />
-          <Button 
-            onClick={shareViaEmail}
-            disabled={!chunks.some(c => c.rewritten) || !emailAddress}
-            className="flex items-center space-x-2"
-          >
-            <Mail className="w-4 h-4" />
-            <span>Share</span>
-          </Button>
+        <div className="space-y-2">
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Recipient email address..."
+              value={emailAddress}
+              onChange={(e) => setEmailAddress(e.target.value)}
+              disabled={!chunks.some(c => c.rewritten)}
+              className="flex-1"
+            />
+            <Input
+              placeholder="Your verified SendGrid sender email..."
+              value={senderEmail}
+              onChange={(e) => setSenderEmail(e.target.value)}
+              disabled={!chunks.some(c => c.rewritten)}
+              className="flex-1"
+            />
+            <Button 
+              onClick={shareViaEmail}
+              disabled={!chunks.some(c => c.rewritten) || !emailAddress || !senderEmail}
+              className="flex items-center space-x-2"
+            >
+              <Mail className="w-4 h-4" />
+              <span>Share</span>
+            </Button>
+          </div>
+          <p className="text-xs text-red-600">
+            Sender email must be verified in your SendGrid account
+          </p>
         </div>
       </CardContent>
     </Card>
