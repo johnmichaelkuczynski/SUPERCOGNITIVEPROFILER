@@ -9,6 +9,9 @@ if (process.env.SENDGRID_API_KEY) {
   mailService.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
+// Use verified sender email for all outgoing emails
+const VERIFIED_SENDER = 'JM@ANALYTICPHILOSOPHY.AI';
+
 export interface EmailParams {
   to: string;
   from: string;
@@ -38,8 +41,8 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     // Log the email attempt for debugging
     console.log(`Attempting to send email from ${params.from} to ${params.to}`);
     
-    // Make sure from is never undefined
-    const from = params.from || "noreply@example.com";
+    // Always use verified sender address to prevent SendGrid blocking
+    const from = VERIFIED_SENDER;
     
     // Add detailed logging
     console.log('SendGrid params:', {

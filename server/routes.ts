@@ -624,10 +624,10 @@ YOUR REWRITTEN DOCUMENT:`;
       const sgMail = await import('@sendgrid/mail');
       sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
       
-      // Create email message
+      // Create email message with verified sender
       const msg = {
         to: email,
-        from: 'document-rewriter@example.com', // Replace with your verified sender
+        from: 'JM@ANALYTICPHILOSOPHY.AI', // Use verified sender address
         subject: subject || 'Your rewritten document',
         text: 'Please find your rewritten document attached.',
         html: `<div>
@@ -899,10 +899,10 @@ YOUR REWRITTEN DOCUMENT:`;
         <p>The content is attached to this email.</p>
       `;
       
-      // Use the email service
+      // Use the email service with verified sender
       const emailSent = await sendEmail({
         to: recipientEmail,
-        from: senderEmailAddress, // Use the provided sender email
+        from: 'JM@ANALYTICPHILOSOPHY.AI', // Always use verified sender
         subject: `Rewritten Document: ${documentName}`,
         html: html,
         attachments: [{
@@ -1128,7 +1128,7 @@ Return only the rewritten text without any additional comments, explanations, or
 
       const emailParams = {
         to: recipientEmail,
-        from: senderEmail, // Use the verified sender email provided by user
+        from: 'JM@ANALYTICPHILOSOPHY.AI', // Always use verified sender
         subject: subject || 'Rewritten Document',
         html: `
           <h2>Rewritten Document</h2>
