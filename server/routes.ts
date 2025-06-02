@@ -1680,7 +1680,7 @@ Return only the new content without any additional comments, explanations, or he
         return res.status(400).json({ error: 'Instructions are required' });
       }
 
-      // Simple passthrough - send user's content directly to LLM with minimal prompting
+      // Complete passthrough - send exactly what user typed to Claude
       let prompt = instructions;
       
       if (userPrompt) {
@@ -1691,22 +1691,22 @@ Return only the new content without any additional comments, explanations, or he
         prompt += `\n\n${chatContext}`;
       }
 
-      // Process with the selected model
-      let response;
-      if (model === 'claude') {
-        response = await processClaude(prompt, {
-          temperature: 0.7,
-          maxTokens: 4000
-        });
-      } else {
-        // For other models, fall back to Claude
-        response = await processClaude(prompt, {
-          temperature: 0.7,
-          maxTokens: 4000
-        });
-      }
+      // Direct API call to Claude without any processClaude wrapper interference
+      const { default: Anthropic } = await import('@anthropic-ai/sdk');
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
 
-      res.json({ response });
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 4000,
+        temperature: 0.7,
+        messages: [{ role: 'user', content: prompt }]
+      });
+
+      const result = response.content[0].type === 'text' ? response.content[0].text : '';
+
+      res.json({ response: result });
     } catch (error) {
       console.error('Homework mode error:', error);
       res.status(500).json({ error: 'Failed to process homework' });
