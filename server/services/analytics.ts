@@ -31,6 +31,11 @@ Create a detailed cognitive profile that includes:
 7. 2-3 famous people with similar cognitive configurations, with specific justification
 8. Likely current career based on cognitive patterns evident in the writing style and content
 9. Ideal career that would maximize cognitive strengths shown in the text
+10. COGNITIVE CONTRASTS:
+    - Identify the cognitive type most DIFFERENT from this person (from: intuitive-creative, emotional-expressive, impulsive-reactive, holistic-synthesizer, practical-concrete, or social-collaborative)
+    - Explain WHY this type is most distant with specific evidence from the text
+    - Identify the cognitive type that would BEST COLLABORATE with this person 
+    - Explain WHY this type complements them with specific justification
 
 CRITICAL: Every claim must be falsifiable and supported by specific evidence from the text. Include exact quotations and specific examples. Avoid generic statements. If the text shows "systematic analysis" then quote the specific sentences that demonstrate this. If claiming "attention to detail" then provide the exact examples from the writing that prove this trait.`;
 
@@ -75,6 +80,18 @@ CRITICAL: Every claim must be falsifiable and supported by specific evidence fro
       ],
       currentCareerLikely: "Research, academia, or analytical consulting roles",
       idealCareer: "Strategic analysis, research leadership, or complex problem-solving roles",
+      cognitiveContrasts: {
+        mostDifferentType: {
+          type: "Intuitive-Creative Type",
+          explanation: "Most distant due to systematic vs. spontaneous approach to problem-solving",
+          keyDifferences: ["Structured analysis vs. intuitive leaps", "Detail-oriented vs. big-picture focus"]
+        },
+        bestCollaborationType: {
+          type: "Practical-Concrete Type",
+          explanation: "Complements analytical depth with implementation focus",
+          complementaryStrengths: ["Implementation of analytical insights", "Practical application skills"]
+        }
+      },
       detailedAnalysis: content
     };
   } catch (error) {
@@ -89,6 +106,18 @@ CRITICAL: Every claim must be falsifiable and supported by specific evidence fro
       famousComparisons: ["Analytical thinkers"],
       currentCareerLikely: "Professional knowledge work",
       idealCareer: "Strategic analysis roles",
+      cognitiveContrasts: {
+        mostDifferentType: {
+          type: "Intuitive-Creative Type",
+          explanation: "Upload more content for detailed contrast analysis",
+          keyDifferences: ["Requires more data for comparison"]
+        },
+        bestCollaborationType: {
+          type: "Practical-Implementation Type", 
+          explanation: "Upload more content for collaboration analysis",
+          complementaryStrengths: ["Requires more data for assessment"]
+        }
+      },
       detailedAnalysis: "Unable to generate detailed analysis at this time."
     };
   }
@@ -120,6 +149,11 @@ Create a detailed psychological profile that includes:
    - How relationships could improve (based on observable communication gaps)
    - How relationships could deteriorate (based on patterns that could escalate negatively)
 7. 2-3 direct quotations that clearly demonstrate specific psychological patterns
+8. EMOTIONAL CONTRASTS:
+   - Identify the emotional/psychological type most DIFFERENT from this person (from: spontaneous-emotional, conflict-avoidant, highly-expressive, intuitive-feeling, impulsive-reactive, or socially-dependent)
+   - Explain WHY this type is most distant with specific evidence from their communication patterns
+   - Identify the emotional type that would BEST COMPLEMENT this person in relationships
+   - Explain WHY this type complements them with specific justification from their communication style
 
 CRITICAL: Base all psychological assessments on concrete evidence from the writing. If claiming "emotional regulation" cite the specific word choices that show this. If noting "interpersonal challenges" provide exact examples from their communication style that demonstrate this pattern.`;
 
@@ -175,6 +209,18 @@ CRITICAL: Base all psychological assessments on concrete evidence from the writi
         "Analytical language suggests emotional control",
         "Systematic expression indicates thoughtful processing"
       ],
+      emotionalContrasts: {
+        mostDifferentType: {
+          type: "Spontaneous-Emotional Type",
+          explanation: "Most distant due to controlled vs. spontaneous emotional expression",
+          keyDifferences: ["Analytical processing vs. immediate emotional response", "Structured communication vs. expressive outbursts"]
+        },
+        bestComplementType: {
+          type: "Intuitive-Feeling Type",
+          explanation: "Complements analytical approach with emotional insight and warmth",
+          complementaryQualities: ["Emotional warmth balances analytical distance", "Intuitive understanding complements systematic thinking"]
+        }
+      },
       detailedAnalysis: content
     };
   } catch (error) {
@@ -192,6 +238,18 @@ CRITICAL: Base all psychological assessments on concrete evidence from the writi
         deteriorationRisks: ["Becoming critical"]
       },
       supportingQuotations: ["Analytical patterns observed"],
+      emotionalContrasts: {
+        mostDifferentType: {
+          type: "Spontaneous-Emotional Type",
+          explanation: "Upload more content for detailed emotional contrast analysis",
+          keyDifferences: ["Requires more data for emotional comparison"]
+        },
+        bestComplementType: {
+          type: "Intuitive-Feeling Type",
+          explanation: "Upload more content for emotional complement analysis",
+          complementaryQualities: ["Requires more data for relationship assessment"]
+        }
+      },
       detailedAnalysis: "Unable to generate detailed analysis at this time."
     };
   }
@@ -402,6 +460,18 @@ export interface CognitiveProfile {
   currentCareerLikely: string;
   idealCareer: string;
   detailedAnalysis: string;
+  cognitiveContrasts: {
+    mostDifferentType: {
+      type: string;
+      explanation: string;
+      keyDifferences: string[];
+    };
+    bestCollaborationType: {
+      type: string;
+      explanation: string;
+      complementaryStrengths: string[];
+    };
+  };
 }
 
 export interface PsychologicalProfile {
@@ -418,6 +488,18 @@ export interface PsychologicalProfile {
   };
   supportingQuotations: string[];
   detailedAnalysis: string;
+  emotionalContrasts: {
+    mostDifferentType: {
+      type: string;
+      explanation: string;
+      keyDifferences: string[];
+    };
+    bestComplementType: {
+      type: string;
+      explanation: string;
+      complementaryQualities: string[];
+    };
+  };
 }
 
 export interface ComprehensiveInsights {
