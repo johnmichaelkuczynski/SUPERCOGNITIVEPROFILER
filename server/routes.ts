@@ -322,6 +322,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (currentLine) lines.push(currentLine);
           return lines;
         };
+
+        // Helper function to clean and format text (remove markdown syntax)
+        const cleanText = (text: string) => {
+          return text
+            .replace(/#{1,6}\s*/g, '') // Remove markdown headers
+            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+            .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
+            .replace(/`(.*?)`/g, '$1') // Remove code markdown
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to just text
+            .replace(/^\s*[-*+]\s*/gm, '• ') // Convert bullet points
+            .trim();
+        };
         
         // Generate PDF content with proper formatting
         doc.fontSize(24).text('Cognitive Analytics Report', { align: 'center' });
@@ -336,8 +348,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.text(`Confidence Level: ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%`);
         doc.moveDown();
         
-        // Description with proper wrapping
-        const descLines = wrapText(analyticsData.cognitiveArchetype.description, 500);
+        // Description with proper wrapping and cleaning
+        const cleanDescription = cleanText(analyticsData.cognitiveArchetype.description);
+        const descLines = wrapText(cleanDescription, 500);
         descLines.forEach(line => doc.text(line));
         doc.moveDown();
         
@@ -366,10 +379,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.fontSize(18).text('4. Topic Analysis', { underline: true });
         doc.moveDown();
         doc.fontSize(12);
-        doc.text(`Cognitive Style: ${analyticsData.topicDistribution.cognitiveStyle}`);
+        doc.text(`Cognitive Style: ${cleanText(analyticsData.topicDistribution.cognitiveStyle)}`);
         doc.moveDown();
         
-        const interpretationLines = wrapText(analyticsData.topicDistribution.interpretation, 500);
+        const cleanInterpretation = cleanText(analyticsData.topicDistribution.interpretation);
+        const interpretationLines = wrapText(cleanInterpretation, 500);
         interpretationLines.forEach(line => doc.text(line));
         doc.moveDown();
         
@@ -388,15 +402,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.fontSize(12);
         
         analyticsData.psychostylisticInsights.primary.slice(0, 3).forEach((insight, index) => {
-          doc.text(`${index + 1}. ${insight.observation}`, { underline: true });
+          const cleanObservation = cleanText(insight.observation);
+          doc.text(`${index + 1}. ${cleanObservation}`, { underline: true });
           doc.moveDown(0.3);
           
-          const interpretationLines = wrapText(insight.interpretation, 500);
+          const cleanInterpretation = cleanText(insight.interpretation);
+          const interpretationLines = wrapText(cleanInterpretation, 500);
           interpretationLines.forEach(line => doc.text(`   ${line}`));
           
           if (insight.causality) {
             doc.moveDown(0.3);
-            const causalityLines = wrapText(insight.causality, 500);
+            const cleanCausality = cleanText(insight.causality);
+            const causalityLines = wrapText(cleanCausality, 500);
             causalityLines.forEach(line => doc.text(`   → ${line}`, { oblique: true }));
           }
           doc.moveDown();
@@ -407,14 +424,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.moveDown();
         doc.fontSize(12);
         
-        const profileLines = wrapText(analyticsData.psychostylisticInsights.metaReflection.mindProfile, 500);
+        const cleanProfile = cleanText(analyticsData.psychostylisticInsights.metaReflection.mindProfile);
+        const profileLines = wrapText(cleanProfile, 500);
         profileLines.forEach(line => doc.text(line));
         doc.moveDown();
         
         doc.text(`Cognitive Preferences: ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(' • ')}`);
         doc.moveDown();
         
-        const tempoLines = wrapText(analyticsData.psychostylisticInsights.metaReflection.thinkingTempo, 500);
+        const cleanTempo = cleanText(analyticsData.psychostylisticInsights.metaReflection.thinkingTempo);
+        const tempoLines = wrapText(cleanTempo, 500);
         tempoLines.forEach(line => doc.text(`Thinking Tempo: ${line}`));
         
         // Finalize the PDF
