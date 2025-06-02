@@ -295,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (format === 'pdf') {
         // Generate PDF using PDFKit
         const PDFDocument = require('pdfkit');
-        const doc = new PDFDocument({ margin: 50 });
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
         
         // Set response headers for PDF download
         res.setHeader('Content-Type', 'application/pdf');
@@ -304,73 +304,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Pipe the PDF to the response
         doc.pipe(res);
         
-        // Generate PDF content
-        doc.fontSize(20).text('Cognitive Analytics Report', { align: 'center' });
-        doc.moveDown();
+        // Helper function to wrap long text
+        const wrapText = (text: string, maxWidth: number) => {
+          const words = text.split(' ');
+          const lines = [];
+          let currentLine = '';
+          
+          for (const word of words) {
+            const testLine = currentLine + (currentLine ? ' ' : '') + word;
+            if (doc.widthOfString(testLine) <= maxWidth) {
+              currentLine = testLine;
+            } else {
+              if (currentLine) lines.push(currentLine);
+              currentLine = word;
+            }
+          }
+          if (currentLine) lines.push(currentLine);
+          return lines;
+        };
+        
+        // Generate PDF content with proper formatting
+        doc.fontSize(24).text('Cognitive Analytics Report', { align: 'center' });
+        doc.fontSize(12).text(`Generated on ${new Date().toLocaleDateString()}`, { align: 'center' });
+        doc.moveDown(2);
         
         // Cognitive Archetype Section
-        doc.fontSize(16).text('Cognitive Archetype Analysis', { underline: true });
-        doc.fontSize(12).moveDown();
-        doc.text(`Type: ${analyticsData.cognitiveArchetype.type.replace('_', ' ').toUpperCase()}`);
-        doc.text(`Confidence: ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%`);
-        doc.text(`Description: ${analyticsData.cognitiveArchetype.description}`);
-        doc.text(`Traits: ${analyticsData.cognitiveArchetype.traits.join(', ')}`);
+        doc.fontSize(18).text('1. Cognitive Archetype Analysis', { underline: true });
         doc.moveDown();
+        doc.fontSize(12);
+        doc.text(`Type: ${analyticsData.cognitiveArchetype.type.replace('_', ' ').charAt(0).toUpperCase() + analyticsData.cognitiveArchetype.type.replace('_', ' ').slice(1)}`);
+        doc.text(`Confidence Level: ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%`);
+        doc.moveDown();
+        
+        // Description with proper wrapping
+        const descLines = wrapText(analyticsData.cognitiveArchetype.description, 500);
+        descLines.forEach(line => doc.text(line));
+        doc.moveDown();
+        
+        doc.text(`Key Traits: ${analyticsData.cognitiveArchetype.traits.join(' • ')}`);
+        doc.moveDown(2);
         
         // Writing Style Section
-        doc.fontSize(16).text('Writing Style Analysis', { underline: true });
-        doc.fontSize(12).moveDown();
-        doc.text(`Formality Score: ${Math.round(analyticsData.writingStyle.formality.score * 100)}% (${analyticsData.writingStyle.formality.percentile}th percentile)`);
-        doc.text(`Complexity Score: ${Math.round(analyticsData.writingStyle.complexity.score * 100)}% (${analyticsData.writingStyle.complexity.percentile}th percentile)`);
+        doc.fontSize(18).text('2. Writing Style Analysis', { underline: true });
         doc.moveDown();
+        doc.fontSize(12);
+        doc.text(`Formality: ${Math.round(analyticsData.writingStyle.formality.score * 100)}% (${analyticsData.writingStyle.formality.percentile}th percentile)`);
+        doc.text(`Complexity: ${Math.round(analyticsData.writingStyle.complexity.score * 100)}% (${analyticsData.writingStyle.complexity.percentile}th percentile)`);
+        doc.moveDown(2);
         
-        // Cognitive Signatures
-        doc.text('Cognitive Signatures:');
-        doc.text(`- Nested Hypotheticals: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%`);
-        doc.text(`- Anaphoric Reasoning: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%`);
-        doc.text(`- Structural Analogies: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%`);
-        doc.text(`- Dialectical vs Didactic: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%`);
+        // Cognitive Fingerprint
+        doc.fontSize(18).text('3. Cognitive Fingerprint', { underline: true });
         doc.moveDown();
+        doc.fontSize(12);
+        doc.text(`Nested Hypotheticals: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%`);
+        doc.text(`Anaphoric Reasoning: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%`);
+        doc.text(`Structural Analogies: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%`);
+        doc.text(`Dialectical Orientation: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%`);
+        doc.moveDown(2);
         
         // Topic Distribution
-        doc.fontSize(16).text('Topic Distribution & Psychology', { underline: true });
-        doc.fontSize(12).moveDown();
+        doc.fontSize(18).text('4. Topic Analysis', { underline: true });
+        doc.moveDown();
+        doc.fontSize(12);
         doc.text(`Cognitive Style: ${analyticsData.topicDistribution.cognitiveStyle}`);
-        doc.text(`Interpretation: ${analyticsData.topicDistribution.interpretation}`);
         doc.moveDown();
         
-        analyticsData.topicDistribution.dominant.forEach(topic => {
-          doc.text(`• ${topic.name}: ${topic.percentage}% - ${topic.psychologicalImplication}`);
+        const interpretationLines = wrapText(analyticsData.topicDistribution.interpretation, 500);
+        interpretationLines.forEach(line => doc.text(line));
+        doc.moveDown();
+        
+        doc.text('Topic Distribution:');
+        analyticsData.topicDistribution.dominant.slice(0, 5).forEach(topic => {
+          doc.text(`• ${topic.name}: ${topic.percentage}%`);
         });
-        doc.moveDown();
+        doc.moveDown(2);
         
-        // Temporal Evolution
-        doc.fontSize(16).text('Temporal Cognitive Evolution', { underline: true });
-        doc.fontSize(12).moveDown();
-        doc.text(`Trajectory: ${analyticsData.temporalEvolution.trajectory.type.replace('_', ' ').toUpperCase()}`);
-        doc.text(`Description: ${analyticsData.temporalEvolution.trajectory.description}`);
-        doc.text(`Prognosis: ${analyticsData.temporalEvolution.trajectory.prognosis}`);
-        doc.moveDown();
+        // Add new page for insights
+        doc.addPage();
         
         // Psychostylistic Insights
-        doc.fontSize(16).text('Psychostylistic Analysis', { underline: true });
-        doc.fontSize(12).moveDown();
+        doc.fontSize(18).text('5. Psychostylistic Analysis', { underline: true });
+        doc.moveDown();
+        doc.fontSize(12);
         
-        analyticsData.psychostylisticInsights.primary.forEach((insight, index) => {
-          doc.text(`${index + 1}. ${insight.observation}`);
-          doc.text(`   Interpretation: ${insight.interpretation}`);
+        analyticsData.psychostylisticInsights.primary.slice(0, 3).forEach((insight, index) => {
+          doc.text(`${index + 1}. ${insight.observation}`, { underline: true });
+          doc.moveDown(0.3);
+          
+          const interpretationLines = wrapText(insight.interpretation, 500);
+          interpretationLines.forEach(line => doc.text(`   ${line}`));
+          
           if (insight.causality) {
-            doc.text(`   Causality: ${insight.causality}`);
+            doc.moveDown(0.3);
+            const causalityLines = wrapText(insight.causality, 500);
+            causalityLines.forEach(line => doc.text(`   → ${line}`, { oblique: true }));
           }
-          doc.moveDown(0.5);
+          doc.moveDown();
         });
         
-        // Meta-reflection
-        doc.text('Self-Mirror Analysis:');
-        doc.text(analyticsData.psychostylisticInsights.metaReflection.mindProfile);
+        // Self-Mirror Analysis
+        doc.fontSize(16).text('Self-Mirror Analysis', { underline: true });
         doc.moveDown();
-        doc.text(`Cognitive Preferences: ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(', ')}`);
-        doc.text(`Thinking Tempo: ${analyticsData.psychostylisticInsights.metaReflection.thinkingTempo}`);
+        doc.fontSize(12);
+        
+        const profileLines = wrapText(analyticsData.psychostylisticInsights.metaReflection.mindProfile, 500);
+        profileLines.forEach(line => doc.text(line));
+        doc.moveDown();
+        
+        doc.text(`Cognitive Preferences: ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(' • ')}`);
+        doc.moveDown();
+        
+        const tempoLines = wrapText(analyticsData.psychostylisticInsights.metaReflection.thinkingTempo, 500);
+        tempoLines.forEach(line => doc.text(`Thinking Tempo: ${line}`));
         
         // Finalize the PDF
         doc.end();
