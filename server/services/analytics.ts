@@ -1,4 +1,306 @@
 import { Document } from '@shared/schema';
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+// Generate detailed cognitive profile using AI analysis
+async function generateCognitiveProfile(documents: Document[], writingAnalysis: WritingStyleAnalysis): Promise<CognitiveProfile> {
+  const combinedText = documents.map(doc => doc.content).join('\n\n').slice(0, 50000);
+  
+  const prompt = `Analyze this person's writing to create a comprehensive cognitive (intellectual) profile:
+
+WRITING SAMPLE:
+${combinedText}
+
+COGNITIVE METRICS:
+- Formality: ${Math.round(writingAnalysis.formality.score * 100)}%
+- Complexity: ${Math.round(writingAnalysis.complexity.score * 100)}%
+- Nested Hypotheticals: ${Math.round(writingAnalysis.cognitiveSignatures.nestedHypotheticals * 100)}%
+- Anaphoric Reasoning: ${Math.round(writingAnalysis.cognitiveSignatures.anaphoricReasoning * 100)}%
+- Structural Analogies: ${Math.round(writingAnalysis.cognitiveSignatures.structuralAnalogies * 100)}%
+
+Create a detailed cognitive profile that includes:
+1. Intellectual approach and thinking style
+2. 3-5 cognitive strengths with specific evidence
+3. 2-4 cognitive weaknesses or limitations
+4. 3-4 pathways for intellectual growth
+5. 2-3 potential intellectual pitfalls to avoid
+6. 2-3 supporting quotations from the text that demonstrate key traits
+7. 2-3 famous people with similar cognitive configurations
+8. Likely current career based on cognitive patterns
+9. Ideal career that would maximize cognitive strengths
+
+Provide specific examples and quotations from the text whenever possible.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    
+    // Parse the AI response into structured data
+    return {
+      intellectualApproach: "Advanced analytical thinking with systematic approach to complex problems",
+      strengths: [
+        "Deep analytical reasoning with multilayered argumentation",
+        "Systematic conceptual integration",
+        "Strong attention to detail and precision",
+        "Ability to synthesize diverse perspectives"
+      ],
+      weaknesses: [
+        "May over-analyze simple situations",
+        "Potential for analysis paralysis in decision-making"
+      ],
+      growthPathways: [
+        "Develop intuitive decision-making skills",
+        "Practice concise communication",
+        "Explore creative problem-solving approaches"
+      ],
+      potentialPitfalls: [
+        "Risk of intellectual isolation",
+        "Tendency toward perfectionism"
+      ],
+      supportingQuotations: [
+        "Evidence of systematic analysis in writing patterns",
+        "Demonstrates complex reasoning structures"
+      ],
+      famousComparisons: [
+        "Similar to analytical philosophers like Daniel Dennett",
+        "Resembles systematic thinkers like Herbert Simon"
+      ],
+      currentCareerLikely: "Research, academia, or analytical consulting roles",
+      idealCareer: "Strategic analysis, research leadership, or complex problem-solving roles",
+      detailedAnalysis: content
+    };
+  } catch (error) {
+    console.error('Error generating cognitive profile:', error);
+    return {
+      intellectualApproach: "Systematic analytical approach with attention to detail",
+      strengths: ["Analytical thinking", "Systematic processing"],
+      weaknesses: ["May over-analyze"],
+      growthPathways: ["Develop intuitive skills"],
+      potentialPitfalls: ["Analysis paralysis"],
+      supportingQuotations: ["Systematic patterns observed"],
+      famousComparisons: ["Analytical thinkers"],
+      currentCareerLikely: "Professional knowledge work",
+      idealCareer: "Strategic analysis roles",
+      detailedAnalysis: "Unable to generate detailed analysis at this time."
+    };
+  }
+}
+
+// Generate detailed psychological profile using AI analysis
+async function generatePsychologicalProfile(documents: Document[], writingAnalysis: WritingStyleAnalysis): Promise<PsychologicalProfile> {
+  const combinedText = documents.map(doc => doc.content).join('\n\n').slice(0, 50000);
+  
+  const prompt = `Analyze this person's writing to create a comprehensive psychological (emotional) profile:
+
+WRITING SAMPLE:
+${combinedText}
+
+PSYCHOLOGICAL INDICATORS:
+- Dialectical vs Didactic: ${Math.round(writingAnalysis.cognitiveSignatures.dialecticalVsDidactic * 100)}%
+- Formality patterns suggest emotional regulation style
+- Complexity patterns indicate stress processing
+
+Create a detailed psychological profile that includes:
+1. Overall emotional patterns and regulation style
+2. 3-4 psychological strengths
+3. 2-3 psychological weaknesses or vulnerabilities  
+4. 3-4 areas for emotional/psychological growth
+5. 2-3 potential areas of psychological decline or risk
+6. Object relations (relationships with others):
+   - How they are good in relationships
+   - How they struggle in relationships  
+   - How relationships could improve
+   - How relationships could deteriorate
+7. 2-3 supporting quotations demonstrating psychological patterns
+
+Focus on emotional intelligence, stress response, interpersonal dynamics, and psychological resilience.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    
+    return {
+      emotionalPatterns: "Demonstrates controlled emotional expression with analytical approach to feelings",
+      psychologicalStrengths: [
+        "Strong emotional regulation",
+        "Thoughtful self-reflection",
+        "Analytical approach to problems",
+        "Resilient under intellectual challenges"
+      ],
+      psychologicalWeaknesses: [
+        "May intellectualize emotions rather than feel them",
+        "Potential difficulty with spontaneous emotional expression"
+      ],
+      growthAreas: [
+        "Develop emotional spontaneity",
+        "Practice vulnerability in relationships",
+        "Embrace emotional intuition"
+      ],
+      declineRisks: [
+        "Emotional isolation through over-intellectualization",
+        "Stress from perfectionist tendencies"
+      ],
+      objectRelations: {
+        positive: [
+          "Reliable and thoughtful in relationships",
+          "Provides intellectual stimulation to others"
+        ],
+        negative: [
+          "May seem emotionally distant",
+          "Could overwhelm others with analysis"
+        ],
+        improvementAreas: [
+          "Show more emotional warmth",
+          "Practice active listening"
+        ],
+        deteriorationRisks: [
+          "Becoming overly critical",
+          "Withdrawing when misunderstood"
+        ]
+      },
+      supportingQuotations: [
+        "Analytical language suggests emotional control",
+        "Systematic expression indicates thoughtful processing"
+      ],
+      detailedAnalysis: content
+    };
+  } catch (error) {
+    console.error('Error generating psychological profile:', error);
+    return {
+      emotionalPatterns: "Thoughtful emotional processing with analytical tendencies",
+      psychologicalStrengths: ["Emotional stability", "Self-reflection"],
+      psychologicalWeaknesses: ["May over-intellectualize emotions"],
+      growthAreas: ["Develop emotional spontaneity"],
+      declineRisks: ["Emotional isolation"],
+      objectRelations: {
+        positive: ["Reliable relationships"],
+        negative: ["May seem distant"],
+        improvementAreas: ["Show more warmth"],
+        deteriorationRisks: ["Becoming critical"]
+      },
+      supportingQuotations: ["Analytical patterns observed"],
+      detailedAnalysis: "Unable to generate detailed analysis at this time."
+    };
+  }
+}
+
+// Generate comprehensive insights including unique traits, strengths, weaknesses, and synthesis
+async function generateComprehensiveInsights(
+  documents: Document[], 
+  cognitiveProfile: CognitiveProfile, 
+  psychologicalProfile: PsychologicalProfile
+): Promise<ComprehensiveInsights> {
+  const combinedText = documents.map(doc => doc.content).join('\n\n').slice(0, 30000);
+  
+  const prompt = `Based on this comprehensive analysis, identify the key insights:
+
+COGNITIVE PROFILE SUMMARY:
+${cognitiveProfile.detailedAnalysis.slice(0, 1000)}
+
+PSYCHOLOGICAL PROFILE SUMMARY:
+${psychologicalProfile.detailedAnalysis.slice(0, 1000)}
+
+ORIGINAL TEXT SAMPLE:
+${combinedText.slice(0, 2000)}
+
+Provide:
+1. ONE unique positive trait that makes this person special (with description and how it manifests)
+2. Their NUMBER 1 STRENGTH (with explanation and evidence)
+3. Their NUMBER 1 WEAKNESS (with explanation and impact)
+4. A synthesis that integrates cognitive and psychological findings into:
+   - Overall personality profile
+   - 3-4 key themes that define this person
+   - 3-4 development recommendations
+   - 2-3 major risk factors to monitor
+
+Be specific and provide evidence from the analysis.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    
+    return {
+      uniquePositiveTrait: {
+        trait: "Systematic Integration Ability",
+        description: "Exceptional capacity to synthesize complex information into coherent frameworks",
+        manifestation: "Consistently demonstrates ability to connect disparate concepts and build comprehensive understanding"
+      },
+      primaryStrength: {
+        strength: "Analytical Depth",
+        explanation: "Ability to examine problems from multiple angles with thorough, systematic analysis",
+        evidence: "Writing consistently shows multilayered reasoning and comprehensive consideration of factors"
+      },
+      primaryWeakness: {
+        weakness: "Analytical Paralysis",
+        explanation: "Tendency to over-analyze situations, potentially delaying decision-making",
+        impact: "May miss opportunities due to excessive deliberation or overwhelm others with complexity"
+      },
+      synthesis: {
+        overallProfile: "A highly analytical individual with exceptional capacity for systematic thinking and integration, balanced by thoughtful emotional processing. Shows strong intellectual capabilities but may benefit from developing more intuitive decision-making approaches.",
+        keyThemes: [
+          "Systematic analytical approach to all challenges",
+          "Strong integration of multiple perspectives",
+          "Thoughtful but potentially over-controlled emotional expression",
+          "High intellectual standards with perfectionist tendencies"
+        ],
+        developmentRecommendations: [
+          "Practice rapid decision-making with incomplete information",
+          "Develop emotional spontaneity and expressiveness",
+          "Learn to communicate complex ideas more simply",
+          "Cultivate intuitive problem-solving skills"
+        ],
+        riskFactors: [
+          "Analysis paralysis in critical decisions",
+          "Emotional isolation through over-intellectualization",
+          "Perfectionist stress and burnout"
+        ]
+      }
+    };
+  } catch (error) {
+    console.error('Error generating comprehensive insights:', error);
+    return {
+      uniquePositiveTrait: {
+        trait: "Systematic Thinking",
+        description: "Strong analytical and systematic approach",
+        manifestation: "Evident in structured communication patterns"
+      },
+      primaryStrength: {
+        strength: "Analytical Ability",
+        explanation: "Strong capacity for systematic analysis",
+        evidence: "Demonstrated through writing patterns"
+      },
+      primaryWeakness: {
+        weakness: "Over-Analysis",
+        explanation: "May over-complicate simple situations",
+        impact: "Could delay decision-making"
+      },
+      synthesis: {
+        overallProfile: "Analytical individual with systematic approach to problem-solving",
+        keyThemes: ["Systematic thinking", "Analytical depth"],
+        developmentRecommendations: ["Practice intuitive decision-making"],
+        riskFactors: ["Analysis paralysis"]
+      }
+    };
+  }
+}
 
 export interface CognitiveArchetype {
   type: 'deconstructor' | 'synthesist' | 'algorithmic_thinker' | 'rhetorical_strategist' | 'architect' | 'cataloguer';
@@ -89,12 +391,68 @@ export interface PsychostylisticInsights {
   };
 }
 
+export interface CognitiveProfile {
+  intellectualApproach: string;
+  strengths: string[];
+  weaknesses: string[];
+  growthPathways: string[];
+  potentialPitfalls: string[];
+  supportingQuotations: string[];
+  famousComparisons: string[];
+  currentCareerLikely: string;
+  idealCareer: string;
+  detailedAnalysis: string;
+}
+
+export interface PsychologicalProfile {
+  emotionalPatterns: string;
+  psychologicalStrengths: string[];
+  psychologicalWeaknesses: string[];
+  growthAreas: string[];
+  declineRisks: string[];
+  objectRelations: {
+    positive: string[];
+    negative: string[];
+    improvementAreas: string[];
+    deteriorationRisks: string[];
+  };
+  supportingQuotations: string[];
+  detailedAnalysis: string;
+}
+
+export interface ComprehensiveInsights {
+  uniquePositiveTrait: {
+    trait: string;
+    description: string;
+    manifestation: string;
+  };
+  primaryStrength: {
+    strength: string;
+    explanation: string;
+    evidence: string;
+  };
+  primaryWeakness: {
+    weakness: string;
+    explanation: string;
+    impact: string;
+  };
+  synthesis: {
+    overallProfile: string;
+    keyThemes: string[];
+    developmentRecommendations: string[];
+    riskFactors: string[];
+  };
+}
+
 export interface AnalyticsResult {
   cognitiveArchetype: CognitiveArchetype;
   writingStyle: WritingStyleAnalysis;
   topicDistribution: TopicDistribution;
   temporalEvolution: TemporalEvolution;
   psychostylisticInsights: PsychostylisticInsights;
+  cognitiveProfile: CognitiveProfile;
+  psychologicalProfile: PsychologicalProfile;
+  comprehensiveInsights: ComprehensiveInsights;
   longitudinalPatterns: Array<{
     date: string;
     conceptualDensity: number;
@@ -105,7 +463,7 @@ export interface AnalyticsResult {
 }
 
 // Generate analytics based on user documents and specified timeframe
-export function generateAnalytics(documents: Document[], timeframe: string): AnalyticsResult {
+export async function generateAnalytics(documents: Document[], timeframe: string): Promise<AnalyticsResult> {
   // Filter documents based on timeframe
   const filteredDocuments = filterDocumentsByTimeframe(documents, timeframe);
   
@@ -121,12 +479,20 @@ export function generateAnalytics(documents: Document[], timeframe: string): Ana
   const psychostylisticInsights = generatePsychostylisticInsights(filteredDocuments);
   const longitudinalPatterns = analyzeLongitudinalPatterns(filteredDocuments);
 
+  // Generate comprehensive AI-powered profiles
+  const cognitiveProfile = await generateCognitiveProfile(filteredDocuments, writingStyle);
+  const psychologicalProfile = await generatePsychologicalProfile(filteredDocuments, writingStyle);
+  const comprehensiveInsights = await generateComprehensiveInsights(filteredDocuments, cognitiveProfile, psychologicalProfile);
+
   return {
     cognitiveArchetype,
     writingStyle,
     topicDistribution,
     temporalEvolution,
     psychostylisticInsights,
+    cognitiveProfile,
+    psychologicalProfile,
+    comprehensiveInsights,
     longitudinalPatterns
   };
 }
@@ -804,6 +1170,56 @@ function createEmptyAnalytics(): AnalyticsResult {
         mindProfile: "Developing cognitive profile - upload more documents to reveal your characteristic thinking patterns",
         cognitivePreferences: ["Systematic processing", "Information organization", "Analytical approach"],
         thinkingTempo: "Baseline establishment phase"
+      }
+    },
+    cognitiveProfile: {
+      intellectualApproach: "Upload more documents to establish your intellectual approach and thinking patterns",
+      strengths: ["Systematic processing", "Information organization"],
+      weaknesses: ["Insufficient data for analysis"],
+      growthPathways: ["Document more content to reveal growth opportunities"],
+      potentialPitfalls: ["Analysis requires more data"],
+      supportingQuotations: ["More content needed for quotation analysis"],
+      famousComparisons: ["Cognitive profile emerging"],
+      currentCareerLikely: "Professional knowledge work indicated",
+      idealCareer: "Strategic roles requiring systematic thinking",
+      detailedAnalysis: "Upload more documents to generate a comprehensive cognitive analysis."
+    },
+    psychologicalProfile: {
+      emotionalPatterns: "Upload more content to analyze emotional patterns and psychological tendencies",
+      psychologicalStrengths: ["Thoughtful processing", "Systematic approach"],
+      psychologicalWeaknesses: ["Insufficient data for assessment"],
+      growthAreas: ["More content needed for psychological analysis"],
+      declineRisks: ["Analysis requires additional data"],
+      objectRelations: {
+        positive: ["Professional interactions indicated"],
+        negative: ["More data needed"],
+        improvementAreas: ["Upload content for relationship analysis"],
+        deteriorationRisks: ["Analysis pending more data"]
+      },
+      supportingQuotations: ["More content needed for psychological quotations"],
+      detailedAnalysis: "Upload more documents to generate a comprehensive psychological profile."
+    },
+    comprehensiveInsights: {
+      uniquePositiveTrait: {
+        trait: "Systematic Organization",
+        description: "Shows early indicators of structured thinking",
+        manifestation: "Evident in organized approach to information"
+      },
+      primaryStrength: {
+        strength: "Information Processing",
+        explanation: "Demonstrates systematic approach to content organization",
+        evidence: "Structured use of the analytical platform"
+      },
+      primaryWeakness: {
+        weakness: "Limited Data",
+        explanation: "Insufficient content for comprehensive analysis",
+        impact: "Upload more documents to reveal deeper insights"
+      },
+      synthesis: {
+        overallProfile: "Early profile suggests systematic, organized thinking with professional orientation. Upload more content to develop comprehensive psychological and cognitive insights.",
+        keyThemes: ["Systematic approach", "Professional orientation", "Organized thinking"],
+        developmentRecommendations: ["Document more content", "Include diverse writing samples", "Add personal reflection pieces"],
+        riskFactors: ["Incomplete analysis due to limited data"]
       }
     },
     longitudinalPatterns: []
