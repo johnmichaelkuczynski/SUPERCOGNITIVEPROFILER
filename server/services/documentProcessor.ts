@@ -95,16 +95,23 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
 function cleanExtractedText(text: string): string {
   if (!text) return text;
   
-  // Only clean up excessive spacing, NOT normal word spacing
-  let cleaned = text
-    // Remove multiple spaces but keep single spaces
-    .replace(/\s{3,}/g, ' ') // 3 or more spaces to single space
-    .replace(/\n\s*\n\s*\n/g, '\n\n') // Multiple newlines to double newline
-    .replace(/^\s+|\s+$/g, '') // Trim whitespace
-    // Fix punctuation spacing (remove space before punctuation)
-    .replace(/\s+([.,;:!?])/g, '$1')
-    // Ensure space after punctuation
-    .replace(/([.,;:!?])([A-Za-z])/g, '$1 $2');
+  // Remove excessive spaces between characters (common in PDF extraction)
+  let cleaned = text.replace(/(\w)\s+(\w)/g, '$1$2');
+  
+  // Fix specific spacing issues
+  cleaned = cleaned.replace(/([a-zA-Z])\s+([a-zA-Z])/g, '$1$2');
+  
+  // Restore proper word spacing
+  cleaned = cleaned.replace(/([a-zA-Z])([A-Z])/g, '$1 $2');
+  
+  // Fix common extraction artifacts
+  cleaned = cleaned.replace(/\s{2,}/g, ' '); // Multiple spaces to single space
+  cleaned = cleaned.replace(/\n\s*\n/g, '\n\n'); // Multiple newlines to double newline
+  cleaned = cleaned.replace(/^\s+|\s+$/g, ''); // Trim whitespace
+  
+  // Fix numbers and punctuation spacing
+  cleaned = cleaned.replace(/(\d)\s+(\d)/g, '$1$2');
+  cleaned = cleaned.replace(/(\w)\s+([.,;:!?])/g, '$1$2');
   
   return cleaned;
 }

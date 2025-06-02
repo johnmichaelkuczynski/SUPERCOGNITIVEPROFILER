@@ -295,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (format === 'pdf') {
         // Generate PDF using PDFKit
         const PDFDocument = require('pdfkit');
-        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        const doc = new PDFDocument({ margin: 50 });
         
         // Set response headers for PDF download
         res.setHeader('Content-Type', 'application/pdf');
@@ -304,354 +304,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Pipe the PDF to the response
         doc.pipe(res);
         
-        // Helper function to wrap long text
-        const wrapText = (text: string, maxWidth: number) => {
-          const words = text.split(' ');
-          const lines = [];
-          let currentLine = '';
-          
-          for (const word of words) {
-            const testLine = currentLine + (currentLine ? ' ' : '') + word;
-            if (doc.widthOfString(testLine) <= maxWidth) {
-              currentLine = testLine;
-            } else {
-              if (currentLine) lines.push(currentLine);
-              currentLine = word;
-            }
-          }
-          if (currentLine) lines.push(currentLine);
-          return lines;
-        };
-
-        // Helper function to repair spacing and clean markdown
-        const cleanText = (text: string) => {
-          // First, fix common spacing issues from overly aggressive markdown removal
-          let cleaned = text
-            // Add spaces before capital letters that should start new words
-            .replace(/([a-z])([A-Z])/g, '$1 $2')
-            // Add spaces after periods, commas, etc.
-            .replace(/([.!?,:;])([A-Za-z])/g, '$1 $2')
-            // Fix common word concatenations
-            .replace(/([a-z])(the|and|of|in|on|at|to|for|with|by|from|as|is|are|was|were|been|be|have|has|had|do|does|did|will|would|should|could|can|may|might|must|shall|should)/gi, '$1 $2')
-            // Remove markdown symbols while preserving spacing
-            .replace(/#{1,6}\s*/g, '') // Remove # symbols
-            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove ** bold
-            .replace(/\*([^*\n]+?)\*/g, '$1') // Remove * italic
-            .replace(/`([^`]+?)`/g, '$1') // Remove ` code
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
-            .replace(/^\s*[-*+]\s+/gm, '• ') // Convert bullet points
-            // Clean up extra whitespace
-            .replace(/\s{2,}/g, ' ') // Multiple spaces to single
-            .replace(/\n\s*\n\s*\n/g, '\n\n') // Multiple line breaks to double
-            .trim();
-          
-          return cleaned;
-        };
-        
-        // Generate PDF content with proper formatting
-        doc.fontSize(24).text('Cognitive Analytics Report', { align: 'center' });
-        doc.fontSize(12).text(`Generated on ${new Date().toLocaleDateString()}`, { align: 'center' });
-        doc.moveDown(2);
+        // Generate PDF content
+        doc.fontSize(20).text('Cognitive Analytics Report', { align: 'center' });
+        doc.moveDown();
         
         // Cognitive Archetype Section
-        doc.fontSize(18).text('1. Cognitive Archetype Analysis', { underline: true });
+        doc.fontSize(16).text('Cognitive Archetype Analysis', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Type: ${analyticsData.cognitiveArchetype.type.replace('_', ' ').toUpperCase()}`);
+        doc.text(`Confidence: ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%`);
+        doc.text(`Description: ${analyticsData.cognitiveArchetype.description}`);
+        doc.text(`Traits: ${analyticsData.cognitiveArchetype.traits.join(', ')}`);
         doc.moveDown();
-        doc.fontSize(12);
-        doc.text(`Type: ${analyticsData.cognitiveArchetype.type.replace('_', ' ').charAt(0).toUpperCase() + analyticsData.cognitiveArchetype.type.replace('_', ' ').slice(1)}`);
-        doc.text(`Confidence Level: ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%`);
-        doc.moveDown();
-        
-        // Description with proper wrapping and cleaning
-        const cleanDescription = cleanText(analyticsData.cognitiveArchetype.description);
-        const descLines = wrapText(cleanDescription, 500);
-        descLines.forEach(line => doc.text(line));
-        doc.moveDown();
-        
-        doc.text(`Key Traits: ${analyticsData.cognitiveArchetype.traits.join(' • ')}`);
-        doc.moveDown(2);
         
         // Writing Style Section
-        doc.fontSize(18).text('2. Writing Style Analysis', { underline: true });
+        doc.fontSize(16).text('Writing Style Analysis', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Formality Score: ${Math.round(analyticsData.writingStyle.formality.score * 100)}% (${analyticsData.writingStyle.formality.percentile}th percentile)`);
+        doc.text(`Complexity Score: ${Math.round(analyticsData.writingStyle.complexity.score * 100)}% (${analyticsData.writingStyle.complexity.percentile}th percentile)`);
         doc.moveDown();
-        doc.fontSize(12);
-        doc.text(`Formality: ${Math.round(analyticsData.writingStyle.formality.score * 100)}% (${analyticsData.writingStyle.formality.percentile}th percentile)`);
-        doc.text(`Complexity: ${Math.round(analyticsData.writingStyle.complexity.score * 100)}% (${analyticsData.writingStyle.complexity.percentile}th percentile)`);
-        doc.moveDown(2);
         
-        // Cognitive Fingerprint
-        doc.fontSize(18).text('3. Cognitive Fingerprint', { underline: true });
+        // Cognitive Signatures
+        doc.text('Cognitive Signatures:');
+        doc.text(`- Nested Hypotheticals: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%`);
+        doc.text(`- Anaphoric Reasoning: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%`);
+        doc.text(`- Structural Analogies: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%`);
+        doc.text(`- Dialectical vs Didactic: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%`);
         doc.moveDown();
-        doc.fontSize(12);
-        doc.text(`Nested Hypotheticals: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%`);
-        doc.text(`Anaphoric Reasoning: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%`);
-        doc.text(`Structural Analogies: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%`);
-        doc.text(`Dialectical Orientation: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%`);
-        doc.moveDown(2);
         
         // Topic Distribution
-        doc.fontSize(18).text('4. Topic Analysis', { underline: true });
-        doc.moveDown();
-        doc.fontSize(12);
-        doc.text(`Cognitive Style: ${cleanText(analyticsData.topicDistribution.cognitiveStyle)}`);
-        doc.moveDown();
-        
-        const cleanInterpretation = cleanText(analyticsData.topicDistribution.interpretation);
-        const interpretationLines = wrapText(cleanInterpretation, 500);
-        interpretationLines.forEach(line => doc.text(line));
+        doc.fontSize(16).text('Topic Distribution & Psychology', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Cognitive Style: ${analyticsData.topicDistribution.cognitiveStyle}`);
+        doc.text(`Interpretation: ${analyticsData.topicDistribution.interpretation}`);
         doc.moveDown();
         
-        doc.text('Topic Distribution:');
-        analyticsData.topicDistribution.dominant.slice(0, 5).forEach(topic => {
-          doc.text(`• ${topic.name}: ${topic.percentage}%`);
+        analyticsData.topicDistribution.dominant.forEach(topic => {
+          doc.text(`• ${topic.name}: ${topic.percentage}% - ${topic.psychologicalImplication}`);
         });
-        doc.moveDown(2);
+        doc.moveDown();
         
-        // Add new page for insights
-        doc.addPage();
+        // Temporal Evolution
+        doc.fontSize(16).text('Temporal Cognitive Evolution', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Trajectory: ${analyticsData.temporalEvolution.trajectory.type.replace('_', ' ').toUpperCase()}`);
+        doc.text(`Description: ${analyticsData.temporalEvolution.trajectory.description}`);
+        doc.text(`Prognosis: ${analyticsData.temporalEvolution.trajectory.prognosis}`);
+        doc.moveDown();
         
         // Psychostylistic Insights
-        doc.fontSize(18).text('5. Psychostylistic Analysis', { underline: true });
-        doc.moveDown();
-        doc.fontSize(12);
+        doc.fontSize(16).text('Psychostylistic Analysis', { underline: true });
+        doc.fontSize(12).moveDown();
         
-        analyticsData.psychostylisticInsights.primary.slice(0, 3).forEach((insight, index) => {
-          const cleanObservation = cleanText(insight.observation);
-          doc.text(`${index + 1}. ${cleanObservation}`, { underline: true });
-          doc.moveDown(0.3);
-          
-          const cleanInterpretation = cleanText(insight.interpretation);
-          const interpretationLines = wrapText(cleanInterpretation, 500);
-          interpretationLines.forEach(line => doc.text(`   ${line}`));
-          
+        analyticsData.psychostylisticInsights.primary.forEach((insight, index) => {
+          doc.text(`${index + 1}. ${insight.observation}`);
+          doc.text(`   Interpretation: ${insight.interpretation}`);
           if (insight.causality) {
-            doc.moveDown(0.3);
-            const cleanCausality = cleanText(insight.causality);
-            const causalityLines = wrapText(cleanCausality, 500);
-            causalityLines.forEach(line => doc.text(`   → ${line}`, { oblique: true }));
+            doc.text(`   Causality: ${insight.causality}`);
           }
-          doc.moveDown();
+          doc.moveDown(0.5);
         });
         
-        // Self-Mirror Analysis
-        doc.fontSize(16).text('Self-Mirror Analysis', { underline: true });
+        // Meta-reflection
+        doc.text('Self-Mirror Analysis:');
+        doc.text(analyticsData.psychostylisticInsights.metaReflection.mindProfile);
         doc.moveDown();
-        doc.fontSize(12);
-        
-        const cleanProfile = cleanText(analyticsData.psychostylisticInsights.metaReflection.mindProfile);
-        const profileLines = wrapText(cleanProfile, 500);
-        profileLines.forEach(line => doc.text(line));
-        doc.moveDown();
-        
-        doc.text(`Cognitive Preferences: ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(' • ')}`);
-        doc.moveDown();
-        
-        const cleanTempo = cleanText(analyticsData.psychostylisticInsights.metaReflection.thinkingTempo);
-        const tempoLines = wrapText(cleanTempo, 500);
-        tempoLines.forEach(line => doc.text(`Thinking Tempo: ${line}`));
+        doc.text(`Cognitive Preferences: ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(', ')}`);
+        doc.text(`Thinking Tempo: ${analyticsData.psychostylisticInsights.metaReflection.thinkingTempo}`);
         
         // Finalize the PDF
         doc.end();
-        
-      } else if (format === 'html') {
-        // Helper function to clean and format text (remove markdown syntax) - duplicated for HTML scope
-        const cleanTextForHTML = (text: string) => {
-          return text
-            .replace(/#{1,6}\s*/g, '') // Remove markdown headers
-            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-            .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
-            .replace(/`(.*?)`/g, '$1') // Remove code markdown
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to just text
-            .replace(/^\s*[-*+]\s*/gm, '• ') // Convert bullet points
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .trim();
-        };
-
-        // Generate HTML report
-        const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cognitive Analytics Report</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-            background: #f9fafb;
-        }
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #1f2937;
-            text-align: center;
-            border-bottom: 3px solid #3b82f6;
-            padding-bottom: 10px;
-        }
-        h2 {
-            color: #374151;
-            border-left: 4px solid #3b82f6;
-            padding-left: 15px;
-            margin-top: 30px;
-        }
-        h3 {
-            color: #4b5563;
-            margin-top: 25px;
-        }
-        .archetype-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .metric-card {
-            background: #f3f4f6;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #3b82f6;
-        }
-        .metric-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #3b82f6;
-        }
-        .insight-box {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        .causality {
-            font-style: italic;
-            color: #6b7280;
-            margin-top: 8px;
-        }
-        .significance-high { border-left: 4px solid #ef4444; }
-        .significance-medium { border-left: 4px solid #f59e0b; }
-        .significance-low { border-left: 4px solid #10b981; }
-        .trait-tag {
-            display: inline-block;
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin: 2px;
-        }
-        .date {
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-        }
-        .mirror-analysis {
-            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Cognitive Analytics Report</h1>
-        <p class="date">Generated on ${new Date().toLocaleDateString()}</p>
-        
-        <div class="archetype-card">
-            <h2 style="color: white; border: none; padding: 0; margin-top: 0;">Cognitive Archetype: ${analyticsData.cognitiveArchetype.type.replace('_', ' ').charAt(0).toUpperCase() + analyticsData.cognitiveArchetype.type.replace('_', ' ').slice(1)}</h2>
-            <p><strong>Confidence Level:</strong> ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%</p>
-            <p>${cleanTextForHTML(analyticsData.cognitiveArchetype.description)}</p>
-            <div>
-                ${analyticsData.cognitiveArchetype.traits.map(trait => `<span class="trait-tag">${trait}</span>`).join('')}
-            </div>
-        </div>
-
-        <h2>Writing Style Analysis</h2>
-        <div class="metric-grid">
-            <div class="metric-card">
-                <div class="metric-value">${Math.round(analyticsData.writingStyle.formality.score * 100)}%</div>
-                <div><strong>Formality</strong> (${analyticsData.writingStyle.formality.percentile}th percentile)</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">${Math.round(analyticsData.writingStyle.complexity.score * 100)}%</div>
-                <div><strong>Complexity</strong> (${analyticsData.writingStyle.complexity.percentile}th percentile)</div>
-            </div>
-        </div>
-
-        <h2>Cognitive Fingerprint</h2>
-        <div class="metric-grid">
-            <div class="metric-card">
-                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%</div>
-                <div><strong>Nested Hypotheticals</strong></div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%</div>
-                <div><strong>Anaphoric Reasoning</strong></div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%</div>
-                <div><strong>Structural Analogies</strong></div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%</div>
-                <div><strong>Dialectical Orientation</strong></div>
-            </div>
-        </div>
-
-        <h2>Topic Analysis</h2>
-        <p><strong>Cognitive Style:</strong> ${cleanTextForHTML(analyticsData.topicDistribution.cognitiveStyle)}</p>
-        <p>${cleanTextForHTML(analyticsData.topicDistribution.interpretation)}</p>
-        
-        <h3>Topic Distribution</h3>
-        ${analyticsData.topicDistribution.dominant.slice(0, 5).map(topic => 
-          `<div class="metric-card">
-             <div class="metric-value">${topic.percentage}%</div>
-             <div><strong>${topic.name}</strong></div>
-           </div>`
-        ).join('')}
-
-        <h2>Psychostylistic Analysis</h2>
-        ${analyticsData.psychostylisticInsights.primary.slice(0, 3).map((insight, index) => 
-          `<div class="insight-box significance-${insight.significance}">
-             <h3>${index + 1}. ${cleanTextForHTML(insight.observation)}</h3>
-             <p>${cleanTextForHTML(insight.interpretation)}</p>
-             ${insight.causality ? `<p class="causality">→ ${cleanTextForHTML(insight.causality)}</p>` : ''}
-           </div>`
-        ).join('')}
-
-        <div class="mirror-analysis">
-            <h2 style="color: white; border: none; padding: 0; margin-top: 0;">Self-Mirror Analysis</h2>
-            <p>${cleanTextForHTML(analyticsData.psychostylisticInsights.metaReflection.mindProfile)}</p>
-            <p><strong>Cognitive Preferences:</strong> ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(' • ')}</p>
-            <p><strong>Thinking Tempo:</strong> ${cleanTextForHTML(analyticsData.psychostylisticInsights.metaReflection.thinkingTempo)}</p>
-        </div>
-    </div>
-</body>
-</html>`;
-
-        res.setHeader('Content-Type', 'text/html');
-        res.setHeader('Content-Disposition', `attachment; filename="cognitive-analytics-report-${new Date().toISOString().split('T')[0]}.html"`);
-        res.send(htmlContent);
         
       } else if (format === 'json') {
         res.setHeader('Content-Type', 'application/json');

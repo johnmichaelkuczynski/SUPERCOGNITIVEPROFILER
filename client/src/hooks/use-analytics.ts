@@ -85,8 +85,6 @@ export function useAnalytics() {
       const date = new Date().toISOString().split('T')[0];
       const filename = format === 'pdf' 
         ? `cognitive-analytics-report-${date}.pdf`
-        : format === 'html'
-        ? `cognitive-analytics-report-${date}.html`
         : format === 'json'
         ? `analytics-data-${date}.json`
         : `analytics-patterns-${date}.csv`;
