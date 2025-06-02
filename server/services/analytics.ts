@@ -391,21 +391,21 @@ function generatePsychostylisticInsights(documents: Document[]): Psychostylistic
         : avgSentenceLength < 12
         ? "This suggests clarity-focused communication and distilled thinking"
         : "This reflects balanced communication between detail and accessibility",
-      significance: avgSentenceLength > 25 || avgSentenceLength < 8 ? 'high' : 'medium'
+      significance: (avgSentenceLength > 25 || avgSentenceLength < 8 ? 'high' : 'medium') as 'high' | 'medium' | 'low'
     },
     {
       observation: `${Math.round((complexSentences / sentences.length) * 100)}% of your sentences use complex subordination`,
       interpretation: complexSentences / sentences.length > 0.3
         ? "This pattern suggests recursive thinking and consideration of multiple contingencies"
         : "This indicates preference for direct communication and linear reasoning",
-      significance: 'high'
+      significance: 'high' as 'high' | 'medium' | 'low'
     },
     {
       observation: `Your interrogative ratio is ${(questionRatio * 100).toFixed(1)}%`,
       interpretation: questionRatio > 0.1
         ? "High question usage suggests a dialectical approach - you think through inquiry"
         : "Low question usage indicates declarative confidence in your analytical conclusions",
-      significance: questionRatio > 0.15 ? 'high' : 'medium'
+      significance: (questionRatio > 0.15 ? 'high' : 'medium') as 'high' | 'medium' | 'low'
     }
   ];
   
