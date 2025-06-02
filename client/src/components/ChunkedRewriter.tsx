@@ -1381,20 +1381,22 @@ export default function ChunkedRewriter({
                 // Generate HTML file with clean formatting
                 const cleanText = (text: string) => {
                   return text
-                    .replace(/#{1,6}\s*/g, '') // Remove markdown headers
+                    .replace(/#{1,6}\s+/g, '') // Remove markdown headers with space
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert bold
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert italic
-                    .replace(/`(.*?)`/g, '<code>$1</code>') // Convert code
+                    .replace(/(?<!\*)\*(?!\*)([^*]+)\*/g, '<em>$1</em>') // Convert italic (not part of bold)
+                    .replace(/`([^`]+)`/g, '<code>$1</code>') // Convert code
                     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
-                    .replace(/^\s*[-*+]\s*/gm, '• ') // Convert bullet points
+                    .replace(/^\s*[-*+]\s+/gm, '• ') // Convert bullet points
                     .replace(/&/g, '&amp;')
                     .replace(/</g, '&lt;')
                     .replace(/>/g, '&gt;')
                     .replace(/"/g, '&quot;')
                     .replace(/'/g, '&#39;')
-                    .replace(/\n\n/g, '</p><p>')
-                    .replace(/\n/g, '<br>')
-                    .trim();
+                    .split('\n\n') // Split into paragraphs
+                    .map(para => para.trim())
+                    .filter(para => para.length > 0)
+                    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+                    .join('\n');
                 };
 
                 const htmlContent = `<!DOCTYPE html>
@@ -1453,7 +1455,7 @@ export default function ChunkedRewriter({
     </div>
     
     <div class="content">
-        <p>${cleanText(finalRewrittenContent)}</p>
+        ${cleanText(finalRewrittenContent)}
     </div>
 </body>
 </html>`;
