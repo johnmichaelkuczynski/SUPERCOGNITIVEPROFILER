@@ -875,10 +875,27 @@ YOUR REWRITTEN DOCUMENT:`;
           doc.font('Helvetica');
           doc.fontSize(12);
           
+          // Sanitize content for PDF - remove all HTML/markdown formatting
+          const sanitizedContent = content
+            .replace(/<[^>]+>/g, '')           // Remove HTML tags
+            .replace(/&[a-z]+;/gi, '')         // Remove HTML entities
+            .replace(/\*\*(.*?)\*\*/g, '$1')   // Remove bold markdown
+            .replace(/\*(.*?)\*/g, '$1')       // Remove italic markdown
+            .replace(/`(.*?)`/g, '$1')         // Remove code markdown
+            .replace(/#{1,6}\s/g, '')          // Remove heading markdown
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+            .replace(/[^\x00-\x7F]/g, (char) => { // Handle non-ASCII safely
+              // Keep common math symbols, replace others
+              const safeChars = '∫∑∏√±×÷≤≥≠≈∞∂';
+              return safeChars.includes(char) ? char : '';
+            })
+            .trim();
+          
           // Add content to PDF with proper line breaks
-          const paragraphs = content.split('\n\n');
+          const paragraphs = sanitizedContent.split('\n\n');
           for (let i = 0; i < paragraphs.length; i++) {
-            doc.text(paragraphs[i] || ' ', {
+            const paragraph = paragraphs[i] || ' ';
+            doc.text(paragraph, {
               align: 'left',
               continued: false
             });
@@ -1175,36 +1192,7 @@ Return only the rewritten text without any additional comments, explanations, or
       processedContent = processedContent.replace(/\\{/g, '{');
       processedContent = processedContent.replace(/\\}/g, '}');
       
-      if (format === 'pdf') {
-        // For PDF, return HTML for print preview
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}.html"`);
-        
-        const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>${filename}</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            line-height: 1.6; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            color: #333;
-        }
-        @media print {
-            body { margin: 0; padding: 15px; }
-        }
-    </style>
-</head>
-<body>
-    <div>${processedContent.replace(/\n/g, '<br>')}</div>
-</body>
-</html>`;
-        res.send(htmlContent);
-      } else if (format === 'docx') {
+      if (format === 'docx') {
         // For Word, we need to import the docx library and create a proper document
         const docx = await import('docx');
         const { Document, Packer, Paragraph, TextRun } = docx;
@@ -1224,6 +1212,80 @@ Return only the rewritten text without any additional comments, explanations, or
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}.docx"`);
         res.send(buffer);
+      } else if (format === 'pdf') {
+        try {
+          // Generate PDF using PDFKit
+          const PDFDocument = await import('pdfkit');
+          const doc = new PDFDocument.default();
+          
+          // Create a buffer to store PDF
+          const chunks: Buffer[] = [];
+          
+          // Capture PDF data chunks
+          doc.on('data', (chunk) => {
+            chunks.push(chunk);
+          });
+          
+          // Handle errors on the doc
+          doc.on('error', (pdfError) => {
+            console.error('PDF generation error:', pdfError);
+            return res.status(500).json({ error: 'PDF generation failed', details: pdfError.message });
+          });
+          
+          // When document is done, create buffer and send response
+          doc.on('end', () => {
+            try {
+              const result = Buffer.concat(chunks);
+              
+              // Set headers
+              res.setHeader('Content-Type', 'application/pdf');
+              res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+              res.setHeader('Content-Length', result.length);
+              
+              // Send buffer
+              res.send(result);
+              console.log('PDF document generated successfully');
+            } catch (bufferError) {
+              console.error('PDF buffer error:', bufferError);
+              return res.status(500).json({ error: 'PDF buffer creation failed', details: bufferError.message });
+            }
+          });
+          
+          // Add content to PDF with proper font settings
+          doc.font('Helvetica');
+          doc.fontSize(12);
+          
+          // Further sanitize content for PDF - remove all HTML/markdown formatting
+          const sanitizedContent = processedContent
+            .replace(/<[^>]+>/g, '')           // Remove HTML tags
+            .replace(/&[a-z]+;/gi, '')         // Remove HTML entities
+            .replace(/[^\x00-\x7F]/g, (char) => { // Handle non-ASCII safely
+              // Keep common math symbols, replace others
+              const safeChars = '∫∑∏√±×÷≤≥≠≈∞∂θπαβγδεζηκλμνξρστφχψω';
+              return safeChars.includes(char) ? char : '';
+            })
+            .trim();
+          
+          // Add content to PDF with proper line breaks
+          const paragraphs = sanitizedContent.split('\n\n');
+          for (let i = 0; i < paragraphs.length; i++) {
+            const paragraph = paragraphs[i] || ' ';
+            doc.text(paragraph, {
+              align: 'left',
+              continued: false
+            });
+            
+            if (i < paragraphs.length - 1) {
+              doc.moveDown();
+            }
+          }
+          
+          // Finalize PDF
+          doc.end();
+        } catch (pdfError) {
+          console.error('PDF creation error:', pdfError);
+          return res.status(500).json({ error: 'Failed to generate PDF file', details: pdfError.message });
+        }
       } else {
         // Default to text file
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
