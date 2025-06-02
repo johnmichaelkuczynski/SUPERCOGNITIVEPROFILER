@@ -118,6 +118,16 @@ export default function DocumentRewrite() {
   const [selectedChunkIds, setSelectedChunkIds] = useState<number[]>([]);
   const [previewChunkId, setPreviewChunkId] = useState<number | null>(null);
   const [chunkSize, setChunkSize] = useState<number>(3000); // Default chunk size in characters
+  
+  // Rewrite-the-rewrite state
+  const [rewriteInstructions, setRewriteInstructions] = useState<string>('');
+  const [isRewritingAgain, setIsRewritingAgain] = useState<boolean>(false);
+  const [rewriteHistory, setRewriteHistory] = useState<Array<{
+    version: number;
+    content: string;
+    instructions: string;
+    timestamp: Date;
+  }>>([]);
   const [isProcessingChunks, setIsProcessingChunks] = useState<boolean>(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -435,6 +445,112 @@ export default function DocumentRewrite() {
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  // Handle rewrite-the-rewrite
+  const handleRewriteTheRewrite = async () => {
+    if (!rewrittenContent || !rewriteInstructions.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide instructions for improving the rewrite.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRewritingAgain(true);
+
+    try {
+      // Save current version to history
+      const currentVersion = {
+        version: rewriteHistory.length + 1,
+        content: rewrittenContent,
+        instructions: rewriteHistory.length === 0 ? settings.instructions : rewriteInstructions,
+        timestamp: new Date()
+      };
+      setRewriteHistory(prev => [...prev, currentVersion]);
+
+      // Create comprehensive prompt for the rewrite improvement
+      const improvePrompt = `I need you to improve a rewritten document based on specific feedback.
+
+ORIGINAL DOCUMENT:
+${document?.content || 'Original content not available'}
+
+INITIAL REWRITE INSTRUCTIONS:
+${settings.instructions}
+
+CURRENT REWRITE:
+${rewrittenContent}
+
+NEW IMPROVEMENT INSTRUCTIONS:
+${rewriteInstructions}
+
+Please rewrite the current version incorporating the new instructions while being aware of the original document and initial instructions. The improvement should address the specific feedback provided in the new instructions.`;
+
+      const response = await fetch('/api/rewrite-document', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: improvePrompt,
+          filename: document?.name || 'rewrite_improvement',
+          model: settings.model,
+          instructions: rewriteInstructions,
+          detectionProtection: settings.detectionProtection
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Server error: ${errorData.error || response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data || !data.content) {
+        throw new Error("The server returned an empty response");
+      }
+
+      setRewrittenContent(data.content);
+      setRewriteInstructions(''); // Clear the improvement instructions
+
+      toast({
+        title: "Rewrite Improved",
+        description: "Your document has been rewritten based on your feedback.",
+      });
+
+    } catch (error) {
+      console.error('Error improving rewrite:', error);
+      toast({
+        title: "Improvement Failed",
+        description: error instanceof Error ? error.message : "Failed to improve the rewrite. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRewritingAgain(false);
+    }
+  };
+
+  // Restore a previous version
+  const restorePreviousVersion = (version: number) => {
+    const targetVersion = rewriteHistory[version - 1];
+    if (targetVersion) {
+      // Save current as new version before restoring
+      const currentVersion = {
+        version: rewriteHistory.length + 1,
+        content: rewrittenContent,
+        instructions: 'Current version before restore',
+        timestamp: new Date()
+      };
+      setRewriteHistory(prev => [...prev, currentVersion]);
+      
+      setRewrittenContent(targetVersion.content);
+      toast({
+        title: "Version Restored",
+        description: `Restored to version ${version}`,
+      });
     }
   };
 
@@ -1058,7 +1174,85 @@ export default function DocumentRewrite() {
                   Click content to copy to clipboard
                 </div>
               </div>
-              
+            </CardContent>
+          </Card>
+
+          {/* Rewrite the Rewrite Section */}
+          {rewrittenContent && (
+            <Card className="border-orange-200 bg-orange-50/30">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-orange-800">
+                  <RefreshCw className="h-5 w-5" />
+                  Rewrite the Rewrite
+                </CardTitle>
+                <p className="text-sm text-orange-700">
+                  Provide specific feedback to improve the rewritten content. The system will consider the original text, 
+                  initial instructions, current rewrite, and your new improvement instructions.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Version History */}
+                {rewriteHistory.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="font-medium text-sm mb-2 text-slate-700">Version History</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {rewriteHistory.map((version, index) => (
+                        <Button
+                          key={version.version}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => restorePreviousVersion(version.version)}
+                          className="text-xs"
+                        >
+                          Version {version.version}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Improvement Instructions */}
+                <div>
+                  <Label htmlFor="rewrite-instructions" className="text-orange-800 font-medium">
+                    Improvement Instructions
+                  </Label>
+                  <Textarea 
+                    id="rewrite-instructions"
+                    placeholder="e.g., 'Add back the missing Laws of Logic that were left out', 'Make it more concise', 'Fix the technical accuracy', 'Improve the academic tone', etc."
+                    className="min-h-[100px] mt-1"
+                    value={rewriteInstructions}
+                    onChange={(e) => setRewriteInstructions(e.target.value)}
+                  />
+                  <p className="text-xs text-orange-600 mt-1">
+                    Be specific about what needs to be fixed or improved. The AI will consider your original content, 
+                    the initial rewrite instructions, and the current result when making improvements.
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleRewriteTheRewrite} 
+                  disabled={!rewriteInstructions.trim() || isRewritingAgain}
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  {isRewritingAgain ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Improving Rewrite...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Improve Rewrite
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action Buttons */}
+          <Card>
+            <CardContent className="pt-6">
               <div className="flex justify-between">
                 <Button 
                   variant="outline" 
