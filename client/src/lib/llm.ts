@@ -24,23 +24,96 @@ export interface LLMError {
 }
 
 export interface AnalyticsData {
+  cognitiveArchetype: {
+    type: 'deconstructor' | 'synthesist' | 'algorithmic_thinker' | 'rhetorical_strategist' | 'architect' | 'cataloguer';
+    confidence: number;
+    description: string;
+    traits: string[];
+  };
   writingStyle: {
-    formality: number;
-    complexity: number;
+    formality: {
+      score: number;
+      percentile: number;
+      subdimensions: {
+        toneRegister: number;
+        modalityUsage: number;
+        contractionRate: number;
+        hedgingFrequency: number;
+      };
+    };
+    complexity: {
+      score: number;
+      percentile: number;
+      subdimensions: {
+        clauseDensity: number;
+        dependencyLength: number;
+        embeddedStructureRate: number;
+        lexicalRarity: number;
+      };
+    };
+    cognitiveSignatures: {
+      nestedHypotheticals: number;
+      anaphoricReasoning: number;
+      structuralAnalogies: number;
+      dialecticalVsDidactic: number;
+    };
   };
-  topics: Array<{
-    name: string;
-    percentage: number;
-    color: string;
-  }>;
-  sentiment: {
-    overall: number;
-    label: string;
-    trend: 'up' | 'down' | 'neutral';
+  topicDistribution: {
+    dominant: Array<{
+      name: string;
+      percentage: number;
+      color: string;
+      psychologicalImplication: string;
+    }>;
+    interpretation: string;
+    cognitiveStyle: string;
   };
-  insights: Array<{
-    text: string;
-    trend: 'up' | 'down' | 'neutral';
+  temporalEvolution: {
+    periods: {
+      early: {
+        label: string;
+        archetype: string;
+        description: string;
+        keyMetrics: Record<string, number>;
+      };
+      middle: {
+        label: string;
+        archetype: string;
+        description: string;
+        keyMetrics: Record<string, number>;
+      };
+      recent: {
+        label: string;
+        archetype: string;
+        description: string;
+        keyMetrics: Record<string, number>;
+      };
+    };
+    trajectory: {
+      type: 'compression_abstraction' | 'exploratory_expansion' | 'crystallization' | 'fragmentation';
+      description: string;
+      prognosis: string;
+    };
+  };
+  psychostylisticInsights: {
+    primary: Array<{
+      observation: string;
+      interpretation: string;
+      causality?: string;
+      significance: 'high' | 'medium' | 'low';
+    }>;
+    metaReflection: {
+      mindProfile: string;
+      cognitivePreferences: string[];
+      thinkingTempo: string;
+    };
+  };
+  longitudinalPatterns: Array<{
+    date: string;
+    conceptualDensity: number;
+    formalityIndex: number;
+    cognitiveComplexity: number;
+    annotations?: string[];
   }>;
 }
 
