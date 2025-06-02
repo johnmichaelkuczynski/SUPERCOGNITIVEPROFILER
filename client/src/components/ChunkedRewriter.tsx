@@ -330,21 +330,39 @@ export default function ChunkedRewriter({
               : c
           ));
 
-          const response = await fetch('/api/rewrite-chunk', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              content: chunk.content,
-              instructions: instructions || 'Improve clarity, coherence, and readability while maintaining the original meaning.',
-              model: selectedModel,
-              chatContext: includeChatContext ? chatContext : undefined,
-              chunkIndex: i,
-              totalChunks: selectedChunks.length,
-              mode: processingMode === 'homework' ? 'homework' : rewriteMode
-            }),
-          });
+          let response;
+          if (processingMode === 'homework') {
+            // Use homework endpoint with simple instruction
+            response = await fetch('/api/homework-mode', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                instructions: `ANSWER EVERY QUESTION ON HERE\n\n${chunk.content}`,
+                userPrompt: instructions || '',
+                model: selectedModel,
+                chatContext: includeChatContext ? chatContext : undefined,
+              }),
+            });
+          } else {
+            // Use rewrite endpoint
+            response = await fetch('/api/rewrite-chunk', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                content: chunk.content,
+                instructions: instructions || 'Improve clarity, coherence, and readability while maintaining the original meaning.',
+                model: selectedModel,
+                chatContext: includeChatContext ? chatContext : undefined,
+                chunkIndex: i,
+                totalChunks: selectedChunks.length,
+                mode: rewriteMode
+              }),
+            });
+          }
 
           if (!response.ok) {
             throw new Error(`Failed to rewrite chunk ${i + 1}`);
@@ -352,15 +370,16 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
 
-          // Store the rewritten content immediately
-          rewrittenChunks.push(result.rewrittenContent);
+          // Store the content immediately (homework returns 'response', rewrite returns 'rewrittenContent')
+          const content = processingMode === 'homework' ? result.response : result.rewrittenContent;
+          rewrittenChunks.push(content);
 
           // Update chunk with rewritten content
           setChunks(prev => prev.map(c => 
             c.id === chunk.id 
               ? { 
                   ...c, 
-                  rewritten: result.rewrittenContent,
+                  rewritten: content,
                   isProcessing: false,
                   isComplete: true 
                 }
@@ -371,14 +390,14 @@ export default function ChunkedRewriter({
           setLiveProgressChunks(prev => prev.map((item, idx) => 
             idx === i ? {
               ...item,
-              content: result.rewrittenContent,
+              content: content,
               completed: true
             } : item
           ));
 
-          // Add rewritten chunk to chat dialogue
+          // Add completed chunk to chat dialogue
           onAddToChat(
-            `**Rewrite Chunk ${i + 1}/${selectedChunks.length} Complete:**\n\n${result.rewrittenContent}`,
+            `**${processingMode === 'homework' ? 'Homework' : 'Rewrite'} Chunk ${i + 1}/${selectedChunks.length} Complete:**\n\n${content}`,
             { 
               type: 'rewrite_chunk',
               chunkIndex: i,
