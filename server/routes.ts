@@ -279,6 +279,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to generate analytics', error: (error as Error).message });
     }
   });
+
+  // Analytics export route - generates and downloads PDF report
+  app.post('/api/analytics/export', async (req: Request, res: Response) => {
+    try {
+      const { format, timeframe } = req.body;
+      const userId = 1; // Mock user ID for now
+      
+      // Get user documents for analysis
+      const documents = await storage.getDocumentsByUserId(userId);
+      
+      // Generate analytics data
+      const analyticsData = generateAnalytics(documents, timeframe || '7days');
+      
+      if (format === 'pdf') {
+        // Generate PDF using PDFKit
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument({ margin: 50 });
+        
+        // Set response headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="cognitive-analytics-report-${new Date().toISOString().split('T')[0]}.pdf"`);
+        
+        // Pipe the PDF to the response
+        doc.pipe(res);
+        
+        // Generate PDF content
+        doc.fontSize(20).text('Cognitive Analytics Report', { align: 'center' });
+        doc.moveDown();
+        
+        // Cognitive Archetype Section
+        doc.fontSize(16).text('Cognitive Archetype Analysis', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Type: ${analyticsData.cognitiveArchetype.type.replace('_', ' ').toUpperCase()}`);
+        doc.text(`Confidence: ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%`);
+        doc.text(`Description: ${analyticsData.cognitiveArchetype.description}`);
+        doc.text(`Traits: ${analyticsData.cognitiveArchetype.traits.join(', ')}`);
+        doc.moveDown();
+        
+        // Writing Style Section
+        doc.fontSize(16).text('Writing Style Analysis', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Formality Score: ${Math.round(analyticsData.writingStyle.formality.score * 100)}% (${analyticsData.writingStyle.formality.percentile}th percentile)`);
+        doc.text(`Complexity Score: ${Math.round(analyticsData.writingStyle.complexity.score * 100)}% (${analyticsData.writingStyle.complexity.percentile}th percentile)`);
+        doc.moveDown();
+        
+        // Cognitive Signatures
+        doc.text('Cognitive Signatures:');
+        doc.text(`- Nested Hypotheticals: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%`);
+        doc.text(`- Anaphoric Reasoning: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%`);
+        doc.text(`- Structural Analogies: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%`);
+        doc.text(`- Dialectical vs Didactic: ${Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%`);
+        doc.moveDown();
+        
+        // Topic Distribution
+        doc.fontSize(16).text('Topic Distribution & Psychology', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Cognitive Style: ${analyticsData.topicDistribution.cognitiveStyle}`);
+        doc.text(`Interpretation: ${analyticsData.topicDistribution.interpretation}`);
+        doc.moveDown();
+        
+        analyticsData.topicDistribution.dominant.forEach(topic => {
+          doc.text(`• ${topic.name}: ${topic.percentage}% - ${topic.psychologicalImplication}`);
+        });
+        doc.moveDown();
+        
+        // Temporal Evolution
+        doc.fontSize(16).text('Temporal Cognitive Evolution', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Trajectory: ${analyticsData.temporalEvolution.trajectory.type.replace('_', ' ').toUpperCase()}`);
+        doc.text(`Description: ${analyticsData.temporalEvolution.trajectory.description}`);
+        doc.text(`Prognosis: ${analyticsData.temporalEvolution.trajectory.prognosis}`);
+        doc.moveDown();
+        
+        // Psychostylistic Insights
+        doc.fontSize(16).text('Psychostylistic Analysis', { underline: true });
+        doc.fontSize(12).moveDown();
+        
+        analyticsData.psychostylisticInsights.primary.forEach((insight, index) => {
+          doc.text(`${index + 1}. ${insight.observation}`);
+          doc.text(`   Interpretation: ${insight.interpretation}`);
+          if (insight.causality) {
+            doc.text(`   Causality: ${insight.causality}`);
+          }
+          doc.moveDown(0.5);
+        });
+        
+        // Meta-reflection
+        doc.text('Self-Mirror Analysis:');
+        doc.text(analyticsData.psychostylisticInsights.metaReflection.mindProfile);
+        doc.moveDown();
+        doc.text(`Cognitive Preferences: ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(', ')}`);
+        doc.text(`Thinking Tempo: ${analyticsData.psychostylisticInsights.metaReflection.thinkingTempo}`);
+        
+        // Finalize the PDF
+        doc.end();
+        
+      } else if (format === 'json') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="analytics-data-${new Date().toISOString().split('T')[0]}.json"`);
+        res.json(analyticsData);
+        
+      } else if (format === 'csv') {
+        // Generate CSV for longitudinal patterns
+        const csvData = analyticsData.longitudinalPatterns.map(pattern => ({
+          Date: pattern.date,
+          'Conceptual Density': pattern.conceptualDensity,
+          'Formality Index': pattern.formalityIndex,
+          'Cognitive Complexity': pattern.cognitiveComplexity,
+          Annotations: pattern.annotations?.join('; ') || ''
+        }));
+        
+        const csvHeaders = Object.keys(csvData[0] || {}).join(',');
+        const csvRows = csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','));
+        const csvContent = [csvHeaders, ...csvRows].join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="analytics-patterns-${new Date().toISOString().split('T')[0]}.csv"`);
+        res.send(csvContent);
+      }
+      
+    } catch (error) {
+      console.error('Error exporting analytics:', error);
+      res.status(500).json({ message: 'Failed to export analytics', error: (error as Error).message });
+    }
+  });
   
   // AI detection route for analyzing highlighted text
   app.post('/api/ai-detection', async (req: Request, res: Response) => {

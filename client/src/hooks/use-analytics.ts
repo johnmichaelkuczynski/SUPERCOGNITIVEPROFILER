@@ -60,10 +60,44 @@ export function useAnalytics() {
 
   const exportAnalyticsData = async (format: string, period: string) => {
     try {
-      await refetch();
+      const response = await fetch('/api/analytics/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          format: format.toLowerCase(),
+          timeframe: period
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Set filename based on format
+      const date = new Date().toISOString().split('T')[0];
+      const filename = format === 'pdf' 
+        ? `cognitive-analytics-report-${date}.pdf`
+        : format === 'json'
+        ? `analytics-data-${date}.json`
+        : `analytics-patterns-${date}.csv`;
+        
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
       toast({
-        title: 'Analytics data exported',
-        description: `Your analytics data has been exported in ${format.toUpperCase()} format`,
+        title: 'Analytics exported successfully',
+        description: `Your cognitive analytics report has been downloaded as ${filename}`,
       });
       return true;
     } catch (error) {
