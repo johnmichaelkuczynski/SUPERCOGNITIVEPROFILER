@@ -1264,6 +1264,18 @@ function createEmptyAnalytics(): AnalyticsResult {
       famousComparisons: ["Cognitive profile emerging"],
       currentCareerLikely: "Professional knowledge work indicated",
       idealCareer: "Strategic roles requiring systematic thinking",
+      cognitiveContrasts: {
+        mostDifferentType: {
+          type: "Requires more content",
+          explanation: "Upload documents to identify most different cognitive type",
+          keyDifferences: ["Analysis pending document upload"]
+        },
+        bestCollaborationType: {
+          type: "Requires more content",
+          explanation: "Upload documents to identify best collaboration type",
+          complementaryStrengths: ["Analysis pending document upload"]
+        }
+      },
       detailedAnalysis: "Upload more documents to generate a comprehensive cognitive analysis."
     },
     psychologicalProfile: {
@@ -1279,6 +1291,18 @@ function createEmptyAnalytics(): AnalyticsResult {
         deteriorationRisks: ["Analysis pending more data"]
       },
       supportingQuotations: ["More content needed for psychological quotations"],
+      emotionalContrasts: {
+        mostDifferentType: {
+          type: "Requires more content",
+          explanation: "Upload documents to identify most different emotional type",
+          keyDifferences: ["Analysis pending document upload"]
+        },
+        bestComplementType: {
+          type: "Requires more content",
+          explanation: "Upload documents to identify best emotional complement type",
+          complementaryQualities: ["Analysis pending document upload"]
+        }
+      },
       detailedAnalysis: "Upload more documents to generate a comprehensive psychological profile."
     },
     comprehensiveInsights: {
