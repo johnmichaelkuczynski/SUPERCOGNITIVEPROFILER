@@ -52,7 +52,7 @@ export async function processClaude(
     // Add the current message
     messages.push({ role: 'user', content });
     
-    // Always use non-streaming for consistency
+    // Direct API call without restrictions
     const response = await anthropic.messages.create({
       model: MODEL,
       messages: messages.map(msg => ({
