@@ -559,6 +559,87 @@ Please rewrite the current version incorporating the new instructions while bein
     }
   };
 
+  // Helper function to detect content sections
+  const getContentSections = (content: string): string[] => {
+    if (!content) return [];
+    
+    // Split by double line breaks or headers
+    const sections = content.split(/\n\n+|\n#{1,6}\s+/)
+      .map(section => section.trim())
+      .filter(section => section.length > 50); // Only count substantial sections
+    
+    return sections;
+  };
+
+  // Handle content expansion
+  const handleExpandContent = async () => {
+    if (!rewrittenContent || !expansionInstructions.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide expansion instructions.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsExpanding(true);
+
+    try {
+      // Split content into logical chunks for expansion
+      const chunks = getContentSections(rewrittenContent);
+      
+      if (chunks.length === 0) {
+        // Fallback: split by paragraphs if no clear sections found
+        chunks.push(...rewrittenContent.split('\n\n').filter(chunk => chunk.trim().length > 0));
+      }
+
+      const response = await fetch('/api/expand-chunks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originalContent: document?.content || '',
+          instructions: expansionInstructions,
+          chunks: chunks,
+          model: settings.model,
+          expansionFactor: expansionFactor
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Server error: ${errorData.error || response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data || !data.expandedChunks || !Array.isArray(data.expandedChunks)) {
+        throw new Error("The server returned invalid expansion data");
+      }
+
+      // Join the expanded chunks back together
+      const expandedContent = data.expandedChunks.join('\n\n');
+      setRewrittenContent(expandedContent);
+      setExpansionInstructions(''); // Clear the expansion instructions
+
+      toast({
+        title: "Content Expanded",
+        description: `Expanded from ${data.originalChunkCount} sections to ${data.expandedChunkCount} sections (${data.expansionRatio}x).`,
+      });
+
+    } catch (error) {
+      console.error('Error expanding content:', error);
+      toast({
+        title: "Expansion Failed",
+        description: error instanceof Error ? error.message : "Failed to expand content. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExpanding(false);
+    }
+  };
+
   // Handle AI detection
   const runAIDetection = async () => {
     if (!rewrittenContent) {
