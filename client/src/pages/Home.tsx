@@ -729,11 +729,79 @@ Document text: ${extractedText}`;
                     ? 'Direct Input - Homework Mode' 
                     : 'Direct Input - Rewrite Mode';
                   
-                  // Set the processing mode and open rewriter
-                  setRewriterText(directInputText);
-                  setRewriterTitle(title);
-                  setRewriterProcessingMode(processingMode);
-                  setIsChunkedRewriterOpen(true);
+                  if (processingMode === 'homework') {
+                    // Process homework immediately without opening modal
+                    try {
+                      const response = await fetch('/api/homework-mode', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          instructions: directInputText,
+                          userPrompt: '',
+                          model: 'claude'
+                        }),
+                      });
+
+                      if (!response.ok) {
+                        throw new Error('Failed to process homework');
+                      }
+
+                      const result = await response.json();
+                      
+                      // Add result directly to chat
+                      const userMessage: Message = {
+                        id: Date.now(),
+                        content: `**Homework Assignment:** ${directInputText}`,
+                        role: 'user',
+                        timestamp: new Date()
+                      };
+                      
+                      const aiMessage: Message = {
+                        id: Date.now() + 1,
+                        content: `**Assignment Completed:**\n\n${result.response}`,
+                        role: 'assistant',
+                        timestamp: new Date()
+                      };
+                      
+                      setMessages(prev => [...prev, userMessage, aiMessage]);
+                      
+                      // Save to documents
+                      await fetch('/api/documents', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          title: title,
+                          content: result.response,
+                          type: 'homework',
+                          metadata: {
+                            originalLength: directInputText.length,
+                            responseLength: result.response.length,
+                            model: 'claude'
+                          }
+                        }),
+                      });
+                      
+                    } catch (error) {
+                      console.error('Homework processing error:', error);
+                      const errorMessage: Message = {
+                        id: Date.now(),
+                        content: `Error processing homework: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                        role: 'assistant',
+                        timestamp: new Date()
+                      };
+                      setMessages(prev => [...prev, errorMessage]);
+                    }
+                  } else {
+                    // Open chunked rewriter for rewrite mode
+                    setRewriterText(directInputText);
+                    setRewriterTitle(title);
+                    setRewriterProcessingMode(processingMode);
+                    setIsChunkedRewriterOpen(true);
+                  }
                   
                   setIsDirectProcessing(false);
                 }}
