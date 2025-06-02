@@ -183,36 +183,93 @@ export default function AnalyticsDashboard({
         </Card>
       </div>
 
-      {/* Cognitive Signatures */}
+      {/* Cognitive Fingerprint */}
       <Card className="p-6 mb-8">
         <h3 className="text-lg font-semibold mb-4 flex items-center">
           <Zap className="h-5 w-5 mr-2 text-purple-600" />
-          Cognitive Signatures
+          Cognitive Fingerprint
         </h3>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600 mb-1">
-              {Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-purple-800">Nested Hypotheticals</span>
+                <span className="text-2xl font-bold text-purple-600">
+                  {Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%
+                </span>
+              </div>
+              <div className="text-sm text-purple-700">
+                {analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals < 0.05 
+                  ? "You seldom use nested hypotheticals—favoring linear progression over epistemic forking. This suggests a preference for parsimony over contingency in inferential space."
+                  : analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals > 0.15
+                  ? "High hypothetical branching indicates comfort with proliferating possibilities. You think in conditional trees rather than straight lines."
+                  : "Moderate hypothetical usage suggests strategic contingency thinking—you branch when necessary but prefer focused analysis."
+                }
+              </div>
             </div>
-            <div className="text-xs text-slate-600">Nested Hypotheticals</div>
+            
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-blue-800">Anaphoric Reasoning</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%
+                </span>
+              </div>
+              <div className="text-sm text-blue-700">
+                {analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning < 0.1 
+                  ? "Low anaphoric reasoning suggests direct assertion over progressive inference. You state rather than build through logical chains."
+                  : analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning > 0.3
+                  ? "High anaphoric reasoning reveals systematic logical construction. You build arguments through careful referential progression."
+                  : "Moderate anaphoric usage indicates balanced reasoning—you use logical chains strategically without over-dependence."
+                }
+              </div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600 mb-1">
-              {Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-green-800">Structural Analogies</span>
+                <span className="text-2xl font-bold text-green-600">
+                  {Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%
+                </span>
+              </div>
+              <div className="text-sm text-green-700">
+                {analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies < 0.1 
+                  ? "Low analogical thinking suggests direct conceptual processing. You work within domains rather than drawing cross-domain parallels."
+                  : analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies > 0.25
+                  ? "High analogical reasoning marks you as a structural pattern recognizer. You regularly compare unlike domains to extract general principles."
+                  : "Moderate analogical usage indicates selective pattern recognition—you draw parallels when they illuminate rather than decorate."
+                }
+              </div>
             </div>
-            <div className="text-xs text-slate-600">Anaphoric Reasoning</div>
+            
+            <div className="p-4 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-orange-800">Dialectical Orientation</span>
+                <span className="text-2xl font-bold text-orange-600">
+                  {Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%
+                </span>
+              </div>
+              <div className="text-sm text-orange-700">
+                {analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic > 0.7 
+                  ? "Strong dialectical mindset—you present opposing views but resolve them under overarching logic. You thrive on intellectual tension."
+                  : analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic < 0.3
+                  ? "Didactic orientation—you teach and prescribe rather than explore contradictions. Your mode is instructional rather than investigative."
+                  : "Balanced dialectical-didactic approach—you can both explore tensions and provide clear instruction as the context demands."
+                }
+              </div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600 mb-1">
-              {Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%
-            </div>
-            <div className="text-xs text-slate-600">Structural Analogies</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600 mb-1">
-              {Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%
-            </div>
-            <div className="text-xs text-slate-600">Dialectical vs Didactic</div>
+        </div>
+        
+        <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+          <h4 className="font-medium text-purple-800 mb-2">Cognitive Trait Summary</h4>
+          <div className="text-sm text-purple-700">
+            {analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies > 0.2 && "Structural Analogist • "}
+            {analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic > 0.6 ? "Dialectical Thinker • " : "Declarative Thinker • "}
+            {analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals < 0.05 ? "Low Hypothetical Branching • " : "Strategic Hypothetical Use • "}
+            {analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning > 0.2 ? "Chain Reasoner" : "Direct Asserter"}
           </div>
         </div>
       </Card>
