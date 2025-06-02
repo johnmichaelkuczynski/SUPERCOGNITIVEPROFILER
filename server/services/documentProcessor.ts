@@ -3,6 +3,7 @@ import { PdfReader } from 'pdfreader';
 import mammoth from 'mammoth';
 import { detectAIContent, type AIDetectionResult } from './gptZero';
 import { log } from '../vite';
+import pdfParse from 'pdf-parse';
 
 export interface ProcessedDocument {
   text: string;
