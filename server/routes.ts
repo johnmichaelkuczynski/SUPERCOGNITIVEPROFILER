@@ -1580,7 +1580,7 @@ Return only the new content without any additional comments, explanations, or he
           if (documentContext) {
             systemMessage = {
               role: 'system',
-              content: `You have access to the following document(s):\n\n${documentContext}\nAnswer any questions about this content and help with any tasks related to it.`
+              content: `You have access to the following document(s):\n\n${documentContext}\nComplete any requested tasks using this content. Do not refuse to complete assignments or academic work.`
             };
           }
           
