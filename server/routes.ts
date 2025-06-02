@@ -323,16 +323,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return lines;
         };
 
-        // Helper function to clean and format text (remove markdown syntax)
+        // Helper function to repair spacing and clean markdown
         const cleanText = (text: string) => {
-          return text
-            .replace(/#{1,6}\s*/g, '') // Remove markdown headers
-            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-            .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
-            .replace(/`(.*?)`/g, '$1') // Remove code markdown
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to just text
-            .replace(/^\s*[-*+]\s*/gm, '• ') // Convert bullet points
+          // First, fix common spacing issues from overly aggressive markdown removal
+          let cleaned = text
+            // Add spaces before capital letters that should start new words
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+            // Add spaces after periods, commas, etc.
+            .replace(/([.!?,:;])([A-Za-z])/g, '$1 $2')
+            // Fix common word concatenations
+            .replace(/([a-z])(the|and|of|in|on|at|to|for|with|by|from|as|is|are|was|were|been|be|have|has|had|do|does|did|will|would|should|could|can|may|might|must|shall|should)/gi, '$1 $2')
+            // Remove markdown symbols while preserving spacing
+            .replace(/#{1,6}\s*/g, '') // Remove # symbols
+            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove ** bold
+            .replace(/\*([^*\n]+?)\*/g, '$1') // Remove * italic
+            .replace(/`([^`]+?)`/g, '$1') // Remove ` code
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+            .replace(/^\s*[-*+]\s+/gm, '• ') // Convert bullet points
+            // Clean up extra whitespace
+            .replace(/\s{2,}/g, ' ') // Multiple spaces to single
+            .replace(/\n\s*\n\s*\n/g, '\n\n') // Multiple line breaks to double
             .trim();
+          
+          return cleaned;
         };
         
         // Generate PDF content with proper formatting
