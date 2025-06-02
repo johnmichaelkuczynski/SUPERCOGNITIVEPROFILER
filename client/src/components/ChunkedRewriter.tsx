@@ -1375,6 +1375,112 @@ export default function ChunkedRewriter({
               <span>Download Word</span>
             </Button>
 
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Generate HTML file with clean formatting
+                const cleanText = (text: string) => {
+                  return text
+                    .replace(/#{1,6}\s*/g, '') // Remove markdown headers
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert bold
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert italic
+                    .replace(/`(.*?)`/g, '<code>$1</code>') // Convert code
+                    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+                    .replace(/^\s*[-*+]\s*/gm, '• ') // Convert bullet points
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>')
+                    .trim();
+                };
+
+                const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewritten Document</title>
+    <style>
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #333;
+            background: #fff;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        h1 { font-size: 2.2em; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { font-size: 1.8em; }
+        h3 { font-size: 1.4em; }
+        p { margin-bottom: 15px; text-align: justify; }
+        strong { color: #2c3e50; }
+        em { color: #7f8c8d; }
+        code { 
+            background: #f8f9fa; 
+            padding: 2px 4px; 
+            border-radius: 3px; 
+            font-family: 'Courier New', monospace; 
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .date {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        @media print {
+            body { margin: 0.5in; font-size: 12pt; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Rewritten Document</h1>
+        <p class="date">Generated on ${new Date().toLocaleDateString()}</p>
+    </div>
+    
+    <div class="content">
+        <p>${cleanText(finalRewrittenContent)}</p>
+    </div>
+</body>
+</html>`;
+
+                // Create and download HTML file
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `rewritten-document-${new Date().toISOString().split('T')[0]}.html`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                toast({
+                  title: "HTML downloaded",
+                  description: "Your HTML document is ready to view in any browser.",
+                });
+              }}
+              className="flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download HTML</span>
+            </Button>
+
             <div className="flex space-x-2 flex-1 max-w-md">
               <Input
                 type="email"
