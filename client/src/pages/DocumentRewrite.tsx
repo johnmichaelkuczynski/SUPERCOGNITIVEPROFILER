@@ -128,6 +128,11 @@ export default function DocumentRewrite() {
     instructions: string;
     timestamp: Date;
   }>>([]);
+
+  // Content expansion state
+  const [expansionInstructions, setExpansionInstructions] = useState<string>('');
+  const [expansionFactor, setExpansionFactor] = useState<number>(5);
+  const [isExpanding, setIsExpanding] = useState<boolean>(false);
   const [isProcessingChunks, setIsProcessingChunks] = useState<boolean>(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1176,6 +1181,85 @@ Please rewrite the current version incorporating the new instructions while bein
               </div>
             </CardContent>
           </Card>
+
+          {/* Chunk Expansion Section */}
+          {rewrittenContent && (
+            <Card className="border-purple-200 bg-purple-50/30">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-purple-800">
+                  <Split className="h-5 w-5" />
+                  Expand Content (Intelligent Subdivision)
+                </CardTitle>
+                <p className="text-sm text-purple-700">
+                  Break down each section of your content into multiple detailed sub-sections. Perfect for expanding 
+                  logical laws, concepts, or any structured content that needs more depth.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="expansion-instructions" className="text-purple-800 font-medium">
+                    Expansion Instructions
+                  </Label>
+                  <Textarea 
+                    id="expansion-instructions"
+                    placeholder="e.g., 'For each law of logic, create separate sections for: traditional interpretation, AI logic interpretation, key differences, practical implications, and examples'"
+                    className="min-h-[100px] mt-1"
+                    value={expansionInstructions}
+                    onChange={(e) => setExpansionInstructions(e.target.value)}
+                  />
+                  <p className="text-xs text-purple-600 mt-1">
+                    Describe how each section should be subdivided. The system will intelligently break down 
+                    your content based on these instructions.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="expansion-factor" className="text-purple-800 font-medium">
+                      Expansion Factor
+                    </Label>
+                    <Select value={expansionFactor.toString()} onValueChange={(value) => setExpansionFactor(parseInt(value))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3x (Conservative)</SelectItem>
+                        <SelectItem value="5">5x (Moderate)</SelectItem>
+                        <SelectItem value="8">8x (Extensive)</SelectItem>
+                        <SelectItem value="12">12x (Comprehensive)</SelectItem>
+                        <SelectItem value="15">15x (Maximum Detail)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label className="text-purple-800 font-medium">Current Sections</Label>
+                    <div className="mt-1 p-2 bg-white rounded border text-sm">
+                      {getContentSections(rewrittenContent).length} sections detected
+                    </div>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleExpandContent} 
+                  disabled={!expansionInstructions.trim() || isExpanding}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {isExpanding ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Expanding Content...
+                    </>
+                  ) : (
+                    <>
+                      <Split className="h-4 w-4 mr-2" />
+                      Expand Content
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Rewrite the Rewrite Section */}
           {rewrittenContent && (
