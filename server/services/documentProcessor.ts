@@ -1,4 +1,4 @@
-import { createWorker } from 'tesseract.js';
+import { extractMathWithMathpix, isMathematicalContent } from './mathpix';
 import { PdfReader } from 'pdfreader';
 import mammoth from 'mammoth';
 import { detectAIContent, type AIDetectionResult } from './gptZero';
@@ -270,23 +270,21 @@ async function extractTextFromTXT(buffer: Buffer): Promise<string> {
   return buffer.toString('utf-8');
 }
 
-// Extract text from images using Tesseract OCR
+// Extract text from images using Mathpix OCR (specialized for mathematical content)
 async function extractTextFromImage(buffer: Buffer): Promise<string> {
-  const worker = await createWorker();
-  
   try {
-    await worker.load();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
+    console.log(`[document] Processing image with Mathpix OCR for mathematical content...`);
+    const extractedText = await extractMathWithMathpix(buffer);
     
-    const { data } = await worker.recognize(buffer);
-    await worker.terminate();
-    
-    return data.text;
-  } catch (error) {
-    if (worker) {
-      await worker.terminate();
+    // Check if content appears to be mathematical
+    const isMathContent = await isMathematicalContent(extractedText);
+    if (isMathContent) {
+      console.log(`[document] Mathematical content detected and processed successfully`);
     }
-    throw error;
+    
+    return extractedText;
+  } catch (error) {
+    console.error(`[document] Mathpix OCR failed:`, error);
+    throw new Error(`Failed to extract text from image: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
