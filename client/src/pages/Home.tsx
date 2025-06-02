@@ -796,11 +796,74 @@ Document text: ${extractedText}`;
                       setMessages(prev => [...prev, errorMessage]);
                     }
                   } else {
-                    // Open chunked rewriter for rewrite mode
-                    setRewriterText(directInputText);
-                    setRewriterTitle(title);
-                    setRewriterProcessingMode(processingMode);
-                    setIsChunkedRewriterOpen(true);
+                    // Process rewrite immediately without opening modal
+                    try {
+                      const response = await fetch('/api/rewrite-chunk', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          content: directInputText,
+                          instructions: 'Improve clarity, coherence, and readability while maintaining the original meaning.',
+                          model: 'claude',
+                          chunkIndex: 0,
+                          totalChunks: 1,
+                          mode: 'rewrite'
+                        }),
+                      });
+
+                      if (!response.ok) {
+                        throw new Error('Failed to rewrite text');
+                      }
+
+                      const result = await response.json();
+                      
+                      // Add result directly to chat
+                      const userMessage: Message = {
+                        id: Date.now(),
+                        content: `**Rewrite Request:** ${directInputText}`,
+                        role: 'user',
+                        timestamp: new Date()
+                      };
+                      
+                      const aiMessage: Message = {
+                        id: Date.now() + 1,
+                        content: `**Rewritten Text:**\n\n${result.rewrittenContent}`,
+                        role: 'assistant',
+                        timestamp: new Date()
+                      };
+                      
+                      setMessages(prev => [...prev, userMessage, aiMessage]);
+                      
+                      // Save to documents
+                      await fetch('/api/documents', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          title: title,
+                          content: result.rewrittenContent,
+                          type: 'rewrite',
+                          metadata: {
+                            originalLength: directInputText.length,
+                            rewrittenLength: result.rewrittenContent.length,
+                            model: 'claude'
+                          }
+                        }),
+                      });
+                      
+                    } catch (error) {
+                      console.error('Rewrite processing error:', error);
+                      const errorMessage: Message = {
+                        id: Date.now(),
+                        content: `Error rewriting text: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                        role: 'assistant',
+                        timestamp: new Date()
+                      };
+                      setMessages(prev => [...prev, errorMessage]);
+                    }
                   }
                   
                   setIsDirectProcessing(false);
