@@ -30,13 +30,15 @@ interface ChunkedRewriterProps {
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
   onAddToChat: (content: string, metadata: any) => void;
   chatHistory?: Array<{role: string; content: string}>;
+  initialProcessingMode?: 'rewrite' | 'homework';
 }
 
 export default function ChunkedRewriter({ 
   originalText, 
   onRewriteComplete, 
   onAddToChat,
-  chatHistory = []
+  chatHistory = [],
+  initialProcessingMode = 'rewrite'
 }: ChunkedRewriterProps) {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [instructions, setInstructions] = useState('');
@@ -50,8 +52,8 @@ export default function ChunkedRewriter({
   const [emailAddress, setEmailAddress] = useState('');
   const [senderEmail, setSenderEmail] = useState('');
   
-  // Processing mode options
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
+  // Processing mode options - use the passed initial mode
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>(initialProcessingMode);
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
   const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);

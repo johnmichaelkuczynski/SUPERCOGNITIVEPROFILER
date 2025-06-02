@@ -63,6 +63,7 @@ export default function Home() {
   const [isChunkedRewriterOpen, setIsChunkedRewriterOpen] = useState(false);
   const [rewriterText, setRewriterText] = useState<string>('');
   const [rewriterTitle, setRewriterTitle] = useState<string>('');
+  const [rewriterProcessingMode, setRewriterProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
   
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
@@ -728,14 +729,11 @@ Document text: ${extractedText}`;
                     ? 'Direct Input - Homework Mode' 
                     : 'Direct Input - Rewrite Mode';
                   
-                  // Set the instructions based on mode
-                  if (processingMode === 'homework') {
-                    setRewriterText(directInputText);
-                    setRewriterTitle(title);
-                    setIsChunkedRewriterOpen(true);
-                  } else {
-                    openChunkedRewriter(directInputText, title);
-                  }
+                  // Set the processing mode and open rewriter
+                  setRewriterText(directInputText);
+                  setRewriterTitle(title);
+                  setRewriterProcessingMode(processingMode);
+                  setIsChunkedRewriterOpen(true);
                   
                   setIsDirectProcessing(false);
                 }}
@@ -1579,6 +1577,7 @@ Document text: ${extractedText}`;
             onRewriteComplete={handleChunkedRewriteComplete}
             onAddToChat={handleAddChunkedRewriteToChat}
             chatHistory={messages.map(msg => ({ role: msg.role, content: msg.content }))}
+            initialProcessingMode={rewriterProcessingMode}
           />
         </DialogContent>
       </Dialog>
