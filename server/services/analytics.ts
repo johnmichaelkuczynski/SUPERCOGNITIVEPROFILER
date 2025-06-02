@@ -22,17 +22,17 @@ COGNITIVE METRICS:
 - Structural Analogies: ${Math.round(writingAnalysis.cognitiveSignatures.structuralAnalogies * 100)}%
 
 Create a detailed cognitive profile that includes:
-1. Intellectual approach and thinking style
-2. 3-5 cognitive strengths with specific evidence
-3. 2-4 cognitive weaknesses or limitations
-4. 3-4 pathways for intellectual growth
-5. 2-3 potential intellectual pitfalls to avoid
-6. 2-3 supporting quotations from the text that demonstrate key traits
-7. 2-3 famous people with similar cognitive configurations
-8. Likely current career based on cognitive patterns
-9. Ideal career that would maximize cognitive strengths
+1. Intellectual approach and thinking style - MUST include specific examples from the text
+2. 3-5 cognitive strengths with exact quotations and evidence from the writing
+3. 2-4 cognitive weaknesses with specific textual evidence showing these limitations
+4. 3-4 pathways for intellectual growth based on observable patterns in the text
+5. 2-3 potential intellectual pitfalls with examples from the writing that demonstrate these risks
+6. 2-3 direct quotations from the text that clearly demonstrate key cognitive traits
+7. 2-3 famous people with similar cognitive configurations, with specific justification
+8. Likely current career based on cognitive patterns evident in the writing style and content
+9. Ideal career that would maximize cognitive strengths shown in the text
 
-Provide specific examples and quotations from the text whenever possible.`;
+CRITICAL: Every claim must be falsifiable and supported by specific evidence from the text. Include exact quotations and specific examples. Avoid generic statements. If the text shows "systematic analysis" then quote the specific sentences that demonstrate this. If claiming "attention to detail" then provide the exact examples from the writing that prove this trait.`;
 
   try {
     const response = await anthropic.messages.create({
@@ -109,19 +109,19 @@ PSYCHOLOGICAL INDICATORS:
 - Complexity patterns indicate stress processing
 
 Create a detailed psychological profile that includes:
-1. Overall emotional patterns and regulation style
-2. 3-4 psychological strengths
-3. 2-3 psychological weaknesses or vulnerabilities  
-4. 3-4 areas for emotional/psychological growth
-5. 2-3 potential areas of psychological decline or risk
-6. Object relations (relationships with others):
-   - How they are good in relationships
-   - How they struggle in relationships  
-   - How relationships could improve
-   - How relationships could deteriorate
-7. 2-3 supporting quotations demonstrating psychological patterns
+1. Overall emotional patterns and regulation style - MUST cite specific language patterns from the text that reveal emotional tendencies
+2. 3-4 psychological strengths with exact quotations showing these strengths in action
+3. 2-3 psychological weaknesses with specific examples from the writing that demonstrate these vulnerabilities
+4. 3-4 areas for emotional/psychological growth based on observable patterns in word choice, sentence structure, and content
+5. 2-3 potential areas of psychological decline with specific textual evidence showing these risks
+6. Object relations (relationships with others) - base on communication style evident in the writing:
+   - How they are good in relationships (with evidence from their communication patterns)
+   - How they struggle in relationships (with specific examples from their writing style)
+   - How relationships could improve (based on observable communication gaps)
+   - How relationships could deteriorate (based on patterns that could escalate negatively)
+7. 2-3 direct quotations that clearly demonstrate specific psychological patterns
 
-Focus on emotional intelligence, stress response, interpersonal dynamics, and psychological resilience.`;
+CRITICAL: Base all psychological assessments on concrete evidence from the writing. If claiming "emotional regulation" cite the specific word choices that show this. If noting "interpersonal challenges" provide exact examples from their communication style that demonstrate this pattern.`;
 
   try {
     const response = await anthropic.messages.create({
@@ -217,16 +217,16 @@ ORIGINAL TEXT SAMPLE:
 ${combinedText.slice(0, 2000)}
 
 Provide:
-1. ONE unique positive trait that makes this person special (with description and how it manifests)
-2. Their NUMBER 1 STRENGTH (with explanation and evidence)
-3. Their NUMBER 1 WEAKNESS (with explanation and impact)
-4. A synthesis that integrates cognitive and psychological findings into:
-   - Overall personality profile
-   - 3-4 key themes that define this person
-   - 3-4 development recommendations
-   - 2-3 major risk factors to monitor
+1. ONE unique positive trait that makes this person special - MUST include specific textual evidence showing this trait in action
+2. Their NUMBER 1 STRENGTH with exact quotations and specific examples from their writing that prove this strength
+3. Their NUMBER 1 WEAKNESS with concrete examples from the text that demonstrate this limitation and its measurable impact
+4. A synthesis that integrates cognitive and psychological findings with specific evidence:
+   - Overall personality profile based on observable patterns in the writing
+   - 3-4 key themes with specific examples from the text that support each theme
+   - 3-4 development recommendations based on identified gaps or patterns in the writing
+   - 2-3 major risk factors with specific textual evidence showing these risks
 
-Be specific and provide evidence from the analysis.`;
+CRITICAL: Every claim must be falsifiable and backed by specific evidence from the text. Include exact quotations that support each assessment. Avoid horoscope-like generalizations. Make concrete, specific, evidence-based statements that could be proven wrong if the evidence doesn't support them.`;
 
   try {
     const response = await anthropic.messages.create({

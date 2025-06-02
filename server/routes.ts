@@ -431,6 +431,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.setHeader('Content-Disposition', `attachment; filename="analytics-data-${new Date().toISOString().split('T')[0]}.json"`);
         res.json(analyticsData);
         
+      } else if (format === 'cognitive-report') {
+        // Generate detailed cognitive profile report
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="cognitive-profile-${new Date().toISOString().split('T')[0]}.json"`);
+        res.json({
+          type: 'Cognitive Profile Report',
+          generatedAt: new Date().toISOString(),
+          profile: analyticsData.cognitiveProfile,
+          supporting_data: {
+            writingMetrics: analyticsData.writingStyle,
+            cognitiveSignatures: analyticsData.writingStyle.cognitiveSignatures
+          }
+        });
+        
+      } else if (format === 'psychological-report') {
+        // Generate detailed psychological profile report
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="psychological-profile-${new Date().toISOString().split('T')[0]}.json"`);
+        res.json({
+          type: 'Psychological Profile Report',
+          generatedAt: new Date().toISOString(),
+          profile: analyticsData.psychologicalProfile,
+          insights: analyticsData.psychostylisticInsights
+        });
+        
+      } else if (format === 'comprehensive-insights') {
+        // Generate comprehensive insights report
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="comprehensive-insights-${new Date().toISOString().split('T')[0]}.json"`);
+        res.json({
+          type: 'Comprehensive Insights Report',
+          generatedAt: new Date().toISOString(),
+          insights: analyticsData.comprehensiveInsights,
+          summary: {
+            cognitive_archetype: analyticsData.cognitiveArchetype,
+            key_patterns: analyticsData.longitudinalPatterns.slice(-5) // Last 5 patterns
+          }
+        });
+        
       } else if (format === 'csv') {
         // Generate CSV for longitudinal patterns
         const csvData = analyticsData.longitudinalPatterns.map(pattern => ({
