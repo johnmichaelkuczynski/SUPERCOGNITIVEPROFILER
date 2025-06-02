@@ -1680,23 +1680,16 @@ Return only the new content without any additional comments, explanations, or he
         return res.status(400).json({ error: 'Instructions are required' });
       }
 
-      // Create a prompt that asks the AI to solve the problems step by step
-      let prompt = `You are an expert tutor helping a student solve homework problems. You are given problems or questions that need to be solved completely with detailed step-by-step solutions.
-
-PROBLEMS TO SOLVE:
-${instructions}
-
-${userPrompt ? `ADDITIONAL REQUIREMENTS: ${userPrompt}` : 'Show all work and explain each step clearly.'}
-
-${chatContext ? `CONTEXT: ${chatContext}` : ''}
-
-For each problem:
-1. Identify what type of problem it is
-2. Show the complete step-by-step solution
-3. Explain your reasoning at each step
-4. Provide the final answer clearly
-
-If these are math problems, solve them completely. If these are questions, answer them thoroughly. If these are assignments, complete them fully.`;
+      // Simple passthrough - send user's content directly to LLM with minimal prompting
+      let prompt = instructions;
+      
+      if (userPrompt) {
+        prompt += `\n\n${userPrompt}`;
+      }
+      
+      if (chatContext) {
+        prompt += `\n\n${chatContext}`;
+      }
 
       // Process with the selected model
       let response;
