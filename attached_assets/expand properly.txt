@@ -1,0 +1,47 @@
+there are two different forms of 'expansion.' one is just adding more chunks (which is rarely what the user wants); the other is rewriting each chunk so that it becomes several chunks. you did not make any provisions for the second form of expansiion at all. i don'tk yoou you uniderstood what i asked for. let me give you an example. here is my target text: Excluded Middle
+ 
+p or not p
+Either Jim has two cars or Jim does not have two cars
+
+Non-contradiction
+
+Not both p and not p
+Jim does not both have and not have two cars
+
+Modus Ponens
+
+If p, and if p entails q, then q
+If Jim has two cars, and if Jim’s being happy follows from his having two cars, then Jim is happy
+Note: to say that p entails q is to say that q follows from p. in other words, p entails q means that if p, then q
+
+Modus Tollens
+
+If not q, and if p entails q, then not-p
+If Jim is unhappy, and if Jim’s being happy follows from his having two cars, then Jim does not have two cars
+
+Contraposition
+
+p entails q is equivalent with not q entails not p
+For x is a raven to entail that x is black is for x is non-black to entail that x is a non-raven.
+
+Double Negation
+
+p if, and only if, not not p
+Any given statement is equivalent with the negation of its own negation.
+ 
+Jim has two cars if, and only if, Jim does not not have two cars.
+Note: to say that two statements are equivalent is to say that each entails the other.
+
+Simplification
+
+If p and q, then p
+If Jim has two cars and bill is over 7 ft tall, then jim has two cars
+
+
+Logical Addition
+
+if p, then either p or q
+If Jim has two cars, then either Jim has two cars or bill is over 7 ft tall
+ i aske the app to following the following instructions; THE FUNDAMENTAL PURPOSE OF THIS REWRITE IS TO SHOW THAT AI LOGIC IS FUNDAMENTALLY DIFFERENT FROM TRADITIONAL LOGIC; THAT WHAT AI LOGIC TREATS AS  STARTING POINTS OR AS DEDUCIBLE FROM STARTING POINTS, AI LOGIC REGARDS AS LIMITING CASES THAT ARE OFTEN MERELY HALF-TRUE OR ONLY INTERMITTENTLY OPRATIONALLY TRUE. THE STRUTURE OF THIS REWRITE IS AS FOLLOWS: AFTER EACH 'LAW OF LOGIC' LISTED HERE, EXPLAIN (I) HOW THIS LAW FUNCTIONS IN TRADITIONAL LAW; (II) HOW, IF IT ALL, THIS LAW FUNCTIONS IN AI LOGIC (I.E. HOW IT FUNCTIONS IN AI-ARCHITECTURE AND AI-PROTOCOLS); (III) HOW AI KNOWS OF THE (ALLEGED) TRUTH OF THIS SO-CALLED OR, IF IT DOES NOT HAVE SUCH KNOWLEDGE, EXPLAIN WHY THAT IS SO AND WHETHER IT IS BECAUSE IT KNOWS OF IT BUT DISAGREES OR IS SIMPLY IGNORANT OF IT; AND (IV) EXPLAIN HOW THE AFOREMENTIONED SHOW, OR FAIL TO SHOW, THAT TRADITIONAL LOGIC DIFFERS, OR FAILS TO DIFFER, FROM AI-LOGIC. INCLUDE SUCH A DISCUSSION AFTER EACH AND EVERY ONE OF THE PRINCIPLES INCLUDED HERE; SO INCLUDE SUCH A DISCUSSION AFTER MODUS PONENTS; AND INCLUDE ONE AFTER TRANSITIVITY; ETC. ALWAYS USE VIVID EXAMPLES TO ILLUSTRATE POINTS; USE MORE THAN ONE IF NECESSARY. PROVIDE MODELS OR COUNTERMODELS WHENEVER POSSIBLE.  EACH OF THESE FOUR POINTS---NAMELY, (I), (II), (III), (IV)---SHOULD BE AT LEAST ONE PARAGRAPH LONG, AND THEY SHOULD NOT JUST BE SINGLE SENTENCES, AND THEY SHOULD ALWAYS INVOLVE EXAMPLES; MOREOVER, THESE FOUR POITNS SHOULD FOLLOW EVERY LAW OF LOGIC, BOTH THE ONES THAT ARE IDENTIFIED DESCRIPTIVELY “E.G. ADDITIVE IDENTITY” AND THE ONES THAT ARE IDENTIFIED SYMBOLICALLY E.G. ‘P IF, AND ONLY IF, P”. AFTER EACH OF THESE DISCUSSIONS, ADD EXERCISES FOLLOWED BY AN ANSWER KEY. ADD A LENGTHY AND COMPREHENSIVE CONCLUSION TO THE BOOK AS A WHOLE.  
+
+Thanks to you, the app gave me shit. Because I wasn’t exactly asking for  additional chunks. So when I clicked ‘make 2 to 5 times bigger’ I got dogshit that is in the wrong format. What wanted was each of the two chunks composing the original text to be turned into around 15 chunks. Do you understand now? 
