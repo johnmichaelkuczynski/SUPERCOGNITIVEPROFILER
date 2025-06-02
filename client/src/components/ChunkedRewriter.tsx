@@ -271,11 +271,7 @@ export default function ChunkedRewriter({
     })));
 
     try {
-      // Handle homework mode differently
-      if (processingMode === 'homework') {
-        await processHomeworkMode();
-        return;
-      }
+      // All modes now use chunked processing
       let chatContext = '';
       if (includeChatContext && chatHistory.length > 0) {
         chatContext = '\n\nChat Context (for reference):\n' + 
@@ -346,7 +342,7 @@ export default function ChunkedRewriter({
               chatContext: includeChatContext ? chatContext : undefined,
               chunkIndex: i,
               totalChunks: selectedChunks.length,
-              mode: rewriteMode
+              mode: processingMode === 'homework' ? 'homework' : rewriteMode
             }),
           });
 
