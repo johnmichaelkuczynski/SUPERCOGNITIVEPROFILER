@@ -439,6 +439,207 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Finalize the PDF
         doc.end();
         
+      } else if (format === 'html') {
+        // Helper function to clean and format text (remove markdown syntax) - duplicated for HTML scope
+        const cleanTextForHTML = (text: string) => {
+          return text
+            .replace(/#{1,6}\s*/g, '') // Remove markdown headers
+            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+            .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
+            .replace(/`(.*?)`/g, '$1') // Remove code markdown
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to just text
+            .replace(/^\s*[-*+]\s*/gm, '• ') // Convert bullet points
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .trim();
+        };
+
+        // Generate HTML report
+        const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognitive Analytics Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background: #f9fafb;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1f2937;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #374151;
+            border-left: 4px solid #3b82f6;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #4b5563;
+            margin-top: 25px;
+        }
+        .archetype-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .insight-box {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .causality {
+            font-style: italic;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+        .significance-high { border-left: 4px solid #ef4444; }
+        .significance-medium { border-left: 4px solid #f59e0b; }
+        .significance-low { border-left: 4px solid #10b981; }
+        .trait-tag {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 2px;
+        }
+        .date {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .mirror-analysis {
+            background: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cognitive Analytics Report</h1>
+        <p class="date">Generated on ${new Date().toLocaleDateString()}</p>
+        
+        <div class="archetype-card">
+            <h2 style="color: white; border: none; padding: 0; margin-top: 0;">Cognitive Archetype: ${analyticsData.cognitiveArchetype.type.replace('_', ' ').charAt(0).toUpperCase() + analyticsData.cognitiveArchetype.type.replace('_', ' ').slice(1)}</h2>
+            <p><strong>Confidence Level:</strong> ${Math.round(analyticsData.cognitiveArchetype.confidence * 100)}%</p>
+            <p>${cleanTextForHTML(analyticsData.cognitiveArchetype.description)}</p>
+            <div>
+                ${analyticsData.cognitiveArchetype.traits.map(trait => `<span class="trait-tag">${trait}</span>`).join('')}
+            </div>
+        </div>
+
+        <h2>Writing Style Analysis</h2>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-value">${Math.round(analyticsData.writingStyle.formality.score * 100)}%</div>
+                <div><strong>Formality</strong> (${analyticsData.writingStyle.formality.percentile}th percentile)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">${Math.round(analyticsData.writingStyle.complexity.score * 100)}%</div>
+                <div><strong>Complexity</strong> (${analyticsData.writingStyle.complexity.percentile}th percentile)</div>
+            </div>
+        </div>
+
+        <h2>Cognitive Fingerprint</h2>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.nestedHypotheticals * 100)}%</div>
+                <div><strong>Nested Hypotheticals</strong></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.anaphoricReasoning * 100)}%</div>
+                <div><strong>Anaphoric Reasoning</strong></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.structuralAnalogies * 100)}%</div>
+                <div><strong>Structural Analogies</strong></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">${Math.round(analyticsData.writingStyle.cognitiveSignatures.dialecticalVsDidactic * 100)}%</div>
+                <div><strong>Dialectical Orientation</strong></div>
+            </div>
+        </div>
+
+        <h2>Topic Analysis</h2>
+        <p><strong>Cognitive Style:</strong> ${cleanTextForHTML(analyticsData.topicDistribution.cognitiveStyle)}</p>
+        <p>${cleanTextForHTML(analyticsData.topicDistribution.interpretation)}</p>
+        
+        <h3>Topic Distribution</h3>
+        ${analyticsData.topicDistribution.dominant.slice(0, 5).map(topic => 
+          `<div class="metric-card">
+             <div class="metric-value">${topic.percentage}%</div>
+             <div><strong>${topic.name}</strong></div>
+           </div>`
+        ).join('')}
+
+        <h2>Psychostylistic Analysis</h2>
+        ${analyticsData.psychostylisticInsights.primary.slice(0, 3).map((insight, index) => 
+          `<div class="insight-box significance-${insight.significance}">
+             <h3>${index + 1}. ${cleanTextForHTML(insight.observation)}</h3>
+             <p>${cleanTextForHTML(insight.interpretation)}</p>
+             ${insight.causality ? `<p class="causality">→ ${cleanTextForHTML(insight.causality)}</p>` : ''}
+           </div>`
+        ).join('')}
+
+        <div class="mirror-analysis">
+            <h2 style="color: white; border: none; padding: 0; margin-top: 0;">Self-Mirror Analysis</h2>
+            <p>${cleanTextForHTML(analyticsData.psychostylisticInsights.metaReflection.mindProfile)}</p>
+            <p><strong>Cognitive Preferences:</strong> ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(' • ')}</p>
+            <p><strong>Thinking Tempo:</strong> ${cleanTextForHTML(analyticsData.psychostylisticInsights.metaReflection.thinkingTempo)}</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Content-Disposition', `attachment; filename="cognitive-analytics-report-${new Date().toISOString().split('T')[0]}.html"`);
+        res.send(htmlContent);
+        
       } else if (format === 'json') {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Content-Disposition', `attachment; filename="analytics-data-${new Date().toISOString().split('T')[0]}.json"`);

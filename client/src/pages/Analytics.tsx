@@ -513,6 +513,7 @@ export default function Analytics() {
                   <SelectItem value="json">JSON</SelectItem>
                   <SelectItem value="csv">CSV</SelectItem>
                   <SelectItem value="pdf">PDF Report</SelectItem>
+                  <SelectItem value="html">HTML Report</SelectItem>
                 </SelectContent>
               </Select>
             </div>
