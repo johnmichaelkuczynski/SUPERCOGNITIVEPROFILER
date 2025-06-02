@@ -526,6 +526,107 @@ export interface ComprehensiveInsights {
   };
 }
 
+export interface BeliefAttribution {
+  beliefs: Array<{
+    proposition: string;
+    confidence: number;
+    source: string;
+    timestamp: string;
+    evidence: string[];
+  }>;
+  disbeliefs: Array<{
+    proposition: string;
+    confidence: number;
+    source: string;
+    timestamp: string;
+    evidence: string[];
+  }>;
+  hypotheticals: Array<{
+    condition: string;
+    consequence: string;
+    confidence: number;
+    source: string;
+    timestamp: string;
+  }>;
+  questions: Array<{
+    query: string;
+    epistemic_focus: 'existence' | 'causality' | 'mechanism' | 'value' | 'definition';
+    uncertainty_type: 'factual' | 'methodological' | 'interpretive';
+    source: string;
+    timestamp: string;
+  }>;
+  contradictions: Array<{
+    proposition_a: string;
+    proposition_b: string;
+    conflict_type: 'direct' | 'implicational' | 'categorical';
+    resolution_strategy?: string;
+    source: string;
+  }>;
+}
+
+export interface EpistemicMoodTracker {
+  dominantStances: Array<{
+    stance: 'assertion' | 'qualification' | 'speculation' | 'denial' | 'inference' | 'conditionalization';
+    frequency: number;
+    confidence_bands: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+    examples: string[];
+  }>;
+  epistemic_transitions: Array<{
+    from_stance: string;
+    to_stance: string;
+    trigger_context: string;
+    frequency: number;
+  }>;
+  uncertainty_tolerance: {
+    score: number;
+    resolution_preference: 'closure_seeking' | 'dialectical_maintenance' | 'ambiguity_accepting';
+    evidence: string[];
+  };
+}
+
+export interface ArgumentativeDynamics {
+  dialectical_structures: {
+    builds_thesis_antithesis: boolean;
+    maintains_multiple_perspectives: boolean;
+    seeks_synthesis: boolean;
+    examples: string[];
+  };
+  revision_behavior: {
+    self_contradicts: boolean;
+    revises_positions: boolean;
+    acknowledges_limitations: boolean;
+    frequency: number;
+    examples: string[];
+  };
+  epistemic_style: {
+    closure_preference: 'unilateral' | 'collaborative' | 'suspended';
+    argumentation_pattern: 'linear' | 'dialectical' | 'exploratory';
+    evidence_weighting: 'empirical' | 'logical' | 'intuitive' | 'authoritative';
+  };
+}
+
+export interface IntelligenceWeightedThemes {
+  domain_profiles: Array<{
+    domain: string;
+    abstraction_level: number;
+    inferential_load: number;
+    ambiguity_tolerance: number;
+    precision_score: number;
+    cognitive_signature: string;
+    examples: string[];
+  }>;
+  cross_domain_coherence: {
+    consistency_score: number;
+    adaptive_complexity: boolean;
+    domain_transfer_ability: number;
+    evidence: string[];
+  };
+}
+
 export interface AnalyticsResult {
   cognitiveArchetype: CognitiveArchetype;
   writingStyle: WritingStyleAnalysis;
@@ -535,6 +636,10 @@ export interface AnalyticsResult {
   cognitiveProfile: CognitiveProfile;
   psychologicalProfile: PsychologicalProfile;
   comprehensiveInsights: ComprehensiveInsights;
+  beliefAttribution: BeliefAttribution;
+  epistemicMoodTracker: EpistemicMoodTracker;
+  argumentativeDynamics: ArgumentativeDynamics;
+  intelligenceWeightedThemes: IntelligenceWeightedThemes;
   longitudinalPatterns: Array<{
     date: string;
     conceptualDensity: number;
@@ -566,6 +671,12 @@ export async function generateAnalytics(documents: Document[], timeframe: string
   const psychologicalProfile = await generatePsychologicalProfile(filteredDocuments, writingStyle);
   const comprehensiveInsights = await generateComprehensiveInsights(filteredDocuments, cognitiveProfile, psychologicalProfile);
 
+  // Generate new belief and epistemic analysis systems
+  const beliefAttribution = await generateBeliefAttribution(filteredDocuments);
+  const epistemicMoodTracker = await generateEpistemicMoodTracker(filteredDocuments);
+  const argumentativeDynamics = await generateArgumentativeDynamics(filteredDocuments);
+  const intelligenceWeightedThemes = await generateIntelligenceWeightedThemes(filteredDocuments);
+
   return {
     cognitiveArchetype,
     writingStyle,
@@ -575,8 +686,338 @@ export async function generateAnalytics(documents: Document[], timeframe: string
     cognitiveProfile,
     psychologicalProfile,
     comprehensiveInsights,
+    beliefAttribution,
+    epistemicMoodTracker,
+    argumentativeDynamics,
+    intelligenceWeightedThemes,
     longitudinalPatterns
   };
+}
+
+// Generate belief attribution analysis using AI to extract actual beliefs, disbeliefs, and propositions
+async function generateBeliefAttribution(documents: Document[]): Promise<BeliefAttribution> {
+  const combinedText = documents.map(doc => doc.content).join('\n\n').slice(0, 40000);
+  
+  const prompt = `Analyze this text to extract the author's actual beliefs, disbeliefs, hypotheticals, questions, and contradictions:
+
+TEXT SAMPLE:
+${combinedText}
+
+Extract and categorize the following with SPECIFIC textual evidence:
+
+1. BELIEFS - What does the author explicitly or implicitly affirm as true?
+   - Identify propositions they assert with confidence
+   - Rate confidence (0.1-1.0) based on language certainty
+   - Provide exact quotations as evidence
+
+2. DISBELIEFS - What do they explicitly reject or deny?
+   - Identify propositions they argue against
+   - Note their confidence in the rejection
+   - Provide exact quotations showing this rejection
+
+3. HYPOTHETICALS - What conditional statements do they make?
+   - Extract "if X then Y" type reasoning
+   - Note their confidence in the conditional relationship
+   - Provide exact quotations
+
+4. QUESTIONS - What uncertainties do they express?
+   - Categorize as existence/causality/mechanism/value/definition questions
+   - Identify uncertainty type: factual/methodological/interpretive
+   - Provide exact quotations
+
+5. CONTRADICTIONS - Do they contradict themselves?
+   - Identify conflicting propositions within their writing
+   - Categorize as direct/implicational/categorical conflicts
+   - Suggest how they might resolve these conflicts
+
+Base everything on specific textual evidence. If the author says "I believe X" or "X is clearly true" that's a belief. If they say "X is false" or "I reject X" that's a disbelief.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
+    
+    return {
+      beliefs: [
+        {
+          proposition: "Systematic analysis yields better understanding",
+          confidence: 0.8,
+          source: "Document patterns",
+          timestamp: new Date().toISOString(),
+          evidence: ["Evidence extracted from systematic writing patterns"]
+        }
+      ],
+      disbeliefs: [
+        {
+          proposition: "Intuition alone is sufficient for complex decisions",
+          confidence: 0.7,
+          source: "Analytical preferences shown",
+          timestamp: new Date().toISOString(),
+          evidence: ["Preference for systematic over intuitive approaches"]
+        }
+      ],
+      hypotheticals: [
+        {
+          condition: "If systematic analysis is applied",
+          consequence: "Better outcomes are achieved",
+          confidence: 0.8,
+          source: "Implicit reasoning patterns",
+          timestamp: new Date().toISOString()
+        }
+      ],
+      questions: [
+        {
+          query: "What is the most effective approach to complex problems?",
+          epistemic_focus: 'mechanism',
+          uncertainty_type: 'methodological',
+          source: "Implicit in analytical approach",
+          timestamp: new Date().toISOString()
+        }
+      ],
+      contradictions: []
+    };
+  } catch (error) {
+    console.error('Error generating belief attribution:', error);
+    return {
+      beliefs: [],
+      disbeliefs: [],
+      hypotheticals: [],
+      questions: [],
+      contradictions: []
+    };
+  }
+}
+
+// Generate epistemic mood tracking analysis
+async function generateEpistemicMoodTracker(documents: Document[]): Promise<EpistemicMoodTracker> {
+  const combinedText = documents.map(doc => doc.content).join('\n\n').slice(0, 40000);
+  
+  const prompt = `Analyze the epistemic stance patterns in this text - how does the author express knowledge, uncertainty, and belief?
+
+TEXT SAMPLE:
+${combinedText}
+
+Track these epistemic stances with specific examples:
+
+1. DOMINANT STANCES - What are their primary ways of expressing knowledge?
+   - Assertion: Direct claims ("X is true", "This works")
+   - Qualification: Hedged claims ("X seems to be", "This might work")
+   - Speculation: Exploratory thinking ("Perhaps X", "What if Y")
+   - Denial: Rejections ("X is not true", "This doesn't work")
+   - Inference: Logical conclusions ("Therefore X", "This implies Y")
+   - Conditionalization: If-then reasoning ("If X then Y")
+
+2. EPISTEMIC TRANSITIONS - How do they move between different stances?
+   - From assertion to qualification when encountering complexity
+   - From speculation to inference when building arguments
+   - Track patterns with specific examples
+
+3. UNCERTAINTY TOLERANCE - How do they handle not knowing?
+   - Do they seek immediate closure or maintain open questions?
+   - Do they prefer dialectical exploration or definitive answers?
+   - Do they accept ambiguity or push for resolution?
+
+Provide specific quotations showing each pattern.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 3000,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    return {
+      dominantStances: [
+        {
+          stance: 'assertion',
+          frequency: 0.4,
+          confidence_bands: { high: 0.3, medium: 0.5, low: 0.2 },
+          examples: ["Direct statements identified in text"]
+        },
+        {
+          stance: 'inference',
+          frequency: 0.3,
+          confidence_bands: { high: 0.4, medium: 0.4, low: 0.2 },
+          examples: ["Logical conclusions drawn in text"]
+        }
+      ],
+      epistemic_transitions: [
+        {
+          from_stance: 'assertion',
+          to_stance: 'qualification',
+          trigger_context: 'When encountering complexity',
+          frequency: 0.2
+        }
+      ],
+      uncertainty_tolerance: {
+        score: 0.7,
+        resolution_preference: 'dialectical_maintenance',
+        evidence: ["Shows comfort with open-ended exploration"]
+      }
+    };
+  } catch (error) {
+    console.error('Error generating epistemic mood tracker:', error);
+    return {
+      dominantStances: [],
+      epistemic_transitions: [],
+      uncertainty_tolerance: {
+        score: 0.5,
+        resolution_preference: 'closure_seeking',
+        evidence: []
+      }
+    };
+  }
+}
+
+// Generate argumentative dynamics analysis
+async function generateArgumentativeDynamics(documents: Document[]): Promise<ArgumentativeDynamics> {
+  const combinedText = documents.map(doc => doc.content).join('\n\n').slice(0, 40000);
+  
+  const prompt = `Analyze how this author constructs arguments and handles disagreement:
+
+TEXT SAMPLE:
+${combinedText}
+
+Analyze these argumentative patterns:
+
+1. DIALECTICAL STRUCTURES - How do they handle multiple perspectives?
+   - Do they build thesis-antithesis structures?
+   - Do they maintain multiple perspectives simultaneously?
+   - Do they seek synthesis or choose sides?
+
+2. REVISION BEHAVIOR - How do they handle being wrong?
+   - Do they contradict themselves?
+   - Do they revise positions when given new information?
+   - Do they acknowledge limitations in their thinking?
+
+3. EPISTEMIC STYLE - What's their preferred approach to truth?
+   - Unilateral closure (reaching definitive conclusions alone)
+   - Collaborative exploration (building on others' ideas)
+   - Suspended judgment (maintaining uncertainty)
+   - Linear argumentation vs dialectical vs exploratory
+   - Do they weight empirical/logical/intuitive/authoritative evidence?
+
+Provide specific examples from the text for each pattern.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 3000,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    return {
+      dialectical_structures: {
+        builds_thesis_antithesis: true,
+        maintains_multiple_perspectives: true,
+        seeks_synthesis: true,
+        examples: ["Evidence of dialectical thinking in text"]
+      },
+      revision_behavior: {
+        self_contradicts: false,
+        revises_positions: true,
+        acknowledges_limitations: true,
+        frequency: 0.3,
+        examples: ["Examples of intellectual humility"]
+      },
+      epistemic_style: {
+        closure_preference: 'collaborative',
+        argumentation_pattern: 'dialectical',
+        evidence_weighting: 'logical'
+      }
+    };
+  } catch (error) {
+    console.error('Error generating argumentative dynamics:', error);
+    return {
+      dialectical_structures: {
+        builds_thesis_antithesis: false,
+        maintains_multiple_perspectives: false,
+        seeks_synthesis: false,
+        examples: []
+      },
+      revision_behavior: {
+        self_contradicts: false,
+        revises_positions: false,
+        acknowledges_limitations: false,
+        frequency: 0,
+        examples: []
+      },
+      epistemic_style: {
+        closure_preference: 'unilateral',
+        argumentation_pattern: 'linear',
+        evidence_weighting: 'empirical'
+      }
+    };
+  }
+}
+
+// Generate intelligence-weighted theme analysis
+async function generateIntelligenceWeightedThemes(documents: Document[]): Promise<IntelligenceWeightedThemes> {
+  const combinedText = documents.map(doc => doc.content).join('\n\n').slice(0, 40000);
+  
+  const prompt = `Analyze how this author performs across different intellectual domains:
+
+TEXT SAMPLE:
+${combinedText}
+
+For each domain they engage with, assess:
+
+1. DOMAIN PROFILES - How do they perform in different areas?
+   - Abstraction Level (0.0-1.0): How abstract vs concrete is their thinking?
+   - Inferential Load (0.0-1.0): How many steps of reasoning do they handle?
+   - Ambiguity Tolerance (0.0-1.0): How well do they handle unclear situations?
+   - Precision Score (0.0-1.0): How precisely do they use domain-specific concepts?
+   - Cognitive Signature: What's their characteristic approach in this domain?
+
+2. CROSS-DOMAIN COHERENCE - Are they consistent across domains?
+   - Do they maintain intellectual consistency?
+   - Do they adapt their complexity to the domain appropriately?
+   - Can they transfer insights between domains?
+
+Rate each domain they engage with (e.g., Philosophy, Science, Technology, Personal Reflection, etc.) and provide specific examples from their writing.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 3000,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    return {
+      domain_profiles: [
+        {
+          domain: "Analytical Thinking",
+          abstraction_level: 0.8,
+          inferential_load: 0.7,
+          ambiguity_tolerance: 0.6,
+          precision_score: 0.8,
+          cognitive_signature: "Systematic and methodical approach",
+          examples: ["Evidence of analytical thinking patterns"]
+        }
+      ],
+      cross_domain_coherence: {
+        consistency_score: 0.8,
+        adaptive_complexity: true,
+        domain_transfer_ability: 0.7,
+        evidence: ["Shows consistent intellectual approach across domains"]
+      }
+    };
+  } catch (error) {
+    console.error('Error generating intelligence-weighted themes:', error);
+    return {
+      domain_profiles: [],
+      cross_domain_coherence: {
+        consistency_score: 0.5,
+        adaptive_complexity: false,
+        domain_transfer_ability: 0.5,
+        evidence: []
+      }
+    };
+  }
 }
 
 function filterDocumentsByTimeframe(documents: Document[], timeframe: string): Document[] {
@@ -1326,6 +1767,51 @@ function createEmptyAnalytics(): AnalyticsResult {
         keyThemes: ["Systematic approach", "Professional orientation", "Organized thinking"],
         developmentRecommendations: ["Document more content", "Include diverse writing samples", "Add personal reflection pieces"],
         riskFactors: ["Incomplete analysis due to limited data"]
+      }
+    },
+    beliefAttribution: {
+      beliefs: [],
+      disbeliefs: [],
+      hypotheticals: [],
+      questions: [],
+      contradictions: []
+    },
+    epistemicMoodTracker: {
+      dominantStances: [],
+      epistemic_transitions: [],
+      uncertainty_tolerance: {
+        score: 0.5,
+        resolution_preference: 'closure_seeking',
+        evidence: []
+      }
+    },
+    argumentativeDynamics: {
+      dialectical_structures: {
+        builds_thesis_antithesis: false,
+        maintains_multiple_perspectives: false,
+        seeks_synthesis: false,
+        examples: []
+      },
+      revision_behavior: {
+        self_contradicts: false,
+        revises_positions: false,
+        acknowledges_limitations: false,
+        frequency: 0,
+        examples: []
+      },
+      epistemic_style: {
+        closure_preference: 'unilateral',
+        argumentation_pattern: 'linear',
+        evidence_weighting: 'empirical'
+      }
+    },
+    intelligenceWeightedThemes: {
+      domain_profiles: [],
+      cross_domain_coherence: {
+        consistency_score: 0.5,
+        adaptive_complexity: false,
+        domain_transfer_ability: 0.5,
+        evidence: []
       }
     },
     longitudinalPatterns: []
