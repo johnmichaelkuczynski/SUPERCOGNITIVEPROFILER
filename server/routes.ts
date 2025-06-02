@@ -1609,7 +1609,7 @@ Return only the new content without any additional comments, explanations, or he
     }
   });
 
-  // Homework mode endpoint - follows instructions instead of rewriting
+  // Homework mode endpoint - solves problems and completes assignments
   app.post('/api/homework-mode', async (req: Request, res: Response) => {
     try {
       const { instructions, userPrompt, model, chatContext } = req.body;
@@ -1618,17 +1618,23 @@ Return only the new content without any additional comments, explanations, or he
         return res.status(400).json({ error: 'Instructions are required' });
       }
 
-      // Create a prompt that asks the AI to follow the instructions
-      let prompt = `You are given the following instructions/assignment/exam/homework. Please complete it thoroughly and accurately:
+      // Create a prompt that asks the AI to solve the problems step by step
+      let prompt = `You are an expert tutor helping a student solve homework problems. You are given problems or questions that need to be solved completely with detailed step-by-step solutions.
 
-INSTRUCTIONS TO FOLLOW:
+PROBLEMS TO SOLVE:
 ${instructions}
 
-${userPrompt ? `ADDITIONAL GUIDANCE FROM USER: ${userPrompt}` : ''}
+${userPrompt ? `ADDITIONAL REQUIREMENTS: ${userPrompt}` : 'Show all work and explain each step clearly.'}
 
-${chatContext ? `CONTEXT FROM PREVIOUS CONVERSATION: ${chatContext}` : ''}
+${chatContext ? `CONTEXT: ${chatContext}` : ''}
 
-Please complete the assignment, answer the questions, or follow the instructions as requested. Provide a complete and thorough response.`;
+For each problem:
+1. Identify what type of problem it is
+2. Show the complete step-by-step solution
+3. Explain your reasoning at each step
+4. Provide the final answer clearly
+
+If these are math problems, solve them completely. If these are questions, answer them thoroughly. If these are assignments, complete them fully.`;
 
       // Process with the selected model
       let response;
