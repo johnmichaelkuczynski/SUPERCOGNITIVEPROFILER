@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileBarChart, TrendingUp, TrendingDown, Brain, Target, Activity, Zap } from 'lucide-react';
+import { FileBarChart, TrendingUp, TrendingDown, Brain, Target, Activity, Zap, Heart, Star } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { cn } from '@/lib/utils';
 import { AnalyticsData } from '@/lib/llm';
@@ -418,6 +418,206 @@ export default function AnalyticsDashboard({
             <div>
               <span className="text-xs font-medium text-purple-800">Thinking Tempo: </span>
               <span className="text-xs text-purple-600">{analyticsData.psychostylisticInsights.metaReflection.thinkingTempo}</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Comprehensive Cognitive Profile */}
+      <Card className="p-6 mb-8">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <Brain className="h-5 w-5 mr-2 text-blue-600" />
+          Cognitive (Intellectual) Profile
+        </h3>
+        <div className="space-y-6">
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-medium text-blue-800 mb-2">Intellectual Approach</h4>
+            <p className="text-sm text-blue-700">{analyticsData.cognitiveProfile.intellectualApproach}</p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-green-800 mb-3">Cognitive Strengths</h4>
+              <ul className="space-y-2">
+                {analyticsData.cognitiveProfile.strengths.map((strength, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-green-600 mr-2">•</span>
+                    <span className="text-sm text-green-700">{strength}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-orange-800 mb-3">Growth Pathways</h4>
+              <ul className="space-y-2">
+                {analyticsData.cognitiveProfile.growthPathways.map((pathway, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-orange-600 mr-2">→</span>
+                    <span className="text-sm text-orange-700">{pathway}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="p-3 bg-indigo-50 rounded-lg">
+              <div className="text-sm font-medium text-indigo-800 mb-1">Current Career Likely</div>
+              <div className="text-sm text-indigo-700">{analyticsData.cognitiveProfile.currentCareerLikely}</div>
+            </div>
+            <div className="p-3 bg-purple-50 rounded-lg">
+              <div className="text-sm font-medium text-purple-800 mb-1">Ideal Career</div>
+              <div className="text-sm text-purple-700">{analyticsData.cognitiveProfile.idealCareer}</div>
+            </div>
+          </div>
+          
+          {analyticsData.cognitiveProfile.famousComparisons.length > 0 && (
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="text-sm font-medium text-slate-800 mb-2">Similar Cognitive Configurations</div>
+              <div className="text-sm text-slate-600">
+                {analyticsData.cognitiveProfile.famousComparisons.join(', ')}
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Psychological Profile */}
+      <Card className="p-6 mb-8">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <Heart className="h-5 w-5 mr-2 text-pink-600" />
+          Psychological (Emotional) Profile
+        </h3>
+        <div className="space-y-6">
+          <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+            <h4 className="font-medium text-pink-800 mb-2">Emotional Patterns</h4>
+            <p className="text-sm text-pink-700">{analyticsData.psychologicalProfile.emotionalPatterns}</p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-green-800 mb-3">Psychological Strengths</h4>
+              <ul className="space-y-2">
+                {analyticsData.psychologicalProfile.psychologicalStrengths.map((strength, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-green-600 mr-2">•</span>
+                    <span className="text-sm text-green-700">{strength}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-blue-800 mb-3">Growth Areas</h4>
+              <ul className="space-y-2">
+                {analyticsData.psychologicalProfile.growthAreas.map((area, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-blue-600 mr-2">→</span>
+                    <span className="text-sm text-blue-700">{area}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border border-teal-200">
+            <h4 className="font-medium text-teal-800 mb-3">Object Relations (Relationships with Others)</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs font-medium text-teal-800 mb-2">Relationship Strengths</div>
+                {analyticsData.psychologicalProfile.objectRelations.positive.map((positive, index) => (
+                  <div key={index} className="text-xs text-teal-700 mb-1">• {positive}</div>
+                ))}
+              </div>
+              <div>
+                <div className="text-xs font-medium text-orange-800 mb-2">Areas for Improvement</div>
+                {analyticsData.psychologicalProfile.objectRelations.improvementAreas.map((area, index) => (
+                  <div key={index} className="text-xs text-orange-700 mb-1">• {area}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Comprehensive Insights & Synthesis */}
+      <Card className="p-6 mb-8">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <Star className="h-5 w-5 mr-2 text-yellow-600" />
+          Key Insights & Synthesis
+        </h3>
+        <div className="space-y-6">
+          {/* Unique Positive Trait */}
+          <div className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border-l-4 border-yellow-400">
+            <h4 className="font-semibold text-yellow-800 mb-2">✨ Unique Positive Trait</h4>
+            <div className="text-lg font-medium text-yellow-900 mb-1">
+              {analyticsData.comprehensiveInsights.uniquePositiveTrait.trait}
+            </div>
+            <p className="text-sm text-yellow-700 mb-2">
+              {analyticsData.comprehensiveInsights.uniquePositiveTrait.description}
+            </p>
+            <p className="text-xs text-yellow-600 italic">
+              Manifestation: {analyticsData.comprehensiveInsights.uniquePositiveTrait.manifestation}
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Primary Strength */}
+            <div className="p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+              <h4 className="font-semibold text-green-800 mb-2">#1 Strength</h4>
+              <div className="text-lg font-medium text-green-900 mb-1">
+                {analyticsData.comprehensiveInsights.primaryStrength.strength}
+              </div>
+              <p className="text-sm text-green-700 mb-2">
+                {analyticsData.comprehensiveInsights.primaryStrength.explanation}
+              </p>
+              <p className="text-xs text-green-600 italic">
+                Evidence: {analyticsData.comprehensiveInsights.primaryStrength.evidence}
+              </p>
+            </div>
+            
+            {/* Primary Weakness */}
+            <div className="p-4 bg-red-50 rounded-lg border-l-4 border-red-400">
+              <h4 className="font-semibold text-red-800 mb-2">#1 Area for Development</h4>
+              <div className="text-lg font-medium text-red-900 mb-1">
+                {analyticsData.comprehensiveInsights.primaryWeakness.weakness}
+              </div>
+              <p className="text-sm text-red-700 mb-2">
+                {analyticsData.comprehensiveInsights.primaryWeakness.explanation}
+              </p>
+              <p className="text-xs text-red-600 italic">
+                Impact: {analyticsData.comprehensiveInsights.primaryWeakness.impact}
+              </p>
+            </div>
+          </div>
+          
+          {/* Overall Synthesis */}
+          <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+            <h4 className="font-semibold text-indigo-800 mb-3">Overall Profile Synthesis</h4>
+            <p className="text-sm text-indigo-700 mb-4">
+              {analyticsData.comprehensiveInsights.synthesis.overallProfile}
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <div className="text-xs font-medium text-indigo-800 mb-2">Key Themes</div>
+                {analyticsData.comprehensiveInsights.synthesis.keyThemes.map((theme, index) => (
+                  <div key={index} className="text-xs text-indigo-600 mb-1">• {theme}</div>
+                ))}
+              </div>
+              <div>
+                <div className="text-xs font-medium text-green-800 mb-2">Development Recommendations</div>
+                {analyticsData.comprehensiveInsights.synthesis.developmentRecommendations.map((rec, index) => (
+                  <div key={index} className="text-xs text-green-600 mb-1">• {rec}</div>
+                ))}
+              </div>
+              <div>
+                <div className="text-xs font-medium text-orange-800 mb-2">Risk Factors to Monitor</div>
+                {analyticsData.comprehensiveInsights.synthesis.riskFactors.map((risk, index) => (
+                  <div key={index} className="text-xs text-orange-600 mb-1">• {risk}</div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
