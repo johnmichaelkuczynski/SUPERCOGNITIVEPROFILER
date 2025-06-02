@@ -271,7 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const documents = await storage.getDocumentsByUserId(userId);
       
       // Generate analytics data
-      const analyticsData = generateAnalytics(documents, timeframe);
+      const analyticsData = await generateAnalytics(documents, timeframe);
       
       res.json(analyticsData);
     } catch (error) {
@@ -290,7 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const documents = await storage.getDocumentsByUserId(userId);
       
       // Generate analytics data
-      const analyticsData = generateAnalytics(documents, timeframe || '7days');
+      const analyticsData = await generateAnalytics(documents, timeframe || '7days');
       
       if (format === 'pdf') {
         // Generate PDF using PDFKit
@@ -371,6 +371,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.moveDown();
         doc.text(`Cognitive Preferences: ${analyticsData.psychostylisticInsights.metaReflection.cognitivePreferences.join(', ')}`);
         doc.text(`Thinking Tempo: ${analyticsData.psychostylisticInsights.metaReflection.thinkingTempo}`);
+        doc.moveDown();
+        
+        // Comprehensive Cognitive Profile
+        doc.fontSize(16).text('Cognitive (Intellectual) Profile', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Intellectual Approach: ${analyticsData.cognitiveProfile.intellectualApproach}`);
+        doc.moveDown();
+        doc.text('Cognitive Strengths:');
+        analyticsData.cognitiveProfile.strengths.forEach(strength => {
+          doc.text(`• ${strength}`);
+        });
+        doc.moveDown();
+        doc.text('Growth Pathways:');
+        analyticsData.cognitiveProfile.growthPathways.forEach(pathway => {
+          doc.text(`• ${pathway}`);
+        });
+        doc.moveDown();
+        doc.text(`Current Career Likely: ${analyticsData.cognitiveProfile.currentCareerLikely}`);
+        doc.text(`Ideal Career: ${analyticsData.cognitiveProfile.idealCareer}`);
+        doc.moveDown();
+        
+        // Psychological Profile  
+        doc.fontSize(16).text('Psychological (Emotional) Profile', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Emotional Patterns: ${analyticsData.psychologicalProfile.emotionalPatterns}`);
+        doc.moveDown();
+        doc.text('Psychological Strengths:');
+        analyticsData.psychologicalProfile.psychologicalStrengths.forEach(strength => {
+          doc.text(`• ${strength}`);
+        });
+        doc.moveDown();
+        doc.text('Object Relations - Positive:');
+        analyticsData.psychologicalProfile.objectRelations.positive.forEach(relation => {
+          doc.text(`• ${relation}`);
+        });
+        doc.moveDown();
+        
+        // Key Insights
+        doc.fontSize(16).text('Key Insights & Synthesis', { underline: true });
+        doc.fontSize(12).moveDown();
+        doc.text(`Unique Positive Trait: ${analyticsData.comprehensiveInsights.uniquePositiveTrait.trait}`);
+        doc.text(`Description: ${analyticsData.comprehensiveInsights.uniquePositiveTrait.description}`);
+        doc.moveDown();
+        doc.text(`Primary Strength: ${analyticsData.comprehensiveInsights.primaryStrength.strength}`);
+        doc.text(`Explanation: ${analyticsData.comprehensiveInsights.primaryStrength.explanation}`);
+        doc.moveDown();
+        doc.text(`Primary Weakness: ${analyticsData.comprehensiveInsights.primaryWeakness.weakness}`);
+        doc.text(`Impact: ${analyticsData.comprehensiveInsights.primaryWeakness.impact}`);
+        doc.moveDown();
+        doc.text('Overall Profile:');
+        doc.text(analyticsData.comprehensiveInsights.synthesis.overallProfile);
         
         // Finalize the PDF
         doc.end();

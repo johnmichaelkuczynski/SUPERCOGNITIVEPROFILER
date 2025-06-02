@@ -108,6 +108,56 @@ export interface AnalyticsData {
       thinkingTempo: string;
     };
   };
+  cognitiveProfile: {
+    intellectualApproach: string;
+    strengths: string[];
+    weaknesses: string[];
+    growthPathways: string[];
+    potentialPitfalls: string[];
+    supportingQuotations: string[];
+    famousComparisons: string[];
+    currentCareerLikely: string;
+    idealCareer: string;
+    detailedAnalysis: string;
+  };
+  psychologicalProfile: {
+    emotionalPatterns: string;
+    psychologicalStrengths: string[];
+    psychologicalWeaknesses: string[];
+    growthAreas: string[];
+    declineRisks: string[];
+    objectRelations: {
+      positive: string[];
+      negative: string[];
+      improvementAreas: string[];
+      deteriorationRisks: string[];
+    };
+    supportingQuotations: string[];
+    detailedAnalysis: string;
+  };
+  comprehensiveInsights: {
+    uniquePositiveTrait: {
+      trait: string;
+      description: string;
+      manifestation: string;
+    };
+    primaryStrength: {
+      strength: string;
+      explanation: string;
+      evidence: string;
+    };
+    primaryWeakness: {
+      weakness: string;
+      explanation: string;
+      impact: string;
+    };
+    synthesis: {
+      overallProfile: string;
+      keyThemes: string[];
+      developmentRecommendations: string[];
+      riskFactors: string[];
+    };
+  };
   longitudinalPatterns: Array<{
     date: string;
     conceptualDensity: number;

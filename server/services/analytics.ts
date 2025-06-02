@@ -998,7 +998,7 @@ function countMatches(text: string, patterns: RegExp[]): number {
 }
 
 function getTopicColor(topic: string): string {
-  const colors = {
+  const colors: Record<string, string> = {
     'Philosophy': '#8b5cf6',
     'Technology': '#3b82f6',
     'Science': '#10b981',
@@ -1025,7 +1025,7 @@ function determineCognitiveStyle(topTopics: any[]): string {
   if (topTopics.length === 0) return "Generalist thinker";
   
   const primary = topTopics[0];
-  const styles = {
+  const styles: Record<string, string> = {
     'Philosophy': "Abstract theorist",
     'Technology': "Systems implementer",
     'Science': "Empirical investigator",
@@ -1033,7 +1033,7 @@ function determineCognitiveStyle(topTopics: any[]): string {
     'Business': "Strategic optimizer"
   };
   
-  return styles[primary.name] || "Interdisciplinary thinker";
+  return styles[primary.name as keyof typeof styles] || "Interdisciplinary thinker";
 }
 
 function analyzePeriod(docs: Document[], label: string): any {
