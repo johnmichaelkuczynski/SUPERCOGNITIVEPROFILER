@@ -1701,6 +1701,7 @@ Return only the new content without any additional comments, explanations, or he
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4000,
         temperature: 0.7,
+        system: "Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.",
         messages: [{ role: 'user', content: prompt }]
       });
 
