@@ -248,6 +248,7 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
     const file = event.target.files?.[0];
     if (file) {
       const allowedTypes = [
+        'application/pdf',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/msword',
         'text/plain'
@@ -258,7 +259,7 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
       } else {
         toast({
           title: "Invalid File Type",
-          description: "Please upload a Word document or text file.",
+          description: "Please upload a PDF, Word document, or text file.",
           variant: "destructive"
         });
       }
@@ -350,7 +351,7 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
           <Input
             ref={fileInputRef}
             type="file"
-            accept=".docx,.doc,.txt"
+            accept=".pdf,.docx,.doc,.txt"
             onChange={handleFileSelect}
             className="hidden"
           />

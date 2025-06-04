@@ -6,6 +6,7 @@ import { log } from '../vite';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PDFDocument } from 'pdf-lib';
+import { getDocument } from 'pdfjs-dist';
 
 
 export interface ProcessedDocument {
@@ -134,28 +135,131 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF with intelligent text reconstruction
+// Extract text from PDF using pdfjs-dist with proper formatting preservation
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    console.log("Extracting text from PDF with intelligent reconstruction...");
+    console.log("Extracting text from PDF using pdfjs-dist...");
     
-    // Extract raw text using fallback method
-    const rawText = await extractTextWithFallbackMethod(buffer);
+    // Load PDF document
+    const data = new Uint8Array(buffer);
+    const pdf = await getDocument(data).promise;
     
-    if (!rawText || rawText.length < 100) {
-      return "PDF text extraction failed - document may be image-based or protected.";
+    let extractedText = '';
+    const numPages = pdf.numPages;
+    console.log(`PDF has ${numPages} pages`);
+    
+    // Extract text from each page
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      try {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Group text items by line using Y coordinates
+        const textByLine = groupTextByLines(textContent.items);
+        
+        // Reconstruct page text with proper formatting
+        const pageText = reconstructPageText(textByLine);
+        
+        if (pageText.trim()) {
+          extractedText += pageText + '\n\n';
+        }
+        
+        console.log(`Processed page ${pageNum}/${numPages}`);
+      } catch (pageError) {
+        console.error(`Error processing page ${pageNum}:`, pageError);
+        // Continue with next page
+      }
     }
     
-    // Apply intelligent text reconstruction to fix spacing issues
-    const reconstructedText = reconstructBrokenText(rawText);
+    if (!extractedText || extractedText.trim().length < 100) {
+      console.log("pdfjs-dist extraction yielded minimal text, using fallback...");
+      return await extractTextWithFallbackMethod(buffer);
+    }
     
-    console.log(`PDF extraction completed: ${reconstructedText.length} characters (reconstructed from ${rawText.length} raw characters)`);
-    return reconstructedText;
+    console.log(`PDF extraction completed: ${extractedText.length} characters from ${numPages} pages`);
+    return extractedText.trim();
     
   } catch (error) {
-    console.error("PDF extraction failed:", error);
-    return "PDF text extraction failed - document may be corrupted.";
+    console.error("pdfjs-dist extraction failed:", error);
+    console.log("Using fallback extraction method...");
+    return await extractTextWithFallbackMethod(buffer);
   }
+}
+
+// Group text items by lines based on Y coordinates
+function groupTextByLines(textItems: any[]): any[][] {
+  const lines: any[][] = [];
+  const lineThreshold = 5; // Y coordinate difference threshold for same line
+  
+  // Sort items by Y coordinate (top to bottom), then X coordinate (left to right)
+  const sortedItems = textItems.sort((a, b) => {
+    const yDiff = Math.abs(a.transform[5] - b.transform[5]);
+    if (yDiff < lineThreshold) {
+      return a.transform[4] - b.transform[4]; // Sort by X coordinate
+    }
+    return b.transform[5] - a.transform[5]; // Sort by Y coordinate (reversed because PDF coordinates start from bottom)
+  });
+  
+  let currentLine: any[] = [];
+  let lastY = -1;
+  
+  for (const item of sortedItems) {
+    const currentY = item.transform[5];
+    
+    if (lastY === -1 || Math.abs(currentY - lastY) < lineThreshold) {
+      // Same line
+      currentLine.push(item);
+    } else {
+      // New line
+      if (currentLine.length > 0) {
+        lines.push([...currentLine]);
+      }
+      currentLine = [item];
+    }
+    lastY = currentY;
+  }
+  
+  // Add the last line
+  if (currentLine.length > 0) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
+}
+
+// Reconstruct text from grouped lines with proper spacing
+function reconstructPageText(textLines: any[][]): string {
+  let pageText = '';
+  
+  for (const line of textLines) {
+    let lineText = '';
+    let lastX = -1;
+    
+    // Sort items in line by X coordinate
+    const sortedLineItems = line.sort((a, b) => a.transform[4] - b.transform[4]);
+    
+    for (const item of sortedLineItems) {
+      if (!item.str || !item.str.trim()) continue;
+      
+      const currentX = item.transform[4];
+      const text = item.str;
+      
+      // Add spacing between words based on X coordinate gaps
+      if (lastX !== -1 && currentX - lastX > 20) {
+        // Large gap - likely word boundary
+        lineText += ' ';
+      }
+      
+      lineText += text;
+      lastX = currentX + (item.width || 0);
+    }
+    
+    if (lineText.trim()) {
+      pageText += lineText.trim() + '\n';
+    }
+  }
+  
+  return pageText;
 }
 
 // Reconstruct broken text by fixing character spacing issues
