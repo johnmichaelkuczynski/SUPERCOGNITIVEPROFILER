@@ -3,6 +3,10 @@ import { PdfReader } from 'pdfreader';
 import mammoth from 'mammoth';
 import { detectAIContent, type AIDetectionResult } from './gptZero';
 import { log } from '../vite';
+import * as fs from 'fs';
+import * as path from 'path';
+import { PDFDocument } from 'pdf-lib';
+
 
 export interface ProcessedDocument {
   text: string;
@@ -130,63 +134,208 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF with improved text processing for dialogue scripts
+// Extract text from PDF using hybrid approach: OCR + text extraction
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  return new Promise((resolve, reject) => {
+  try {
+    console.log("Extracting text from PDF using hybrid approach...");
+    
+    // First, try standard text extraction
+    const standardText = await extractTextWithFallbackMethod(buffer);
+    
+    // Check if the text quality is poor (has character spacing issues)
+    const hasSpacingIssues = checkForSpacingIssues(standardText);
+    
+    if (!hasSpacingIssues && standardText.length > 500) {
+      console.log("Standard extraction produced good quality text");
+      return standardText;
+    }
+    
+    console.log("Text quality is poor, attempting OCR extraction...");
+    
+    // If text quality is poor, try OCR extraction for first few pages
+    try {
+      const ocrText = await extractTextWithOCR(buffer, 5); // Process first 5 pages with OCR
+      
+      if (ocrText && ocrText.length > 200) {
+        console.log(`OCR extraction successful: ${ocrText.length} characters`);
+        return ocrText;
+      }
+    } catch (ocrError) {
+      console.error("OCR extraction failed:", ocrError);
+    }
+    
+    // If OCR fails, return the best text we have
+    console.log("Falling back to standard extraction result");
+    return standardText;
+    
+  } catch (error) {
+    console.error("All PDF extraction methods failed:", error);
+    return "PDF text extraction failed - document may be image-based or corrupted.";
+  }
+}
+
+// Check if extracted text has character spacing issues
+function checkForSpacingIssues(text: string): boolean {
+  if (!text || text.length < 100) return true;
+  
+  // Look for common spacing issues in dialogue scripts
+  const spacingIssuePatterns = [
+    /[A-Za-z]\s+[A-Za-z]\s*:/g, // "Fr eud:" or "Sar tre:"
+    /[A-Za-z]\s+[A-Za-z]\s+[A-Za-z]/g, // "w h a t" instead of "what"
+    /:\s*[A-Za-z]\s+[A-Za-z]/g, // ": w h a t" after character names
+  ];
+  
+  let issueCount = 0;
+  for (const pattern of spacingIssuePatterns) {
+    const matches = text.match(pattern);
+    if (matches) {
+      issueCount += matches.length;
+    }
+  }
+  
+  // If more than 5% of the text has spacing issues, consider it poor quality
+  const totalWords = text.split(/\s+/).length;
+  return issueCount > totalWords * 0.05;
+}
+
+// Extract text using OCR for high-quality text extraction
+async function extractTextWithOCR(buffer: Buffer, maxPages: number = 5): Promise<string> {
+  try {
+    // Convert PDF pages to images
+    const convert = pdf(buffer, {
+      density: 200,
+      saveFilename: "page",
+      savePath: "/tmp",
+      format: "png",
+      width: 1200,
+      height: 1600
+    });
+    
+    let extractedText = '';
+    
+    // Process up to maxPages pages
+    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+      try {
+        console.log(`Processing page ${pageNum} with OCR...`);
+        
+        // Convert page to image
+        const pageImage = await convert(pageNum, { responseType: "buffer" });
+        
+        if (pageImage.buffer) {
+          // Create Tesseract worker
+          const worker = await createWorker();
+          await worker.loadLanguage('eng');
+          await worker.initialize('eng');
+          
+          // Extract text from image
+          const { data: { text } } = await worker.recognize(pageImage.buffer);
+          
+          if (text && text.trim()) {
+            extractedText += text.trim() + '\n\n';
+          }
+          
+          await worker.terminate();
+        }
+      } catch (pageError) {
+        console.error(`OCR failed for page ${pageNum}:`, pageError);
+        // Continue with next page
+      }
+    }
+    
+    return extractedText.trim();
+    
+  } catch (error) {
+    console.error("OCR extraction failed:", error);
+    throw error;
+  }
+}
+
+// Simple page-by-page text extraction
+async function extractPageTextWithSimpleMethod(buffer: Buffer, pageNum: number): Promise<string> {
+  return new Promise((resolve) => {
     const reader = new PdfReader();
-    const textByPage: { [key: number]: string[] } = {};
-    let pageCount = 0;
+    let pageText = '';
+    let currentPage = 0;
+    let foundTargetPage = false;
     
     const timeout = setTimeout(() => {
-      if (Object.keys(textByPage).length > 0) {
-        const text = Object.keys(textByPage)
-          .sort((a, b) => parseInt(a) - parseInt(b))
-          .map(pageNum => {
-            // Join text on each page with spaces to preserve word boundaries
-            return textByPage[parseInt(pageNum)].join(' ');
-          })
-          .join('\n\n');
-        console.log(`PDF extraction completed: ${text.length} characters from ${pageCount} pages`);
+      resolve(pageText);
+    }, 5000);
+    
+    reader.parseBuffer(buffer, (err, item) => {
+      if (err) {
+        clearTimeout(timeout);
+        resolve(pageText);
+        return;
+      }
+      
+      if (!item) {
+        clearTimeout(timeout);
+        resolve(pageText);
+        return;
+      }
+      
+      if (item.page) {
+        currentPage = item.page;
+        if (currentPage === pageNum) {
+          foundTargetPage = true;
+        } else if (currentPage > pageNum && foundTargetPage) {
+          // We've moved past our target page
+          clearTimeout(timeout);
+          resolve(pageText);
+          return;
+        }
+      } else if (item.text && foundTargetPage && currentPage === pageNum) {
+        // Add text with proper spacing - ensure words don't get concatenated
+        const text = item.text.trim();
+        if (text) {
+          // Add space before text if the previous text doesn't end with whitespace
+          if (pageText && !pageText.endsWith(' ') && !text.startsWith(' ')) {
+            pageText += ' ';
+          }
+          pageText += text;
+        }
+      }
+    });
+  });
+}
+
+// Fallback method for when primary extraction fails
+async function extractTextWithFallbackMethod(buffer: Buffer): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new PdfReader();
+    const textItems: string[] = [];
+    
+    const timeout = setTimeout(() => {
+      if (textItems.length > 0) {
+        // Join all text items with appropriate spacing
+        const text = textItems.join(' ').replace(/\s+/g, ' ').trim();
         resolve(text);
       } else {
-        resolve("PDF extraction yielded no readable text.");
+        resolve("PDF text extraction failed - document may be image-based or protected.");
       }
     }, 15000);
     
     reader.parseBuffer(buffer, (err, item) => {
       if (err) {
-        console.error("PDF parsing error:", err);
+        console.error("Fallback PDF parsing error:", err);
         return;
       }
       
       if (!item) {
-        // End of file
         clearTimeout(timeout);
-        const text = Object.keys(textByPage)
-          .sort((a, b) => parseInt(a) - parseInt(b))
-          .map(pageNum => {
-            // Join text on each page with spaces to preserve word boundaries
-            return textByPage[parseInt(pageNum)].join(' ');
-          })
-          .join('\n\n');
-        
-        console.log(`PDF extraction completed: ${text.length} characters from ${pageCount} pages`);
-        resolve(text);
+        if (textItems.length > 0) {
+          const text = textItems.join(' ').replace(/\s+/g, ' ').trim();
+          console.log(`Fallback extraction completed: ${text.length} characters`);
+          resolve(text);
+        } else {
+          resolve("PDF text extraction failed - document may be image-based or protected.");
+        }
         return;
       }
       
-      if (item.page) {
-        pageCount = Math.max(pageCount, item.page);
-        if (!textByPage[item.page]) {
-          textByPage[item.page] = [];
-        }
-      } else if (item.text && item.text.trim()) {
-        // Add text to current page with proper spacing
-        const currentPage = pageCount || 1;
-        if (!textByPage[currentPage]) {
-          textByPage[currentPage] = [];
-        }
-        textByPage[currentPage].push(item.text.trim());
+      if (item.text && item.text.trim()) {
+        textItems.push(item.text.trim());
       }
     });
   });
