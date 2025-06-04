@@ -12,6 +12,7 @@ import { processDocument, extractText } from "./services/documentProcessor";
 import { generateAnalytics } from "./services/analytics";
 import { detectAIContent } from "./services/aiDetection";
 import { rewriteDocument } from "./services/documentRewriter";
+import { elevenLabsService } from "./services/elevenlabs";
 import { WebSocketServer } from 'ws';
 import { sendEmail } from './services/email';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
@@ -1801,6 +1802,100 @@ Return only the new content without any additional comments, explanations, or he
     } catch (error) {
       console.error('Homework mode error:', error);
       res.status(500).json({ error: 'Failed to process homework' });
+    }
+  });
+
+  // Text-to-Speech Routes
+  
+  // Get available ElevenLabs voices
+  app.get('/api/tts/voices', async (req: Request, res: Response) => {
+    try {
+      const voices = await elevenLabsService.getAvailableVoices();
+      res.json({ voices });
+    } catch (error) {
+      console.error('Error fetching voices:', error);
+      res.status(500).json({ error: 'Failed to fetch available voices' });
+    }
+  });
+
+  // Generate dialogue audio from script
+  app.post('/api/tts/generate-dialogue', async (req: Request, res: Response) => {
+    try {
+      const { script } = req.body;
+      
+      if (!script || typeof script !== 'string') {
+        return res.status(400).json({ error: 'Script text is required' });
+      }
+
+      console.log('Generating dialogue audio from script...');
+      const result = await elevenLabsService.generateDialogueAudio(script);
+      
+      res.json({
+        success: true,
+        audioPath: result.audioPath,
+        metadata: result.metadata,
+        message: 'Dialogue audio generated successfully'
+      });
+    } catch (error) {
+      console.error('Error generating dialogue audio:', error);
+      res.status(500).json({ error: 'Failed to generate dialogue audio' });
+    }
+  });
+
+  // Parse script and show voice assignments (preview)
+  app.post('/api/tts/parse-script', async (req: Request, res: Response) => {
+    try {
+      const { script } = req.body;
+      
+      if (!script || typeof script !== 'string') {
+        return res.status(400).json({ error: 'Script text is required' });
+      }
+
+      const parsedScript = elevenLabsService.parseScript(script);
+      const voiceAssignments = await elevenLabsService.assignVoices(parsedScript.characters);
+      
+      const assignments: Record<string, any> = {};
+      voiceAssignments.forEach((voice, character) => {
+        assignments[character] = {
+          voiceId: voice.voice_id,
+          voiceName: voice.name,
+          gender: voice.gender,
+          accent: voice.accent,
+          description: voice.description
+        };
+      });
+
+      res.json({
+        characters: parsedScript.characters,
+        totalLines: parsedScript.lines.length,
+        voiceAssignments: assignments,
+        dialoguePreview: parsedScript.lines.slice(0, 5), // First 5 lines as preview
+        estimatedDuration: Math.ceil(parsedScript.lines.reduce((total, line) => total + line.text.length, 0) / 750) // Rough estimate in seconds
+      });
+    } catch (error) {
+      console.error('Error parsing script:', error);
+      res.status(500).json({ error: 'Failed to parse script' });
+    }
+  });
+
+  // Download generated audio file
+  app.get('/api/tts/download/:filename', (req: Request, res: Response) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(process.cwd(), filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Audio file not found' });
+      }
+
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error downloading audio file:', error);
+      res.status(500).json({ error: 'Failed to download audio file' });
     }
   });
 
