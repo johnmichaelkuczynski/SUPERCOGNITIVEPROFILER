@@ -275,10 +275,18 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
     fileInputRef.current?.click();
   };
 
+  const handleVoiceChange = (character: string, voiceId: string) => {
+    setCustomVoiceAssignments(prev => ({
+      ...prev,
+      [character]: voiceId
+    }));
+  };
+
   const loadExample = () => {
     setScript(exampleScript);
     setScriptPreview(null);
     setGenerationResult(null);
+    setCustomVoiceAssignments({});
   };
 
   return (
@@ -418,21 +426,68 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
             </div>
           </div>
 
-          {/* Voice Assignments */}
+          {/* Voice Selection */}
           <div className="mb-6">
-            <h4 className="font-medium mb-3">Voice Assignments</h4>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium">Voice Selection</h4>
+              {isLoadingVoices && (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading voices...
+                </div>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {scriptPreview.characters.map((character) => {
-                const voice = scriptPreview.voiceAssignments[character];
+                const defaultVoice = scriptPreview.voiceAssignments[character];
+                const selectedVoiceId = customVoiceAssignments[character] || defaultVoice?.voiceId;
+                const selectedVoice = availableVoices.find(v => v.voice_id === selectedVoiceId) || defaultVoice;
+                
                 return (
                   <div key={character} className="p-3 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-3">
                       <span className="font-medium">{character}</span>
-                      <Badge variant="outline">{voice?.gender}</Badge>
+                      <Badge variant="outline">
+                        {selectedVoice?.labels?.gender || selectedVoice?.gender || 'Unknown'}
+                      </Badge>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      <div>Voice: {voice?.voiceName}</div>
-                      <div>Accent: {voice?.accent}</div>
+                    
+                    <div className="space-y-2">
+                      <Select
+                        value={selectedVoiceId || ''}
+                        onValueChange={(value) => handleVoiceChange(character, value)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select voice..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableVoices.map((voice) => (
+                            <SelectItem key={voice.voice_id} value={voice.voice_id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{voice.name}</span>
+                                <div className="flex gap-1 ml-2">
+                                  {voice.labels?.gender && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {voice.labels.gender}
+                                    </Badge>
+                                  )}
+                                  {voice.labels?.accent && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {voice.labels.accent}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      {selectedVoice && (
+                        <div className="text-xs text-gray-500">
+                          {selectedVoice.description || selectedVoice.labels?.use_case || 'ElevenLabs voice'}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

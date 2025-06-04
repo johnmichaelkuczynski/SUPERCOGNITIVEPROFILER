@@ -259,7 +259,7 @@ class ElevenLabsService {
   }
 
   // Generate complete dialogue audio from script
-  async generateDialogueAudio(script: string): Promise<{
+  async generateDialogueAudio(script: string, customVoices?: Record<string, string>): Promise<{
     audioPath: string;
     metadata: {
       characters: string[];
@@ -273,7 +273,36 @@ class ElevenLabsService {
       const parsedScript = this.parseScript(script);
       
       console.log('Assigning voices to characters...');
-      const voiceAssignments = await this.assignVoices(parsedScript.characters);
+      let voiceAssignments: Map<string, VoiceProfile>;
+      
+      if (customVoices && Object.keys(customVoices).length > 0) {
+        // Use custom voice assignments
+        voiceAssignments = new Map();
+        const availableVoices = await this.getAvailableVoices();
+        
+        for (const character of parsedScript.characters) {
+          const customVoiceId = customVoices[character];
+          if (customVoiceId) {
+            const voice = availableVoices.find(v => v.voice_id === customVoiceId);
+            if (voice) {
+              voiceAssignments.set(character, voice);
+            } else {
+              // Fallback to automatic assignment if custom voice not found
+              const autoAssignments = await this.assignVoices([character]);
+              const autoVoice = autoAssignments.get(character);
+              if (autoVoice) voiceAssignments.set(character, autoVoice);
+            }
+          } else {
+            // Use automatic assignment for characters without custom voices
+            const autoAssignments = await this.assignVoices([character]);
+            const autoVoice = autoAssignments.get(character);
+            if (autoVoice) voiceAssignments.set(character, autoVoice);
+          }
+        }
+      } else {
+        // Use automatic voice assignment
+        voiceAssignments = await this.assignVoices(parsedScript.characters);
+      }
       
       console.log('Generating individual audio clips...');
       const audioClips: Buffer[] = [];
