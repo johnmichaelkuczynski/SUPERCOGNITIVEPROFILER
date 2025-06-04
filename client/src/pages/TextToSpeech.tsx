@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Play, Download, Users, Clock, Mic, Upload, FileText } from 'lucide-react';
+import { Loader2, Play, Download, Users, Clock, Mic, Upload, FileText, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ElevenLabsVoice {
@@ -288,6 +288,13 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
     });
   };
 
+  const clearAll = () => {
+    setScript('');
+    setScriptPreview(null);
+    setGenerationResult(null);
+    setCustomVoiceAssignments({});
+  };
+
   const loadExample = () => {
     setScript(exampleScript);
     setScriptPreview(null);
@@ -328,6 +335,14 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
               </Button>
               <Button variant="outline" onClick={loadExample}>
                 Load Example
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={clearAll}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear
               </Button>
             </div>
           </div>
