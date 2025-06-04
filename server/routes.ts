@@ -169,9 +169,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const file = req.file;
+      console.log(`[TTS] Processing file: ${file.originalname}, type: ${file.mimetype}, size: ${file.size} bytes`);
+      
       const { extractText } = await import('./services/textExtractor.js');
       
       const result = await extractText(file);
+      
+      console.log(`[TTS] Extraction result - Success: ${result.success}, Text length: ${result.text?.length || 0}`);
+      if (!result.success) {
+        console.log(`[TTS] Extraction error: ${result.error}`);
+      }
       
       if (result.success) {
         res.json({ 
@@ -186,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
     } catch (error) {
-      console.error('Error extracting text:', error);
+      console.error('[TTS] Error extracting text:', error);
       res.status(500).json({ message: 'Text extraction failed', error: (error as Error).message });
     }
   });
