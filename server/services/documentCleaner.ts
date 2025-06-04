@@ -17,6 +17,9 @@ export interface CleanedDocument {
  * Clean document text for TTS production by removing everything except character dialogue
  */
 export function cleanDocumentForTTS(text: string): CleanedDocument {
+  console.log('[DocumentCleaner] Processing text length:', text.length);
+  console.log('[DocumentCleaner] First 500 chars:', text.substring(0, 500));
+  
   const removedElements = {
     stageDirections: [] as string[],
     commentary: [] as string[],
@@ -26,8 +29,10 @@ export function cleanDocumentForTTS(text: string): CleanedDocument {
   const dialogueLines: Array<{ character: string; text: string }> = [];
   const characters: Set<string> = new Set();
   
-  // Split text into lines
+  // Split text into lines and examine structure
   const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  console.log('[DocumentCleaner] Total lines:', lines.length);
+  console.log('[DocumentCleaner] First 5 lines:', lines.slice(0, 5));
   
   let cleanedText = '';
   
@@ -57,31 +62,62 @@ export function cleanDocumentForTTS(text: string): CleanedDocument {
       .replace(italicDirectionRegex, '')
       .trim();
     
-    // Check if this is a character line (Character: dialogue)
-    const characterMatch = cleanLine.match(/^([A-Za-z\s]+):\s*(.+)$/);
-    if (characterMatch) {
-      const character = characterMatch[1].trim();
-      const dialogue = characterMatch[2].trim();
-      
-      if (dialogue.length > 0) {
-        characters.add(character);
-        dialogueLines.push({ character, text: dialogue });
-        cleanedText += `${character}: ${dialogue}\n`;
-      }
-      continue;
+    // More flexible character name detection patterns
+    let characterFound = false;
+    let character = '';
+    let dialogue = '';
+    
+    // Pattern 1: **Character:** dialogue
+    let match = cleanLine.match(/^\*\*([A-Za-z\s]+)\*\*:?\s*(.*)$/);
+    if (match) {
+      character = match[1].trim();
+      dialogue = match[2].trim();
+      characterFound = true;
     }
     
-    // Check if this is a character line with bold formatting (**Character:** dialogue)
-    const boldCharacterMatch = cleanLine.match(/^\*\*([A-Za-z\s]+)\*\*:?\s*(.+)$/);
-    if (boldCharacterMatch) {
-      const character = boldCharacterMatch[1].trim();
-      const dialogue = boldCharacterMatch[2].trim();
-      
-      if (dialogue.length > 0) {
-        characters.add(character);
-        dialogueLines.push({ character, text: dialogue });
-        cleanedText += `${character}: ${dialogue}\n`;
+    // Pattern 2: Character: dialogue (no bold)
+    if (!characterFound) {
+      match = cleanLine.match(/^([A-Z][A-Za-z\s]{1,20}):\s*(.+)$/);
+      if (match) {
+        character = match[1].trim();
+        dialogue = match[2].trim();
+        characterFound = true;
       }
+    }
+    
+    // Pattern 3: CHARACTER: dialogue (all caps)
+    if (!characterFound) {
+      match = cleanLine.match(/^([A-Z\s]{2,20}):\s*(.+)$/);
+      if (match) {
+        character = match[1].trim();
+        dialogue = match[2].trim();
+        characterFound = true;
+      }
+    }
+    
+    // Pattern 4: Character (no colon, dialogue on next line or same line)
+    if (!characterFound) {
+      match = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*(.*)$/);
+      if (match && match[1].length <= 15) {
+        const potentialCharacter = match[1].trim();
+        const potentialDialogue = match[2].trim();
+        
+        // Common character names to look for
+        const commonNames = ['batman', 'joker', 'riddler', 'freud', 'dennett', 'davidson', 'socrates', 'plato', 'aristotle'];
+        if (commonNames.some(name => potentialCharacter.toLowerCase().includes(name)) || 
+            (potentialDialogue.length > 0 && potentialDialogue.length < 200)) {
+          character = potentialCharacter;
+          dialogue = potentialDialogue;
+          characterFound = true;
+        }
+      }
+    }
+    
+    if (characterFound && dialogue.length > 0) {
+      console.log(`[DocumentCleaner] Found character: "${character}" with dialogue: "${dialogue.substring(0, 50)}..."`);
+      characters.add(character);
+      dialogueLines.push({ character, text: dialogue });
+      cleanedText += `${character}: ${dialogue}\n`;
       continue;
     }
     
