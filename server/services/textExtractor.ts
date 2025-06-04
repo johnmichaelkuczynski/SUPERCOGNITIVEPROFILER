@@ -99,45 +99,45 @@ async function extractFromPDF(buffer: Buffer): Promise<ExtractedText> {
       };
     }
 
-    // Extract text with proper line breaks and spacing
+    // Extract text preserving original structure
     let extractedText = '';
     
     for (const page of data.pages) {
       if (page.content && page.content.length > 0) {
-        // Sort content by Y position (top to bottom) then X position (left to right)
-        const sortedContent = page.content.sort((a: any, b: any) => {
-          const yDiff = Math.abs(a.y - b.y);
-          if (yDiff < 2) { // Same line
-            return a.x - b.x;
-          }
-          return b.y - a.y; // Higher Y values first (top to bottom)
-        });
-
-        let currentY = -1;
-        let lineText = '';
+        // Group content by Y position to detect lines
+        const lineGroups = new Map<number, any[]>();
         
-        for (const item of sortedContent) {
+        for (const item of page.content) {
           if (item.str && item.str.trim()) {
-            // Check if we're on a new line
-            if (currentY === -1 || Math.abs(item.y - currentY) > 2) {
-              if (lineText.trim()) {
-                extractedText += lineText.trim() + '\n';
-              }
-              lineText = item.str;
-              currentY = item.y;
-            } else {
-              // Same line, add space if needed
-              if (lineText && !lineText.endsWith(' ') && !item.str.startsWith(' ')) {
-                lineText += ' ';
-              }
-              lineText += item.str;
+            const yPos = Math.round(item.y);
+            if (!lineGroups.has(yPos)) {
+              lineGroups.set(yPos, []);
             }
+            lineGroups.get(yPos)!.push(item);
           }
         }
         
-        // Add the last line
-        if (lineText.trim()) {
-          extractedText += lineText.trim() + '\n';
+        // Sort lines by Y position (top to bottom)
+        const sortedYPositions = Array.from(lineGroups.keys()).sort((a, b) => b - a);
+        
+        for (const yPos of sortedYPositions) {
+          const lineItems = lineGroups.get(yPos)!;
+          // Sort items in line by X position (left to right)
+          lineItems.sort((a, b) => a.x - b.x);
+          
+          // Join text items in this line
+          const lineText = lineItems.map(item => item.str).join('').trim();
+          
+          if (lineText) {
+            // Check if this looks like a character name (ends with colon)
+            if (lineText.match(/^[A-Za-z\s]+:/) || lineText.match(/^\*\*[A-Za-z\s]+\*\*/)) {
+              // Character name - add extra spacing
+              extractedText += '\n' + lineText + '\n';
+            } else {
+              // Regular text
+              extractedText += lineText + '\n';
+            }
+          }
         }
         
         // Add page break for multi-page documents
@@ -148,8 +148,14 @@ async function extractFromPDF(buffer: Buffer): Promise<ExtractedText> {
     }
 
     if (extractedText && extractedText.trim()) {
+      // Clean up excessive newlines but preserve paragraph structure
+      const cleanText = extractedText
+        .replace(/\n{4,}/g, '\n\n\n')  // Max 3 consecutive newlines
+        .replace(/^\n+/, '')  // Remove leading newlines
+        .replace(/\n+$/, '');  // Remove trailing newlines
+      
       return {
-        text: extractedText.trim(),
+        text: cleanText,
         success: true
       };
     } else {
