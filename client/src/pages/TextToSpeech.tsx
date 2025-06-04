@@ -276,10 +276,16 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
   };
 
   const handleVoiceChange = (character: string, voiceId: string) => {
-    setCustomVoiceAssignments(prev => ({
-      ...prev,
-      [character]: voiceId
-    }));
+    setCustomVoiceAssignments(prev => {
+      const updated = { ...prev };
+      if (voiceId === '') {
+        // Remove custom assignment to use default
+        delete updated[character];
+      } else {
+        updated[character] = voiceId;
+      }
+      return updated;
+    });
   };
 
   const loadExample = () => {
@@ -457,13 +463,22 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
                     
                     <div className="space-y-2">
                       <Select
-                        value={selectedVoiceId || ''}
+                        value={customVoiceAssignments[character] || ''}
                         onValueChange={(value) => handleVoiceChange(character, value)}
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select voice..." />
+                          <SelectValue placeholder={selectedVoice?.name || defaultVoice?.voiceName || "Select voice..."} />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
+                          {/* Add reset option */}
+                          <SelectItem value="">
+                            <div className="w-full py-1">
+                              <span className="font-medium text-gray-500">Use default assignment</span>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Reset to automatic voice selection
+                              </div>
+                            </div>
+                          </SelectItem>
                           {availableVoices
                             .sort((a, b) => {
                               // Sort by gender first, then by name
@@ -495,7 +510,8 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
                                 <div className="text-xs text-muted-foreground mt-1">
                                   {voice.labels?.accent && `${voice.labels.accent} accent`}
                                   {voice.labels?.accent && (voice.description || voice.labels?.use_case) && ' • '}
-                                  {voice.description || voice.labels?.use_case || ''}
+                                  {voice.description || voice.labels?.use_case || 'ElevenLabs voice'}
+                                  {voice.category && ` • ${voice.category}`}
                                 </div>
                               </div>
                             </SelectItem>
