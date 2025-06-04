@@ -103,32 +103,29 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     const chatContainer = document.querySelector('[data-chat-container="true"]') as HTMLElement;
     if (!chatContainer) return;
 
-    const handleChatDragOver = (e: Event) => {
-      const dragEvent = e as DragEvent;
-      dragEvent.preventDefault();
-      dragEvent.stopPropagation();
+    const handleChatDragOver = (e: any) => {
+      e.preventDefault();
+      e.stopPropagation();
       setIsDragging(true);
     };
 
-    const handleChatDragLeave = (e: Event) => {
-      const dragEvent = e as DragEvent;
-      dragEvent.preventDefault();
-      dragEvent.stopPropagation();
-      if (!chatContainer.contains(dragEvent.relatedTarget as Node)) {
+    const handleChatDragLeave = (e: any) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!chatContainer.contains(e.relatedTarget as Node)) {
         setIsDragging(false);
       }
     };
 
-    const handleChatDrop = (e: Event) => {
-      const dragEvent = e as DragEvent;
-      dragEvent.preventDefault();
-      dragEvent.stopPropagation();
+    const handleChatDrop = (e: any) => {
+      e.preventDefault();
+      e.stopPropagation();
       setIsDragging(false);
       
-      const droppedFiles = Array.from(dragEvent.dataTransfer?.files || []);
+      const droppedFiles = Array.from(e.dataTransfer?.files || []);
       const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
       
-      const validFiles = droppedFiles.filter(file => {
+      const validFiles = droppedFiles.filter((file: File) => {
         const extension = '.' + file.name.split('.').pop()?.toLowerCase();
         return allowedTypes.includes(extension);
       });
