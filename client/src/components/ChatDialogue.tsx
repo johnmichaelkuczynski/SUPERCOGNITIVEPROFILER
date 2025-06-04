@@ -51,55 +51,42 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Drag and drop handlers with debugging
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Chat drag over detected');
-    setIsDragging(true);
-  };
+  // Simple drag and drop handlers
+  const [dragCounter, setDragCounter] = useState(0);
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    console.log('Chat drag enter detected');
+    setDragCounter(prev => prev + 1);
     setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    console.log('Chat drag leave detected');
-    
-    // Use a timeout to prevent flickering when moving between child elements
-    setTimeout(() => {
-      const rect = (e.currentTarget as Element).getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+    setDragCounter(prev => {
+      const newCount = prev - 1;
+      if (newCount === 0) {
         setIsDragging(false);
       }
-    }, 50);
+      return newCount;
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    console.log('Chat drop detected', e.dataTransfer.files);
+    setDragCounter(0);
     setIsDragging(false);
     
     const droppedFiles = Array.from(e.dataTransfer.files);
-    console.log('Dropped files:', droppedFiles);
-    
     const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
     
     const validFiles = droppedFiles.filter(file => {
       const extension = '.' + file.name.split('.').pop()?.toLowerCase();
       return allowedTypes.includes(extension);
     });
-    
-    console.log('Valid files for chat:', validFiles);
     
     if (validFiles.length > 0) {
       setFiles(prev => [...prev, ...validFiles]);
@@ -111,69 +98,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Global drag and drop handlers for chat area
-  useEffect(() => {
-    const chatCard = document.querySelector('[data-chat-card="true"]');
-    if (!chatCard) return;
 
-    const handleGlobalDragOver = (e: DragEvent) => {
-      const rect = chatCard.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Global drag over chat area detected');
-        setIsDragging(true);
-      }
-    };
-
-    const handleGlobalDrop = (e: DragEvent) => {
-      const rect = chatCard.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Global drop on chat area detected');
-        setIsDragging(false);
-        
-        const droppedFiles = Array.from(e.dataTransfer?.files || []);
-        const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
-        
-        const validFiles = droppedFiles.filter(file => {
-          const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-          return allowedTypes.includes(extension);
-        });
-        
-        if (validFiles.length > 0) {
-          setFiles(prev => [...prev, ...validFiles]);
-        }
-      }
-    };
-
-    const handleGlobalDragLeave = (e: DragEvent) => {
-      const rect = chatCard.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-        setIsDragging(false);
-      }
-    };
-
-    document.addEventListener('dragover', handleGlobalDragOver);
-    document.addEventListener('drop', handleGlobalDrop);
-    document.addEventListener('dragleave', handleGlobalDragLeave);
-
-    return () => {
-      document.removeEventListener('dragover', handleGlobalDragOver);
-      document.removeEventListener('drop', handleGlobalDrop);
-      document.removeEventListener('dragleave', handleGlobalDragLeave);
-    };
-  }, []);
 
   // Expose methods via ref
   React.useImperativeHandle(ref, () => ({
