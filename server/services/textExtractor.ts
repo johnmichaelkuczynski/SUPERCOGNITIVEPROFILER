@@ -1,7 +1,7 @@
 import mammoth from 'mammoth';
 import fs from 'fs';
 import path from 'path';
-import pdfParse from 'pdf-parse';
+import { PDFExtract } from 'pdf.js-extract';
 
 export interface ExtractedText {
   text: string;
@@ -78,15 +78,22 @@ async function extractFromWord(buffer: Buffer): Promise<ExtractedText> {
 }
 
 /**
- * Extract text from PDF documents with perfect formatting preservation
+ * Extract text from PDF documents - simplified approach for dialogue preservation
  */
 async function extractFromPDF(buffer: Buffer): Promise<ExtractedText> {
   try {
     console.log(`[PDF] Processing buffer of size: ${buffer.length} bytes`);
     
-    const data = await pdfParse(buffer);
+    const pdfExtract = new PDFExtract();
     
-    if (!data || !data.text) {
+    const data = await new Promise<any>((resolve, reject) => {
+      pdfExtract.extractBuffer(buffer, {}, (err: any, data: any) => {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+
+    if (!data || !data.pages || data.pages.length === 0) {
       return {
         text: '',
         success: false,
@@ -94,28 +101,39 @@ async function extractFromPDF(buffer: Buffer): Promise<ExtractedText> {
       };
     }
 
-    let extractedText = data.text;
+    // Simple text extraction that preserves basic structure
+    let extractedText = '';
     
-    // Clean up the text while preserving dialogue structure
-    extractedText = extractedText
-      // Normalize line endings
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      // Fix character names that got split across lines
-      .replace(/([A-Za-z]+)\s*\n\s*:/g, '$1:')
-      // Add proper spacing after character names
-      .replace(/([A-Za-z]+:)([^\n])/g, '$1 $2')
-      // Preserve paragraph breaks but limit excessive newlines
-      .replace(/\n{4,}/g, '\n\n\n')
-      // Clean up spacing
-      .trim();
+    for (const page of data.pages) {
+      if (page.content && page.content.length > 0) {
+        for (const item of page.content) {
+          if (item.str && item.str.trim()) {
+            extractedText += item.str + ' ';
+          }
+        }
+        extractedText += '\n\n'; // Page break
+      }
+    }
 
-    console.log(`[PDF] Extraction successful: ${extractedText.length} characters`);
-    
-    return {
-      text: extractedText,
-      success: true
-    };
+    if (extractedText && extractedText.trim()) {
+      // Minimal formatting cleanup
+      const cleanText = extractedText
+        .replace(/\s{3,}/g, ' ')  // Multiple spaces to single
+        .replace(/\n{3,}/g, '\n\n')  // Max 2 newlines
+        .trim();
+      
+      console.log(`[PDF] Extraction successful: ${cleanText.length} characters`);
+      return {
+        text: cleanText,
+        success: true
+      };
+    } else {
+      return {
+        text: '',
+        success: false,
+        error: 'No text content found in PDF'
+      };
+    }
   } catch (error) {
     console.error(`[PDF] Extraction error:`, error);
     return {
