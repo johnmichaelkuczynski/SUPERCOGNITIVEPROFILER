@@ -215,19 +215,21 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
       const result = await response.json();
       
       // Extract text content and add to script
-      if (result.text) {
+      const extractedText = result.text || result.content;
+      if (extractedText && extractedText.trim()) {
         setScript(prevScript => {
-          const newContent = prevScript ? `${prevScript}\n\n${result.text}` : result.text;
+          const newContent = prevScript ? `${prevScript}\n\n${extractedText}` : extractedText;
           return newContent;
         });
         
         toast({
           title: "Document Uploaded",
-          description: `Successfully extracted text from ${file.name}`,
+          description: `Successfully extracted ${extractedText.length} characters from ${file.name}`,
         });
       } else {
+        console.error('No text extracted from document:', result);
         toast({
-          title: "Warning",
+          title: "Error",
           description: "Document processed but no text was extracted",
           variant: "destructive"
         });
