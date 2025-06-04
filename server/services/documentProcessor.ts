@@ -134,171 +134,93 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF using hybrid approach: OCR + text extraction
+// Extract text from PDF with intelligent text reconstruction
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    console.log("Extracting text from PDF using hybrid approach...");
+    console.log("Extracting text from PDF with intelligent reconstruction...");
     
-    // First, try standard text extraction
-    const standardText = await extractTextWithFallbackMethod(buffer);
+    // Extract raw text using fallback method
+    const rawText = await extractTextWithFallbackMethod(buffer);
     
-    // Check if the text quality is poor (has character spacing issues)
-    const hasSpacingIssues = checkForSpacingIssues(standardText);
-    
-    if (!hasSpacingIssues && standardText.length > 500) {
-      console.log("Standard extraction produced good quality text");
-      return standardText;
+    if (!rawText || rawText.length < 100) {
+      return "PDF text extraction failed - document may be image-based or protected.";
     }
     
-    console.log("Text quality is poor, attempting OCR extraction...");
+    // Apply intelligent text reconstruction to fix spacing issues
+    const reconstructedText = reconstructBrokenText(rawText);
     
-    // If text quality is poor, try OCR extraction for first few pages
-    try {
-      const ocrText = await extractTextWithOCR(buffer, 5); // Process first 5 pages with OCR
-      
-      if (ocrText && ocrText.length > 200) {
-        console.log(`OCR extraction successful: ${ocrText.length} characters`);
-        return ocrText;
-      }
-    } catch (ocrError) {
-      console.error("OCR extraction failed:", ocrError);
-    }
-    
-    // If OCR fails, return the best text we have
-    console.log("Falling back to standard extraction result");
-    return standardText;
+    console.log(`PDF extraction completed: ${reconstructedText.length} characters (reconstructed from ${rawText.length} raw characters)`);
+    return reconstructedText;
     
   } catch (error) {
-    console.error("All PDF extraction methods failed:", error);
-    return "PDF text extraction failed - document may be image-based or corrupted.";
+    console.error("PDF extraction failed:", error);
+    return "PDF text extraction failed - document may be corrupted.";
   }
 }
 
-// Check if extracted text has character spacing issues
-function checkForSpacingIssues(text: string): boolean {
-  if (!text || text.length < 100) return true;
+// Reconstruct broken text by fixing character spacing issues
+function reconstructBrokenText(text: string): string {
+  if (!text) return text;
   
-  // Look for common spacing issues in dialogue scripts
-  const spacingIssuePatterns = [
-    /[A-Za-z]\s+[A-Za-z]\s*:/g, // "Fr eud:" or "Sar tre:"
-    /[A-Za-z]\s+[A-Za-z]\s+[A-Za-z]/g, // "w h a t" instead of "what"
-    /:\s*[A-Za-z]\s+[A-Za-z]/g, // ": w h a t" after character names
+  let fixed = text;
+  
+  // Fix broken character names (like "Fr eud:" -> "Freud:")
+  const commonNames = [
+    'Freud', 'Sartre', 'Socrates', 'Plato', 'Aristotle', 'Kant', 'Nietzsche', 
+    'Heidegger', 'Marx', 'Jung', 'Lacan', 'Foucault', 'Derrida', 'Wittgenstein',
+    'Jesus', 'Buddha', 'Confucius', 'Lao', 'Tzu', 'Muhammad', 'Moses',
+    'Descartes', 'Spinoza', 'Leibniz', 'Hume', 'Locke', 'Berkeley', 'Mill',
+    'Hegel', 'Kierkegaard', 'Schopenhauer', 'Husserl', 'Merleau', 'Ponty'
   ];
   
-  let issueCount = 0;
-  for (const pattern of spacingIssuePatterns) {
-    const matches = text.match(pattern);
-    if (matches) {
-      issueCount += matches.length;
+  // Fix broken names by pattern matching
+  for (const name of commonNames) {
+    // Create pattern to match broken name (e.g., "Fr eud" -> "Freud")
+    const chars = name.split('');
+    const brokenPattern = new RegExp(chars.join('\\s+'), 'gi');
+    fixed = fixed.replace(brokenPattern, name);
+  }
+  
+  // Fix common broken words in philosophical/psychological dialogue
+  const commonWords = [
+    'consciousness', 'unconscious', 'existence', 'essence', 'being', 'time',
+    'freedom', 'determinism', 'reality', 'truth', 'knowledge', 'experience',
+    'phenomenology', 'psychoanalysis', 'interpretation', 'meaning', 'language',
+    'thought', 'thinking', 'rational', 'irrational', 'emotion', 'feeling',
+    'authentic', 'inauthentic', 'anxiety', 'death', 'nothingness', 'absurd'
+  ];
+  
+  for (const word of commonWords) {
+    if (word.length > 4) { // Only fix longer words to avoid false positives
+      const chars = word.split('');
+      const brokenPattern = new RegExp(chars.join('\\s+'), 'gi');
+      fixed = fixed.replace(brokenPattern, word);
     }
   }
   
-  // If more than 5% of the text has spacing issues, consider it poor quality
-  const totalWords = text.split(/\s+/).length;
-  return issueCount > totalWords * 0.05;
+  // Fix general spacing issues
+  // Remove spaces between single characters that should form words
+  fixed = fixed.replace(/\b([a-zA-Z])\s+([a-zA-Z])\s+([a-zA-Z])\b/g, '$1$2$3');
+  fixed = fixed.replace(/\b([a-zA-Z])\s+([a-zA-Z])\b/g, '$1$2');
+  
+  // Fix broken character name patterns specifically (Character + colon)
+  fixed = fixed.replace(/([A-Z][a-z]+)\s+([a-z]+)\s*:/g, '$1$2:');
+  
+  // Fix spacing around punctuation
+  fixed = fixed.replace(/\s+([.,:;!?])/g, '$1');
+  fixed = fixed.replace(/([.,:;!?])\s*([A-Z])/g, '$1 $2');
+  
+  // Clean up excessive whitespace
+  fixed = fixed.replace(/\s{2,}/g, ' ');
+  fixed = fixed.replace(/\n\s*\n\s*\n/g, '\n\n');
+  
+  // Ensure character names are properly formatted
+  fixed = fixed.replace(/^([A-Z][a-z]+[a-z]*)\s*:/gm, '$1:');
+  
+  return fixed.trim();
 }
 
-// Extract text using OCR for high-quality text extraction
-async function extractTextWithOCR(buffer: Buffer, maxPages: number = 5): Promise<string> {
-  try {
-    // Convert PDF pages to images
-    const convert = pdf(buffer, {
-      density: 200,
-      saveFilename: "page",
-      savePath: "/tmp",
-      format: "png",
-      width: 1200,
-      height: 1600
-    });
-    
-    let extractedText = '';
-    
-    // Process up to maxPages pages
-    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-      try {
-        console.log(`Processing page ${pageNum} with OCR...`);
-        
-        // Convert page to image
-        const pageImage = await convert(pageNum, { responseType: "buffer" });
-        
-        if (pageImage.buffer) {
-          // Create Tesseract worker
-          const worker = await createWorker();
-          await worker.loadLanguage('eng');
-          await worker.initialize('eng');
-          
-          // Extract text from image
-          const { data: { text } } = await worker.recognize(pageImage.buffer);
-          
-          if (text && text.trim()) {
-            extractedText += text.trim() + '\n\n';
-          }
-          
-          await worker.terminate();
-        }
-      } catch (pageError) {
-        console.error(`OCR failed for page ${pageNum}:`, pageError);
-        // Continue with next page
-      }
-    }
-    
-    return extractedText.trim();
-    
-  } catch (error) {
-    console.error("OCR extraction failed:", error);
-    throw error;
-  }
-}
 
-// Simple page-by-page text extraction
-async function extractPageTextWithSimpleMethod(buffer: Buffer, pageNum: number): Promise<string> {
-  return new Promise((resolve) => {
-    const reader = new PdfReader();
-    let pageText = '';
-    let currentPage = 0;
-    let foundTargetPage = false;
-    
-    const timeout = setTimeout(() => {
-      resolve(pageText);
-    }, 5000);
-    
-    reader.parseBuffer(buffer, (err, item) => {
-      if (err) {
-        clearTimeout(timeout);
-        resolve(pageText);
-        return;
-      }
-      
-      if (!item) {
-        clearTimeout(timeout);
-        resolve(pageText);
-        return;
-      }
-      
-      if (item.page) {
-        currentPage = item.page;
-        if (currentPage === pageNum) {
-          foundTargetPage = true;
-        } else if (currentPage > pageNum && foundTargetPage) {
-          // We've moved past our target page
-          clearTimeout(timeout);
-          resolve(pageText);
-          return;
-        }
-      } else if (item.text && foundTargetPage && currentPage === pageNum) {
-        // Add text with proper spacing - ensure words don't get concatenated
-        const text = item.text.trim();
-        if (text) {
-          // Add space before text if the previous text doesn't end with whitespace
-          if (pageText && !pageText.endsWith(' ') && !text.startsWith(' ')) {
-            pageText += ' ';
-          }
-          pageText += text;
-        }
-      }
-    });
-  });
-}
 
 // Fallback method for when primary extraction fails
 async function extractTextWithFallbackMethod(buffer: Buffer): Promise<string> {
