@@ -1898,14 +1898,15 @@ Return only the new content without any additional comments, explanations, or he
   // Generate dialogue audio from script
   app.post('/api/tts/generate-dialogue', async (req: Request, res: Response) => {
     try {
-      const { script, customVoices } = req.body;
+      const { script, voiceAssignments, customVoices } = req.body;
       
       if (!script || typeof script !== 'string') {
         return res.status(400).json({ error: 'Script text is required' });
       }
 
-      console.log('Generating dialogue audio from script...');
-      const result = await elevenLabsService.generateDialogueAudio(script, customVoices);
+      const voicesToUse = voiceAssignments || customVoices || {};
+      console.log('Generating dialogue audio from script with voice assignments:', voicesToUse);
+      const result = await elevenLabsService.generateDialogueAudio(script, voicesToUse);
       
       res.json({
         success: true,

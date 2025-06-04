@@ -320,22 +320,28 @@ class ElevenLabsService {
       
       if (customVoices && Object.keys(customVoices).length > 0) {
         // Use custom voice assignments
+        console.log('Using custom voice assignments:', customVoices);
         voiceAssignments = new Map();
         const availableVoices = await this.getAvailableVoices();
         
         for (const character of parsedScript.characters) {
           const customVoiceId = customVoices[character];
+          console.log(`Processing character "${character}" with voice ID: "${customVoiceId}"`);
+          
           if (customVoiceId) {
             const voice = availableVoices.find(v => v.voice_id === customVoiceId);
             if (voice) {
+              console.log(`Found voice for ${character}: ${voice.name} (${voice.voice_id})`);
               voiceAssignments.set(character, voice);
             } else {
+              console.log(`Voice ID ${customVoiceId} not found for ${character}, using auto-assignment`);
               // Fallback to automatic assignment if custom voice not found
               const autoAssignments = await this.assignVoices([character]);
               const autoVoice = autoAssignments.get(character);
               if (autoVoice) voiceAssignments.set(character, autoVoice);
             }
           } else {
+            console.log(`No custom voice specified for ${character}, using auto-assignment`);
             // Use automatic assignment for characters without custom voices
             const autoAssignments = await this.assignVoices([character]);
             const autoVoice = autoAssignments.get(character);
