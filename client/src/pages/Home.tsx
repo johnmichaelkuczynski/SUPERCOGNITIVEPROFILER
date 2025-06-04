@@ -45,6 +45,7 @@ export default function Home() {
   const [documentContent, setDocumentContent] = useState<string>('');
   const [documentName, setDocumentName] = useState<string>('');
   const [uploadedDocuments, setUploadedDocuments] = useState<{[filename: string]: string}>({});
+  const [isDragging, setIsDragging] = useState(false);
   
   // Document viewer modal state
   const [isDocumentViewerOpen, setIsDocumentViewerOpen] = useState(false);
@@ -73,6 +74,55 @@ export default function Home() {
   const [directInputText, setDirectInputText] = useState<string>('');
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
+    
+    const validFiles = droppedFiles.filter(file => {
+      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      return allowedTypes.includes(extension);
+    });
+    
+    if (validFiles.length > 0) {
+      setFiles(prev => [...prev, ...validFiles]);
+      // Process files immediately for main upload area
+      validFiles.forEach(async (file) => {
+        await handleFileUpload(file);
+      });
+    }
+  };
+
+  const handleDirectDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
+    
+    const validFiles = droppedFiles.filter(file => {
+      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      return allowedTypes.includes(extension);
+    });
+    
+    if (validFiles.length > 0) {
+      handleDirectFileUpload(validFiles);
+    }
+  };
 
   // Handle file upload for direct interface
   const handleDirectFileUpload = async (uploadedFiles: File[]) => {
