@@ -203,7 +203,7 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/tts/extract-text', {
+      const response = await fetch('/api/documents/process', {
         method: 'POST',
         body: formData,
       });

@@ -14,7 +14,9 @@ export interface ExtractedText {
  */
 async function extractFromWord(buffer: Buffer): Promise<ExtractedText> {
   try {
+    console.log(`[Word] Processing buffer of size: ${buffer.length} bytes`);
     const result = await mammoth.extractRawText({ buffer });
+    console.log(`[Word] Extraction result: ${result.value ? result.value.length : 0} characters`);
     
     if (result.value && result.value.trim()) {
       return {
@@ -22,6 +24,7 @@ async function extractFromWord(buffer: Buffer): Promise<ExtractedText> {
         success: true
       };
     } else {
+      console.log(`[Word] No text extracted, raw result:`, result);
       return {
         text: '',
         success: false,
@@ -29,6 +32,7 @@ async function extractFromWord(buffer: Buffer): Promise<ExtractedText> {
       };
     }
   } catch (error) {
+    console.error(`[Word] Extraction error:`, error);
     return {
       text: '',
       success: false,
