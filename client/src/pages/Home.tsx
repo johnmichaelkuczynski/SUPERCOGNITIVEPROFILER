@@ -75,6 +75,38 @@ export default function Home() {
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Handle file upload for main interface
+  const processUploadedFile = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const extractedText = data.text || data.content || '';
+      
+      // Add to uploaded documents
+      setUploadedDocuments(prev => ({
+        ...prev,
+        [file.name]: extractedText
+      }));
+      
+      // Add to all documents for sidebar
+      setAllDocuments(prev => [...prev, { name: file.name, content: extractedText }]);
+      
+    } catch (error) {
+      console.error('Error processing file:', error);
+    }
+  };
+
   // Drag and drop handlers
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -102,7 +134,7 @@ export default function Home() {
       setFiles(prev => [...prev, ...validFiles]);
       // Process files immediately for main upload area
       validFiles.forEach(async (file) => {
-        await handleFileUpload(file);
+        await processUploadedFile(file);
       });
     }
   };
@@ -738,11 +770,17 @@ Document text: ${extractedText}`;
           </div>
           
           {/* Text Input */}
-          <div className="space-y-2">
+          <div 
+            className={`space-y-2 ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-2' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDirectDrop}
+          >
             <textarea 
-              placeholder={processingMode === 'homework' 
-                ? "Paste exam questions, homework assignments, or instructions here..." 
-                : "Paste your text to rewrite, improve, or transform here..."
+              placeholder={isDragging ? "Drop files here to upload..." : 
+                (processingMode === 'homework' 
+                  ? "Paste exam questions, homework assignments, or instructions here..." 
+                  : "Paste your text to rewrite, improve, or transform here...")
               }
               className="w-full h-40 p-4 border rounded-lg resize-none"
               value={directInputText}
