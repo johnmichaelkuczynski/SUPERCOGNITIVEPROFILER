@@ -207,12 +207,13 @@ export default function TextToSpeech() {
     }
   };
 
-  // Send cleaned text to TTS
+  // Send text to TTS (either cleaned or original)
   const sendToTTS = async () => {
-    if (!cleanedText.trim()) {
+    const textToUse = cleanedText.trim() || originalText.trim();
+    if (!textToUse) {
       toast({
         title: "Error",
-        description: "Please clean document first",
+        description: "Please enter text or upload a document first",
         variant: "destructive"
       });
       return;
@@ -224,7 +225,7 @@ export default function TextToSpeech() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          script: cleanedText,
+          script: textToUse,
           voiceAssignments: {} // Let ElevenLabs auto-assign voices
         })
       });
@@ -400,7 +401,7 @@ export default function TextToSpeech() {
             </Button>
             <Button
               onClick={sendToTTS}
-              disabled={!cleanedText.trim() || isGeneratingAudio}
+              disabled={(!cleanedText.trim() && !originalText.trim()) || isGeneratingAudio}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isGeneratingAudio && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
