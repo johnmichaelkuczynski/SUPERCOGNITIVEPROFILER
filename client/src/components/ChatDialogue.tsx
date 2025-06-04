@@ -51,44 +51,55 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Drag and drop handlers
+  // Drag and drop handlers with debugging
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Chat drag over detected');
     setIsDragging(true);
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Chat drag enter detected');
     setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Only set dragging to false if we're leaving the drop zone entirely
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
+    console.log('Chat drag leave detected');
     
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      setIsDragging(false);
-    }
+    // Use a timeout to prevent flickering when moving between child elements
+    setTimeout(() => {
+      const rect = (e.currentTarget as Element).getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+        setIsDragging(false);
+      }
+    }, 50);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Chat drop detected', e.dataTransfer.files);
     setIsDragging(false);
     
     const droppedFiles = Array.from(e.dataTransfer.files);
+    console.log('Dropped files:', droppedFiles);
+    
     const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
     
     const validFiles = droppedFiles.filter(file => {
       const extension = '.' + file.name.split('.').pop()?.toLowerCase();
       return allowedTypes.includes(extension);
     });
+    
+    console.log('Valid files for chat:', validFiles);
     
     if (validFiles.length > 0) {
       setFiles(prev => [...prev, ...validFiles]);
