@@ -309,12 +309,21 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   return (
     <div className="h-full">
       <Card 
-        className={`h-full flex flex-col shadow-sm ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''}`}
+        className={`h-full flex flex-col shadow-sm relative ${isDragging ? 'border-2 border-dashed border-blue-400' : ''}`}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
+        {isDragging && (
+          <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
+            <div className="text-center">
+              <Upload className="h-12 w-12 mx-auto mb-2 text-blue-500" />
+              <p className="text-lg font-medium text-blue-700">Drop files here to upload</p>
+              <p className="text-sm text-blue-600">PDF, DOCX, TXT, JPG, PNG supported</p>
+            </div>
+          </div>
+        )}
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">Auxiliary AI Chat</CardTitle>
