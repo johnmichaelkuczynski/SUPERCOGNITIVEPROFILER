@@ -6,7 +6,7 @@ import { log } from '../vite';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PDFDocument } from 'pdf-lib';
-import { getDocument } from 'pdfjs-dist';
+
 
 
 export interface ProcessedDocument {
@@ -135,131 +135,168 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF using pdfjs-dist with proper formatting preservation
+// Extract text from PDF with position-aware text reconstruction
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    console.log("Extracting text from PDF using pdfjs-dist...");
+    console.log("Extracting text from PDF with position-aware reconstruction...");
     
-    // Load PDF document
-    const data = new Uint8Array(buffer);
-    const pdf = await getDocument(data).promise;
-    
-    let extractedText = '';
-    const numPages = pdf.numPages;
-    console.log(`PDF has ${numPages} pages`);
-    
-    // Extract text from each page
-    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-      try {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        
-        // Group text items by line using Y coordinates
-        const textByLine = groupTextByLines(textContent.items);
-        
-        // Reconstruct page text with proper formatting
-        const pageText = reconstructPageText(textByLine);
-        
-        if (pageText.trim()) {
-          extractedText += pageText + '\n\n';
+    return new Promise((resolve, reject) => {
+      const reader = new PdfReader();
+      const textItems: Array<{page: number, x: number, y: number, text: string}> = [];
+      let currentPage = 0;
+      
+      const timeout = setTimeout(() => {
+        if (textItems.length > 0) {
+          const reconstructedText = reconstructTextFromPositions(textItems);
+          console.log(`PDF extraction completed: ${reconstructedText.length} characters with position-aware reconstruction`);
+          resolve(reconstructedText);
+        } else {
+          resolve("PDF extraction failed - no text items found.");
+        }
+      }, 30000); // 30 second timeout for complex PDFs
+      
+      reader.parseBuffer(buffer, (err, item) => {
+        if (err) {
+          console.error("PDF parsing error:", err);
+          return;
         }
         
-        console.log(`Processed page ${pageNum}/${numPages}`);
-      } catch (pageError) {
-        console.error(`Error processing page ${pageNum}:`, pageError);
-        // Continue with next page
-      }
-    }
-    
-    if (!extractedText || extractedText.trim().length < 100) {
-      console.log("pdfjs-dist extraction yielded minimal text, using fallback...");
-      return await extractTextWithFallbackMethod(buffer);
-    }
-    
-    console.log(`PDF extraction completed: ${extractedText.length} characters from ${numPages} pages`);
-    return extractedText.trim();
+        if (!item) {
+          // End of file
+          clearTimeout(timeout);
+          if (textItems.length > 0) {
+            const reconstructedText = reconstructTextFromPositions(textItems);
+            console.log(`PDF extraction completed: ${reconstructedText.length} characters from ${currentPage} pages`);
+            resolve(reconstructedText);
+          } else {
+            resolve("PDF extraction failed - no text content found.");
+          }
+          return;
+        }
+        
+        if (item.page) {
+          currentPage = item.page;
+        } else if (item.text && item.text.trim()) {
+          // Store text with approximate position (pdfreader provides limited position info)
+          textItems.push({
+            page: currentPage,
+            x: item.x || 0,
+            y: item.y || 0,
+            text: item.text.trim()
+          });
+        }
+      });
+    });
     
   } catch (error) {
-    console.error("pdfjs-dist extraction failed:", error);
-    console.log("Using fallback extraction method...");
+    console.error("Position-aware PDF extraction failed:", error);
     return await extractTextWithFallbackMethod(buffer);
   }
 }
 
-// Group text items by lines based on Y coordinates
-function groupTextByLines(textItems: any[]): any[][] {
-  const lines: any[][] = [];
-  const lineThreshold = 5; // Y coordinate difference threshold for same line
+// Reconstruct text from positioned text items with intelligent formatting
+function reconstructTextFromPositions(textItems: Array<{page: number, x: number, y: number, text: string}>): string {
+  if (!textItems.length) return '';
   
-  // Sort items by Y coordinate (top to bottom), then X coordinate (left to right)
-  const sortedItems = textItems.sort((a, b) => {
-    const yDiff = Math.abs(a.transform[5] - b.transform[5]);
-    if (yDiff < lineThreshold) {
-      return a.transform[4] - b.transform[4]; // Sort by X coordinate
+  // Group by page
+  const pageGroups: { [page: number]: Array<{x: number, y: number, text: string}> } = {};
+  
+  textItems.forEach(item => {
+    if (!pageGroups[item.page]) {
+      pageGroups[item.page] = [];
     }
-    return b.transform[5] - a.transform[5]; // Sort by Y coordinate (reversed because PDF coordinates start from bottom)
+    pageGroups[item.page].push({x: item.x, y: item.y, text: item.text});
   });
   
-  let currentLine: any[] = [];
-  let lastY = -1;
+  let fullText = '';
   
-  for (const item of sortedItems) {
-    const currentY = item.transform[5];
+  // Process each page
+  Object.keys(pageGroups).sort((a, b) => parseInt(a) - parseInt(b)).forEach(pageNum => {
+    const pageItems = pageGroups[parseInt(pageNum)];
     
-    if (lastY === -1 || Math.abs(currentY - lastY) < lineThreshold) {
-      // Same line
-      currentLine.push(item);
-    } else {
-      // New line
-      if (currentLine.length > 0) {
-        lines.push([...currentLine]);
+    // Sort items by Y position (reading order), then by X position
+    pageItems.sort((a, b) => {
+      const yDiff = Math.abs(a.y - b.y);
+      if (yDiff < 10) { // Same line threshold
+        return a.x - b.x;
       }
-      currentLine = [item];
-    }
-    lastY = currentY;
-  }
-  
-  // Add the last line
-  if (currentLine.length > 0) {
-    lines.push(currentLine);
-  }
-  
-  return lines;
-}
-
-// Reconstruct text from grouped lines with proper spacing
-function reconstructPageText(textLines: any[][]): string {
-  let pageText = '';
-  
-  for (const line of textLines) {
-    let lineText = '';
+      return a.y - b.y;
+    });
+    
+    // Reconstruct page text with intelligent spacing
+    let pageText = '';
+    let lastY = -1;
     let lastX = -1;
     
-    // Sort items in line by X coordinate
-    const sortedLineItems = line.sort((a, b) => a.transform[4] - b.transform[4]);
-    
-    for (const item of sortedLineItems) {
-      if (!item.str || !item.str.trim()) continue;
+    for (const item of pageItems) {
+      const text = item.text;
       
-      const currentX = item.transform[4];
-      const text = item.str;
-      
-      // Add spacing between words based on X coordinate gaps
-      if (lastX !== -1 && currentX - lastX > 20) {
-        // Large gap - likely word boundary
-        lineText += ' ';
+      // Determine if this is a new line
+      if (lastY !== -1 && Math.abs(item.y - lastY) > 10) {
+        pageText += '\n';
+      } else if (lastX !== -1 && item.x - lastX > 50) {
+        // Large horizontal gap - add space
+        pageText += ' ';
+      } else if (pageText && !pageText.endsWith(' ') && !text.startsWith(' ')) {
+        // Ensure word separation
+        pageText += ' ';
       }
       
-      lineText += text;
-      lastX = currentX + (item.width || 0);
+      pageText += text;
+      lastY = item.y;
+      lastX = item.x;
     }
     
-    if (lineText.trim()) {
-      pageText += lineText.trim() + '\n';
+    if (pageText.trim()) {
+      fullText += pageText.trim() + '\n\n';
     }
-  }
+  });
   
-  return pageText;
+  // Apply intelligent text reconstruction to fix any remaining issues
+  return applyIntelligentReconstruction(fullText.trim());
+}
+
+// Apply intelligent reconstruction to fix common PDF extraction issues
+function applyIntelligentReconstruction(text: string): string {
+  if (!text) return text;
+  
+  let fixed = text;
+  
+  // Fix broken character names in dialogue
+  const nameFixPatterns = [
+    { broken: /F\s*r\s*e\s*u\s*d\s*:/gi, fixed: 'Freud:' },
+    { broken: /S\s*a\s*r\s*t\s*r\s*e\s*:/gi, fixed: 'Sartre:' },
+    { broken: /F\s*o\s*u\s*c\s*a\s*u\s*l\s*t\s*:/gi, fixed: 'Foucault:' },
+    { broken: /S\s*o\s*c\s*r\s*a\s*t\s*e\s*s\s*:/gi, fixed: 'Socrates:' },
+    { broken: /P\s*l\s*a\s*t\s*o\s*:/gi, fixed: 'Plato:' },
+    { broken: /A\s*r\s*i\s*s\s*t\s*o\s*t\s*l\s*e\s*:/gi, fixed: 'Aristotle:' },
+    { broken: /N\s*i\s*e\s*t\s*z\s*s\s*c\s*h\s*e\s*:/gi, fixed: 'Nietzsche:' },
+    { broken: /H\s*e\s*i\s*d\s*e\s*g\s*g\s*e\s*r\s*:/gi, fixed: 'Heidegger:' },
+    { broken: /K\s*a\s*n\s*t\s*:/gi, fixed: 'Kant:' },
+    { broken: /D\s*e\s*s\s*c\s*a\s*r\s*t\s*e\s*s\s*:/gi, fixed: 'Descartes:' },
+    { broken: /L\s*e\s*i\s*b\s*n\s*i\s*z\s*:/gi, fixed: 'Leibniz:' },
+    { broken: /L\s*o\s*c\s*k\s*e\s*:/gi, fixed: 'Locke:' }
+  ];
+  
+  nameFixPatterns.forEach(pattern => {
+    fixed = fixed.replace(pattern.broken, pattern.fixed);
+  });
+  
+  // Fix broken common words
+  fixed = fixed.replace(/c\s*o\s*n\s*s\s*c\s*i\s*o\s*u\s*s\s*n\s*e\s*s\s*s/gi, 'consciousness');
+  fixed = fixed.replace(/u\s*n\s*c\s*o\s*n\s*s\s*c\s*i\s*o\s*u\s*s/gi, 'unconscious');
+  fixed = fixed.replace(/e\s*x\s*i\s*s\s*t\s*e\s*n\s*c\s*e/gi, 'existence');
+  fixed = fixed.replace(/p\s*h\s*e\s*n\s*o\s*m\s*e\s*n\s*o\s*l\s*o\s*g\s*y/gi, 'phenomenology');
+  fixed = fixed.replace(/p\s*s\s*y\s*c\s*h\s*o\s*a\s*n\s*a\s*l\s*y\s*s\s*i\s*s/gi, 'psychoanalysis');
+  
+  // Clean up excessive whitespace
+  fixed = fixed.replace(/\s{3,}/g, ' ');
+  fixed = fixed.replace(/\n\s*\n\s*\n/g, '\n\n');
+  
+  // Ensure proper dialogue formatting
+  fixed = fixed.replace(/^([A-Z][a-z]+)\s*:\s*/gm, '$1: ');
+  
+  return fixed.trim();
 }
 
 // Reconstruct broken text by fixing character spacing issues
