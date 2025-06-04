@@ -215,9 +215,9 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
       const result = await response.json();
       
       // Extract text content and add to script
-      if (result.extractedText) {
+      if (result.text) {
         setScript(prevScript => {
-          const newContent = prevScript ? `${prevScript}\n\n${result.extractedText}` : result.extractedText;
+          const newContent = prevScript ? `${prevScript}\n\n${result.text}` : result.text;
           return newContent;
         });
         
