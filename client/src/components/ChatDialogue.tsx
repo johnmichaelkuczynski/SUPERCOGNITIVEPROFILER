@@ -98,6 +98,57 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Attach drag and drop event listeners directly to chat input area
+  useEffect(() => {
+    const chatContainer = document.querySelector('[data-chat-container="true"]') as HTMLElement;
+    if (!chatContainer) return;
+
+    const handleChatDragOver = (e: Event) => {
+      const dragEvent = e as DragEvent;
+      dragEvent.preventDefault();
+      dragEvent.stopPropagation();
+      setIsDragging(true);
+    };
+
+    const handleChatDragLeave = (e: Event) => {
+      const dragEvent = e as DragEvent;
+      dragEvent.preventDefault();
+      dragEvent.stopPropagation();
+      if (!chatContainer.contains(dragEvent.relatedTarget as Node)) {
+        setIsDragging(false);
+      }
+    };
+
+    const handleChatDrop = (e: Event) => {
+      const dragEvent = e as DragEvent;
+      dragEvent.preventDefault();
+      dragEvent.stopPropagation();
+      setIsDragging(false);
+      
+      const droppedFiles = Array.from(dragEvent.dataTransfer?.files || []);
+      const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
+      
+      const validFiles = droppedFiles.filter(file => {
+        const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+        return allowedTypes.includes(extension);
+      });
+      
+      if (validFiles.length > 0) {
+        setFiles(prev => [...prev, ...validFiles]);
+      }
+    };
+
+    chatContainer.addEventListener('dragover', handleChatDragOver);
+    chatContainer.addEventListener('dragleave', handleChatDragLeave);
+    chatContainer.addEventListener('drop', handleChatDrop);
+
+    return () => {
+      chatContainer.removeEventListener('dragover', handleChatDragOver);
+      chatContainer.removeEventListener('dragleave', handleChatDragLeave);
+      chatContainer.removeEventListener('drop', handleChatDrop);
+    };
+  }, []);
+
 
 
   // Expose methods via ref
@@ -307,14 +358,9 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full" data-chat-container="true">
       <Card 
-        data-chat-card="true"
         className={`h-full flex flex-col shadow-sm relative ${isDragging ? 'border-2 border-dashed border-blue-400' : ''}`}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
         {isDragging && (
           <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
