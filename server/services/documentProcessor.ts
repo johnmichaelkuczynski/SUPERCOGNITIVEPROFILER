@@ -24,15 +24,14 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
     let extractedText = '';
     let chunks: Array<{title: string, content: string}> | undefined;
     
+    console.log(`Processing file directly: ${file.originalname}`);
     console.log(`Processing file ${file.originalname} (${file.size} bytes)`);
     
     switch (fileType) {
       case 'pdf':
-        // Use enhanced extraction for PDFs
         extractedText = await extractTextFromPDF(file.buffer);
         log(`Extracted ${extractedText.length} characters from PDF`, 'document');
         
-        // Create chunks for large documents
         if (extractedText.length > 10000) {
           chunks = splitIntoChunks(extractedText);
           log(`Created ${chunks.length} document chunks for better processing`, 'document');
@@ -50,6 +49,12 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
           chunks = splitIntoChunks(extractedText);
         }
         break;
+      case 'doc':
+        extractedText = await extractTextFromDOCX(file.buffer);
+        if (extractedText.length > 10000) {
+          chunks = splitIntoChunks(extractedText);
+        }
+        break;
       case 'jpg':
       case 'jpeg':
       case 'png':
@@ -60,17 +65,14 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
     }
     
     // Run AI detection on the extracted text if GPTZero API key is available
-    // Only use a sample of the text for detection to avoid API limits
     let aiDetection: AIDetectionResult | undefined;
     if (process.env.GPTZERO_API_KEY && extractedText.length > 0) {
       try {
         log(`Running AI detection on ${file.originalname}...`, 'document');
-        // Use only first 5000 chars for detection to avoid API limits
         const textSample = extractedText.length > 5000 ? extractedText.substring(0, 5000) : extractedText;
         aiDetection = await detectAIContent(textSample);
       } catch (error) {
         log(`AI detection failed: ${(error as Error).message}`, 'document');
-        // Don't fail the whole process if AI detection fails
       }
     } else if (!process.env.GPTZERO_API_KEY) {
       log('GPTZERO_API_KEY not found in environment variables, skipping AI detection', 'document');
@@ -79,7 +81,6 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
     // Clean up the extracted text to remove excessive spacing
     const cleanedText = cleanExtractedText(extractedText);
     
-    // Always return the full document text and chunks if available
     return {
       text: cleanedText,
       chunks,
@@ -129,138 +130,66 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF using enhanced pdfreader with better text processing
+// Extract text from PDF with improved text processing for dialogue scripts
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  try {
-    console.log("Extracting text from PDF with enhanced processing...");
-    
-    // Use enhanced pdfreader extraction
-    const extractedText = await extractWithEnhancedPdfReader(buffer);
-    
-    if (!extractedText || extractedText.length < 100) {
-      console.log("Enhanced extraction yielded minimal text, trying standard method...");
-      return await extractWithPdfReader(buffer);
-    }
-    
-    console.log(`Enhanced PDF extraction successfully extracted ${extractedText.length} characters`);
-    return extractedText;
-    
-  } catch (error) {
-    console.error("Enhanced PDF extraction failed, trying standard method:", error);
-    try {
-      return await extractWithPdfReader(buffer);
-    } catch (fallbackError) {
-      console.error("All PDF extraction methods failed:", fallbackError);
-      throw new Error("Failed to extract text from PDF using all available methods");
-    }
-  }
-}
-
-// Method 1: Extract with PdfReader
-async function extractWithPdfReader(buffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new PdfReader();
     const textByPage: { [key: number]: string[] } = {};
     let pageCount = 0;
     
-    // Start with a safety fallback if parser returns nothing
     const timeout = setTimeout(() => {
-      // If we've collected any text at all, return it
       if (Object.keys(textByPage).length > 0) {
         const text = Object.keys(textByPage)
           .sort((a, b) => parseInt(a) - parseInt(b))
-          .map(pageNum => textByPage[parseInt(pageNum)].join(' '))
+          .map(pageNum => {
+            // Join text on each page with spaces to preserve word boundaries
+            return textByPage[parseInt(pageNum)].join(' ');
+          })
           .join('\n\n');
-        
-        if (text.trim().length > 0) {
-          resolve(text);
-          return;
-        }
+        console.log(`PDF extraction completed: ${text.length} characters from ${pageCount} pages`);
+        resolve(text);
+      } else {
+        resolve("PDF extraction yielded no readable text.");
       }
-      
-      // If we got nothing, provide a fallback message
-      resolve("The PDF content could not be extracted with method 1.");
-    }, 15000); // 15 second timeout
+    }, 15000);
     
     reader.parseBuffer(buffer, (err, item) => {
       if (err) {
         console.error("PDF parsing error:", err);
-        // Don't reject - try to continue parsing
+        return;
       }
       
       if (!item) {
-        // End of file, concatenate all text
+        // End of file
         clearTimeout(timeout);
-        
         const text = Object.keys(textByPage)
           .sort((a, b) => parseInt(a) - parseInt(b))
-          .map(pageNum => textByPage[parseInt(pageNum)].join(' '))
+          .map(pageNum => {
+            // Join text on each page with spaces to preserve word boundaries
+            return textByPage[parseInt(pageNum)].join(' ');
+          })
           .join('\n\n');
         
-        console.log(`Method 1: Extracted ${text.length} characters from PDF with ${pageCount} pages`);
+        console.log(`PDF extraction completed: ${text.length} characters from ${pageCount} pages`);
         resolve(text);
         return;
       }
       
       if (item.page) {
-        // New page
         pageCount = Math.max(pageCount, item.page);
-        textByPage[item.page] = textByPage[item.page] || [];
-      } else if (item.text) {
-        // Add text to current page
-        const pageNum = Object.keys(textByPage).length;
-        if (pageNum > 0 && textByPage[pageNum]) {
-          textByPage[pageNum].push(item.text);
+        if (!textByPage[item.page]) {
+          textByPage[item.page] = [];
         }
+      } else if (item.text && item.text.trim()) {
+        // Add text to current page with proper spacing
+        const currentPage = pageCount || 1;
+        if (!textByPage[currentPage]) {
+          textByPage[currentPage] = [];
+        }
+        textByPage[currentPage].push(item.text.trim());
       }
     });
   });
-}
-
-// Method 2: Extract with pdf.js
-async function extractWithPdfJs(buffer: Buffer): Promise<string> {
-  try {
-    const pdfjsLib = await import('pdfjs-dist');
-    
-    // Configure the workerSrc property for Node.js environment
-    if (typeof window === 'undefined') {
-      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.js');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-    }
-    
-    const data = new Uint8Array(buffer);
-    const loadingTask = pdfjsLib.getDocument({ data });
-    const pdf = await loadingTask.promise;
-    
-    let extractedText = '';
-    const numPages = pdf.numPages;
-    
-    console.log(`Method 2: PDF has ${numPages} pages`);
-    
-    // Extract text from each page
-    for (let i = 1; i <= numPages; i++) {
-      try {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        
-        // Extract text from the page, preserving some layout
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        
-        extractedText += pageText + '\n\n';
-      } catch (pageError) {
-        console.error(`Error extracting text from page ${i}:`, pageError);
-        extractedText += `[Error extracting page ${i}]\n\n`;
-      }
-    }
-    
-    console.log(`Method 2: Extracted ${extractedText.length} characters from PDF`);
-    return extractedText;
-  } catch (error) {
-    console.error('Error in PDF.js extraction:', error);
-    return "The PDF content could not be extracted with method 2.";
-  }
 }
 
 // Extract text from DOCX using mammoth
