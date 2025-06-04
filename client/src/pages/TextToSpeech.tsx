@@ -70,11 +70,19 @@ export default function TextToSpeech() {
       const response = await fetch('/api/tts/voices');
       if (response.ok) {
         const data = await response.json();
+        console.log('Loaded voices:', data.voices?.length || 0);
         setVoices(data.voices || []);
+        if (data.voices?.length > 0) {
+          toast({
+            title: "Success",
+            description: `Loaded ${data.voices.length} voices from ElevenLabs`
+          });
+        }
       } else {
+        const errorData = await response.json();
         toast({
           title: "Error",
-          description: "Failed to load voices. Check your ElevenLabs API key.",
+          description: errorData.details || "Failed to load voices",
           variant: "destructive"
         });
       }
@@ -232,15 +240,25 @@ export default function TextToSpeech() {
 
       if (response.ok) {
         const result = await response.json();
-        setGeneratedAudioUrl(result.audioPath);
-        toast({
-          title: "Success",
-          description: "Audio generated successfully"
-        });
+        console.log('Audio generation result:', result);
+        if (result.audioPath) {
+          setGeneratedAudioUrl(result.audioPath);
+          toast({
+            title: "Success",
+            description: "Audio generated successfully"
+          });
+        } else {
+          toast({
+            title: "Warning",
+            description: "Audio generated but no download link received",
+            variant: "destructive"
+          });
+        }
       } else {
+        const errorData = await response.json();
         toast({
           title: "Error",
-          description: "Failed to generate audio",
+          description: errorData.error || "Failed to generate audio",
           variant: "destructive"
         });
       }
@@ -411,8 +429,18 @@ export default function TextToSpeech() {
           </div>
 
           {voices.length > 0 && (
-            <div className="text-sm text-muted-foreground">
-              {voices.length} voices available from ElevenLabs
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {voices.length} voices available from ElevenLabs
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border rounded p-2">
+                {voices.slice(0, 20).map((voice) => (
+                  <div key={voice.voice_id} className="text-xs p-2 border rounded hover:bg-gray-50">
+                    <div className="font-medium">{voice.name}</div>
+                    <div className="text-gray-500">{voice.labels?.gender || voice.category}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
