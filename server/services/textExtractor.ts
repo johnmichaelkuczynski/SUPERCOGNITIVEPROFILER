@@ -15,16 +15,52 @@ export interface ExtractedText {
 async function extractFromWord(buffer: Buffer): Promise<ExtractedText> {
   try {
     console.log(`[Word] Processing buffer of size: ${buffer.length} bytes`);
-    const result = await mammoth.extractRawText({ buffer });
-    console.log(`[Word] Extraction result: ${result.value ? result.value.length : 0} characters`);
     
-    if (result.value && result.value.trim()) {
+    // First try HTML conversion to preserve formatting
+    const htmlResult = await mammoth.convertToHtml({ buffer });
+    
+    if (htmlResult.value && htmlResult.value.trim()) {
+      // Convert HTML to properly formatted text
+      let text = htmlResult.value
+        // Remove HTML tags but preserve structure
+        .replace(/<\/p>/g, '\n\n')  // Paragraph breaks
+        .replace(/<br\s*\/?>/g, '\n')  // Line breaks
+        .replace(/<\/h[1-6]>/g, '\n\n')  // Heading breaks
+        .replace(/<\/div>/g, '\n')  // Div breaks
+        .replace(/<\/li>/g, '\n')  // List item breaks
+        .replace(/<[^>]*>/g, '')  // Remove all other HTML tags
+        // Clean up HTML entities
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        // Normalize whitespace while preserving intentional breaks
+        .replace(/[ \t]+/g, ' ')  // Multiple spaces to single space
+        .replace(/\n[ \t]+/g, '\n')  // Remove spaces at start of lines
+        .replace(/[ \t]+\n/g, '\n')  // Remove spaces at end of lines
+        .replace(/\n{3,}/g, '\n\n')  // Max 2 consecutive newlines
+        .trim();
+      
+      console.log(`[Word] HTML extraction successful: ${text.length} characters`);
       return {
-        text: result.value,
+        text: text,
+        success: true
+      };
+    }
+    
+    // Fallback to raw text if HTML conversion fails
+    console.log(`[Word] HTML conversion failed, trying raw text extraction`);
+    const rawResult = await mammoth.extractRawText({ buffer });
+    
+    if (rawResult.value && rawResult.value.trim()) {
+      return {
+        text: rawResult.value,
         success: true
       };
     } else {
-      console.log(`[Word] No text extracted, raw result:`, result);
+      console.log(`[Word] No text extracted from either method`);
       return {
         text: '',
         success: false,

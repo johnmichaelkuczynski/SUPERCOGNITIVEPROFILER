@@ -97,35 +97,23 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
   }
 }
 
-// Clean extracted text specifically for dialogue scripts and TTS processing
+// Preserve original text formatting for dialogue scripts and TTS processing
 function cleanExtractedText(text: string): string {
   if (!text) return text;
   
   let cleaned = text;
   
-  // Basic cleanup
+  // Only do minimal cleanup to preserve formatting
   cleaned = cleaned.replace(/\r\n/g, '\n'); // Windows line endings to Unix
-  cleaned = cleaned.replace(/\t/g, ' '); // Tabs to spaces
+  cleaned = cleaned.replace(/\r/g, '\n'); // Mac line endings to Unix
   
-  // Fix excessive whitespace while preserving paragraph structure
-  cleaned = cleaned.replace(/[ \t]{2,}/g, ' '); // Multiple spaces/tabs to single space
-  cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n'); // Multiple newlines to double
+  // Only remove truly excessive whitespace (3+ consecutive spaces)
+  cleaned = cleaned.replace(/   +/g, '  '); // 3+ spaces to 2 spaces max
   
-  // Fix punctuation spacing
-  cleaned = cleaned.replace(/\s+([.,;:!?])/g, '$1'); // Remove space before punctuation
-  cleaned = cleaned.replace(/([.,;:!?])([A-Za-z])/g, '$1 $2'); // Add space after punctuation
+  // Only remove excessive newlines (4+ consecutive)
+  cleaned = cleaned.replace(/\n{4,}/g, '\n\n\n'); // Max 3 consecutive newlines
   
-  // Fix dialogue formatting specifically
-  cleaned = cleaned.replace(/([A-Za-z]+)\s*:\s*/g, '$1: '); // Normalize character name format
-  cleaned = cleaned.replace(/([A-Za-z])\s+([A-Za-z])\s*:/g, '$1$2:'); // Fix broken character names
-  
-  // Clean up common PDF artifacts
-  cleaned = cleaned.replace(/\s+$/gm, ''); // Remove trailing spaces from lines
-  cleaned = cleaned.replace(/^\s+/gm, ''); // Remove leading spaces from lines
-  
-  // Final trim
-  cleaned = cleaned.trim();
-  
+  // Preserve all character names, formatting, and structure
   return cleaned;
 }
 
