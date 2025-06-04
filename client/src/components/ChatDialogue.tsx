@@ -98,31 +98,34 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Attach drag and drop event listeners directly to chat input area
+  // Simple working drag and drop implementation
   useEffect(() => {
-    const chatContainer = document.querySelector('[data-chat-container="true"]') as HTMLElement;
-    if (!chatContainer) return;
+    let dragCounter = 0;
 
-    const handleChatDragOver = (e: any) => {
+    const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
-      e.stopPropagation();
+      dragCounter++;
       setIsDragging(true);
     };
 
-    const handleChatDragLeave = (e: any) => {
+    const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
-      e.stopPropagation();
-      if (!chatContainer.contains(e.relatedTarget as Node)) {
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter === 0) {
         setIsDragging(false);
       }
     };
 
-    const handleChatDrop = (e: any) => {
+    const handleDrop = (e: DragEvent) => {
       e.preventDefault();
-      e.stopPropagation();
+      dragCounter = 0;
       setIsDragging(false);
       
-      const droppedFiles = Array.from(e.dataTransfer?.files || []);
+      const droppedFiles = Array.from(e.dataTransfer?.files || []) as File[];
       const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
       
       const validFiles = droppedFiles.filter((file: File) => {
@@ -135,14 +138,16 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
       }
     };
 
-    chatContainer.addEventListener('dragover', handleChatDragOver);
-    chatContainer.addEventListener('dragleave', handleChatDragLeave);
-    chatContainer.addEventListener('drop', handleChatDrop);
+    window.addEventListener('dragenter', handleDragEnter);
+    window.addEventListener('dragover', handleDragOver);
+    window.addEventListener('dragleave', handleDragLeave);
+    window.addEventListener('drop', handleDrop);
 
     return () => {
-      chatContainer.removeEventListener('dragover', handleChatDragOver);
-      chatContainer.removeEventListener('dragleave', handleChatDragLeave);
-      chatContainer.removeEventListener('drop', handleChatDrop);
+      window.removeEventListener('dragenter', handleDragEnter);
+      window.removeEventListener('dragover', handleDragOver);
+      window.removeEventListener('dragleave', handleDragLeave);
+      window.removeEventListener('drop', handleDrop);
     };
   }, []);
 
