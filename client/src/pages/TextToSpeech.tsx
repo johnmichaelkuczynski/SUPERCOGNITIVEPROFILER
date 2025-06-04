@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Play, Download, Users, Clock, Mic } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Loader2, Play, Download, Users, Clock, Mic, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface VoiceAssignment {
@@ -42,8 +43,10 @@ export default function TextToSpeech() {
   const [script, setScript] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [scriptPreview, setScriptPreview] = useState<ScriptPreview | null>(null);
   const [generationResult, setGenerationResult] = useState<GenerationResult | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const exampleScript = `ALICE: Hello Bob, how are you feeling today? (cheerfully)
@@ -148,6 +151,84 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
     }
   };
 
+  const uploadDocument = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process document');
+      }
+
+      const result = await response.json();
+      
+      // Extract text content and add to script
+      if (result.extractedText) {
+        setScript(prevScript => {
+          const newContent = prevScript ? `${prevScript}\n\n${result.extractedText}` : result.extractedText;
+          return newContent;
+        });
+        
+        toast({
+          title: "Document Uploaded",
+          description: `Successfully extracted text from ${file.name}`,
+        });
+      } else {
+        toast({
+          title: "Warning",
+          description: "Document processed but no text was extracted",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to process document. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const allowedTypes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
+        'text/plain'
+      ];
+      
+      if (allowedTypes.includes(file.type)) {
+        uploadDocument(file);
+      } else {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a PDF, Word document, or text file.",
+          variant: "destructive"
+        });
+      }
+    }
+    
+    // Reset the input value so the same file can be selected again
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   const loadExample = () => {
     setScript(exampleScript);
     setScriptPreview(null);
@@ -171,10 +252,34 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Script Input</h2>
-            <Button variant="outline" onClick={loadExample}>
-              Load Example
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={triggerFileUpload}
+                disabled={isUploading}
+                className="flex items-center gap-2"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                Upload Document
+              </Button>
+              <Button variant="outline" onClick={loadExample}>
+                Load Example
+              </Button>
+            </div>
           </div>
+          
+          {/* Hidden file input */}
+          <Input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.doc,.txt"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
           
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
@@ -197,6 +302,11 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
           </div>
           
           <div className="text-xs text-gray-500 space-y-1">
+            <p><strong>Input Options:</strong></p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li><strong>Upload Document:</strong> PDF, Word (.docx/.doc), or text files will be automatically processed</li>
+              <li><strong>Manual Entry:</strong> Type or paste your script directly</li>
+            </ul>
             <p><strong>Formatting Tips:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Character names should be in ALL CAPS followed by a colon</li>
