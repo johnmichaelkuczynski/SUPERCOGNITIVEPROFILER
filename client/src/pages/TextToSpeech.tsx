@@ -268,10 +268,13 @@ export default function TextToSpeech() {
         const result = await response.json();
         console.log('Audio generation result:', result);
         if (result.audioPath) {
-          setGeneratedAudioUrl(result.audioPath);
+          // Convert absolute path to relative URL for download
+          const filename = result.audioPath.split('/').pop();
+          const downloadUrl = `/api/tts/download/${filename}`;
+          setGeneratedAudioUrl(downloadUrl);
           toast({
             title: "Success",
-            description: "Audio generated successfully"
+            description: `Audio generated successfully (${result.metadata?.duration}s)`
           });
         } else {
           toast({
