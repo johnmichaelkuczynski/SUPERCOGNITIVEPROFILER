@@ -51,38 +51,42 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Working drag and drop handlers (copied from Home.tsx)
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
+  // Chat input specific drag and drop handlers
+  const handleChatFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const chatInput = document.getElementById('chat-input') as HTMLTextAreaElement;
+      if (chatInput && e.target?.result) {
+        chatInput.value = e.target.result as string;
+        setInput(e.target.result as string);
+      }
+    };
+    reader.readAsText(file);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
-    
-    const validFiles = droppedFiles.filter(file => {
-      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-      return allowedTypes.includes(extension);
+  const enableDragAndDrop = (el: HTMLElement, fileHandler: (file: File) => void) => {
+    el.addEventListener('dragover', (e) => {
+      e.preventDefault();
     });
-    
-    if (validFiles.length > 0) {
-      setFiles(prev => [...prev, ...validFiles]);
-    }
+    el.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer?.files[0];
+      if (file) fileHandler(file);
+    });
   };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Enable drag and drop for chat input
+  useEffect(() => {
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) {
+      enableDragAndDrop(chatInput, handleChatFile);
+    }
+  }, []);
 
 
 
@@ -298,9 +302,6 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     <div className="h-full" data-chat-container="true">
       <Card 
         className={`h-full flex flex-col shadow-sm relative ${isDragging ? 'border-2 border-dashed border-blue-400' : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
         {isDragging && (
           <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
@@ -586,6 +587,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
             <div className="flex space-x-2">
               <div className="flex-1 relative">
                 <Textarea
+                  id="chat-input"
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
