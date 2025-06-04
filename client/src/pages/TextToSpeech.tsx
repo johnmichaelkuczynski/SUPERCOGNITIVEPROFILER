@@ -214,20 +214,21 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
 
       const result = await response.json();
       
-      if (result.success && result.text && result.text.trim()) {
+      const extractedText = result.text || result.content;
+      if (extractedText && extractedText.trim()) {
         setScript(prevScript => {
-          const newContent = prevScript ? `${prevScript}\n\n${result.text}` : result.text;
+          const newContent = prevScript ? `${prevScript}\n\n${extractedText}` : extractedText;
           return newContent;
         });
         
         toast({
           title: "Document Uploaded",
-          description: result.message || `Successfully extracted text from ${file.name}`,
+          description: `Successfully extracted ${extractedText.length} characters from ${file.name}`,
         });
       } else {
         toast({
           title: "Error",
-          description: result.message || "Failed to extract text from document",
+          description: "Document processed but no text was extracted",
           variant: "destructive"
         });
       }
