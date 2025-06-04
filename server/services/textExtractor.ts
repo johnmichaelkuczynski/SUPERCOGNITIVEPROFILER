@@ -1,7 +1,7 @@
 import mammoth from 'mammoth';
 import fs from 'fs';
 import path from 'path';
-import { PDFExtract } from 'pdf.js-extract';
+import pdfParse from 'pdf-parse';
 
 export interface ExtractedText {
   text: string;
@@ -82,16 +82,11 @@ async function extractFromWord(buffer: Buffer): Promise<ExtractedText> {
  */
 async function extractFromPDF(buffer: Buffer): Promise<ExtractedText> {
   try {
-    const pdfExtract = new PDFExtract();
+    console.log(`[PDF] Processing buffer of size: ${buffer.length} bytes`);
     
-    const data = await new Promise<any>((resolve, reject) => {
-      pdfExtract.extractBuffer(buffer, {}, (err: any, data: any) => {
-        if (err) reject(err);
-        else resolve(data);
-      });
-    });
-
-    if (!data || !data.pages || data.pages.length === 0) {
+    const data = await pdfParse(buffer);
+    
+    if (!data || !data.text) {
       return {
         text: '',
         success: false,
@@ -99,73 +94,30 @@ async function extractFromPDF(buffer: Buffer): Promise<ExtractedText> {
       };
     }
 
-    // Extract text preserving original structure
-    let extractedText = '';
+    let extractedText = data.text;
     
-    for (const page of data.pages) {
-      if (page.content && page.content.length > 0) {
-        // Group content by Y position to detect lines
-        const lineGroups = new Map<number, any[]>();
-        
-        for (const item of page.content) {
-          if (item.str && item.str.trim()) {
-            const yPos = Math.round(item.y);
-            if (!lineGroups.has(yPos)) {
-              lineGroups.set(yPos, []);
-            }
-            lineGroups.get(yPos)!.push(item);
-          }
-        }
-        
-        // Sort lines by Y position (top to bottom)
-        const sortedYPositions = Array.from(lineGroups.keys()).sort((a, b) => b - a);
-        
-        for (const yPos of sortedYPositions) {
-          const lineItems = lineGroups.get(yPos)!;
-          // Sort items in line by X position (left to right)
-          lineItems.sort((a, b) => a.x - b.x);
-          
-          // Join text items in this line
-          const lineText = lineItems.map(item => item.str).join('').trim();
-          
-          if (lineText) {
-            // Check if this looks like a character name (ends with colon)
-            if (lineText.match(/^[A-Za-z\s]+:/) || lineText.match(/^\*\*[A-Za-z\s]+\*\*/)) {
-              // Character name - add extra spacing
-              extractedText += '\n' + lineText + '\n';
-            } else {
-              // Regular text
-              extractedText += lineText + '\n';
-            }
-          }
-        }
-        
-        // Add page break for multi-page documents
-        if (data.pages.length > 1) {
-          extractedText += '\n';
-        }
-      }
-    }
+    // Clean up the text while preserving dialogue structure
+    extractedText = extractedText
+      // Normalize line endings
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      // Fix character names that got split across lines
+      .replace(/([A-Za-z]+)\s*\n\s*:/g, '$1:')
+      // Add proper spacing after character names
+      .replace(/([A-Za-z]+:)([^\n])/g, '$1 $2')
+      // Preserve paragraph breaks but limit excessive newlines
+      .replace(/\n{4,}/g, '\n\n\n')
+      // Clean up spacing
+      .trim();
 
-    if (extractedText && extractedText.trim()) {
-      // Clean up excessive newlines but preserve paragraph structure
-      const cleanText = extractedText
-        .replace(/\n{4,}/g, '\n\n\n')  // Max 3 consecutive newlines
-        .replace(/^\n+/, '')  // Remove leading newlines
-        .replace(/\n+$/, '');  // Remove trailing newlines
-      
-      return {
-        text: cleanText,
-        success: true
-      };
-    } else {
-      return {
-        text: '',
-        success: false,
-        error: 'No text content found in PDF'
-      };
-    }
+    console.log(`[PDF] Extraction successful: ${extractedText.length} characters`);
+    
+    return {
+      text: extractedText,
+      success: true
+    };
   } catch (error) {
+    console.error(`[PDF] Extraction error:`, error);
     return {
       text: '',
       success: false,
