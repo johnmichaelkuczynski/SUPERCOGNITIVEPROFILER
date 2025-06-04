@@ -308,7 +308,13 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
 
   return (
     <div className="h-full">
-      <Card className="h-full flex flex-col shadow-sm">
+      <Card 
+        className={`h-full flex flex-col shadow-sm ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''}`}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">Auxiliary AI Chat</CardTitle>
@@ -581,13 +587,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
             )}
 
             {/* Input controls */}
-            <div 
-              className={`flex space-x-2 ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-2' : ''}`}
-              onDragOver={handleDragOver}
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
+            <div className="flex space-x-2">
               <div className="flex-1 relative">
                 <Textarea
                   ref={textareaRef}
