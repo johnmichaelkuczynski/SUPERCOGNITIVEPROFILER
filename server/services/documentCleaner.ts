@@ -75,13 +75,19 @@ export function cleanDocumentForTTS(text: string): CleanedDocument {
       characterFound = true;
     }
     
-    // Pattern 2: Character: dialogue (no bold)
+    // Pattern 2: Character: dialogue (no bold) - more flexible
     if (!characterFound) {
-      match = cleanLine.match(/^([A-Z][A-Za-z\s]{1,20}):\s*(.+)$/);
+      match = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*:\s*(.+)$/);
       if (match) {
-        character = match[1].trim();
-        dialogue = match[2].trim();
-        characterFound = true;
+        const potentialCharacter = match[1].trim();
+        const potentialDialogue = match[2].trim();
+        
+        // Accept any reasonable character name with dialogue
+        if (potentialCharacter.length <= 25 && potentialDialogue.length > 5) {
+          character = potentialCharacter;
+          dialogue = potentialDialogue;
+          characterFound = true;
+        }
       }
     }
     
@@ -95,15 +101,11 @@ export function cleanDocumentForTTS(text: string): CleanedDocument {
       }
     }
     
-    // Skip lines that are clearly not dialogue
+    // Skip lines that are clearly not dialogue - simplified patterns
     const nonDialoguePatterns = [
-      /^(vs\.|versus|by|chapter|section|perspective|introduction|conclusion)/i,
-      /^(religious|secular|christian|the|all|references|citations)/i,
-      /^[A-Z][a-z]+\s+(vs\.?|versus)/i, // "Jesus vs. Socrates"
-      /^(this|that|these|those|in|on|at|by|for|with|from)/i,
+      /^(vs\.|versus|by|chapter|section|perspective|introduction|conclusion|references|citations)/i,
       /^\d+/,  // Numbers
-      /^[A-Z]{2,}\s+[A-Z]{2,}/,  // ALL CAPS headers
-      /quotations?|citations?|references?/i
+      /^[A-Z]{3,}\s+[A-Z]{3,}/,  // ALL CAPS headers
     ];
     
     const isNonDialogue = nonDialoguePatterns.some(pattern => pattern.test(cleanLine));
@@ -128,10 +130,26 @@ export function cleanDocumentForTTS(text: string): CleanedDocument {
     }
     
     if (characterFound && dialogue.length > 0) {
-      console.log(`[DocumentCleaner] Found character: "${character}" with dialogue: "${dialogue.substring(0, 50)}..."`);
-      characters.add(character);
-      dialogueLines.push({ character, text: dialogue });
-      cleanedText += `${character}: ${dialogue}\n`;
+      // Clean the dialogue further by removing stage directions
+      let cleanDialogue = dialogue
+        .replace(/\([^)]*\)/g, '') // Remove parenthetical stage directions
+        .replace(/\[[^\]]*\]/g, '') // Remove bracketed stage directions
+        .replace(/\*[^*]*\*/g, '') // Remove italic stage directions
+        .replace(/with\s+(growing\s+)?confidence[^,]*,?\s*/gi, '') // Remove common stage direction phrases
+        .replace(/incredulously[^,]*,?\s*/gi, '')
+        .replace(/calmly[^,]*,?\s*/gi, '')
+        .replace(/carefully\s+tamping[^,]*,?\s*/gi, '')
+        .replace(/nearly\s+rising[^,]*,?\s*/gi, '')
+        .replace(/with\s+measured\s+precision[^,]*,?\s*/gi, '')
+        .replace(/\s{2,}/g, ' ') // Multiple spaces to single
+        .trim();
+      
+      if (cleanDialogue.length > 10) {
+        console.log(`[DocumentCleaner] Found character: "${character}" with clean dialogue: "${cleanDialogue.substring(0, 50)}..."`);
+        characters.add(character);
+        dialogueLines.push({ character, text: cleanDialogue });
+        cleanedText += `${character}: ${cleanDialogue}\n`;
+      }
       continue;
     }
     

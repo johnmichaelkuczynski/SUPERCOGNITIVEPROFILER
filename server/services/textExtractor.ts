@@ -101,17 +101,38 @@ async function extractFromPDF(buffer: Buffer): Promise<ExtractedText> {
       };
     }
 
-    // Simple text extraction that preserves basic structure
+    // Extract text preserving line structure
     let extractedText = '';
     
     for (const page of data.pages) {
       if (page.content && page.content.length > 0) {
+        // Group by Y position to maintain line structure
+        const lines = new Map();
+        
         for (const item of page.content) {
           if (item.str && item.str.trim()) {
-            extractedText += item.str + ' ';
+            const y = Math.round(item.y || 0);
+            if (!lines.has(y)) {
+              lines.set(y, []);
+            }
+            lines.get(y).push({ x: item.x || 0, str: item.str });
           }
         }
-        extractedText += '\n\n'; // Page break
+        
+        // Sort lines by Y position (top to bottom)
+        const sortedYs = Array.from(lines.keys()).sort((a, b) => b - a);
+        
+        for (const y of sortedYs) {
+          // Sort items in each line by X position (left to right)
+          const lineItems = lines.get(y).sort((a, b) => a.x - b.x);
+          const lineText = lineItems.map(item => item.str).join('').trim();
+          
+          if (lineText) {
+            extractedText += lineText + '\n';
+          }
+        }
+        
+        extractedText += '\n'; // Page break
       }
     }
 
