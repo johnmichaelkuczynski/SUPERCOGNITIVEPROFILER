@@ -449,7 +449,9 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-medium">{character}</span>
                       <Badge variant="outline">
-                        {String(selectedVoice?.labels?.gender || defaultVoice?.gender || 'Unknown')}
+                        {customVoiceAssignments[character] ? 
+                          String(selectedVoice?.labels?.gender || 'Unknown') : 
+                          String(defaultVoice?.gender || 'Unknown')}
                       </Badge>
                     </div>
                     
@@ -461,22 +463,39 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select voice..." />
                         </SelectTrigger>
-                        <SelectContent>
-                          {availableVoices.map((voice) => (
+                        <SelectContent className="max-h-60">
+                          {availableVoices
+                            .sort((a, b) => {
+                              // Sort by gender first, then by name
+                              const genderA = a.labels?.gender || 'unknown';
+                              const genderB = b.labels?.gender || 'unknown';
+                              if (genderA !== genderB) {
+                                return genderA.localeCompare(genderB);
+                              }
+                              return a.name.localeCompare(b.name);
+                            })
+                            .map((voice) => (
                             <SelectItem key={voice.voice_id} value={voice.voice_id}>
-                              <div className="flex items-center justify-between w-full">
-                                <span>{voice.name}</span>
-                                <div className="flex gap-1 ml-2">
-                                  {voice.labels?.gender && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {voice.labels.gender}
-                                    </Badge>
-                                  )}
-                                  {voice.labels?.accent && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      {voice.labels.accent}
-                                    </Badge>
-                                  )}
+                              <div className="w-full py-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">{voice.name}</span>
+                                  <div className="flex gap-1 ml-2">
+                                    {voice.labels?.gender && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {voice.labels.gender}
+                                      </Badge>
+                                    )}
+                                    {voice.labels?.age && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {voice.labels.age}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {voice.labels?.accent && `${voice.labels.accent} accent`}
+                                  {voice.labels?.accent && (voice.description || voice.labels?.use_case) && ' • '}
+                                  {voice.description || voice.labels?.use_case || ''}
                                 </div>
                               </div>
                             </SelectItem>
