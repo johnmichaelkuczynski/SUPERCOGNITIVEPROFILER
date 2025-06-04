@@ -1842,6 +1842,41 @@ Return only the new content without any additional comments, explanations, or he
     }
   });
 
+  // Document cleaning endpoints
+  app.post('/api/document/preview-cleaning', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const { previewDocumentCleaning } = await import('./services/documentCleaner');
+      const preview = previewDocumentCleaning(text);
+      
+      res.json(preview);
+    } catch (error) {
+      console.error('Preview cleaning error:', error);
+      res.status(500).json({ error: 'Failed to preview document cleaning' });
+    }
+  });
+
+  app.post('/api/document/clean-for-tts', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const { cleanDocumentForTTS } = await import('./services/documentCleaner');
+      const cleaned = cleanDocumentForTTS(text);
+      
+      res.json(cleaned);
+    } catch (error) {
+      console.error('Document cleaning error:', error);
+      res.status(500).json({ error: 'Failed to clean document' });
+    }
+  });
+
   // Text-to-Speech Routes
   
   // Get available ElevenLabs voices
