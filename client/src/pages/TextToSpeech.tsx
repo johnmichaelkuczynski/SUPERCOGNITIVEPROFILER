@@ -82,8 +82,8 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
       if (!response.ok) {
         throw new Error('Failed to load voices');
       }
-      const voices = await response.json();
-      setAvailableVoices(voices);
+      const data = await response.json();
+      setAvailableVoices(data.voices || data);
     } catch (error) {
       console.error('Error loading voices:', error);
       toast({
@@ -441,14 +441,15 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
               {scriptPreview.characters.map((character) => {
                 const defaultVoice = scriptPreview.voiceAssignments[character];
                 const selectedVoiceId = customVoiceAssignments[character] || defaultVoice?.voiceId;
-                const selectedVoice = availableVoices.find(v => v.voice_id === selectedVoiceId) || defaultVoice;
+                const selectedVoice = Array.isArray(availableVoices) ? 
+                  availableVoices.find(v => v.voice_id === selectedVoiceId) : null;
                 
                 return (
                   <div key={character} className="p-3 border rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-medium">{character}</span>
                       <Badge variant="outline">
-                        {selectedVoice?.labels?.gender || selectedVoice?.gender || 'Unknown'}
+                        {String(selectedVoice?.labels?.gender || defaultVoice?.gender || 'Unknown')}
                       </Badge>
                     </div>
                     
@@ -485,7 +486,7 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
                       
                       {selectedVoice && (
                         <div className="text-xs text-gray-500">
-                          {selectedVoice.description || selectedVoice.labels?.use_case || 'ElevenLabs voice'}
+                          {String(selectedVoice.description || selectedVoice.labels?.use_case || 'ElevenLabs voice')}
                         </div>
                       )}
                     </div>
