@@ -91,32 +91,34 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
   }
 }
 
-// Clean extracted text to remove excessive spacing and formatting issues
+// Clean extracted text specifically for dialogue scripts and TTS processing
 function cleanExtractedText(text: string): string {
   if (!text) return text;
   
   let cleaned = text;
   
-  // Remove excessive whitespace but preserve sentence structure
-  cleaned = cleaned.replace(/\s{3,}/g, ' '); // Replace 3+ spaces with single space
-  cleaned = cleaned.replace(/\t+/g, ' '); // Replace tabs with spaces
-  
-  // Fix line breaks and paragraph spacing
-  cleaned = cleaned.replace(/\n{3,}/g, '\n\n'); // Multiple newlines to double newline
+  // Basic cleanup
   cleaned = cleaned.replace(/\r\n/g, '\n'); // Windows line endings to Unix
+  cleaned = cleaned.replace(/\t/g, ' '); // Tabs to spaces
   
-  // Fix punctuation spacing issues common in PDF extraction
-  cleaned = cleaned.replace(/\s+([.,;:!?])/g, '$1'); // Remove spaces before punctuation
-  cleaned = cleaned.replace(/([.,;:!?])\s*([a-zA-Z])/g, '$1 $2'); // Ensure space after punctuation
+  // Fix excessive whitespace while preserving paragraph structure
+  cleaned = cleaned.replace(/[ \t]{2,}/g, ' '); // Multiple spaces/tabs to single space
+  cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n'); // Multiple newlines to double
   
-  // Fix dialogue formatting for TTS
-  cleaned = cleaned.replace(/([a-zA-Z]):([A-Z])/g, '$1: $2'); // Add space after character names
+  // Fix punctuation spacing
+  cleaned = cleaned.replace(/\s+([.,;:!?])/g, '$1'); // Remove space before punctuation
+  cleaned = cleaned.replace(/([.,;:!?])([A-Za-z])/g, '$1 $2'); // Add space after punctuation
   
-  // Remove leading/trailing whitespace from lines
-  cleaned = cleaned.split('\n').map(line => line.trim()).join('\n');
+  // Fix dialogue formatting specifically
+  cleaned = cleaned.replace(/([A-Za-z]+)\s*:\s*/g, '$1: '); // Normalize character name format
+  cleaned = cleaned.replace(/([A-Za-z])\s+([A-Za-z])\s*:/g, '$1$2:'); // Fix broken character names
   
-  // Final cleanup
-  cleaned = cleaned.replace(/^\s+|\s+$/g, ''); // Trim overall whitespace
+  // Clean up common PDF artifacts
+  cleaned = cleaned.replace(/\s+$/gm, ''); // Remove trailing spaces from lines
+  cleaned = cleaned.replace(/^\s+/gm, ''); // Remove leading spaces from lines
+  
+  // Final trim
+  cleaned = cleaned.trim();
   
   return cleaned;
 }
@@ -127,33 +129,30 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF using a combination of methods for better reliability
+// Extract text from PDF using enhanced pdfreader with better text processing
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // Try with pdfreader first
-    const pdfReaderText = await extractWithPdfReader(buffer);
+    console.log("Extracting text from PDF with enhanced processing...");
     
-    // If we got substantial text, return it
-    if (pdfReaderText && pdfReaderText.length > 1000 && 
-        !pdfReaderText.includes("The PDF content could not be extracted")) {
-      return pdfReaderText;
+    // Use enhanced pdfreader extraction
+    const extractedText = await extractWithEnhancedPdfReader(buffer);
+    
+    if (!extractedText || extractedText.length < 100) {
+      console.log("Enhanced extraction yielded minimal text, trying standard method...");
+      return await extractWithPdfReader(buffer);
     }
     
-    // Otherwise, try with pdf.js
-    console.log("Primary PDF extraction yielded limited text. Trying alternative method...");
-    const pdfJsText = await extractWithPdfJs(buffer);
+    console.log(`Enhanced PDF extraction successfully extracted ${extractedText.length} characters`);
+    return extractedText;
     
-    // If both methods failed, combine whatever we got
-    if ((!pdfJsText || pdfJsText.length < 200) && 
-        (!pdfReaderText || pdfReaderText.length < 200)) {
-      return "The PDF content could not be fully extracted. This may be a scanned document or have content protection.";
-    }
-    
-    // Return the method that gave us more text
-    return (pdfJsText.length > pdfReaderText.length) ? pdfJsText : pdfReaderText;
   } catch (error) {
-    console.error("Error during PDF extraction:", error);
-    throw error;
+    console.error("Enhanced PDF extraction failed, trying standard method:", error);
+    try {
+      return await extractWithPdfReader(buffer);
+    } catch (fallbackError) {
+      console.error("All PDF extraction methods failed:", fallbackError);
+      throw new Error("Failed to extract text from PDF using all available methods");
+    }
   }
 }
 
