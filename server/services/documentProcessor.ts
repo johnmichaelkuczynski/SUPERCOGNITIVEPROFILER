@@ -95,23 +95,28 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
 function cleanExtractedText(text: string): string {
   if (!text) return text;
   
-  // Remove excessive spaces between characters (common in PDF extraction)
-  let cleaned = text.replace(/(\w)\s+(\w)/g, '$1$2');
+  let cleaned = text;
   
-  // Fix specific spacing issues
-  cleaned = cleaned.replace(/([a-zA-Z])\s+([a-zA-Z])/g, '$1$2');
+  // Remove excessive whitespace but preserve sentence structure
+  cleaned = cleaned.replace(/\s{3,}/g, ' '); // Replace 3+ spaces with single space
+  cleaned = cleaned.replace(/\t+/g, ' '); // Replace tabs with spaces
   
-  // Restore proper word spacing
-  cleaned = cleaned.replace(/([a-zA-Z])([A-Z])/g, '$1 $2');
+  // Fix line breaks and paragraph spacing
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n'); // Multiple newlines to double newline
+  cleaned = cleaned.replace(/\r\n/g, '\n'); // Windows line endings to Unix
   
-  // Fix common extraction artifacts
-  cleaned = cleaned.replace(/\s{2,}/g, ' '); // Multiple spaces to single space
-  cleaned = cleaned.replace(/\n\s*\n/g, '\n\n'); // Multiple newlines to double newline
-  cleaned = cleaned.replace(/^\s+|\s+$/g, ''); // Trim whitespace
+  // Fix punctuation spacing issues common in PDF extraction
+  cleaned = cleaned.replace(/\s+([.,;:!?])/g, '$1'); // Remove spaces before punctuation
+  cleaned = cleaned.replace(/([.,;:!?])\s*([a-zA-Z])/g, '$1 $2'); // Ensure space after punctuation
   
-  // Fix numbers and punctuation spacing
-  cleaned = cleaned.replace(/(\d)\s+(\d)/g, '$1$2');
-  cleaned = cleaned.replace(/(\w)\s+([.,;:!?])/g, '$1$2');
+  // Fix dialogue formatting for TTS
+  cleaned = cleaned.replace(/([a-zA-Z]):([A-Z])/g, '$1: $2'); // Add space after character names
+  
+  // Remove leading/trailing whitespace from lines
+  cleaned = cleaned.split('\n').map(line => line.trim()).join('\n');
+  
+  // Final cleanup
+  cleaned = cleaned.replace(/^\s+|\s+$/g, ''); // Trim overall whitespace
   
   return cleaned;
 }
