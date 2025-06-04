@@ -278,7 +278,7 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
   const handleVoiceChange = (character: string, voiceId: string) => {
     setCustomVoiceAssignments(prev => {
       const updated = { ...prev };
-      if (voiceId === '') {
+      if (voiceId === '__default__') {
         // Remove custom assignment to use default
         delete updated[character];
       } else {
@@ -463,7 +463,7 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
                     
                     <div className="space-y-2">
                       <Select
-                        value={customVoiceAssignments[character] || ''}
+                        value={customVoiceAssignments[character] || '__default__'}
                         onValueChange={(value) => handleVoiceChange(character, value)}
                       >
                         <SelectTrigger className="w-full">
@@ -471,7 +471,7 @@ ALICE: I'm doing great, thanks for asking. (pauses) How about you?"
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
                           {/* Add reset option */}
-                          <SelectItem value="">
+                          <SelectItem value="__default__">
                             <div className="w-full py-1">
                               <span className="font-medium text-gray-500">Use default assignment</span>
                               <div className="text-xs text-muted-foreground mt-1">
