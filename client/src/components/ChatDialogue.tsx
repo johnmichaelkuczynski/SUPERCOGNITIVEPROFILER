@@ -51,28 +51,39 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Chat input specific drag and drop handlers
-  const handleChatFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const chatInput = document.getElementById('chat-input') as HTMLTextAreaElement;
-      if (chatInput && e.target?.result) {
-        chatInput.value = e.target.result as string;
-        setInput(e.target.result as string);
-      }
-    };
-    reader.readAsText(file);
+  // Chat input drag and drop handlers (copied from working rewrite box)
+  const handleChatDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
   };
 
-  const enableDragAndDrop = (el: HTMLElement, fileHandler: (file: File) => void) => {
-    el.addEventListener('dragover', (e) => {
-      e.preventDefault();
+  const handleChatDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleChatDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
+    
+    const validFiles = droppedFiles.filter(file => {
+      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      return allowedTypes.includes(extension);
     });
-    el.addEventListener('drop', (e) => {
-      e.preventDefault();
-      const file = e.dataTransfer?.files[0];
-      if (file) fileHandler(file);
-    });
+    
+    if (validFiles.length > 0) {
+      const file = validFiles[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        if (e.target?.result) {
+          setInput(e.target.result as string);
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   // Auto-scroll to bottom when new messages arrive
@@ -80,13 +91,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Enable drag and drop for chat input
-  useEffect(() => {
-    const chatInput = document.getElementById('chat-input');
-    if (chatInput) {
-      enableDragAndDrop(chatInput, handleChatFile);
-    }
-  }, []);
+
 
 
 
@@ -585,7 +590,12 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
 
             {/* Input controls */}
             <div className="flex space-x-2">
-              <div className="flex-1 relative">
+              <div 
+                className={`flex-1 relative ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-2' : ''}`}
+                onDragOver={handleChatDragOver}
+                onDragLeave={handleChatDragLeave}
+                onDrop={handleChatDrop}
+              >
                 <Textarea
                   id="chat-input"
                   ref={textareaRef}
