@@ -51,40 +51,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Chat input drag and drop handlers (copied from working rewrite box)
-  const handleChatDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
 
-  const handleChatDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleChatDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
-    
-    const validFiles = droppedFiles.filter(file => {
-      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-      return allowedTypes.includes(extension);
-    });
-    
-    if (validFiles.length > 0) {
-      const file = validFiles[0];
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        if (e.target?.result) {
-          setInput(e.target.result as string);
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -590,19 +557,14 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
 
             {/* Input controls */}
             <div className="flex space-x-2">
-              <div 
-                className={`flex-1 relative ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-2' : ''}`}
-                onDragOver={handleChatDragOver}
-                onDragLeave={handleChatDragLeave}
-                onDrop={handleChatDrop}
-              >
+              <div className="flex-1 relative">
                 <Textarea
                   id="chat-input"
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyPress}
-                  placeholder={isDragging ? "Drop files here to upload..." : "Ask anything about your documents or chat with the AI..."}
+                  placeholder="Ask anything about your documents or chat with the AI..."
                   className="min-h-[120px] max-h-[400px] pr-24 resize-y"
                   disabled={isLoading}
                 />
