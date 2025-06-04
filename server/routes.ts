@@ -1882,11 +1882,16 @@ Return only the new content without any additional comments, explanations, or he
   // Get available ElevenLabs voices
   app.get('/api/tts/voices', async (req: Request, res: Response) => {
     try {
+      console.log('Fetching ElevenLabs voices...');
       const voices = await elevenLabsService.getAvailableVoices();
+      console.log(`Found ${voices.length} voices`);
       res.json({ voices });
     } catch (error) {
       console.error('Error fetching voices:', error);
-      res.status(500).json({ error: 'Failed to fetch available voices' });
+      res.status(500).json({ 
+        error: 'Failed to fetch available voices',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
