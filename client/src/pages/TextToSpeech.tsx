@@ -358,7 +358,18 @@ export default function TextToSpeech() {
 
           {cleanedText && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Production-Ready Text</label>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Production-Ready Text</label>
+                <Button
+                  onClick={() => setCleanedText('')}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Clear
+                </Button>
+              </div>
               <Textarea
                 value={cleanedText}
                 onChange={(e) => setCleanedText(e.target.value)}

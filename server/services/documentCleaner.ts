@@ -95,17 +95,31 @@ export function cleanDocumentForTTS(text: string): CleanedDocument {
       }
     }
     
-    // Pattern 4: Character (no colon, dialogue on next line or same line)
-    if (!characterFound) {
-      match = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*(.*)$/);
-      if (match && match[1].length <= 15) {
+    // Skip lines that are clearly not dialogue
+    const nonDialoguePatterns = [
+      /^(vs\.|versus|by|chapter|section|perspective|introduction|conclusion)/i,
+      /^(religious|secular|christian|the|all|references|citations)/i,
+      /^[A-Z][a-z]+\s+(vs\.?|versus)/i, // "Jesus vs. Socrates"
+      /^(this|that|these|those|in|on|at|by|for|with|from)/i,
+      /^\d+/,  // Numbers
+      /^[A-Z]{2,}\s+[A-Z]{2,}/,  // ALL CAPS headers
+      /quotations?|citations?|references?/i
+    ];
+    
+    const isNonDialogue = nonDialoguePatterns.some(pattern => pattern.test(cleanLine));
+    
+    // Pattern 4: Character names (only for known dialogue characters)
+    if (!characterFound && !isNonDialogue) {
+      match = cleanLine.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*(.*)$/);
+      if (match && match[1].length <= 20) {
         const potentialCharacter = match[1].trim();
         const potentialDialogue = match[2].trim();
         
-        // Common character names to look for
-        const commonNames = ['batman', 'joker', 'riddler', 'freud', 'dennett', 'davidson', 'socrates', 'plato', 'aristotle'];
-        if (commonNames.some(name => potentialCharacter.toLowerCase().includes(name)) || 
-            (potentialDialogue.length > 0 && potentialDialogue.length < 200)) {
+        // Only accept well-known character names
+        const knownCharacters = ['batman', 'joker', 'riddler', 'freud', 'dennett', 'davidson', 'socrates', 'plato', 'aristotle', 'nietzsche', 'kant', 'hegel', 'descartes'];
+        
+        if (knownCharacters.some(name => potentialCharacter.toLowerCase() === name.toLowerCase()) && 
+            potentialDialogue.length > 10 && potentialDialogue.length < 500) {
           character = potentialCharacter;
           dialogue = potentialDialogue;
           characterFound = true;
