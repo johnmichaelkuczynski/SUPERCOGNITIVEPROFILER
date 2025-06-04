@@ -4,8 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Play, Download, Users, Clock, Mic, Upload, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  category: string;
+  description?: string;
+  labels?: {
+    accent?: string;
+    gender?: string;
+    age?: string;
+    use_case?: string;
+  };
+}
 
 interface VoiceAssignment {
   voiceId: string;
@@ -44,8 +58,11 @@ export default function TextToSpeech() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingVoices, setIsLoadingVoices] = useState(false);
   const [scriptPreview, setScriptPreview] = useState<ScriptPreview | null>(null);
   const [generationResult, setGenerationResult] = useState<GenerationResult | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<ElevenLabsVoice[]>([]);
+  const [customVoiceAssignments, setCustomVoiceAssignments] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -57,6 +74,27 @@ ALICE: That's fascinating! Tell me more. (excitedly)
 BOB: Well, if machines can think... are they truly conscious? (pauses, then continues slowly)
 ALICE: That's one of the deepest questions in philosophy. (calmly)
 BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
+
+  const loadVoices = async () => {
+    setIsLoadingVoices(true);
+    try {
+      const response = await fetch('/api/tts/voices');
+      if (!response.ok) {
+        throw new Error('Failed to load voices');
+      }
+      const voices = await response.json();
+      setAvailableVoices(voices);
+    } catch (error) {
+      console.error('Error loading voices:', error);
+      toast({
+        title: "Voice Loading Error",
+        description: "Failed to load available voices. Please check your ElevenLabs API key.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingVoices(false);
+    }
+  };
 
   const analyzeScript = async () => {
     if (!script.trim()) {
@@ -84,6 +122,11 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
 
       const data = await response.json();
       setScriptPreview(data);
+      
+      // Load voices if not already loaded
+      if (availableVoices.length === 0) {
+        await loadVoices();
+      }
       
       toast({
         title: "Script Analyzed",
@@ -118,7 +161,10 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ script }),
+        body: JSON.stringify({ 
+          script,
+          customVoices: customVoiceAssignments
+        }),
       });
 
       if (!response.ok) {
