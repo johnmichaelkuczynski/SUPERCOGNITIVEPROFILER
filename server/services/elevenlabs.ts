@@ -79,6 +79,49 @@ class ElevenLabsService {
     const dialogueLines: DialogueLine[] = [];
     const characters = new Set<string>();
 
+    // Check if this is dialogue format or essay format
+    const dialogueCount = lines.filter(line => 
+      line.trim().match(/^([A-Z][^:]*?):\s*(.+)$/)
+    ).length;
+    
+    const isDialogueFormat = dialogueCount > 0;
+
+    if (!isDialogueFormat) {
+      // Handle essay/narrative content - create narrator voice
+      const narrator = 'NARRATOR';
+      characters.add(narrator);
+      
+      // Split essay into paragraphs and sentences for better pacing
+      const paragraphs = script.split(/\n\s*\n/).filter(p => p.trim());
+      
+      for (const paragraph of paragraphs) {
+        if (paragraph.trim()) {
+          // Split long paragraphs into sentences for better audio pacing
+          const sentences = paragraph.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+          
+          for (const sentence of sentences) {
+            if (sentence.trim() && sentence.length > 10) {
+              dialogueLines.push({
+                character: narrator,
+                text: sentence.trim(),
+                stageDirections: [],
+                emotion: '',
+                pace: 'normal',
+                volume: 1.0
+              });
+            }
+          }
+        }
+      }
+      
+      return {
+        lines: dialogueLines,
+        characters: Array.from(characters),
+        totalDuration: 0
+      };
+    }
+
+    // Original dialogue parsing logic
     for (const line of lines) {
       const trimmedLine = line.trim();
       
