@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,6 +60,8 @@ export default function TextToSpeech() {
   const [isLoadingVoices, setIsLoadingVoices] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [generatedAudioUrl, setGeneratedAudioUrl] = useState<string | null>(null);
+  const [voiceAssignments, setVoiceAssignments] = useState<Record<string, string>>({});
+  const [detectedCharacters, setDetectedCharacters] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -215,6 +217,30 @@ export default function TextToSpeech() {
     }
   };
 
+  // Detect characters in text
+  const detectCharacters = (text: string) => {
+    const lines = text.split('\n');
+    const characters = new Set<string>();
+    
+    lines.forEach(line => {
+      const match = line.match(/^([A-Za-z][A-Za-z\s]*?):\s*/);
+      if (match) {
+        characters.add(match[1].trim());
+      }
+    });
+    
+    return Array.from(characters);
+  };
+
+  // Update character detection when text changes
+  useEffect(() => {
+    const textToAnalyze = cleanedText || originalText;
+    if (textToAnalyze) {
+      const chars = detectCharacters(textToAnalyze);
+      setDetectedCharacters(chars);
+    }
+  }, [cleanedText, originalText]);
+
   // Send text to TTS (either cleaned or original)
   const sendToTTS = async () => {
     const textToUse = cleanedText.trim() || originalText.trim();
@@ -234,7 +260,7 @@ export default function TextToSpeech() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           script: textToUse,
-          voiceAssignments: {} // Let ElevenLabs auto-assign voices
+          voiceAssignments: voiceAssignments
         })
       });
 
@@ -433,14 +459,44 @@ export default function TextToSpeech() {
               <div className="text-sm text-muted-foreground">
                 {voices.length} voices available from ElevenLabs
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border rounded p-2">
-                {voices.slice(0, 20).map((voice) => (
-                  <div key={voice.voice_id} className="text-xs p-2 border rounded hover:bg-gray-50">
-                    <div className="font-medium">{voice.name}</div>
-                    <div className="text-gray-500">{voice.labels?.gender || voice.category}</div>
-                  </div>
-                ))}
-              </div>
+              
+              {detectedCharacters.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-medium">Character Voice Assignments</h4>
+                  {detectedCharacters.map((character) => (
+                    <div key={character} className="flex items-center gap-3">
+                      <span className="w-20 text-sm font-medium">{character}:</span>
+                      <select
+                        value={voiceAssignments[character] || ''}
+                        onChange={(e) => setVoiceAssignments(prev => ({
+                          ...prev,
+                          [character]: e.target.value
+                        }))}
+                        className="flex-1 px-3 py-1 border rounded text-sm"
+                      >
+                        <option value="">Auto-assign voice</option>
+                        {voices.map((voice) => (
+                          <option key={voice.voice_id} value={voice.voice_id}>
+                            {voice.name} ({voice.labels?.gender || voice.category})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <details className="border rounded p-2">
+                <summary className="cursor-pointer text-sm font-medium">View All Available Voices</summary>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2 max-h-40 overflow-y-auto">
+                  {voices.map((voice) => (
+                    <div key={voice.voice_id} className="text-xs p-2 border rounded hover:bg-gray-50">
+                      <div className="font-medium">{voice.name}</div>
+                      <div className="text-gray-500">{voice.labels?.gender || voice.category}</div>
+                    </div>
+                  ))}
+                </div>
+              </details>
             </div>
           )}
 
