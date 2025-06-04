@@ -161,6 +161,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Document processing route
+  // New TTS text extraction endpoint
+  app.post('/api/tts/extract-text', upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+      
+      const file = req.file;
+      const { extractText } = await import('./services/textExtractor.js');
+      
+      const result = await extractText(file);
+      
+      if (result.success) {
+        res.json({ 
+          text: result.text,
+          success: true,
+          message: `Successfully extracted ${result.text.length} characters from ${file.originalname}`
+        });
+      } else {
+        res.status(400).json({ 
+          message: result.error || 'Failed to extract text',
+          success: false 
+        });
+      }
+    } catch (error) {
+      console.error('Error extracting text:', error);
+      res.status(500).json({ message: 'Text extraction failed', error: (error as Error).message });
+    }
+  });
+
   app.post('/api/documents/process', upload.single('file'), async (req: Request, res: Response) => {
     try {
       if (!req.file) {

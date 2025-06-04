@@ -203,7 +203,7 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/documents/process', {
+      const response = await fetch('/api/tts/extract-text', {
         method: 'POST',
         body: formData,
       });
@@ -214,23 +214,20 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
 
       const result = await response.json();
       
-      // Extract text content and add to script
-      const extractedText = result.text || result.content;
-      if (extractedText && extractedText.trim()) {
+      if (result.success && result.text && result.text.trim()) {
         setScript(prevScript => {
-          const newContent = prevScript ? `${prevScript}\n\n${extractedText}` : extractedText;
+          const newContent = prevScript ? `${prevScript}\n\n${result.text}` : result.text;
           return newContent;
         });
         
         toast({
           title: "Document Uploaded",
-          description: `Successfully extracted ${extractedText.length} characters from ${file.name}`,
+          description: result.message || `Successfully extracted text from ${file.name}`,
         });
       } else {
-        console.error('No text extracted from document:', result);
         toast({
           title: "Error",
-          description: "Document processed but no text was extracted",
+          description: result.message || "Failed to extract text from document",
           variant: "destructive"
         });
       }
