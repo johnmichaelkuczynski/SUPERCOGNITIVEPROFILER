@@ -350,7 +350,7 @@ BOB: Exactly! And I can't stop thinking about it. (laughs nervously)`;
           <Input
             ref={fileInputRef}
             type="file"
-            accept=".docx,.doc,.txt"
+            accept=".pdf,.docx,.doc,.txt"
             onChange={handleFileSelect}
             className="hidden"
           />
