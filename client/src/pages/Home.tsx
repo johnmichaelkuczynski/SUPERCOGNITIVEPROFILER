@@ -861,6 +861,20 @@ Document text: ${extractedText}`;
                 >
                   <Edit3 className="h-3 w-3 text-blue-600" />
                 </button>
+                <button
+                  className="w-10 h-6 flex items-center justify-center bg-green-50 rounded border border-green-200 hover:bg-green-100 transition-colors"
+                  onClick={() => {
+                    if (chatDialogueRef.current) {
+                      chatDialogueRef.current.addMessage(
+                        `Document "${doc.name}" content:\n\n${doc.content.substring(0, 2000)}${doc.content.length > 2000 ? '...\n\n[Document truncated for chat - click to view full content]' : ''}`,
+                        { type: 'document_content', documentName: doc.name, fullContent: doc.content }
+                      );
+                    }
+                  }}
+                  title="Send to Chat"
+                >
+                  <Send className="h-3 w-3 text-green-600" />
+                </button>
               </div>
               <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
                 {doc.name}
