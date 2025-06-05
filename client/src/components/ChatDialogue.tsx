@@ -201,9 +201,19 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
         fullPrompt = `${input}\n\n**Uploaded Files:**\n${extractedTexts.join('\n\n')}`;
       }
 
+      // Build conversation context with previous messages
+      const conversationContext = messages.map(msg => 
+        `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+      ).join('\n\n');
+      
+      // Include conversation history in the prompt
+      const contextualPrompt = conversationContext.length > 0 
+        ? `Previous conversation:\n${conversationContext}\n\nHuman: ${fullPrompt}`
+        : `Human: ${fullPrompt}`;
+
       // Send to AI
       const formData = new FormData();
-      formData.append('content', fullPrompt);
+      formData.append('content', contextualPrompt);
       formData.append('model', selectedModel);
 
       const response = await fetch('/api/llm/prompt', {
