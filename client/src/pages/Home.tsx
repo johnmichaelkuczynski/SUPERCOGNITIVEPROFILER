@@ -1601,6 +1601,11 @@ Document text: ${extractedText}`;
             </div>
           </CardFooter>
         </Card>
+        
+        {/* Auxiliary Chat Interface */}
+        <div className="mt-6">
+          <ChatDialogue ref={chatDialogueRef} />
+        </div>
       </div>
       </div>
       
