@@ -47,7 +47,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [messageToShare, setMessageToShare] = useState<ChatMessage | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [conversationId, setConversationId] = useState<number | null>(null);
+  const [conversationId, setConversationId] = useState<number | null>(1); // Default ID for auxiliary chat
   const [conversationShareEmail, setConversationShareEmail] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -365,13 +365,13 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                     <div className="flex flex-col gap-2">
                       <Button 
                         onClick={async () => {
-                          if (conversationId && messages.length > 0) {
+                          if (messages.length > 0) {
                             try {
                               const response = await fetch('/api/export-auxiliary-chat', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                  conversationId: conversationId,
+                                  messages: messages,
                                   format: 'txt'
                                 })
                               });
@@ -400,13 +400,13 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                       
                       <Button 
                         onClick={async () => {
-                          if (conversationId && messages.length > 0) {
+                          if (messages.length > 0) {
                             try {
                               const response = await fetch('/api/export-auxiliary-chat', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                  conversationId: conversationId,
+                                  messages: messages,
                                   format: 'docx'
                                 })
                               });
@@ -472,13 +472,13 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                       />
                       <Button 
                         onClick={async () => {
-                          if (conversationId && conversationShareEmail && messages.length > 0) {
+                          if (conversationShareEmail && messages.length > 0) {
                             try {
                               const response = await fetch('/api/share-auxiliary-chat', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                  conversationId: conversationId,
+                                  messages: messages,
                                   email: conversationShareEmail,
                                   subject: `Auxiliary Chat Conversation - ${new Date().toLocaleDateString()}`
                                 })
@@ -496,7 +496,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                             }
                           }
                         }}
-                        disabled={!conversationShareEmail || !conversationId}
+                        disabled={!conversationShareEmail || messages.length === 0}
                       >
                         <Share className="h-4 w-4 mr-2" />
                         Send Email

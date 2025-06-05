@@ -1802,27 +1802,34 @@ Return only the new content without any additional comments, explanations, or he
   // Export auxiliary chat conversation
   app.post('/api/export-auxiliary-chat', async (req: Request, res: Response) => {
     try {
-      const { conversationId, format = 'txt' } = req.body;
+      const { conversationId, format = 'txt', messages } = req.body;
 
-      if (!conversationId) {
-        return res.status(400).json({ error: 'Conversation ID is required' });
+      // Use provided messages if available, otherwise try to get from storage
+      let chatMessages = messages;
+      let conversationTitle = `Auxiliary Chat - ${new Date().toLocaleDateString()}`;
+
+      if (!chatMessages || chatMessages.length === 0) {
+        if (!conversationId) {
+          return res.status(400).json({ error: 'Either conversation ID or messages are required' });
+        }
+
+        // Try to get from storage
+        const conversation = await storage.getConversation(conversationId);
+        if (conversation) {
+          conversationTitle = conversation.title;
+          chatMessages = await storage.getMessagesByConversationId(conversationId);
+        } else {
+          return res.status(404).json({ error: 'Conversation not found and no messages provided' });
+        }
       }
-
-      // Get conversation and messages
-      const conversation = await storage.getConversation(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ error: 'Conversation not found' });
-      }
-
-      const messages = await storage.getMessagesByConversationId(conversationId);
       
       // Format conversation content and strip markdown for clean output
-      let content = `Conversation: ${conversation.title}\n`;
-      content += `Date: ${new Date(conversation.createdAt).toLocaleString()}\n`;
+      let content = `Conversation: ${conversationTitle}\n`;
+      content += `Date: ${new Date().toLocaleString()}\n`;
       content += `\n${'='.repeat(50)}\n\n`;
 
-      messages.forEach((message, index) => {
-        const timestamp = new Date(message.createdAt).toLocaleString();
+      chatMessages.forEach((message: any, index: number) => {
+        const timestamp = new Date(message.timestamp || message.createdAt || new Date()).toLocaleString();
         content += `[${timestamp}] ${message.role.toUpperCase()}:\n`;
         
         // Strip markdown formatting from message content
@@ -1839,12 +1846,12 @@ Return only the new content without any additional comments, explanations, or he
           .trim();
           
         content += `${cleanContent}\n\n`;
-        if (index < messages.length - 1) {
+        if (index < chatMessages.length - 1) {
           content += `${'-'.repeat(30)}\n\n`;
         }
       });
 
-      const filename = `auxiliary-chat-${conversation.title.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}`;
+      const filename = `auxiliary-chat-export-${Date.now()}`;
 
       if (format === 'docx') {
         const { Document: DocxDocument, Paragraph, TextRun, Packer } = await import('docx');
@@ -1880,35 +1887,58 @@ Return only the new content without any additional comments, explanations, or he
   // Share auxiliary chat conversation via email
   app.post('/api/share-auxiliary-chat', async (req: Request, res: Response) => {
     try {
-      const { conversationId, email, subject } = req.body;
+      const { conversationId, email, subject, messages } = req.body;
 
-      if (!conversationId || !email) {
-        return res.status(400).json({ error: 'Conversation ID and email are required' });
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
       }
 
       if (!process.env.SENDGRID_API_KEY) {
         return res.status(500).json({ error: 'Email service not configured' });
       }
 
-      // Get conversation and messages
-      const conversation = await storage.getConversation(conversationId);
-      if (!conversation) {
-        return res.status(404).json({ error: 'Conversation not found' });
-      }
+      // Use provided messages or get from storage
+      let chatMessages = messages;
+      let conversationTitle = `Auxiliary Chat - ${new Date().toLocaleDateString()}`;
 
-      const messages = await storage.getMessagesByConversationId(conversationId);
+      if (!chatMessages || chatMessages.length === 0) {
+        if (!conversationId) {
+          return res.status(400).json({ error: 'Either conversation ID or messages are required' });
+        }
+
+        const conversation = await storage.getConversation(conversationId);
+        if (conversation) {
+          conversationTitle = conversation.title;
+          chatMessages = await storage.getMessagesByConversationId(conversationId);
+        } else {
+          return res.status(404).json({ error: 'Conversation not found and no messages provided' });
+        }
+      }
       
       // Format conversation content for email
       let htmlContent = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">`;
-      htmlContent += `<h2>Conversation: ${conversation.title}</h2>`;
-      htmlContent += `<p><strong>Date:</strong> ${new Date(conversation.createdAt).toLocaleString()}</p>`;
+      htmlContent += `<h2>Conversation: ${conversationTitle}</h2>`;
+      htmlContent += `<p><strong>Date:</strong> ${new Date().toLocaleString()}</p>`;
       htmlContent += `<hr style="margin: 20px 0;">`;
 
-      messages.forEach((message, index) => {
-        const timestamp = new Date(message.createdAt).toLocaleString();
+      chatMessages.forEach((message: any, index: number) => {
+        const timestamp = new Date(message.timestamp || message.createdAt || new Date()).toLocaleString();
         const isUser = message.role === 'user';
         const bgColor = isUser ? '#f0f8ff' : '#f8f8f8';
         const roleColor = isUser ? '#0066cc' : '#666666';
+        
+        // Strip markdown from content for email
+        const cleanContent = message.content
+          .replace(/#{1,6}\s+/g, '') // Remove headers
+          .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+          .replace(/\*(.*?)\*/g, '$1') // Remove italics
+          .replace(/`(.*?)`/g, '$1') // Remove inline code
+          .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+          .replace(/>\s+/g, '') // Remove blockquotes
+          .replace(/^\s*[-*+]\s+/gm, '- ') // Normalize list markers
+          .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+          .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+          .trim();
         
         htmlContent += `
           <div style="margin: 15px 0; padding: 15px; background-color: ${bgColor}; border-radius: 8px; border-left: 4px solid ${roleColor};">
@@ -1916,7 +1946,7 @@ Return only the new content without any additional comments, explanations, or he
               ${message.role.toUpperCase()} - ${timestamp}
             </div>
             <div style="white-space: pre-wrap; line-height: 1.4;">
-              ${message.content.replace(/\n/g, '<br>')}
+              ${cleanContent.replace(/\n/g, '<br>')}
             </div>
           </div>
         `;
@@ -1925,15 +1955,27 @@ Return only the new content without any additional comments, explanations, or he
       htmlContent += `</div>`;
 
       // Plain text version
-      let textContent = `Conversation: ${conversation.title}\n`;
-      textContent += `Date: ${new Date(conversation.createdAt).toLocaleString()}\n`;
+      let textContent = `Conversation: ${conversationTitle}\n`;
+      textContent += `Date: ${new Date().toLocaleString()}\n`;
       textContent += `\n${'='.repeat(50)}\n\n`;
 
-      messages.forEach((message, index) => {
-        const timestamp = new Date(message.createdAt).toLocaleString();
+      chatMessages.forEach((message: any, index: number) => {
+        const timestamp = new Date(message.timestamp || message.createdAt || new Date()).toLocaleString();
+        const cleanContent = message.content
+          .replace(/#{1,6}\s+/g, '') // Remove headers
+          .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+          .replace(/\*(.*?)\*/g, '$1') // Remove italics
+          .replace(/`(.*?)`/g, '$1') // Remove inline code
+          .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+          .replace(/>\s+/g, '') // Remove blockquotes
+          .replace(/^\s*[-*+]\s+/gm, '- ') // Normalize list markers
+          .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+          .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+          .trim();
+          
         textContent += `[${timestamp}] ${message.role.toUpperCase()}:\n`;
-        textContent += `${message.content}\n\n`;
-        if (index < messages.length - 1) {
+        textContent += `${cleanContent}\n\n`;
+        if (index < chatMessages.length - 1) {
           textContent += `${'-'.repeat(30)}\n\n`;
         }
       });
@@ -1944,7 +1986,7 @@ Return only the new content without any additional comments, explanations, or he
       const msg = {
         to: email,
         from: 'JM@ANALYTICPHILOSOPHY.AI',
-        subject: subject || `Chat Conversation: ${conversation.title}`,
+        subject: subject || `Auxiliary Chat Conversation - ${new Date().toLocaleDateString()}`,
         text: textContent,
         html: htmlContent
       };
