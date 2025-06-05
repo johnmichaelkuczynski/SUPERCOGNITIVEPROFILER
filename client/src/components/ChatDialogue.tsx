@@ -47,6 +47,8 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [messageToShare, setMessageToShare] = useState<ChatMessage | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [conversationId, setConversationId] = useState<number | null>(null);
+  const [conversationShareEmail, setConversationShareEmail] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -363,19 +365,14 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                     <div className="flex flex-col gap-2">
                       <Button 
                         onClick={async () => {
-                          if (messages.length > 0) {
-                            const chatContent = messages.map(msg => 
-                              `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n\n${msg.content}\n\n`
-                            ).join('---\n\n');
-                            
+                          if (conversationId && messages.length > 0) {
                             try {
-                              const response = await fetch('/api/export-chat-message', {
+                              const response = await fetch('/api/export-auxiliary-chat', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                  content: chatContent,
-                                  format: 'pdf',
-                                  filename: `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}`
+                                  conversationId: conversationId,
+                                  format: 'txt'
                                 })
                               });
 
@@ -384,7 +381,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                                 const url = window.URL.createObjectURL(blob);
                                 const a = document.createElement('a');
                                 a.href = url;
-                                a.download = `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}.html`;
+                                a.download = `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}.txt`;
                                 document.body.appendChild(a);
                                 a.click();
                                 window.URL.revokeObjectURL(url);
@@ -398,24 +395,19 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                         variant="outline"
                       >
                         <FileText className="h-4 w-4 mr-2" />
-                        Export as Math-Perfect PDF
+                        Export as Text (Clean)
                       </Button>
                       
                       <Button 
                         onClick={async () => {
-                          if (messages.length > 0) {
-                            const chatContent = messages.map(msg => 
-                              `[${msg.role.toUpperCase()} - ${new Date(msg.timestamp).toLocaleString()}]\n\n${msg.content}\n\n`
-                            ).join('---\n\n');
-                            
+                          if (conversationId && messages.length > 0) {
                             try {
-                              const response = await fetch('/api/export-chat-message', {
+                              const response = await fetch('/api/export-auxiliary-chat', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                  content: chatContent,
-                                  format: 'docx',
-                                  filename: `auxiliary-chat-export-${new Date().toISOString().split('T')[0]}`
+                                  conversationId: conversationId,
+                                  format: 'docx'
                                 })
                               });
 
@@ -453,6 +445,66 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                 <Upload className="h-4 w-4 mr-1" />
                 Upload File
               </Button>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={messages.length === 0}
+                  >
+                    <Share className="h-4 w-4 mr-1" />
+                    Share
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Share Auxiliary Chat</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <p className="text-sm text-slate-600">Share your entire auxiliary chat conversation via email:</p>
+                    <div className="flex flex-col gap-3">
+                      <Input
+                        type="email"
+                        placeholder="Enter email address"
+                        value={conversationShareEmail}
+                        onChange={(e) => setConversationShareEmail(e.target.value)}
+                      />
+                      <Button 
+                        onClick={async () => {
+                          if (conversationId && conversationShareEmail && messages.length > 0) {
+                            try {
+                              const response = await fetch('/api/share-auxiliary-chat', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  conversationId: conversationId,
+                                  email: conversationShareEmail,
+                                  subject: `Auxiliary Chat Conversation - ${new Date().toLocaleDateString()}`
+                                })
+                              });
+
+                              if (response.ok) {
+                                alert('Conversation shared successfully!');
+                                setConversationShareEmail('');
+                              } else {
+                                alert('Failed to share conversation');
+                              }
+                            } catch (error) {
+                              console.error('Error sharing conversation:', error);
+                              alert('Error sharing conversation');
+                            }
+                          }
+                        }}
+                        disabled={!conversationShareEmail || !conversationId}
+                      >
+                        <Share className="h-4 w-4 mr-2" />
+                        Send Email
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               <Button
                 variant="outline"

@@ -1816,7 +1816,7 @@ Return only the new content without any additional comments, explanations, or he
 
       const messages = await storage.getMessagesByConversationId(conversationId);
       
-      // Format conversation content
+      // Format conversation content and strip markdown for clean output
       let content = `Conversation: ${conversation.title}\n`;
       content += `Date: ${new Date(conversation.createdAt).toLocaleString()}\n`;
       content += `\n${'='.repeat(50)}\n\n`;
@@ -1824,7 +1824,21 @@ Return only the new content without any additional comments, explanations, or he
       messages.forEach((message, index) => {
         const timestamp = new Date(message.createdAt).toLocaleString();
         content += `[${timestamp}] ${message.role.toUpperCase()}:\n`;
-        content += `${message.content}\n\n`;
+        
+        // Strip markdown formatting from message content
+        const cleanContent = message.content
+          .replace(/#{1,6}\s+/g, '') // Remove headers
+          .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+          .replace(/\*(.*?)\*/g, '$1') // Remove italics
+          .replace(/`(.*?)`/g, '$1') // Remove inline code
+          .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+          .replace(/>\s+/g, '') // Remove blockquotes
+          .replace(/^\s*[-*+]\s+/gm, '- ') // Normalize list markers
+          .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+          .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+          .trim();
+          
+        content += `${cleanContent}\n\n`;
         if (index < messages.length - 1) {
           content += `${'-'.repeat(30)}\n\n`;
         }
