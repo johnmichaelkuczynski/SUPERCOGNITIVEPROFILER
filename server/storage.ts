@@ -1,9 +1,10 @@
 import { 
-  users, documents, conversations, messages, 
+  users, documents, conversations, messages, rewrites,
   type User, type InsertUser, 
   type Document, type InsertDocument,
   type Conversation, type InsertConversation,
-  type Message, type InsertMessage
+  type Message, type InsertMessage,
+  type Rewrite, type InsertRewrite
 } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -33,6 +34,12 @@ export interface IStorage {
   getMessagesByConversationId(conversationId: number): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   updateMessage(id: number, message: Partial<Message>): Promise<Message | undefined>;
+  
+  // Rewrite methods
+  getRewrite(id: number): Promise<Rewrite | undefined>;
+  getRewritesByUserId(userId: number): Promise<Rewrite[]>;
+  createRewrite(rewrite: InsertRewrite): Promise<Rewrite>;
+  deleteRewrite(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -40,20 +47,24 @@ export class MemStorage implements IStorage {
   private documents: Map<string, Document>;
   private conversations: Map<number, Conversation>;
   private messages: Map<number, Message>;
+  private rewrites: Map<number, Rewrite>;
   private userId: number;
   private documentId: number;
   private conversationId: number;
   private messageId: number;
+  private rewriteId: number;
 
   constructor() {
     this.users = new Map();
     this.documents = new Map();
     this.conversations = new Map();
     this.messages = new Map();
+    this.rewrites = new Map();
     this.userId = 1;
     this.documentId = 1;
     this.conversationId = 1;
     this.messageId = 1;
+    this.rewriteId = 1;
     
     // Add a default user for testing
     this.createUser({

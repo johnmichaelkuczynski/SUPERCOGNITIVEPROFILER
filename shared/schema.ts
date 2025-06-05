@@ -48,6 +48,20 @@ export const messages = pgTable("messages", {
   documentReferences: text("document_references"), // Referenced documents in this message
 });
 
+export const rewrites = pgTable("rewrites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  originalContent: text("original_content").notNull(),
+  rewrittenContent: text("rewritten_content").notNull(),
+  instructions: text("instructions"),
+  model: text("model").notNull(),
+  mode: text("mode").notNull(), // "rewrite" or "homework"
+  createdAt: timestamp("created_at").defaultNow(),
+  metadata: text("metadata"), // JSON metadata (chunks processed, original length, etc.)
+  sourceType: text("source_type"), // "document", "chat", "direct_input"
+  sourceId: text("source_id"), // Reference to source document/conversation if applicable
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -70,6 +84,11 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   timestamp: true,
 });
 
+export const insertRewriteSchema = createInsertSchema(rewrites).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -84,3 +103,6 @@ export type Conversation = typeof conversations.$inferSelect;
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+export type InsertRewrite = z.infer<typeof insertRewriteSchema>;
+export type Rewrite = typeof rewrites.$inferSelect;
