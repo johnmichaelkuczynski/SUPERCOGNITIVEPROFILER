@@ -1308,6 +1308,24 @@ Return only the rewritten text without any additional comments, explanations, or
     }
   });
 
+  // Get user rewrites for history/analytics
+  app.get('/api/rewrites', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.query.userId as string) || 1; // Default to user 1
+      const rewrites = await storage.getRewritesByUserId(userId);
+      
+      // Sort by creation date, newest first
+      const sortedRewrites = rewrites.sort((a, b) => 
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
+      
+      res.json(sortedRewrites);
+    } catch (error) {
+      console.error('Error fetching rewrites:', error);
+      res.status(500).json({ error: 'Failed to fetch rewrites' });
+    }
+  });
+
   app.post('/api/download-rewrite', async (req: Request, res: Response) => {
     try {
       const { content, format, title } = req.body;
