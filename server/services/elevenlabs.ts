@@ -34,12 +34,17 @@ class ElevenLabsService {
   constructor() {
     this.apiKey = process.env.ELEVEN_LABS_API_KEY || '';
     if (!this.apiKey) {
-      throw new Error('ELEVEN_LABS_API_KEY not found in environment variables');
+      console.warn('ELEVEN_LABS_API_KEY not found - TTS features will be disabled');
     }
   }
 
   // Get available voices from ElevenLabs
   async getAvailableVoices(): Promise<VoiceProfile[]> {
+    if (!this.apiKey) {
+      console.warn('ElevenLabs API key not available - returning empty voice list');
+      return [];
+    }
+
     try {
       const response = await fetch(`${this.baseUrl}/voices`, {
         headers: {
@@ -69,7 +74,7 @@ class ElevenLabsService {
       return voices;
     } catch (error) {
       console.error('Error fetching ElevenLabs voices:', error);
-      throw error;
+      return [];
     }
   }
 
@@ -246,6 +251,10 @@ class ElevenLabsService {
     emotion?: string, 
     pace?: string
   ): Promise<Buffer> {
+    if (!this.apiKey) {
+      throw new Error('ElevenLabs API key not available - TTS features disabled');
+    }
+    
     try {
       // Adjust voice settings based on emotion and pace
       const voiceSettings = {
