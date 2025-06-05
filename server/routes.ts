@@ -844,6 +844,31 @@ YOUR REWRITTEN DOCUMENT:`;
         .replace(/[_]{2}(.+?)[_]{2}/g, '$1') // Remove underscore emphasis
         .replace(/^\s*[-*+]\s+/gm, ''); // Remove bullet points
       
+      // Save rewrite to database
+      try {
+        await storage.createRewrite({
+          userId: 1, // Default user ID for now
+          model,
+          mode: 'document_rewrite',
+          originalContent: processableContent,
+          rewrittenContent,
+          instructions,
+          metadata: JSON.stringify({
+            filename: filename || 'untitled',
+            detectionProtection,
+            originalLength: content.length,
+            processedLength: processableContent.length,
+            rewrittenLength: rewrittenContent.length
+          }),
+          sourceType: 'document',
+          sourceId: filename || null
+        });
+        console.log('Rewrite saved to database successfully');
+      } catch (dbError) {
+        console.error('Failed to save rewrite to database:', dbError);
+        // Continue with response even if database save fails
+      }
+      
       // Return successful response
       res.json({ 
         content: rewrittenContent,
@@ -1248,6 +1273,31 @@ Return only the rewritten text without any additional comments, explanations, or
           temperature: 0.7,
           maxTokens: 4000
         });
+      }
+      
+      // Save chunk rewrite to database
+      try {
+        await storage.createRewrite({
+          userId: 1, // Default user ID for now
+          model: model || 'claude',
+          mode: 'chunk_rewrite',
+          originalContent: content,
+          rewrittenContent: result,
+          instructions,
+          metadata: JSON.stringify({
+            chunkIndex,
+            totalChunks,
+            chatContext: !!chatContext,
+            originalLength: content.length,
+            rewrittenLength: result.length
+          }),
+          sourceType: 'chunk',
+          sourceId: `chunk_${chunkIndex}_of_${totalChunks}`
+        });
+        console.log(`Chunk rewrite saved to database: chunk ${chunkIndex + 1}/${totalChunks}`);
+      } catch (dbError) {
+        console.error('Failed to save chunk rewrite to database:', dbError);
+        // Continue with response even if database save fails
       }
       
       res.json({ rewrittenContent: result });

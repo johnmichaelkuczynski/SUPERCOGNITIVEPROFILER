@@ -231,6 +231,34 @@ export class MemStorage implements IStorage {
     this.messages.set(id, updatedMessage);
     return updatedMessage;
   }
+
+  // Rewrite methods implementation
+  async getRewrite(id: number): Promise<Rewrite | undefined> {
+    return this.rewrites.get(id);
+  }
+
+  async getRewritesByUserId(userId: number): Promise<Rewrite[]> {
+    return Array.from(this.rewrites.values()).filter(rewrite => rewrite.userId === userId);
+  }
+
+  async createRewrite(insertRewrite: InsertRewrite): Promise<Rewrite> {
+    const id = this.rewriteId++;
+    const rewrite: Rewrite = {
+      ...insertRewrite,
+      id,
+      metadata: insertRewrite.metadata || null,
+      instructions: insertRewrite.instructions || null,
+      sourceType: insertRewrite.sourceType || null,
+      sourceId: insertRewrite.sourceId || null,
+      createdAt: new Date()
+    };
+    this.rewrites.set(id, rewrite);
+    return rewrite;
+  }
+
+  async deleteRewrite(id: number): Promise<boolean> {
+    return this.rewrites.delete(id);
+  }
 }
 
 import { db } from './db';
@@ -456,6 +484,47 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Database error in updateMessage, falling back to memory storage:", error);
       return this.memStorage.updateMessage(id, messageUpdate);
+    }
+  }
+
+  // Rewrite methods implementation
+  async getRewrite(id: number): Promise<Rewrite | undefined> {
+    try {
+      const [rewrite] = await db.select().from(rewrites).where(eq(rewrites.id, id));
+      return rewrite;
+    } catch (error) {
+      console.error("Database error in getRewrite, falling back to memory storage:", error);
+      return this.memStorage.getRewrite(id);
+    }
+  }
+
+  async getRewritesByUserId(userId: number): Promise<Rewrite[]> {
+    try {
+      const result = await db.select().from(rewrites).where(eq(rewrites.userId, userId));
+      return result;
+    } catch (error) {
+      console.error("Database error in getRewritesByUserId, falling back to memory storage:", error);
+      return this.memStorage.getRewritesByUserId(userId);
+    }
+  }
+
+  async createRewrite(rewrite: InsertRewrite): Promise<Rewrite> {
+    try {
+      const [result] = await db.insert(rewrites).values(rewrite).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createRewrite, falling back to memory storage:", error);
+      return this.memStorage.createRewrite(rewrite);
+    }
+  }
+
+  async deleteRewrite(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(rewrites).where(eq(rewrites.id, id));
+      return !!result;
+    } catch (error) {
+      console.error("Database error in deleteRewrite, falling back to memory storage:", error);
+      return this.memStorage.deleteRewrite(id);
     }
   }
 }
