@@ -532,7 +532,19 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                             className="h-6 w-6"
                             onClick={() => {
                               if (onSendToInput) {
-                                onSendToInput(message.content);
+                                // Strip markdown formatting before sending to input
+                                const cleanContent = message.content
+                                  .replace(/#{1,6}\s+/g, '') // Remove headers
+                                  .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+                                  .replace(/\*(.*?)\*/g, '$1') // Remove italics
+                                  .replace(/`(.*?)`/g, '$1') // Remove inline code
+                                  .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+                                  .replace(/>\s+/g, '') // Remove blockquotes
+                                  .replace(/^\s*[-*+]\s+/gm, '') // Remove list markers
+                                  .replace(/^\s*\d+\.\s+/gm, '') // Remove numbered list markers
+                                  .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+                                  .trim();
+                                onSendToInput(cleanContent);
                               }
                             }}
                             title="Send to Input"
