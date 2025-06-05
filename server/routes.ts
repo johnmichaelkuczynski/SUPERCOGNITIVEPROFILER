@@ -1785,7 +1785,7 @@ Return only the new content without any additional comments, explanations, or he
 
       const msg = {
         to: email,
-        from: 'textmind@yourdomain.com',
+        from: 'JM@ANALYTICPHILOSOPHY.AI',
         subject: subject,
         text: content,
         html: content.replace(/\n/g, '<br>')
@@ -1796,6 +1796,151 @@ Return only the new content without any additional comments, explanations, or he
     } catch (error) {
       console.error('Error sharing chat message:', error);
       res.status(500).json({ error: 'Failed to share chat message' });
+    }
+  });
+
+  // Export auxiliary chat conversation
+  app.post('/api/export-auxiliary-chat', async (req: Request, res: Response) => {
+    try {
+      const { conversationId, format = 'txt' } = req.body;
+
+      if (!conversationId) {
+        return res.status(400).json({ error: 'Conversation ID is required' });
+      }
+
+      // Get conversation and messages
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversation not found' });
+      }
+
+      const messages = await storage.getMessagesByConversationId(conversationId);
+      
+      // Format conversation content
+      let content = `Conversation: ${conversation.title}\n`;
+      content += `Date: ${new Date(conversation.createdAt).toLocaleString()}\n`;
+      content += `\n${'='.repeat(50)}\n\n`;
+
+      messages.forEach((message, index) => {
+        const timestamp = new Date(message.createdAt).toLocaleString();
+        content += `[${timestamp}] ${message.role.toUpperCase()}:\n`;
+        content += `${message.content}\n\n`;
+        if (index < messages.length - 1) {
+          content += `${'-'.repeat(30)}\n\n`;
+        }
+      });
+
+      const filename = `auxiliary-chat-${conversation.title.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}`;
+
+      if (format === 'docx') {
+        const { Document: DocxDocument, Paragraph, TextRun, Packer } = await import('docx');
+        
+        const doc = new DocxDocument({
+          sections: [{
+            properties: {},
+            children: content.split('\n').map(line => 
+              new Paragraph({
+                children: [new TextRun(line || ' ')],
+              })
+            ),
+          }]
+        });
+
+        const buffer = await Packer.toBuffer(doc);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.docx"`);
+        res.send(buffer);
+      } else if (format === 'txt') {
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}.txt"`);
+        res.send(content);
+      } else {
+        res.status(400).json({ error: 'Unsupported format. Use txt or docx.' });
+      }
+    } catch (error) {
+      console.error('Error exporting auxiliary chat:', error);
+      res.status(500).json({ error: 'Failed to export conversation' });
+    }
+  });
+
+  // Share auxiliary chat conversation via email
+  app.post('/api/share-auxiliary-chat', async (req: Request, res: Response) => {
+    try {
+      const { conversationId, email, subject } = req.body;
+
+      if (!conversationId || !email) {
+        return res.status(400).json({ error: 'Conversation ID and email are required' });
+      }
+
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ error: 'Email service not configured' });
+      }
+
+      // Get conversation and messages
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversation not found' });
+      }
+
+      const messages = await storage.getMessagesByConversationId(conversationId);
+      
+      // Format conversation content for email
+      let htmlContent = `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">`;
+      htmlContent += `<h2>Conversation: ${conversation.title}</h2>`;
+      htmlContent += `<p><strong>Date:</strong> ${new Date(conversation.createdAt).toLocaleString()}</p>`;
+      htmlContent += `<hr style="margin: 20px 0;">`;
+
+      messages.forEach((message, index) => {
+        const timestamp = new Date(message.createdAt).toLocaleString();
+        const isUser = message.role === 'user';
+        const bgColor = isUser ? '#f0f8ff' : '#f8f8f8';
+        const roleColor = isUser ? '#0066cc' : '#666666';
+        
+        htmlContent += `
+          <div style="margin: 15px 0; padding: 15px; background-color: ${bgColor}; border-radius: 8px; border-left: 4px solid ${roleColor};">
+            <div style="font-weight: bold; color: ${roleColor}; margin-bottom: 8px;">
+              ${message.role.toUpperCase()} - ${timestamp}
+            </div>
+            <div style="white-space: pre-wrap; line-height: 1.4;">
+              ${message.content.replace(/\n/g, '<br>')}
+            </div>
+          </div>
+        `;
+      });
+
+      htmlContent += `</div>`;
+
+      // Plain text version
+      let textContent = `Conversation: ${conversation.title}\n`;
+      textContent += `Date: ${new Date(conversation.createdAt).toLocaleString()}\n`;
+      textContent += `\n${'='.repeat(50)}\n\n`;
+
+      messages.forEach((message, index) => {
+        const timestamp = new Date(message.createdAt).toLocaleString();
+        textContent += `[${timestamp}] ${message.role.toUpperCase()}:\n`;
+        textContent += `${message.content}\n\n`;
+        if (index < messages.length - 1) {
+          textContent += `${'-'.repeat(30)}\n\n`;
+        }
+      });
+
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+      const msg = {
+        to: email,
+        from: 'JM@ANALYTICPHILOSOPHY.AI',
+        subject: subject || `Chat Conversation: ${conversation.title}`,
+        text: textContent,
+        html: htmlContent
+      };
+
+      await sgMail.send(msg);
+      console.log(`Auxiliary chat conversation shared successfully to ${email}`);
+      res.json({ success: true, message: 'Conversation shared successfully' });
+    } catch (error) {
+      console.error('Error sharing auxiliary chat:', error);
+      res.status(500).json({ error: 'Failed to share conversation' });
     }
   });
 
