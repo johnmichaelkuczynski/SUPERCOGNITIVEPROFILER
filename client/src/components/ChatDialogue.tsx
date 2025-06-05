@@ -28,6 +28,7 @@ interface ChatMessage {
 
 interface ChatDialogueProps {
   onRewriteChunk?: (chunk: string, index: number, total: number) => void;
+  onSendToInput?: (content: string) => void;
 }
 
 export interface ChatDialogueRef {
@@ -36,7 +37,7 @@ export interface ChatDialogueRef {
 }
 
 const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
-  ({ onRewriteChunk }, ref) => {
+  ({ onRewriteChunk, onSendToInput }, ref) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -512,6 +513,21 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                             }}
                           >
                             <Share className="h-3 w-3" />
+                          </Button>
+
+                          {/* Send to Input button */}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6"
+                            onClick={() => {
+                              if (onSendToInput) {
+                                onSendToInput(message.content);
+                              }
+                            }}
+                            title="Send to Input"
+                          >
+                            <Upload className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>

@@ -1604,7 +1604,10 @@ Document text: ${extractedText}`;
         
         {/* Auxiliary Chat Interface */}
         <div className="mt-6">
-          <ChatDialogue ref={chatDialogueRef} />
+          <ChatDialogue 
+            ref={chatDialogueRef} 
+            onSendToInput={(content) => setDirectInputText(content)}
+          />
         </div>
       </div>
       </div>
