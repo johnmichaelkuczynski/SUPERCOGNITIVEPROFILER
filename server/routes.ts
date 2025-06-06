@@ -80,15 +80,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Added context from ${documentTexts.length} document(s) to prompt`);
         
+        // Limit total context length to prevent API failures with large documents
+        const combinedDocumentText = documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n");
+        const MAX_CONTEXT_LENGTH = 50000; // Conservative limit for combined content
+        
+        let finalDocumentContext = combinedDocumentText;
+        if (combinedDocumentText.length > MAX_CONTEXT_LENGTH) {
+          console.log(`Document context too large (${combinedDocumentText.length} chars), truncating to ${MAX_CONTEXT_LENGTH} chars`);
+          finalDocumentContext = combinedDocumentText.substring(0, MAX_CONTEXT_LENGTH) + "\n\n[CONTENT TRUNCATED DUE TO SIZE]";
+        }
+        
         // Simple document context without complicated instructions
-        processedContent = content + "\n\nContext documents:\n" + documentTexts.join("\n\n---DOCUMENT BOUNDARY---\n\n") + "\n\nIMPORTANT: When responding with mathematical content, use proper LaTeX formatting with \\(...\\) for inline math and $$...$$ for display math. Do not escape or convert LaTeX symbols.";
+        processedContent = content + "\n\nContext documents:\n" + finalDocumentContext + "\n\nIMPORTANT: When responding with mathematical content, use proper LaTeX formatting with \\(...\\) for inline math and $$...$$ for display math. Do not escape or convert LaTeX symbols.";
       }
+      
+      // Check final content length before processing
+      const MAX_TOTAL_LENGTH = 80000; // Conservative limit for total prompt
+      if (processedContent.length > MAX_TOTAL_LENGTH) {
+        console.log(`Total content too large (${processedContent.length} chars), truncating to ${MAX_TOTAL_LENGTH} chars`);
+        processedContent = processedContent.substring(0, MAX_TOTAL_LENGTH) + "\n\n[CONTENT TRUNCATED TO PREVENT API ERRORS]";
+      }
+      
+      console.log(`Processing request with ${processedContent.length} characters using ${model}`);
       
       // Process with the selected model
       let result;
       const shouldStream = stream === 'true';
       const tempValue = temperature ? parseFloat(temperature) : 0.7;
-      const maxTokenValue = maxTokens ? parseInt(maxTokens) : undefined;
+      const maxTokenValue = maxTokens ? parseInt(maxTokens) : 4000; // Set default max tokens
       
       // Parse conversation history if provided
       let previousMessages = undefined;
@@ -113,18 +132,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         options.previousMessages = previousMessages;
       }
       
-      switch (model) {
-        case 'claude':
-          result = await processClaude(processedContent, options);
-          break;
-        case 'gpt4':
-          result = await processGPT4(processedContent, options);
-          break;
-        case 'perplexity':
-          result = await processPerplexity(processedContent, options);
-          break;
-        default:
-          return res.status(400).json({ message: 'Invalid model' });
+      try {
+        switch (model) {
+          case 'claude':
+            result = await processClaude(processedContent, options);
+            break;
+          case 'gpt4':
+            result = await processGPT4(processedContent, options);
+            break;
+          case 'perplexity':
+            result = await processPerplexity(processedContent, options);
+            break;
+          default:
+            return res.status(400).json({ message: 'Invalid model' });
+        }
+        
+        // Validate result
+        if (!result || (typeof result === 'string' && result.trim() === '')) {
+          throw new Error('Empty response from AI model');
+        }
+        
+        // Extract content if result is an object
+        if (typeof result === 'object' && result.content) {
+          result = result.content;
+        }
+        
+      } catch (modelError) {
+        console.error(`Error with ${model} model:`, modelError);
+        
+        // Try with a fallback approach for large content
+        if (processedContent.length > 40000) {
+          console.log('Retrying with truncated content due to size...');
+          const truncatedContent = processedContent.substring(0, 40000) + "\n\n[Content truncated for processing]";
+          
+          try {
+            switch (model) {
+              case 'claude':
+                result = await processClaude(truncatedContent, { ...options, maxTokens: 3000 });
+                break;
+              case 'gpt4':
+                result = await processGPT4(truncatedContent, { ...options, maxTokens: 3000 });
+                break;
+              case 'perplexity':
+                result = await processPerplexity(truncatedContent, { ...options, maxTokens: 3000 });
+                break;
+            }
+          } catch (retryError) {
+            console.error('Retry also failed:', retryError);
+            throw new Error(`AI processing failed: ${modelError.message}`);
+          }
+        } else {
+          throw modelError;
+        }
       }
       
       // Store the interaction in history if requested
