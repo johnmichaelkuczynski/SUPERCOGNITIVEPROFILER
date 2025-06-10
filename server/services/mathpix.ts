@@ -12,6 +12,17 @@ function formatMathText(rawText: string): string {
   // Pattern: \(\backslash(472 + 389=\backslash\) -> 472 + 389
   formatted = formatted.replace(/\\\(\\backslash\(([^=]+)=\\backslash\\\)/g, '$1');
   
+  // Fix double parentheses and incomplete equals in LaTeX expressions
+  // Pattern: \((472 + 389=\) -> \(472 + 389\)
+  formatted = formatted.replace(/\\\(\(([^=]+)=\\\)/g, '\\($1\\)');
+  formatted = formatted.replace(/\\\(\(([^=]+)=\)\\\)/g, '\\($1\\)');
+  formatted = formatted.replace(/\\\(\(([^=]+)=\)/g, '\\($1\\)');
+  
+  // Handle the specific pattern we're seeing: \((numbers + numbers=\)
+  formatted = formatted.replace(/\\\(\((\d+\s*[+\-×÷]\s*\d+)=\\\)/g, '\\($1\\)');
+  formatted = formatted.replace(/\\\(\((\d+\s*[+\-×÷]\s*\d+)=\)\\\)/g, '\\($1\\)');
+  formatted = formatted.replace(/\\\(\((\d+\s*[+\-×÷]\s*\d+)=\)/g, '\\($1\\)');
+  
   // Pattern: \\(Iqquad) -> (space)
   formatted = formatted.replace(/\\\\\(Iqquad\)/g, ' ');
   
@@ -109,23 +120,16 @@ export async function extractMathWithMathpix(imageBuffer: Buffer): Promise<strin
     }
     
     const result: MathpixResponse = await response.json();
+    console.log(`[mathpix] Raw response: ${JSON.stringify(result)}`);
     console.log(`[mathpix] OCR completed with confidence: ${result.confidence || 'unknown'}`);
     
     if (result.error) {
       throw new Error(`Mathpix error: ${result.error}`);
     }
     
-    // Combine text and LaTeX for comprehensive mathematical content
-    let extractedText = '';
-    
-    if (result.text) {
-      extractedText += result.text;
-    }
-    
-    if (result.latex && result.latex !== result.text) {
-      extractedText += '\n\n--- LaTeX Representation ---\n';
-      extractedText += result.latex;
-    }
+    // Use text field for best results
+    let extractedText = result.text || result.latex || '';
+    console.log(`[mathpix] Raw extracted text: ${JSON.stringify(extractedText)}`);
     
     if (!extractedText.trim()) {
       throw new Error('No text extracted from image');
