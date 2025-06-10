@@ -791,16 +791,43 @@ Document text: ${extractedText}`;
             onDragLeave={handleDragLeave}
             onDrop={handleDirectDrop}
           >
-            <textarea 
-              placeholder={isDragging ? "Drop files here to upload..." : 
-                (processingMode === 'homework' 
-                  ? "Paste exam questions, homework assignments, or instructions here..." 
-                  : "Paste your text to rewrite, improve, or transform here...")
-              }
-              className="w-full h-40 p-4 border rounded-lg resize-none"
-              value={directInputText}
-              onChange={(e) => setDirectInputText(e.target.value)}
-            />
+            {directInputText.includes('\\') || directInputText.includes('$') ? (
+              // Render with LaTeX support when mathematical notation is detected
+              <div className="w-full h-40 p-4 border rounded-lg overflow-y-auto bg-white">
+                <MathJax>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    className="whitespace-pre-wrap"
+                  >
+                    {directInputText}
+                  </ReactMarkdown>
+                </MathJax>
+                {/* Hidden textarea for editing */}
+                <textarea 
+                  className="absolute inset-0 w-full h-full p-4 bg-transparent text-transparent resize-none border-none outline-none"
+                  value={directInputText}
+                  onChange={(e) => setDirectInputText(e.target.value)}
+                  placeholder={isDragging ? "Drop files here to upload..." : 
+                    (processingMode === 'homework' 
+                      ? "Paste exam questions, homework assignments, or instructions here..." 
+                      : "Paste your text to rewrite, improve, or transform here...")
+                  }
+                />
+              </div>
+            ) : (
+              // Regular textarea when no LaTeX is detected
+              <textarea 
+                placeholder={isDragging ? "Drop files here to upload..." : 
+                  (processingMode === 'homework' 
+                    ? "Paste exam questions, homework assignments, or instructions here..." 
+                    : "Paste your text to rewrite, improve, or transform here...")
+                }
+                className="w-full h-40 p-4 border rounded-lg resize-none"
+                value={directInputText}
+                onChange={(e) => setDirectInputText(e.target.value)}
+              />
+            )}
             <div className="flex justify-between items-center">
               <input 
                 type="file" 
