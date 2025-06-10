@@ -8,29 +8,46 @@ interface MathpixResponse {
 function formatMathText(rawText: string): string {
   let formatted = rawText;
   
-  // Add proper line breaks after mathematical expressions and equations
+  // Fix common OCR spacing issues where text runs together
+  formatted = formatted.replace(/([a-z])([A-Z])/g, '$1 $2');
+  formatted = formatted.replace(/([0-9])([A-Za-z])/g, '$1 $2');
+  formatted = formatted.replace(/([a-z])([0-9])/g, '$1 $2');
+  
+  // Add proper line breaks after mathematical expressions
   formatted = formatted.replace(/\\\]/g, '\\]\n\n');
   formatted = formatted.replace(/\\\)/g, '\\)\n\n');
   formatted = formatted.replace(/([.!?])\s*([A-Z0-9])/g, '$1\n\n$2');
   
-  // Add spacing around operators
+  // Format problem numbers and sections
+  formatted = formatted.replace(/(\d+)\.\s*([A-Za-z])/g, '\n\n$1. $2');
+  formatted = formatted.replace(/([a-z])\s*(\d+\.\s*[A-Z])/g, '$1\n\n$2');
+  
+  // Add spacing around mathematical operators
   formatted = formatted.replace(/([a-zA-Z0-9])\s*=\s*([a-zA-Z0-9])/g, '$1 = $2');
   formatted = formatted.replace(/([0-9])\s*\+\s*([0-9a-zA-Z])/g, '$1 + $2');
   formatted = formatted.replace(/([0-9])\s*-\s*([0-9a-zA-Z])/g, '$1 - $2');
+  formatted = formatted.replace(/([0-9])\s*\*\s*([0-9a-zA-Z])/g, '$1 × $2');
+  formatted = formatted.replace(/([0-9])\s*\/\s*([0-9a-zA-Z])/g, '$1 ÷ $2');
   
-  // Format problem numbers with proper spacing
-  formatted = formatted.replace(/(\d+)\.\s*([A-Za-z])/g, '\n\n$1. $2');
+  // Clean up matrix and equation formatting
+  formatted = formatted.replace(/\\\[\s*/g, '\n\n\\[\n');
+  formatted = formatted.replace(/\s*\\\]/g, '\n\\]\n\n');
+  formatted = formatted.replace(/\\\(\s*/g, '\\(');
+  formatted = formatted.replace(/\s*\\\)/g, '\\)');
   
-  // Clean up matrix notation
-  formatted = formatted.replace(/\\\[\s*/g, '\n\\[\n');
-  formatted = formatted.replace(/\s*\\\]/g, '\n\\]\n');
+  // Fix run-together words and improve readability
+  formatted = formatted.replace(/([a-z])([A-Z][a-z])/g, '$1 $2');
+  formatted = formatted.replace(/([a-z])(\d+\.)/g, '$1\n\n$2');
+  formatted = formatted.replace(/([.?!])([A-Z])/g, '$1\n\n$2');
   
-  // Add spacing between different sections
-  formatted = formatted.replace(/([a-z])\s*([A-Z][a-z])/g, '$1\n\n$2');
+  // Add spacing for mathematical expressions that run together
+  formatted = formatted.replace(/([a-z])([\+\-\=])/g, '$1 $2');
+  formatted = formatted.replace(/([\+\-\=])([a-z])/g, '$1 $2');
   
-  // Clean up excessive whitespace
+  // Clean up excessive whitespace while preserving intentional formatting
   formatted = formatted.replace(/\n\n\n+/g, '\n\n');
   formatted = formatted.replace(/^\s+|\s+$/g, '');
+  formatted = formatted.replace(/[ \t]+/g, ' ');
   
   return formatted;
 }
@@ -58,19 +75,11 @@ export async function extractMathWithMathpix(imageBuffer: Buffer): Promise<strin
       },
       body: JSON.stringify({
         src: `data:image/jpeg;base64,${base64Image}`,
-        formats: ['text', 'latex_styled', 'mathml'],
+        formats: ['text', 'latex_styled'],
         data_options: {
           include_asciimath: true,
-          include_latex: true,
-          include_table_html: true,
-          include_line_data: true,
-          include_geometry_data: true
-        },
-        ocr: ['math', 'text'],
-        skip_recrop: true,
-        enable_tables_fallback: true,
-        alphabetic_symbols: true,
-        numbers: true
+          include_latex: true
+        }
       })
     });
     
