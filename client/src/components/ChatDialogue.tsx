@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Upload, FileText, Download, Share, Trash2, X } from 'lucide-react';
+import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -53,6 +54,13 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Speech input functionality
+  const { SpeechButton } = useSpeechInput(
+    (text: string) => setInput(text),
+    () => input,
+    { onAppend: true }
+  );
 
 
 
@@ -702,6 +710,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                   >
                     <Upload className="h-4 w-4" />
                   </Button>
+                  <SpeechButton className="h-8 w-8" size="sm" />
                   <Button
                     size="icon"
                     className="h-8 w-8"

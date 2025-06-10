@@ -41,10 +41,17 @@ export default function Home() {
   const chatDialogueRef = useRef<ChatDialogueRef>(null);
   const [, setLocation] = useLocation();
   
-  // Speech input functionality
+  // Speech input functionality for main chat
   const { SpeechButton } = useSpeechInput(
     (text: string) => setPrompt(text),
     () => prompt,
+    { onAppend: true }
+  );
+
+  // Speech input functionality for direct text input
+  const { SpeechButton: DirectSpeechButton } = useSpeechInput(
+    (text: string) => setDirectInputText(text),
+    () => directInputText,
     { onAppend: true }
   );
   
@@ -806,14 +813,17 @@ Document text: ${extractedText}`;
                   await handleDirectFileUpload([file]);
                 }}
               />
-              <Button 
-                variant="outline" 
-                className="flex items-center space-x-2"
-                onClick={() => directFileInputRef.current?.click()}
-              >
-                <Upload className="h-4 w-4" />
-                <span>Upload File</span>
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center space-x-2"
+                  onClick={() => directFileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>Upload File</span>
+                </Button>
+                <DirectSpeechButton className="h-10 w-10" />
+              </div>
               <Button 
                 className="flex items-center space-x-2"
                 disabled={!directInputText.trim() || isDirectProcessing}
@@ -1246,6 +1256,7 @@ Document text: ${extractedText}`;
                   >
                     <Upload className="h-4 w-4" />
                   </Button>
+                  <SpeechButton className="h-10 w-10" />
                   <Button
                     variant="default"
                     size="icon"
