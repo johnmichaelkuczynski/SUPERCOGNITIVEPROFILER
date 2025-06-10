@@ -8,20 +8,18 @@ interface MathpixResponse {
 function formatMathText(rawText: string): string {
   let formatted = rawText;
   
-  // Fix the exact patterns we're seeing in the OCR output
-  // Pattern: \(\backslash(472 + 389=\backslash\) -> 472 + 389
-  formatted = formatted.replace(/\\\(\\backslash\(([^=]+)=\\backslash\\\)/g, '$1');
+  // Fix the exact malformed patterns from Mathpix OCR
+  // Pattern: \( \backslash(472+389=\backslash \) -> \(472 + 389\)
+  formatted = formatted.replace(/\\\(\s*\\backslash\(([^=]+)=\\backslash\s*\\\)/g, '\\($1\\)');
   
-  // Fix double parentheses and incomplete equals in LaTeX expressions
-  // Pattern: \((472 + 389=\) -> \(472 + 389\)
-  formatted = formatted.replace(/\\\(\(([^=]+)=\\\)/g, '\\($1\\)');
-  formatted = formatted.replace(/\\\(\(([^=]+)=\)\\\)/g, '\\($1\\)');
-  formatted = formatted.replace(/\\\(\(([^=]+)=\)/g, '\\($1\\)');
+  // Pattern: \( \backslash(936-478=\backslash) \) -> \(936 - 478\)
+  formatted = formatted.replace(/\\\(\s*\\backslash\(([^=]+)=\\backslash\)\s*\\\)/g, '\\($1\\)');
   
-  // Handle the specific pattern we're seeing: \((numbers + numbers=\)
-  formatted = formatted.replace(/\\\(\((\d+\s*[+\-×÷]\s*\d+)=\\\)/g, '\\($1\\)');
-  formatted = formatted.replace(/\\\(\((\d+\s*[+\-×÷]\s*\d+)=\)\\\)/g, '\\($1\\)');
-  formatted = formatted.replace(/\\\(\((\d+\s*[+\-×÷]\s*\d+)=\)/g, '\\($1\\)');
+  // Add proper spacing around operators
+  formatted = formatted.replace(/(\d+)\+(\d+)/g, '$1 + $2');
+  formatted = formatted.replace(/(\d+)-(\d+)/g, '$1 - $2');
+  formatted = formatted.replace(/(\d+)\*(\d+)/g, '$1 × $2');
+  formatted = formatted.replace(/(\d+)\/(\d+)/g, '$1 ÷ $2');
   
   // Pattern: \\(Iqquad) -> (space)
   formatted = formatted.replace(/\\\\\(Iqquad\)/g, ' ');
@@ -137,6 +135,7 @@ export async function extractMathWithMathpix(imageBuffer: Buffer): Promise<strin
     
     // Apply formatting to improve readability
     const formattedText = formatMathText(extractedText.trim());
+    console.log(`[mathpix] Formatted text: ${JSON.stringify(formattedText)}`);
     
     console.log(`[mathpix] Successfully extracted and formatted ${formattedText.length} characters`);
     return formattedText;
