@@ -28,11 +28,19 @@ export async function extractMathWithMathpix(imageBuffer: Buffer): Promise<strin
       },
       body: JSON.stringify({
         src: `data:image/jpeg;base64,${base64Image}`,
-        formats: ['text', 'latex_styled'],
+        formats: ['text', 'latex_styled', 'mathml'],
         data_options: {
           include_asciimath: true,
-          include_latex: true
-        }
+          include_latex: true,
+          include_table_html: true,
+          include_line_data: true,
+          include_geometry_data: true
+        },
+        ocr: ['math', 'text'],
+        skip_recrop: true,
+        enable_tables_fallback: true,
+        alphabetic_symbols: true,
+        numbers: true
       })
     });
     
