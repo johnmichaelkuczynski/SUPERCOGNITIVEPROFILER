@@ -794,15 +794,16 @@ Document text: ${extractedText}`;
             {directInputText.includes('\\') || directInputText.includes('$') ? (
               // Render with LaTeX support when mathematical notation is detected
               <div className="w-full h-40 p-4 border rounded-lg overflow-y-auto bg-white">
-                <MathJax>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                    className="whitespace-pre-wrap"
-                  >
-                    {directInputText}
-                  </ReactMarkdown>
-                </MathJax>
+                <div className="whitespace-pre-wrap">
+                  <MathJax>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                    >
+                      {directInputText}
+                    </ReactMarkdown>
+                  </MathJax>
+                </div>
                 {/* Hidden textarea for editing */}
                 <textarea 
                   className="absolute inset-0 w-full h-full p-4 bg-transparent text-transparent resize-none border-none outline-none"
