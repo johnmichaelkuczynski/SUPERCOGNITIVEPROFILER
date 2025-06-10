@@ -5,6 +5,36 @@ interface MathpixResponse {
   error?: string;
 }
 
+function formatMathText(rawText: string): string {
+  let formatted = rawText;
+  
+  // Add proper line breaks after mathematical expressions and equations
+  formatted = formatted.replace(/\\\]/g, '\\]\n\n');
+  formatted = formatted.replace(/\\\)/g, '\\)\n\n');
+  formatted = formatted.replace(/([.!?])\s*([A-Z0-9])/g, '$1\n\n$2');
+  
+  // Add spacing around operators
+  formatted = formatted.replace(/([a-zA-Z0-9])\s*=\s*([a-zA-Z0-9])/g, '$1 = $2');
+  formatted = formatted.replace(/([0-9])\s*\+\s*([0-9a-zA-Z])/g, '$1 + $2');
+  formatted = formatted.replace(/([0-9])\s*-\s*([0-9a-zA-Z])/g, '$1 - $2');
+  
+  // Format problem numbers with proper spacing
+  formatted = formatted.replace(/(\d+)\.\s*([A-Za-z])/g, '\n\n$1. $2');
+  
+  // Clean up matrix notation
+  formatted = formatted.replace(/\\\[\s*/g, '\n\\[\n');
+  formatted = formatted.replace(/\s*\\\]/g, '\n\\]\n');
+  
+  // Add spacing between different sections
+  formatted = formatted.replace(/([a-z])\s*([A-Z][a-z])/g, '$1\n\n$2');
+  
+  // Clean up excessive whitespace
+  formatted = formatted.replace(/\n\n\n+/g, '\n\n');
+  formatted = formatted.replace(/^\s+|\s+$/g, '');
+  
+  return formatted;
+}
+
 export async function extractMathWithMathpix(imageBuffer: Buffer): Promise<string> {
   const appId = process.env.MATHPIX_APP_ID;
   const appKey = process.env.MATHPIX_APP_KEY;
@@ -73,8 +103,11 @@ export async function extractMathWithMathpix(imageBuffer: Buffer): Promise<strin
       throw new Error('No text extracted from image');
     }
     
-    console.log(`[mathpix] Successfully extracted ${extractedText.length} characters`);
-    return extractedText.trim();
+    // Apply formatting to improve readability
+    const formattedText = formatMathText(extractedText.trim());
+    
+    console.log(`[mathpix] Successfully extracted and formatted ${formattedText.length} characters`);
+    return formattedText;
     
   } catch (error) {
     console.error('[mathpix] Error processing image:', error);
