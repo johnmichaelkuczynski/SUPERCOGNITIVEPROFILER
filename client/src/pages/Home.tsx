@@ -18,6 +18,7 @@ import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
 import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
+import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 
 interface Message {
   id: number;
@@ -39,6 +40,13 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatDialogueRef = useRef<ChatDialogueRef>(null);
   const [, setLocation] = useLocation();
+  
+  // Speech input functionality
+  const { SpeechButton } = useSpeechInput(
+    (text: string) => setPrompt(text),
+    () => prompt,
+    { onAppend: true }
+  );
   
   // Document rewriter modal state
   const [isRewriterOpen, setIsRewriterOpen] = useState(false);

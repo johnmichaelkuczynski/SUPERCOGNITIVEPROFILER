@@ -13,6 +13,7 @@ import { generateAnalytics } from "./services/analytics";
 import { detectAIContent } from "./services/aiDetection";
 import { rewriteDocument } from "./services/documentRewriter";
 import { elevenLabsService } from "./services/elevenlabs";
+import { speechToTextService } from "./services/speechToText";
 import { WebSocketServer } from 'ws';
 import { sendEmail } from './services/email';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
@@ -1364,6 +1365,45 @@ Return only the rewritten text without any additional comments, explanations, or
     } catch (error) {
       console.error('Chunk rewrite error:', error);
       res.status(500).json({ error: 'Failed to rewrite chunk' });
+    }
+  });
+
+  // Speech-to-text endpoint
+  app.post('/api/speech-to-text', upload.single('audio'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No audio file provided' });
+      }
+
+      console.log(`Processing audio file: ${req.file.originalname}, size: ${req.file.size} bytes`);
+
+      const options = {
+        language: req.body.language || 'en',
+        punctuate: req.body.punctuate !== 'false',
+        format_text: req.body.format_text !== 'false',
+        speaker_labels: req.body.speaker_labels === 'true'
+      };
+
+      const transcription = await speechToTextService.transcribeAudio(req.file.buffer, options);
+
+      if (!transcription || transcription.trim() === '') {
+        return res.status(400).json({ error: 'No speech detected in audio' });
+      }
+
+      console.log(`Transcription completed: ${transcription.length} characters`);
+      
+      res.json({ 
+        text: transcription,
+        success: true,
+        message: `Successfully transcribed ${transcription.length} characters`
+      });
+
+    } catch (error) {
+      console.error('Speech-to-text error:', error);
+      res.status(500).json({ 
+        error: 'Failed to transcribe audio',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
