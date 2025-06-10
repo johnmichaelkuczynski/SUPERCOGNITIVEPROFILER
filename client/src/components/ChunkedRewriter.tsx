@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Download, Mail, Eye, Play, Pause, RotateCcw, X, Bomb, ArrowLeft } from 'lucide-react';
+import { SpeechInput } from '@/components/ui/speech-input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -937,7 +938,18 @@ export default function ChunkedRewriter({
           <div className="space-y-4">
             {processingMode === 'homework' ? (
               <div className="space-y-2">
-                <Label htmlFor="instructions">Additional Guidance (Optional)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="instructions">Additional Guidance (Optional)</Label>
+                  <SpeechInput
+                    onTranscript={(text) => {
+                      const newInstructions = instructions ? `${instructions} ${text}` : text;
+                      setInstructions(newInstructions);
+                    }}
+                    onAppend={true}
+                    size="sm"
+                    className="h-8 w-8"
+                  />
+                </div>
                 <Textarea
                   id="instructions"
                   placeholder="Provide any additional guidance for completing the assignment (e.g., 'show all work', 'explain your reasoning', 'use specific examples')..."
@@ -948,7 +960,18 @@ export default function ChunkedRewriter({
               </div>
             ) : (rewriteMode === 'rewrite' || rewriteMode === 'both') && (
               <div className="space-y-2">
-                <Label htmlFor="instructions">Rewrite Instructions for Existing Content</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="instructions">Rewrite Instructions for Existing Content</Label>
+                  <SpeechInput
+                    onTranscript={(text) => {
+                      const newInstructions = instructions ? `${instructions} ${text}` : text;
+                      setInstructions(newInstructions);
+                    }}
+                    onAppend={true}
+                    size="sm"
+                    className="h-8 w-8"
+                  />
+                </div>
                 <Textarea
                   id="instructions"
                   placeholder="Enter specific instructions for how you want the existing text rewritten..."
@@ -961,7 +984,18 @@ export default function ChunkedRewriter({
             
             {(rewriteMode === 'add' || rewriteMode === 'both') && (
               <div className="space-y-2">
-                <Label htmlFor="newChunkInstructions">Instructions for New Content</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="newChunkInstructions">Instructions for New Content</Label>
+                  <SpeechInput
+                    onTranscript={(text) => {
+                      const newInstructions = newChunkInstructions ? `${newChunkInstructions} ${text}` : text;
+                      setNewChunkInstructions(newInstructions);
+                    }}
+                    onAppend={true}
+                    size="sm"
+                    className="h-8 w-8"
+                  />
+                </div>
                 <Textarea
                   id="newChunkInstructions"
                   placeholder="Provide detailed instructions for what new content should be added. Be specific about topics, themes, examples, or sections you want included..."
@@ -1472,7 +1506,18 @@ export default function ChunkedRewriter({
               
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="rerewrite-instructions">Custom Instructions</Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="rerewrite-instructions">Custom Instructions</Label>
+                    <SpeechInput
+                      onTranscript={(text) => {
+                        const newInstructions = rerewriteInstructions ? `${rerewriteInstructions} ${text}` : text;
+                        setRerewriteInstructions(newInstructions);
+                      }}
+                      onAppend={true}
+                      size="sm"
+                      className="h-8 w-8"
+                    />
+                  </div>
                   <Textarea
                     id="rerewrite-instructions"
                     placeholder="Provide specific instructions for how you want to rewrite this content..."

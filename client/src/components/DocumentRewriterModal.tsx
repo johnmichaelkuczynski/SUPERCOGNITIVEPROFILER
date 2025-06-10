@@ -22,6 +22,7 @@ import {
   FileText, Upload, Download, Send, AlertTriangle, Check, X, FileDown, MailIcon, Loader2, 
   Shield, FilePlus, ArrowLeft, Fingerprint, RefreshCw, Eye, EyeOff, Layers, Split, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { SpeechInput } from '@/components/ui/speech-input';
 
 // Define interfaces for the component
 interface DocumentRewriterModalProps {
@@ -1009,7 +1010,19 @@ export default function DocumentRewriterModal({
                       </div>
                       
                       <div>
-                        <Label htmlFor="instructions">Rewrite Instructions</Label>
+                        <div className="flex items-center justify-between mb-2">
+                          <Label htmlFor="instructions">Rewrite Instructions</Label>
+                          <SpeechInput
+                            onTranscript={(text) => {
+                              const currentInstructions = settings.instructions;
+                              const newInstructions = currentInstructions ? `${currentInstructions} ${text}` : text;
+                              setSettings(prev => ({ ...prev, instructions: newInstructions }));
+                            }}
+                            onAppend={true}
+                            size="sm"
+                            className="h-8 w-8"
+                          />
+                        </div>
                         <Textarea
                           id="instructions"
                           placeholder="Enter detailed instructions for rewriting the document..."
