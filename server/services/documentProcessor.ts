@@ -403,21 +403,50 @@ async function extractTextFromTXT(buffer: Buffer): Promise<string> {
   return buffer.toString('utf-8');
 }
 
-// Extract text from images using Mathpix OCR (specialized for mathematical content)
+// Extract text from images using Tesseract.js OCR
 async function extractTextFromImage(buffer: Buffer): Promise<string> {
   try {
-    console.log(`[document] Processing image with Mathpix OCR for mathematical content...`);
-    const extractedText = await extractMathWithMathpix(buffer);
+    console.log(`[document] Processing image with Tesseract OCR...`);
     
-    // Check if content appears to be mathematical
-    const isMathContent = await isMathematicalContent(extractedText);
-    if (isMathContent) {
-      console.log(`[document] Mathematical content detected and processed successfully`);
+    const { createWorker } = require('tesseract.js');
+    
+    const worker = createWorker();
+    
+    await worker.load();
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    
+    console.log(`[document] Tesseract worker initialized, starting recognition...`);
+    
+    const { data: { text } } = await worker.recognize(buffer);
+    
+    await worker.terminate();
+    
+    if (text && text.trim()) {
+      console.log(`[document] Successfully extracted ${text.length} characters from image`);
+      return text.trim();
     }
     
-    return extractedText;
-  } catch (error) {
-    console.error(`[document] Mathpix OCR failed:`, error);
-    throw new Error(`Failed to extract text from image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error('No text detected in image');
+    
+  } catch (tesseractError) {
+    console.error(`[document] Tesseract OCR failed:`, tesseractError);
+    
+    // Fallback to Mathpix if available
+    try {
+      console.log(`[document] Falling back to Mathpix OCR for mathematical content...`);
+      const extractedText = await extractMathWithMathpix(buffer);
+      
+      if (extractedText && extractedText.trim()) {
+        console.log(`[document] Mathpix successfully extracted text as fallback`);
+        return extractedText;
+      }
+      
+      throw new Error('Mathpix returned empty text');
+      
+    } catch (mathpixError) {
+      console.error(`[document] Mathpix OCR also failed:`, mathpixError);
+      throw new Error(`Failed to extract text from image. OCR processing failed: ${tesseractError instanceof Error ? tesseractError.message : 'Unknown error'}`);
+    }
   }
 }

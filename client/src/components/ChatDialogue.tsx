@@ -710,7 +710,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                   >
                     <Upload className="h-4 w-4" />
                   </Button>
-                  <SpeechButton className="h-8 w-8" size="sm" />
+                  <SpeechButton className="h-8 w-8" />
                   <Button
                     size="icon"
                     className="h-8 w-8"
