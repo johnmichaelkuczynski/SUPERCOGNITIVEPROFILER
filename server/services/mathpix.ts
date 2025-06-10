@@ -8,6 +8,25 @@ interface MathpixResponse {
 function formatMathText(rawText: string): string {
   let formatted = rawText;
   
+  // Fix the exact patterns we're seeing in the OCR output
+  // Pattern: \(\backslash(472 + 389=\backslash\) -> 472 + 389
+  formatted = formatted.replace(/\\\(\\backslash\(([^=]+)=\\backslash\\\)/g, '$1');
+  
+  // Pattern: \\(Iqquad) -> (space)
+  formatted = formatted.replace(/\\\\\(Iqquad\)/g, ' ');
+  
+  // Clean up other backslash artifacts
+  formatted = formatted.replace(/\\\\backslash\\/g, '\\');
+  formatted = formatted.replace(/\\backslash/g, '');
+  formatted = formatted.replace(/\\\(\\\\\(/g, '(');
+  formatted = formatted.replace(/\\\\\)\\\)/g, ')');
+  
+  // Clean up quad spacing commands
+  formatted = formatted.replace(/\\\\quad/g, ' ');
+  formatted = formatted.replace(/\\Iqquad/g, ' ');
+  formatted = formatted.replace(/\\\\I/g, '');
+  formatted = formatted.replace(/\\quad/g, ' ');
+  
   // Fix common OCR spacing issues where text runs together
   formatted = formatted.replace(/([a-z])([A-Z])/g, '$1 $2');
   formatted = formatted.replace(/([0-9])([A-Za-z])/g, '$1 $2');

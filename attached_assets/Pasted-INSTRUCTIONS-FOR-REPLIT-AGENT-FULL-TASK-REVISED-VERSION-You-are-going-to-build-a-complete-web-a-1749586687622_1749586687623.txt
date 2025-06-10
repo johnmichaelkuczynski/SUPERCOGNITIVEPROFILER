@@ -1,0 +1,157 @@
+INSTRUCTIONS FOR REPLIT AGENT — FULL TASK — REVISED VERSION
+
+You are going to build a complete web app hosted on Replit.
+
+App Description
+This is an app where the user:
+
+uploads or types in a piece of text
+
+selects what units to vary (sentence, clause, paragraph, page)
+
+selects degree of variation (low, medium, high)
+
+selects which model to use (OpenAI GPT-4o, Anthropic Claude, Perplexity)
+
+selects whether to strictly preserve content/logical structure or to allow creative liberties (this must be a visible toggle or switch)
+
+clicks Transform
+
+receives back transformed text where the content-to-verbiage ratio fluctuates according to settings
+
+Important: This is NOT a humanization app. Do not mention humanization anywhere in the UI or code. The purpose is to vary content-to-verbiage ratio.
+
+Very important: The app MUST ensure that variance is always > 40%. If the result is below this threshold, show a warning and encourage user to re-run with higher variability settings or creative mode enabled.
+
+Stack
+Backend: Node.js + Express + Axios + dotenv + cors + body-parser
+
+Frontend: React + Vite + Tailwind CSS (optional — plain CSS is fine)
+
+Hosted entirely in Replit.
+
+API Keys Needed
+I will provide:
+
+OpenAI API Key
+
+Anthropic API Key
+
+Perplexity API Key (optional — fallback to OpenAI + Anthropic if not available yet)
+
+You should load these into a .env file:
+
+env
+Copy
+Edit
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxx
+ANTHROPIC_API_KEY=cla-xxxxxxxxxxxxxxxxxxxxxxxx
+PERPLEXITY_API_KEY=pplx-xxxxxxxxxxxxxxxxxxxxxxx
+Backend Implementation
+1️⃣ Create a POST endpoint /api/rewrite.
+
+2️⃣ The POST body will include:
+
+json
+Copy
+Edit
+{
+  "text": "...",
+  "unit": "sentence",
+  "variability": "high",
+  "model": "openai",
+  "preserveLogic": true | false
+}
+3️⃣ The server will build the following dynamic prompt:
+
+If preserveLogic is true:
+
+text
+Copy
+Edit
+You are an advanced text transformation engine.
+
+Your task is to rewrite the following text by introducing *explicit variability in content-to-verbiage ratio*, across multiple levels of the text.
+
+You MUST vary the following:
+
+- **Sentences:** Vary length from 3–5 words to 30+ words. Some sentences should be dense and compressed; others loose and discursive. Insert occasional sentence fragments.
+- **Clauses:** Vary clause structure. Some clauses should be rich in content; others should be decorative or rhythm-based.
+- **Paragraphs:** Vary paragraph length dramatically. Some paragraphs should be a single sentence; others should contain multiple sentences. Vary the internal pacing of each paragraph.
+
+Rules:
+
+- You must **preserve the core content and logical structure** of the original text.
+- Do NOT invent major new claims or remove key ideas.
+- Do NOT simply paraphrase or uniformly reword.
+- Your goal is to create a *natural, uneven flow*, with genuine rhythm and pacing variations.
+- The final text should feel *human in cadence* — with long/short alternations, occasional surprises, and asymmetries in information delivery.
+
+TEXT TO REWRITE:
+----------------------
+[text here]
+----------------------
+If preserveLogic is false (creative liberties allowed):
+
+text
+Copy
+Edit
+You are an advanced text transformation engine.
+
+Your task is to rewrite the following text by introducing *explicit variability in content-to-verbiage ratio*, across multiple levels of the text.
+
+You MUST vary the following:
+
+- **Sentences:** Vary length from 3–5 words to 30+ words. Some sentences should be dense and compressed; others loose and discursive. Insert occasional sentence fragments.
+- **Clauses:** Vary clause structure. Some clauses should be rich in content; others should be decorative or rhythm-based.
+- **Paragraphs:** Vary paragraph length dramatically. Some paragraphs should be a single sentence; others should contain multiple sentences. Vary the internal pacing of each paragraph.
+
+Rules:
+
+- You are allowed to **take creative liberties with content and logical structure** if necessary to achieve a natural, varied flow.
+- You may add illustrative material, examples, or clarifying asides if helpful.
+- You may reframe portions of the content as long as the overall meaning remains recognizable.
+- Do NOT simply paraphrase or uniformly reword.
+- Your goal is to create a *natural, uneven flow*, with genuine rhythm and pacing variations.
+- The final text should feel *human in cadence* — with long/short alternations, occasional surprises, and asymmetries in information delivery.
+
+TEXT TO REWRITE:
+----------------------
+[text here]
+----------------------
+4️⃣ The server must handle these three models:
+
+✅ OpenAI GPT-4o (https://api.openai.com/v1/chat/completions)
+✅ Anthropic Claude (https://api.anthropic.com/v1/messages)
+✅ Perplexity (https://api.perplexity.ai/chat/completions)
+
+Implement a separate function to call each model with the prompt.
+
+5️⃣ After receiving the output text:
+
+Measure the variance level.
+
+If variance < 40%, display a warning in the UI:
+
+"Variance too low. Please re-run with higher variability settings or enable 'Creative liberties' mode."
+
+Frontend Implementation
+The app frontend must contain:
+
+✅ A text input area for entering text
+✅ Dropdown to select unit of variation (sentence, clause, paragraph, page)
+✅ Dropdown to select degree of variation (low, medium, high)
+✅ Dropdown to select model (OpenAI GPT-4o, Anthropic Claude, Perplexity)
+✅ Toggle switch: Preserve content/logical structure vs Allow creative liberties
+✅ Submit button
+✅ Output area that displays the transformed text after rewrite
+✅ If variance < 40%, display warning message as described above
+
+Notes for Agent
+✅ Please build the complete, working app — do not stop after backend.
+✅ Make sure the app runs end-to-end in Replit: I should be able to type text, select options, toggle preservation mode, and click Transform to see the result.
+✅ It is fine if the frontend is simple — just make sure it is functional.
+✅ Do not refer to "humanization" or "humanizer" anywhere in the app. This is a content-to-verbage ratio variation tool.
+✅ You MUST implement the variance threshold logic and the "preserve logic / creative liberties" toggle.
+
+(END OF INSTRUCTIONS)
