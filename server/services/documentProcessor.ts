@@ -403,7 +403,7 @@ async function extractTextFromTXT(buffer: Buffer): Promise<string> {
   return buffer.toString('utf-8');
 }
 
-// Extract text from images using available OCR methods
+// Extract text from images using OCR
 async function extractTextFromImage(buffer: Buffer): Promise<string> {
   console.log(`[document] Processing image file (${buffer.length} bytes)...`);
   
@@ -423,13 +423,29 @@ async function extractTextFromImage(buffer: Buffer): Promise<string> {
     console.log(`[document] Mathpix not available: ${mathpixError instanceof Error ? mathpixError.message : 'Unknown error'}`);
   }
   
-  // Since OCR libraries are having compatibility issues, provide a helpful response
-  // that acknowledges the image upload and guides the user toward working alternatives
-  console.log(`[document] Image uploaded successfully but OCR processing is currently unavailable`);
+  // Try Tesseract.js as fallback
+  try {
+    console.log(`[document] Attempting Tesseract OCR...`);
+    const { tesseractService } = await import('./tesseractOcr');
+    const extractedText = await tesseractService.extractText(buffer);
+    
+    if (extractedText && extractedText.trim()) {
+      console.log(`[document] Tesseract successfully extracted ${extractedText.length} characters`);
+      return extractedText;
+    }
+    
+    throw new Error('Tesseract returned empty text');
+    
+  } catch (tesseractError) {
+    console.log(`[document] Tesseract OCR failed: ${tesseractError instanceof Error ? tesseractError.message : 'Unknown error'}`);
+  }
+  
+  // Final fallback
+  console.log(`[document] OCR processing failed, providing guidance`);
   
   const imageInfo = `Image file uploaded successfully (${Math.round(buffer.length / 1024)}KB). 
 
-OCR text extraction is currently unavailable. For best results, please:
+OCR text extraction failed. For best results, please:
 
 1. Use text-based documents (.txt, .docx, .pdf)
 2. Copy and paste text directly into the input area
