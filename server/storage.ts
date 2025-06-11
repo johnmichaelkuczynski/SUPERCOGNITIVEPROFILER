@@ -286,7 +286,8 @@ export class MemStorage implements IStorage {
       ...insertProfile,
       id,
       createdAt: new Date(),
-      metadata: insertProfile.metadata || null
+      metadata: insertProfile.metadata || null,
+      inputText: insertProfile.inputText || null
     };
     this.profiles.set(id, profile);
     return profile;

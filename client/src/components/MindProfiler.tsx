@@ -63,16 +63,10 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         ? '/api/profile/instant'
         : '/api/profile/comprehensive';
       
-      return await apiRequest(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({
-          profileType: data.profileType,
-          inputText: data.inputText,
-          userId
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return await apiRequest(endpoint, 'POST', {
+        profileType: data.profileType,
+        inputText: data.inputText,
+        userId
       });
     },
     onSuccess: (data) => {
@@ -101,15 +95,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         ? '/api/profile/full-instant'
         : '/api/profile/full-comprehensive';
       
-      return await apiRequest(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({
-          inputText: data.inputText,
-          userId
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return await apiRequest(endpoint, 'POST', {
+        inputText: data.inputText,
+        userId
       });
     },
     onSuccess: (data) => {
@@ -131,17 +119,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   // Export profile mutation
   const exportProfile = useMutation({
     mutationFn: async (format: 'pdf' | 'docx') => {
-      return await apiRequest('/api/profile/export', {
-        method: 'POST',
-        body: JSON.stringify({
-          results,
-          format,
-          profileType,
-          analysisMode
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return await apiRequest('/api/profile/export', 'POST', {
+        results,
+        format,
+        profileType,
+        analysisMode
       });
     },
     onSuccess: (data) => {
@@ -173,17 +155,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   // Email profile mutation
   const emailProfile = useMutation({
     mutationFn: async (email: string) => {
-      return await apiRequest('/api/profile/email', {
-        method: 'POST',
-        body: JSON.stringify({
-          results,
-          email,
-          profileType,
-          analysisMode
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      return await apiRequest('/api/profile/email', 'POST', {
+        results,
+        email,
+        profileType,
+        analysisMode
       });
     },
     onSuccess: () => {

@@ -14,7 +14,7 @@ export class SpeechToTextService {
   constructor() {
     this.apiKey = process.env.ASSEMBLYAI_API_KEY || '';
     if (!this.apiKey) {
-      throw new Error('ASSEMBLYAI_API_KEY environment variable is required');
+      console.warn('ASSEMBLYAI_API_KEY not found - Speech-to-text features will be disabled');
     }
   }
 

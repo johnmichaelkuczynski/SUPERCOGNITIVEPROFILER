@@ -757,6 +757,9 @@ Document text: ${extractedText}`;
 
   return (
     <main className="container mx-auto px-4 py-6">
+      {/* Mind Profiler - Heart of the App */}
+      <MindProfiler userId={1} />
+      
       {/* Direct Text Processing Interface */}
       <Card className="mb-6">
         <CardHeader>
