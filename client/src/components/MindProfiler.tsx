@@ -75,9 +75,10 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     onSuccess: (data) => {
       console.log('Analysis results received:', data);
       setResults(data);
+      setShowResultsDialog(true);
       toast({
         title: "Profile Analysis Complete",
-        description: `Your ${profileType} profile has been generated successfully. Results displayed below.`,
+        description: `Your ${profileType} profile has been generated successfully.`,
       });
     },
     onError: (error) => {
@@ -552,7 +553,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 <div className="mb-4">
                   <h4 className="font-medium text-red-700 mb-2">Psychological Analysis:</h4>
                   <div className="text-sm text-gray-700 bg-white p-3 rounded border">
-                    {results.psychologicalProfile.emotionalPatterns}
+                    {results.psychologicalProfile.emotionalPattern}
                   </div>
                 </div>
               )}
@@ -870,7 +871,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-red-800">Psychological Analysis</h3>
                   <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                    <ReactMarkdown>{results.psychologicalProfile.emotionalPatterns}</ReactMarkdown>
+                    <ReactMarkdown>{results.psychologicalProfile.emotionalPattern}</ReactMarkdown>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
