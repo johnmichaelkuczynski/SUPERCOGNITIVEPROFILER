@@ -2517,39 +2517,38 @@ Return only the new content without any additional comments, explanations, or he
         
       } else if (format === 'docx') {
         // Generate Word document
-        const docx = require('docx');
-        const doc = new docx.Document({
+        const doc = new Document({
           sections: [{
             properties: {},
             children: [
-              new docx.Paragraph({
+              new Paragraph({
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: "Mind Profile Report",
                     bold: true,
                     size: 32,
                   }),
                 ],
               }),
-              new docx.Paragraph({
+              new Paragraph({
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: `Profile Type: ${profileType}`,
                     size: 24,
                   }),
                 ],
               }),
-              new docx.Paragraph({
+              new Paragraph({
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: `Analysis Mode: ${analysisMode}`,
                     size: 24,
                   }),
                 ],
               }),
-              new docx.Paragraph({
+              new Paragraph({
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: `Generated: ${new Date().toLocaleDateString()}`,
                     size: 24,
                   }),
@@ -2559,12 +2558,22 @@ Return only the new content without any additional comments, explanations, or he
           }],
         });
         
-        const buffer = await docx.Packer.toBuffer(doc);
-        const filename = `mind-profile-${profileType}-${Date.now()}.docx`;
-        
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.send(buffer);
+        try {
+          const buffer = await Packer.toBuffer(doc);
+          const filename = `mind-profile-${profileType}-${Date.now()}.docx`;
+          
+          res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+          res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+          res.send(buffer);
+        } catch (docxError) {
+          // Fallback to simple text file if DOCX fails
+          const content = `Mind Profile Report\n\nProfile Type: ${profileType}\nAnalysis Mode: ${analysisMode}\nGenerated: ${new Date().toLocaleDateString()}\n\n${results.cognitiveProfile ? `Cognitive Analysis:\n${results.cognitiveProfile.intellectualApproach}\n\n` : ''}${results.psychologicalProfile ? `Psychological Analysis:\n${results.psychologicalProfile.emotionalPatterns}\n\n` : ''}${results.comprehensiveInsights ? `Key Insights:\n${results.comprehensiveInsights.overallProfile}` : ''}`;
+          
+          const filename = `mind-profile-${profileType}-${Date.now()}.txt`;
+          res.setHeader('Content-Type', 'text/plain');
+          res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+          res.send(content);
+        }
       }
       
     } catch (error) {
