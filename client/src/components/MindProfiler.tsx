@@ -73,11 +73,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       return await response.json();
     },
     onSuccess: (data) => {
+      console.log('Analysis results received:', data);
       setResults(data);
-      setShowResultsDialog(true);
       toast({
         title: "Profile Analysis Complete",
-        description: `Your ${profileType} profile has been generated successfully.`,
+        description: `Your ${profileType} profile has been generated successfully. Results displayed below.`,
       });
     },
     onError: (error) => {
@@ -125,17 +125,36 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   // Export profile mutation
   const exportProfile = useMutation({
     mutationFn: async (format: 'pdf' | 'docx') => {
-      return await apiRequest('/api/profile/export', 'POST', {
-        results,
-        format,
-        profileType,
-        analysisMode
+      if (!results) {
+        throw new Error('No analysis results available to export');
+      }
+
+      const response = await fetch('/api/profile/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          results,
+          format,
+          profileType,
+          analysisMode
+        })
       });
+
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`);
+      }
+
+      return {
+        blob: await response.blob(),
+        filename: `mind-profile-${profileType}-${format === 'pdf' ? 'pdf' : 'docx'}`,
+        format
+      };
     },
     onSuccess: (data) => {
       // Trigger download
-      const blob = new Blob([data.content], { type: data.mimeType });
-      const url = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(data.blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = data.filename;
@@ -150,9 +169,10 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       });
     },
     onError: (error) => {
+      console.error('Export error:', error);
       toast({
         title: "Export Failed",
-        description: error.message || "Failed to export profile.",
+        description: "Unable to export profile. Please try again.",
         variant: "destructive",
       });
     },
@@ -493,6 +513,60 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
           <div className="text-center text-sm text-gray-500">
             Analysis using: OpenAI, Anthropic & Perplexity
           </div>
+
+          {/* Simple Results Display */}
+          {results && (
+            <div className="mt-8 p-6 bg-green-50 border-2 border-green-200 rounded-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-green-800">Analysis Complete!</h3>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportProfile.mutate('pdf')}
+                    disabled={exportProfile.isPending}
+                  >
+                    {exportProfile.isPending ? 'Exporting...' : 'Download PDF'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportProfile.mutate('docx')}
+                    disabled={exportProfile.isPending}
+                  >
+                    {exportProfile.isPending ? 'Exporting...' : 'Download Word'}
+                  </Button>
+                </div>
+              </div>
+              
+              {results.cognitiveProfile && (
+                <div className="mb-4">
+                  <h4 className="font-medium text-blue-700 mb-2">Cognitive Analysis:</h4>
+                  <div className="text-sm text-gray-700 bg-white p-3 rounded border">
+                    {results.cognitiveProfile.intellectualApproach}
+                  </div>
+                </div>
+              )}
+              
+              {results.psychologicalProfile && (
+                <div className="mb-4">
+                  <h4 className="font-medium text-red-700 mb-2">Psychological Analysis:</h4>
+                  <div className="text-sm text-gray-700 bg-white p-3 rounded border">
+                    {results.psychologicalProfile.emotionalPatterns}
+                  </div>
+                </div>
+              )}
+              
+              {results.comprehensiveInsights && (
+                <div className="mb-4">
+                  <h4 className="font-medium text-purple-700 mb-2">Key Insights:</h4>
+                  <div className="text-sm text-gray-700 bg-white p-3 rounded border">
+                    {results.comprehensiveInsights.overallProfile}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -755,7 +829,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
       {/* Results Dialog */}
       <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="results-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {profileType === 'cognitive' && <Brain className="h-5 w-5 text-blue-600" />}
@@ -766,6 +840,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                'Synthesis Profile'} Analysis
             </DialogTitle>
           </DialogHeader>
+          <div id="results-description" className="sr-only">
+            Analysis results showing cognitive and psychological insights
+          </div>
           
           {results && (
             <div className="space-y-6">
