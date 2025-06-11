@@ -1950,8 +1950,7 @@ Return only the new content without any additional comments, explanations, or he
         return res.status(500).json({ error: 'Email service not configured' });
       }
 
-      const sgMail = require('@sendgrid/mail');
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
       const msg = {
         to: email,
@@ -2150,8 +2149,7 @@ Return only the new content without any additional comments, explanations, or he
         }
       });
 
-      const sgMail = require('@sendgrid/mail');
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
       const msg = {
         to: email,
