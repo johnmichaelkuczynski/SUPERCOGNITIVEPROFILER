@@ -30,6 +30,20 @@ interface PsychologicalProfile {
   detailedAnalysis: string;
 }
 
+interface SynthesisProfile {
+  intellectEmotionBalance: string;
+  rationalEmotionalIntegration: number; // 1-10 scale
+  decisionMakingStyle: string;
+  stressVsClarity: string;
+  creativeRationalFusion: string;
+  emotionalReasoningPattern: string;
+  intellectualEmpathy: number; // 1-10 scale
+  synthesisStrengths: string[];
+  integrationChallenges: string[];
+  holisticSignature: string;
+  detailedAnalysis: string;
+}
+
 interface ComprehensiveInsights {
   overallProfile: string;
   uniqueStrengths: string[];
@@ -41,6 +55,49 @@ interface ComprehensiveInsights {
     communicationStyles: string[];
     collaborationPreferences: string[];
   };
+}
+
+// Generate synthesis profile analyzing intellect/emotion interactions
+async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<SynthesisProfile> {
+  const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
+  
+  const prompt = `Analyze this writing sample for the synthesis between intellectual and emotional dimensions. Provide a ${analysisDepth} analysis of how reason and emotion interact in this person's thinking.
+
+Writing Sample:
+"${text}"
+
+Analyze and provide a JSON response with this structure:
+{
+  "intellectEmotionBalance": "How the person balances rational thinking with emotional awareness",
+  "rationalEmotionalIntegration": 7,
+  "decisionMakingStyle": "How they integrate logic and feelings in decisions",
+  "stressVsClarity": "How emotional stress affects intellectual clarity",
+  "creativeRationalFusion": "How they blend creative/intuitive and analytical thinking",
+  "emotionalReasoningPattern": "Pattern of how emotions inform or interfere with reasoning",
+  "intellectualEmpathy": 8,
+  "synthesisStrengths": ["strength1", "strength2", "strength3"],
+  "integrationChallenges": ["challenge1", "challenge2"],
+  "holisticSignature": "Overall signature of their mind-heart integration",
+  "detailedAnalysis": "Deep analysis of intellect/emotion synthesis patterns"
+}
+
+Focus on the dynamic interplay between rational and emotional processing, decision-making patterns, and how this person integrates head and heart in their thinking and expression.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 1500,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    return result as SynthesisProfile;
+  } catch (error) {
+    console.error('Error generating synthesis profile:', error);
+    throw new Error(`Failed to generate synthesis profile: ${(error as Error).message}`);
+  }
 }
 
 // Generate cognitive profile from text analysis
@@ -201,15 +258,17 @@ Format as JSON with this structure:
 // Generate instant profile from a single text sample
 export async function generateInstantProfile(
   text: string,
-  profileType: 'cognitive' | 'psychological',
+  profileType: 'cognitive' | 'psychological' | 'synthesis',
   userId: number
 ): Promise<any> {
   let profile;
   
   if (profileType === 'cognitive') {
     profile = await generateCognitiveProfile(text, false);
-  } else {
+  } else if (profileType === 'psychological') {
     profile = await generatePsychologicalProfile(text, false);
+  } else {
+    profile = await generateSynthesisProfile(text, false);
   }
 
   // Save to database
@@ -230,7 +289,7 @@ export async function generateInstantProfile(
 
 // Generate comprehensive profile from all user activity
 export async function generateComprehensiveProfile(
-  profileType: 'cognitive' | 'psychological',
+  profileType: 'cognitive' | 'psychological' | 'synthesis',
   userId: number
 ): Promise<any> {
   // Gather all user content
@@ -269,8 +328,10 @@ export async function generateComprehensiveProfile(
   
   if (profileType === 'cognitive') {
     profile = await generateCognitiveProfile(combinedText, true);
-  } else {
+  } else if (profileType === 'psychological') {
     profile = await generatePsychologicalProfile(combinedText, true);
+  } else {
+    profile = await generateSynthesisProfile(combinedText, true);
   }
 
   // Save to database
