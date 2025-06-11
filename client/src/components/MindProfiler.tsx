@@ -37,7 +37,7 @@ interface MindProfilerProps {
 }
 
 export default function MindProfiler({ userId }: MindProfilerProps) {
-  const [profileType, setProfileType] = useState<'cognitive' | 'psychological'>('cognitive');
+  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis'>('cognitive');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
@@ -63,11 +63,12 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         ? '/api/profile/instant'
         : '/api/profile/comprehensive';
       
-      return await apiRequest(endpoint, 'POST', {
+      const response = await apiRequest(endpoint, 'POST', {
         profileType: data.profileType,
         inputText: data.inputText,
         userId
       });
+      return await response.json();
     },
     onSuccess: (data) => {
       setResults(data);
@@ -95,10 +96,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         ? '/api/profile/full-instant'
         : '/api/profile/full-comprehensive';
       
-      return await apiRequest(endpoint, 'POST', {
+      const response = await apiRequest(endpoint, 'POST', {
         inputText: data.inputText,
         userId
       });
+      return await response.json();
     },
     onSuccess: (data) => {
       setResults(data);
@@ -283,6 +285,14 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               <Heart className="h-5 w-5" />
               Psychological
             </Button>
+            <Button
+              variant={profileType === 'synthesis' ? 'default' : 'outline'}
+              onClick={() => setProfileType('synthesis')}
+              className="flex items-center gap-2 px-6 py-3"
+            >
+              <Zap className="h-5 w-5" />
+              Synthesis
+            </Button>
           </div>
 
           {/* Profile Description */}
@@ -297,13 +307,23 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   </p>
                 </div>
               </div>
-            ) : (
+            ) : profileType === 'psychological' ? (
               <div className="flex items-start gap-3">
                 <Heart className="h-6 w-6 text-pink-600 mt-1 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-1">Psychological Analysis</h3>
                   <p className="text-sm text-gray-600">
                     Analyzes your writing to profile your emotional patterns, motivational structure, and interpersonal dynamics.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <Zap className="h-6 w-6 text-purple-600 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-1">Synthesis Analysis</h3>
+                  <p className="text-sm text-gray-600">
+                    Analyzes the dynamic integration between intellect and emotion, exploring how rational and emotional processing interact in your thinking.
                   </p>
                 </div>
               </div>
