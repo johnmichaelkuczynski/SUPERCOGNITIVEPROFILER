@@ -16,7 +16,9 @@ import { elevenLabsService } from "./services/elevenlabs";
 import { speechToTextService } from "./services/speechToText";
 import { WebSocketServer } from 'ws';
 import { sendEmail } from './services/email';
+import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
+import PDFDocument from 'pdfkit';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile } from "./services/profiling";
 
 // Configure multer for file uploads
@@ -393,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (format === 'pdf') {
         // Generate PDF using PDFKit
-        const PDFDocument = require('pdfkit');
+        // Using imported PDFDocument
         const doc = new PDFDocument({ margin: 50 });
         
         // Set response headers for PDF download
@@ -2471,7 +2473,6 @@ Return only the new content without any additional comments, explanations, or he
 
       if (format === 'pdf') {
         // Generate PDF using pdfkit
-        const PDFDocument = require('pdfkit');
         const doc = new PDFDocument();
         const filename = `mind-profile-${profileType}-${Date.now()}.pdf`;
         
