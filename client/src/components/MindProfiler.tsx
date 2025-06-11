@@ -46,6 +46,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   const [results, setResults] = useState<ProfileResults | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResultsDialog, setShowResultsDialog] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisStage, setAnalysisStage] = useState('');
+  const [showLoadingAnimation, setShowLoadingAnimation] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,7 +80,15 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     onSuccess: (data) => {
       console.log('Analysis results received:', data);
       setResults(data);
-      setShowResultsDialog(true);
+      setAnalysisProgress(100);
+      setAnalysisStage('Analysis complete!');
+      
+      // Small delay to show completion state before opening dialog
+      setTimeout(() => {
+        setShowResultsDialog(true);
+        setShowLoadingAnimation(false);
+      }, 800);
+      
       toast({
         title: "Profile Analysis Complete",
         description: `Your ${profileType} profile has been generated successfully.`,
@@ -288,6 +299,38 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       }
     }
   };
+
+  // Animation progress effect
+  useEffect(() => {
+    if (analyzeProfile.isPending || analyzeFullProfile.isPending) {
+      setShowLoadingAnimation(true);
+      setAnalysisProgress(0);
+      
+      const stages = [
+        { stage: 'Initializing analysis...', progress: 10 },
+        { stage: 'Processing text patterns...', progress: 25 },
+        { stage: 'Analyzing cognitive markers...', progress: 45 },
+        { stage: 'Evaluating psychological indicators...', progress: 65 },
+        { stage: 'Generating insights...', progress: 85 },
+        { stage: 'Finalizing profile...', progress: 95 }
+      ];
+      
+      let currentStage = 0;
+      const interval = setInterval(() => {
+        if (currentStage < stages.length) {
+          setAnalysisStage(stages[currentStage].stage);
+          setAnalysisProgress(stages[currentStage].progress);
+          currentStage++;
+        }
+      }, 1500);
+      
+      return () => clearInterval(interval);
+    } else {
+      setShowLoadingAnimation(false);
+      setAnalysisProgress(100);
+      setAnalysisStage('');
+    }
+  }, [analyzeProfile.isPending, analyzeFullProfile.isPending]);
 
   const handleEmailKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -516,6 +559,45 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
           <div className="text-center text-sm text-gray-500">
             Analysis using: OpenAI, Anthropic & Perplexity
           </div>
+
+          {/* Animated Loading Overlay */}
+          {showLoadingAnimation && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300">
+              <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+                <div className="text-center">
+                  <div className="relative w-20 h-20 mx-auto mb-6">
+                    <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                    <div className="absolute inset-2 border-2 border-purple-400 rounded-full border-b-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+                    <Brain className="absolute inset-0 m-auto h-8 w-8 text-blue-600 animate-pulse" />
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    Analyzing Your Mind Profile
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${analysisProgress}%` }}
+                      ></div>
+                    </div>
+                    
+                    <p className="text-gray-600 animate-pulse">
+                      {analysisStage || 'Preparing analysis...'}
+                    </p>
+                    
+                    <div className="flex justify-center space-x-2 mt-4">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Simple Results Display */}
           {results && (
