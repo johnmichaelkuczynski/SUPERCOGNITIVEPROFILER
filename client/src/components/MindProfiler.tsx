@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Brain, 
   Heart, 
@@ -42,6 +43,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showResultsDialog, setShowResultsDialog] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +74,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     },
     onSuccess: (data) => {
       setResults(data);
+      setShowResultsDialog(true);
       toast({
         title: "Profile Analysis Complete",
         description: `Your ${profileType} profile has been generated successfully.`,
@@ -104,6 +107,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     },
     onSuccess: (data) => {
       setResults(data);
+      setShowResultsDialog(true);
       toast({
         title: "Complete Mind Profile Generated",
         description: "Your comprehensive cognitive and psychological profile is ready.",
@@ -748,6 +752,140 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Results Dialog */}
+      <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {profileType === 'cognitive' && <Brain className="h-5 w-5 text-blue-600" />}
+              {profileType === 'psychological' && <Heart className="h-5 w-5 text-red-600" />}
+              {profileType === 'synthesis' && <Sparkles className="h-5 w-5 text-purple-600" />}
+              {profileType === 'cognitive' ? 'Cognitive Profile' : 
+               profileType === 'psychological' ? 'Psychological Profile' : 
+               'Synthesis Profile'} Analysis
+            </DialogTitle>
+          </DialogHeader>
+          
+          {results && (
+            <div className="space-y-6">
+              {results.cognitiveProfile && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-blue-800">Cognitive Analysis</h3>
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <ReactMarkdown>{results.cognitiveProfile.intellectualApproach}</ReactMarkdown>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 bg-white rounded border">
+                      <h4 className="font-medium text-blue-700 mb-2">Thinking Style</h4>
+                      <p className="text-sm text-gray-700">{results.cognitiveProfile.thinkingStyle}</p>
+                    </div>
+                    <div className="p-3 bg-white rounded border">
+                      <h4 className="font-medium text-blue-700 mb-2">Problem Solving</h4>
+                      <p className="text-sm text-gray-700">{results.cognitiveProfile.problemSolving}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {results.psychologicalProfile && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-red-800">Psychological Analysis</h3>
+                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                    <ReactMarkdown>{results.psychologicalProfile.emotionalPatterns}</ReactMarkdown>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 bg-white rounded border">
+                      <h4 className="font-medium text-red-700 mb-2">Communication Style</h4>
+                      <p className="text-sm text-gray-700">{results.psychologicalProfile.communicationStyle}</p>
+                    </div>
+                    <div className="p-3 bg-white rounded border">
+                      <h4 className="font-medium text-red-700 mb-2">Social Tendencies</h4>
+                      <p className="text-sm text-gray-700">{results.psychologicalProfile.socialTendencies}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {results.comprehensiveInsights && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-purple-800">Synthesis Insights</h3>
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <ReactMarkdown>{results.comprehensiveInsights.overallProfile}</ReactMarkdown>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-3 bg-green-50 rounded border border-green-200">
+                      <h4 className="font-medium text-green-700 mb-2">Strengths</h4>
+                      <ul className="text-sm space-y-1">
+                        {results.comprehensiveInsights.uniqueStrengths?.slice(0, 3).map((strength: string, index: number) => (
+                          <li key={index} className="text-green-600">• {strength}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="p-3 bg-orange-50 rounded border border-orange-200">
+                      <h4 className="font-medium text-orange-700 mb-2">Development Areas</h4>
+                      <ul className="text-sm space-y-1">
+                        {results.comprehensiveInsights.developmentAreas?.slice(0, 3).map((area: string, index: number) => (
+                          <li key={index} className="text-orange-600">• {area}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                      <h4 className="font-medium text-blue-700 mb-2">Recommendations</h4>
+                      <ul className="text-sm space-y-1">
+                        {results.comprehensiveInsights.recommendations?.slice(0, 3).map((rec: string, index: number) => (
+                          <li key={index} className="text-blue-600">• {rec}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between pt-4 border-t">
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportProfile.mutate('pdf')}
+                    disabled={exportProfile.isPending}
+                    className="flex items-center gap-1"
+                  >
+                    <Download className="h-4 w-4" />
+                    PDF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportProfile.mutate('docx')}
+                    disabled={exportProfile.isPending}
+                    className="flex items-center gap-1"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Word
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEmailProfile}
+                    disabled={emailProfile.isPending}
+                    className="flex items-center gap-1"
+                  >
+                    <Mail className="h-4 w-4" />
+                    Email
+                  </Button>
+                </div>
+                <Button onClick={() => setShowResultsDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
