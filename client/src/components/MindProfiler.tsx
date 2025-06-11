@@ -63,7 +63,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         ? '/api/profile/instant'
         : '/api/profile/comprehensive';
       
-      const response = await apiRequest(endpoint, 'POST', {
+      const response = await apiRequest('POST', endpoint, {
         profileType: data.profileType,
         inputText: data.inputText,
         userId
@@ -96,7 +96,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         ? '/api/profile/full-instant'
         : '/api/profile/full-comprehensive';
       
-      const response = await apiRequest(endpoint, 'POST', {
+      const response = await apiRequest('POST', endpoint, {
         inputText: data.inputText,
         userId
       });
