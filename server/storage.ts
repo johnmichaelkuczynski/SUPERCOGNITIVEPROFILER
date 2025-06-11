@@ -563,6 +563,47 @@ export class DatabaseStorage implements IStorage {
       return this.memStorage.deleteRewrite(id);
     }
   }
+
+  // Profile methods implementation
+  async getProfile(id: number): Promise<Profile | undefined> {
+    try {
+      const [profile] = await db.select().from(profiles).where(eq(profiles.id, id));
+      return profile;
+    } catch (error) {
+      console.error("Database error in getProfile, falling back to memory storage:", error);
+      return this.memStorage.getProfile(id);
+    }
+  }
+
+  async getProfilesByUserId(userId: number): Promise<Profile[]> {
+    try {
+      const result = await db.select().from(profiles).where(eq(profiles.userId, userId));
+      return result;
+    } catch (error) {
+      console.error("Database error in getProfilesByUserId, falling back to memory storage:", error);
+      return this.memStorage.getProfilesByUserId(userId);
+    }
+  }
+
+  async createProfile(profile: InsertProfile): Promise<Profile> {
+    try {
+      const [result] = await db.insert(profiles).values(profile).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createProfile, falling back to memory storage:", error);
+      return this.memStorage.createProfile(profile);
+    }
+  }
+
+  async deleteProfile(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(profiles).where(eq(profiles.id, id));
+      return !!result;
+    } catch (error) {
+      console.error("Database error in deleteProfile, falling back to memory storage:", error);
+      return this.memStorage.deleteProfile(id);
+    }
+  }
 }
 
 // Switch to database storage

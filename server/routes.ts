@@ -17,6 +17,7 @@ import { speechToTextService } from "./services/speechToText";
 import { WebSocketServer } from 'ws';
 import { sendEmail } from './services/email';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
+import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile } from "./services/profiling";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -2366,6 +2367,271 @@ Return only the new content without any additional comments, explanations, or he
     } catch (error) {
       console.error('NUKE error:', error);
       res.status(500).json({ error: 'Failed to clear data' });
+    }
+  });
+
+  // Mind Profiler API Routes
+  
+  // Instant profile analysis
+  app.post('/api/profile/instant', async (req: Request, res: Response) => {
+    try {
+      const { profileType, inputText, userId } = req.body;
+      
+      if (!profileType || !inputText || !userId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      if (inputText.length < 100) {
+        return res.status(400).json({ error: 'Text sample too short. Minimum 100 characters required.' });
+      }
+      
+      const profile = await generateInstantProfile(inputText, profileType, userId);
+      res.json(profile);
+    } catch (error) {
+      console.error('Error generating instant profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Comprehensive profile analysis
+  app.post('/api/profile/comprehensive', async (req: Request, res: Response) => {
+    try {
+      const { profileType, userId } = req.body;
+      
+      if (!profileType || !userId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      const profile = await generateComprehensiveProfile(profileType, userId);
+      res.json(profile);
+    } catch (error) {
+      console.error('Error generating comprehensive profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Full instant profile (cognitive + psychological + insights)
+  app.post('/api/profile/full-instant', async (req: Request, res: Response) => {
+    try {
+      const { inputText, userId } = req.body;
+      
+      if (!inputText || !userId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      if (inputText.length < 100) {
+        return res.status(400).json({ error: 'Text sample too short. Minimum 100 characters required.' });
+      }
+      
+      const fullProfile = await generateFullProfile(inputText, userId, false);
+      res.json(fullProfile);
+    } catch (error) {
+      console.error('Error generating full instant profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Full comprehensive profile (cognitive + psychological + insights)
+  app.post('/api/profile/full-comprehensive', async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      const fullProfile = await generateFullProfile('', userId, true);
+      res.json(fullProfile);
+    } catch (error) {
+      console.error('Error generating full comprehensive profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Export profile as PDF/Word
+  app.post('/api/profile/export', async (req: Request, res: Response) => {
+    try {
+      const { results, format, profileType, analysisMode } = req.body;
+      
+      if (!results || !format) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      if (format === 'pdf') {
+        // Generate PDF using pdfkit
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument();
+        const filename = `mind-profile-${profileType}-${Date.now()}.pdf`;
+        
+        // Set response headers
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        
+        doc.pipe(res);
+        
+        // Add content to PDF
+        doc.fontSize(20).text('Mind Profile Report', 50, 50);
+        doc.fontSize(14).text(`Profile Type: ${profileType}`, 50, 100);
+        doc.fontSize(14).text(`Analysis Mode: ${analysisMode}`, 50, 120);
+        doc.fontSize(14).text(`Generated: ${new Date().toLocaleDateString()}`, 50, 140);
+        
+        let yPosition = 180;
+        
+        if (results.cognitiveProfile) {
+          doc.fontSize(16).text('Cognitive Profile', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(`Intellectual Approach: ${results.cognitiveProfile.intellectualApproach}`, 50, yPosition, { width: 500 });
+          yPosition += 50;
+          doc.text(`Cognitive Signature: ${results.cognitiveProfile.cognitiveSignature}`, 50, yPosition, { width: 500 });
+          yPosition += 50;
+        }
+        
+        if (results.psychologicalProfile) {
+          doc.fontSize(16).text('Psychological Profile', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(`Emotional Pattern: ${results.psychologicalProfile.emotionalPattern}`, 50, yPosition, { width: 500 });
+          yPosition += 50;
+          doc.text(`Psychological Signature: ${results.psychologicalProfile.psychologicalSignature}`, 50, yPosition, { width: 500 });
+          yPosition += 50;
+        }
+        
+        if (results.comprehensiveInsights) {
+          doc.fontSize(16).text('Comprehensive Insights', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(results.comprehensiveInsights.overallProfile, 50, yPosition, { width: 500 });
+        }
+        
+        doc.end();
+        
+      } else if (format === 'docx') {
+        // Generate Word document
+        const docx = require('docx');
+        const doc = new docx.Document({
+          sections: [{
+            properties: {},
+            children: [
+              new docx.Paragraph({
+                children: [
+                  new docx.TextRun({
+                    text: "Mind Profile Report",
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+              }),
+              new docx.Paragraph({
+                children: [
+                  new docx.TextRun({
+                    text: `Profile Type: ${profileType}`,
+                    size: 24,
+                  }),
+                ],
+              }),
+              new docx.Paragraph({
+                children: [
+                  new docx.TextRun({
+                    text: `Analysis Mode: ${analysisMode}`,
+                    size: 24,
+                  }),
+                ],
+              }),
+              new docx.Paragraph({
+                children: [
+                  new docx.TextRun({
+                    text: `Generated: ${new Date().toLocaleDateString()}`,
+                    size: 24,
+                  }),
+                ],
+              }),
+            ],
+          }],
+        });
+        
+        const buffer = await docx.Packer.toBuffer(doc);
+        const filename = `mind-profile-${profileType}-${Date.now()}.docx`;
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(buffer);
+      }
+      
+    } catch (error) {
+      console.error('Error exporting profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to export profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Email profile
+  app.post('/api/profile/email', async (req: Request, res: Response) => {
+    try {
+      const { results, email, profileType, analysisMode } = req.body;
+      
+      if (!results || !email) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ error: 'SendGrid API key not configured' });
+      }
+      
+      // Import SendGrid
+      const sgMail = await import('@sendgrid/mail');
+      sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
+      
+      // Format profile content for email
+      let emailContent = `<h2>Your Mind Profile Report</h2>`;
+      emailContent += `<p><strong>Profile Type:</strong> ${profileType}</p>`;
+      emailContent += `<p><strong>Analysis Mode:</strong> ${analysisMode}</p>`;
+      emailContent += `<p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>`;
+      
+      if (results.cognitiveProfile) {
+        emailContent += `<h3>Cognitive Profile</h3>`;
+        emailContent += `<p><strong>Intellectual Approach:</strong> ${results.cognitiveProfile.intellectualApproach}</p>`;
+        emailContent += `<p><strong>Cognitive Signature:</strong> ${results.cognitiveProfile.cognitiveSignature}</p>`;
+      }
+      
+      if (results.psychologicalProfile) {
+        emailContent += `<h3>Psychological Profile</h3>`;
+        emailContent += `<p><strong>Emotional Pattern:</strong> ${results.psychologicalProfile.emotionalPattern}</p>`;
+        emailContent += `<p><strong>Psychological Signature:</strong> ${results.psychologicalProfile.psychologicalSignature}</p>`;
+      }
+      
+      if (results.comprehensiveInsights) {
+        emailContent += `<h3>Comprehensive Insights</h3>`;
+        emailContent += `<p>${results.comprehensiveInsights.overallProfile}</p>`;
+      }
+      
+      const msg = {
+        to: email,
+        from: 'JM@ANALYTICPHILOSOPHY.AI',
+        subject: `Your ${profileType} Mind Profile Report`,
+        html: emailContent,
+      };
+      
+      await sgMail.default.send(msg);
+      res.json({ success: true, message: 'Profile sent successfully' });
+      
+    } catch (error) {
+      console.error('Error emailing profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to email profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 

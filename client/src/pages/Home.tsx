@@ -19,6 +19,7 @@ import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
 import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
+import MindProfiler from '@/components/MindProfiler';
 
 interface Message {
   id: number;
