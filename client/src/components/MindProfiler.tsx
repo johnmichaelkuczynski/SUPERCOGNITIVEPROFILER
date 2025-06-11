@@ -251,6 +251,28 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (analysisMode === 'instant' && inputText.length >= 100) {
+        handleAnalyze();
+      } else if (analysisMode === 'comprehensive') {
+        handleAnalyze();
+      }
+    }
+  };
+
+  const handleEmailKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const email = (e.target as HTMLInputElement).value;
+      if (email && email.includes('@')) {
+        emailProfile.mutate(email);
+        (e.target as HTMLInputElement).value = '';
+      }
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
       <Card className="mb-8 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
@@ -381,9 +403,10 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               
               <div className="relative">
                 <Textarea
-                  placeholder="Paste or type any text sample for analysis. Longer samples (500+ characters) provide more accurate profiling results."
+                  placeholder="Paste or type any text sample for analysis. Longer samples (500+ characters) provide more accurate profiling results. Press Enter to analyze (Shift+Enter for new line)."
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={handleKeyPress}
                   className="min-h-[200px] pr-12"
                 />
                 <div className="absolute bottom-3 right-3">
