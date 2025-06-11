@@ -1,10 +1,11 @@
 import { 
-  users, documents, conversations, messages, rewrites,
+  users, documents, conversations, messages, rewrites, profiles,
   type User, type InsertUser, 
   type Document, type InsertDocument,
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
-  type Rewrite, type InsertRewrite
+  type Rewrite, type InsertRewrite,
+  type Profile, type InsertProfile
 } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -40,6 +41,12 @@ export interface IStorage {
   getRewritesByUserId(userId: number): Promise<Rewrite[]>;
   createRewrite(rewrite: InsertRewrite): Promise<Rewrite>;
   deleteRewrite(id: number): Promise<boolean>;
+  
+  // Profile methods
+  getProfile(id: number): Promise<Profile | undefined>;
+  getProfilesByUserId(userId: number): Promise<Profile[]>;
+  createProfile(profile: InsertProfile): Promise<Profile>;
+  deleteProfile(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -48,11 +55,13 @@ export class MemStorage implements IStorage {
   private conversations: Map<number, Conversation>;
   private messages: Map<number, Message>;
   private rewrites: Map<number, Rewrite>;
+  private profiles: Map<number, Profile>;
   private userId: number;
   private documentId: number;
   private conversationId: number;
   private messageId: number;
   private rewriteId: number;
+  private profileId: number;
 
   constructor() {
     this.users = new Map();
@@ -60,11 +69,13 @@ export class MemStorage implements IStorage {
     this.conversations = new Map();
     this.messages = new Map();
     this.rewrites = new Map();
+    this.profiles = new Map();
     this.userId = 1;
     this.documentId = 1;
     this.conversationId = 1;
     this.messageId = 1;
     this.rewriteId = 1;
+    this.profileId = 1;
     
     // Add a default user for testing
     this.createUser({
@@ -258,6 +269,31 @@ export class MemStorage implements IStorage {
 
   async deleteRewrite(id: number): Promise<boolean> {
     return this.rewrites.delete(id);
+  }
+
+  // Profile methods implementation
+  async getProfile(id: number): Promise<Profile | undefined> {
+    return this.profiles.get(id);
+  }
+
+  async getProfilesByUserId(userId: number): Promise<Profile[]> {
+    return Array.from(this.profiles.values()).filter(profile => profile.userId === userId);
+  }
+
+  async createProfile(insertProfile: InsertProfile): Promise<Profile> {
+    const id = this.profileId++;
+    const profile: Profile = {
+      ...insertProfile,
+      id,
+      createdAt: new Date(),
+      metadata: insertProfile.metadata || null
+    };
+    this.profiles.set(id, profile);
+    return profile;
+  }
+
+  async deleteProfile(id: number): Promise<boolean> {
+    return this.profiles.delete(id);
   }
 }
 

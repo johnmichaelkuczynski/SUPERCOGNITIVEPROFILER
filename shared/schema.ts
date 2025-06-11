@@ -62,6 +62,17 @@ export const rewrites = pgTable("rewrites", {
   sourceId: text("source_id"), // Reference to source document/conversation if applicable
 });
 
+export const profiles = pgTable("profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  profileType: text("profile_type").notNull(), // "cognitive" or "psychological"
+  analysisType: text("analysis_type").notNull(), // "instant" or "comprehensive"
+  inputText: text("input_text"), // For instant analysis
+  results: json("results").notNull(), // JSON profile results
+  createdAt: timestamp("created_at").defaultNow(),
+  metadata: text("metadata"), // Additional metadata
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -89,6 +100,11 @@ export const insertRewriteSchema = createInsertSchema(rewrites).omit({
   createdAt: true,
 });
 
+export const insertProfileSchema = createInsertSchema(profiles).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -106,3 +122,6 @@ export type Message = typeof messages.$inferSelect;
 
 export type InsertRewrite = z.infer<typeof insertRewriteSchema>;
 export type Rewrite = typeof rewrites.$inferSelect;
+
+export type InsertProfile = z.infer<typeof insertProfileSchema>;
+export type Profile = typeof profiles.$inferSelect;
