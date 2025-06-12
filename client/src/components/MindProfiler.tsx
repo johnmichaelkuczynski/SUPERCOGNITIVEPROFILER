@@ -49,6 +49,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisStage, setAnalysisStage] = useState('');
   const [showLoadingAnimation, setShowLoadingAnimation] = useState(false);
+  const [savedEmail, setSavedEmail] = useState('');
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -283,8 +284,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   };
 
   const handleEmailProfile = () => {
-    const email = prompt("Enter your email address:");
+    const email = savedEmail || prompt("Enter your email address:");
     if (email && email.includes('@')) {
+      setSavedEmail(email);
       emailProfile.mutate(email);
     }
   };
@@ -914,7 +916,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
       {/* Results Dialog */}
       <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="results-description">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-6" aria-describedby="results-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {profileType === 'cognitive' && <Brain className="h-5 w-5 text-blue-600" />}
