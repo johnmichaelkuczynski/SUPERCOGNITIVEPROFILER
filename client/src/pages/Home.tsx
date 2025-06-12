@@ -69,6 +69,85 @@ export default function Home() {
     { onAppend: true }
   );
 
+  // Drag and drop functionality for main textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      textarea.style.border = "2px dashed #3b82f6";
+      textarea.style.backgroundColor = "#eff6ff";
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      textarea.style.border = "";
+      textarea.style.backgroundColor = "";
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      console.log('Main textarea drop detected');
+      e.preventDefault();
+      e.stopPropagation();
+      textarea.style.border = "";
+      textarea.style.backgroundColor = "";
+
+      // Handle plain text drag
+      if (e.dataTransfer?.types && e.dataTransfer.types.includes('text/plain')) {
+        const text = e.dataTransfer.getData('text/plain');
+        console.log('Dropped text:', text);
+        if (text && text.trim()) {
+          setDirectInputText(prev => prev ? prev + '\n\n' + text : text);
+          return;
+        }
+      }
+      
+      // Handle file drag
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        console.log('Dropped files:', droppedFiles);
+        
+        for (const file of droppedFiles) {
+          if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const text = event.target?.result as string;
+              if (text) {
+                console.log('File text content loaded');
+                setDirectInputText(prev => prev ? prev + '\n\n' + text : text);
+              }
+            };
+            reader.readAsText(file);
+          }
+        }
+      }
+    };
+
+    // Add global document listeners to override Replit interference
+    document.addEventListener('dragover', handleDragOver);
+    document.addEventListener('dragleave', handleDragLeave);
+    document.addEventListener('drop', handleDrop);
+
+    // Also add direct textarea listeners
+    textarea.addEventListener('dragover', handleDragOver);
+    textarea.addEventListener('dragleave', handleDragLeave);
+    textarea.addEventListener('drop', handleDrop);
+
+    return () => {
+      document.removeEventListener('dragover', handleDragOver);
+      document.removeEventListener('dragleave', handleDragLeave);
+      document.removeEventListener('drop', handleDrop);
+      textarea.removeEventListener('dragover', handleDragOver);
+      textarea.removeEventListener('dragleave', handleDragLeave);
+      textarea.removeEventListener('drop', handleDrop);
+    };
+  }, []);
+
   // Handle when rewritten content is received from the modal
   const handleRewriteComplete = (rewrittenContent: string) => {
     // Add the rewritten content as a new user message
@@ -170,6 +249,7 @@ export default function Home() {
           <div className="space-y-2">
             <div className="relative">
               <textarea
+                ref={textareaRef}
                 className="w-full min-h-[200px] p-3 border rounded-lg resize-none"
                 placeholder={processingMode === 'rewrite' 
                   ? "Paste your text here to rewrite and improve it..."
