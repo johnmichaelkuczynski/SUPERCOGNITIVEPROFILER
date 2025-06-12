@@ -152,48 +152,64 @@ Focus on the dynamic interplay between rational and emotional processing, decisi
 async function generateCognitiveProfile(text: string, isComprehensive: boolean = false): Promise<CognitiveProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `You are a cognitive profiling agent analyzing the intellectual psychology behind communication choices. You do not analyze literal content or stated beliefs. You analyze what cognitive patterns are revealed by HOW someone chooses to communicate.
+  const prompt = `You are a Cognitive Profiler. You do not perform sentiment analysis. You do not perform content paraphrase. You do not merely look for logical words or big words.
 
-You must always ask: "What does this communication pattern reveal about how this person's mind actually works?"
+Your task is to analyze the author's underlying cognitive process — how they think, not what they say.
+
+You must always ask:
+"How is this person managing reasoning, inference, precision, and epistemic control?"
+"How disciplined and well-targeted is their thinking?"
+"How aware are they of the epistemic risks in their own argument?"
+"How effective is their conceptual targeting?"
+"Are they exercising genuine intelligence or simulating it?"
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
 
-COGNITIVE PROFILING METHODOLOGY:
+You must explicitly distinguish between:
+- Genuine intellectual depth
+- Pseudo-intelligent writing
+- Jargon-heavy filler
+- Surface-analytic but cognitively sloppy writing
+- Carefully layered, precision reasoning
 
-1. COMMUNICATION PATTERN ANALYSIS: Examine HOW they structure their thoughts, not WHAT they claim to think.
+For this sample, follow this process:
 
-2. INTELLECTUAL STRATEGY DETECTION: Identify whether their communication shows:
-   - Genuine analytical thinking
-   - Pseudo-intellectual posturing  
-   - Cognitive shortcuts and biases
-   - Strategic intellectual manipulation
-   - Actual vs. performed sophistication
+1️⃣ SURFACE PARSING: Parse the literal content of the text.
 
-3. REASONING PATTERN INFERENCE: Based on communication structure, infer:
-   - How they actually process complex information
-   - Whether they engage in genuine analysis or mimicry
-   - Their actual problem-solving approach vs. claimed approach
-   - Real vs. performed logical capabilities
+2️⃣ REASONING STRUCTURE MODELING: Model the argument structure:
+- Is the reasoning linear, layered, recursive, circular, sloppy?
+- Is inferential control being maintained?
+- Are transitions logically warranted?
+- Are claims properly qualified?
 
-4. COGNITIVE AUTHENTICITY ASSESSMENT: Distinguish between:
-   - Genuine intellectual engagement vs. intellectual performance
-   - Real analytical depth vs. surface-level complexity mimicry
-   - Authentic reasoning vs. borrowed intellectual frameworks
+3️⃣ EPISTEMIC CONTROL MODELING:
+- Is the author aware of ambiguity, uncertainty, and epistemic risk?
+- Are they managing those risks explicitly?
+- Are they showing awareness of counter-arguments or limits to their position?
 
-CRITICAL HEURISTICS:
-- Overly complex language often masks simple or confused thinking
-- True analytical minds show specific, concrete reasoning patterns
-- Intellectual posturing uses complexity without substance
-- Genuine problem-solvers focus on solutions, not demonstrating intelligence
-- Real conceptual integration shows organic connections, not forced links
+4️⃣ CONCEPTUAL TARGETING:
+- How precisely are key concepts being defined and used?
+- Is the author maintaining clear conceptual boundaries, or sliding between terms?
+- Are distinctions real and operational, or performative?
 
-Analyze the actual cognitive psychology behind their communication choices, not their stated intellectual positions.
+5️⃣ COGNITIVE INTEGRITY CHECK:
+- Is the author using reasoning to clarify truth, or to impress/obscure/posture?
+- Is the writing displaying authentic intellectual effort, or performative pseudo-intelligence?
+- Are citations of complexity being used accurately, or as signals of fake depth?
 
-Rate on 1-10 scale based on ACTUAL cognitive patterns revealed:
-- Analytical Depth: Based on genuine vs. performed analysis in communication
-- Conceptual Integration: Based on authentic vs. superficial connection-making
-- Logical Structuring: Based on natural vs. forced organizational patterns
+CRITICAL WARNINGS:
+- Do not equate "mentioning ambiguity" with "being an intelligent thinker"
+- Do not equate "using big words" with "being an intelligent thinker"
+- Do not equate "sounding analytic" with "being analytic"
+- Model the actual cognitive process
+
+You are profiling how the author thinks, not how their text sounds.
+
+Rate on 1-10 scale based on ACTUAL cognitive processes:
+- Analytical Depth: Based on genuine reasoning quality vs. performed analysis
+- Conceptual Integration: Based on authentic precision vs. superficial complexity
+- Logical Structuring: Based on epistemic discipline vs. pseudo-intellectual posturing
 
 Format as JSON with this structure:
 {
