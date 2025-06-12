@@ -2654,7 +2654,105 @@ Return only the new content without any additional comments, explanations, or he
           }
         }
 
+        // Add detailed analysis section - this is the comprehensive cognitive architecture analysis
+        if (results.detailedAnalysis) {
+          if (yPosition > 650) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
+          doc.fontSize(16).text('Detailed Cognitive Architecture Analysis', 50, yPosition);
+          yPosition += 30;
+          
+          const cleanText = String(results.detailedAnalysis || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 30, 100);
+        }
+
+        // Add cognitive signature
+        if (results.cognitiveSignature) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
+          doc.fontSize(16).text('Cognitive Signature', 50, yPosition);
+          yPosition += 30;
+          
+          const cleanText = String(results.cognitiveSignature || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 30, 80);
+        }
+
+        // Add numerical scores section
+        if (results.analyticalDepth || results.conceptualIntegration || results.logicalStructuring) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
+          doc.fontSize(16).text('Cognitive Assessment Scores', 50, yPosition);
+          yPosition += 30;
+          
+          if (results.analyticalDepth) {
+            doc.fontSize(12).text(`Analytical Depth: ${results.analyticalDepth}/10`, 50, yPosition);
+            yPosition += 20;
+          }
+          if (results.conceptualIntegration) {
+            doc.fontSize(12).text(`Conceptual Integration: ${results.conceptualIntegration}/10`, 50, yPosition);
+            yPosition += 20;
+          }
+          if (results.logicalStructuring) {
+            doc.fontSize(12).text(`Logical Structuring: ${results.logicalStructuring}/10`, 50, yPosition);
+            yPosition += 20;
+          }
+          yPosition += 20;
+        }
+
+        // Add strengths and growth areas
+        if (results.strengths && results.strengths.length > 0) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
+          doc.fontSize(16).text('Cognitive Strengths', 50, yPosition);
+          yPosition += 30;
+          
+          results.strengths.forEach((strength: string, index: number) => {
+            const cleanText = String(strength || '').replace(/\n{3,}/g, '\n\n').trim();
+            doc.fontSize(12).text(`• ${cleanText}`, 50, yPosition, { width: 500 });
+            const textHeight = doc.heightOfString(`• ${cleanText}`, { width: 500 });
+            yPosition += Math.max(textHeight + 10, 25);
+          });
+          yPosition += 20;
+        }
+
+        if (results.growthAreas && results.growthAreas.length > 0) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
+          doc.fontSize(16).text('Growth Areas', 50, yPosition);
+          yPosition += 30;
+          
+          results.growthAreas.forEach((area: string, index: number) => {
+            const cleanText = String(area || '').replace(/\n{3,}/g, '\n\n').trim();
+            doc.fontSize(12).text(`• ${cleanText}`, 50, yPosition, { width: 500 });
+            const textHeight = doc.heightOfString(`• ${cleanText}`, { width: 500 });
+            yPosition += Math.max(textHeight + 10, 25);
+          });
+        }
+
         if (results.personalityTraits && results.personalityTraits.length > 0) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Personality Traits', 50, yPosition);
           yPosition += 30;
           doc.fontSize(12).text(results.personalityTraits.join(", "), 50, yPosition, { width: 500 });
@@ -2662,6 +2760,11 @@ Return only the new content without any additional comments, explanations, or he
         }
 
         if (results.emotionalIntelligence) {
+          if (yPosition > 750) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Emotional Intelligence Score', 50, yPosition);
           yPosition += 30;
           doc.fontSize(12).text(`${results.emotionalIntelligence}/10`, 50, yPosition, { width: 500 });
