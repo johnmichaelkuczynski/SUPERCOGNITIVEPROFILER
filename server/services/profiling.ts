@@ -16,6 +16,11 @@ interface CognitiveProfile {
   detailedAnalysis: string;
 }
 
+interface SupportingEvidence {
+  quote: string;
+  explanation: string;
+}
+
 interface PsychologicalProfile {
   emotionalPattern: string;
   motivationalStructure: string;
@@ -28,6 +33,12 @@ interface PsychologicalProfile {
   socialOrientation: number; // 1-10 scale
   psychologicalSignature: string;
   detailedAnalysis: string;
+  supportingEvidence: {
+    emotionalPattern: SupportingEvidence[];
+    motivationalStructure: SupportingEvidence[];
+    interpersonalDynamics: SupportingEvidence[];
+    stressResponsePattern: SupportingEvidence[];
+  };
 }
 
 interface SynthesisProfile {
@@ -155,39 +166,84 @@ Format as JSON with this structure:
 async function generatePsychologicalProfile(text: string, isComprehensive: boolean = false): Promise<PsychologicalProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `Analyze this writing sample for psychological and emotional patterns. Provide a ${analysisDepth} analysis.
+  const prompt = `Analyze this writing sample for psychological and emotional patterns. Provide a ${analysisDepth} analysis with supporting evidence.
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
 
-Provide a detailed psychological profile including:
+CRITICAL REQUIREMENTS:
+1. For EACH psychological finding, provide at least 2-3 direct quotes from the text
+2. For EACH quote, provide a detailed explanation of how it supports the analysis
+3. Make the analysis substantial and detailed, not lean or superficial
+4. Focus on deep psychological insights backed by textual evidence
+
+Analyze:
 1. Emotional patterns and motivational structure
-2. Interpersonal dynamics and communication style
+2. Interpersonal dynamics and communication style  
 3. Stress response patterns and adaptability
 4. Personality traits and social orientation
 5. Emotional intelligence indicators
-6. A unique psychological signature
 
-Rate the following on a 1-10 scale with specific evidence:
+Rate the following on a 1-10 scale:
 - Emotional Intelligence: How well do they understand and manage emotions?
 - Adaptability: How well do they handle change and uncertainty?
 - Social Orientation: How much do they focus on relationships vs individual achievement?
 
-Provide detailed explanations for each rating based on specific examples from the text.
-
-Format as JSON with this structure:
+Format as JSON with this EXACT structure:
 {
-  "emotionalPattern": "detailed description",
-  "motivationalStructure": "what drives them",
-  "interpersonalDynamics": "how they relate to others",
-  "stressResponsePattern": "how they handle stress",
-  "communicationStyle": "their communication approach",
-  "personalityTraits": ["trait1", "trait2", ...],
+  "emotionalPattern": "detailed comprehensive description with specific insights",
+  "motivationalStructure": "what drives them - detailed analysis",
+  "interpersonalDynamics": "how they relate to others - comprehensive view",
+  "stressResponsePattern": "how they handle stress - detailed pattern",
+  "communicationStyle": "their communication approach - thorough analysis",
+  "personalityTraits": ["trait1", "trait2", "trait3", "trait4", "trait5"],
   "emotionalIntelligence": number,
   "adaptability": number,
   "socialOrientation": number,
   "psychologicalSignature": "unique defining characteristic",
-  "detailedAnalysis": "comprehensive narrative analysis"
+  "detailedAnalysis": "comprehensive narrative analysis",
+  "supportingEvidence": {
+    "emotionalPattern": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "detailed explanation of how this quote demonstrates the emotional pattern"
+      },
+      {
+        "quote": "another exact quote from text",
+        "explanation": "detailed explanation of psychological significance"
+      }
+    ],
+    "motivationalStructure": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "detailed explanation of motivational insight"
+      },
+      {
+        "quote": "another exact quote from text", 
+        "explanation": "detailed explanation of what this reveals about motivation"
+      }
+    ],
+    "interpersonalDynamics": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "detailed explanation of interpersonal pattern"
+      },
+      {
+        "quote": "another exact quote from text",
+        "explanation": "detailed explanation of relationship approach"
+      }
+    ],
+    "stressResponsePattern": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "detailed explanation of stress response indicator"
+      },
+      {
+        "quote": "another exact quote from text",
+        "explanation": "detailed explanation of coping mechanism"
+      }
+    ]
+  }
 }`;
 
   try {

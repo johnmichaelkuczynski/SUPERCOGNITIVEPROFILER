@@ -29,7 +29,30 @@ import { useToast } from '@/hooks/use-toast';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import ReactMarkdown from 'react-markdown';
 
+interface SupportingEvidence {
+  quote: string;
+  explanation: string;
+}
+
 interface ProfileResults {
+  emotionalPattern?: string;
+  motivationalStructure?: string;
+  interpersonalDynamics?: string;
+  intellectualApproach?: string;
+  stressResponsePattern?: string;
+  communicationStyle?: string;
+  personalityTraits?: string[];
+  emotionalIntelligence?: number;
+  adaptability?: number;
+  socialOrientation?: number;
+  psychologicalSignature?: string;
+  detailedAnalysis?: string;
+  supportingEvidence?: {
+    emotionalPattern?: SupportingEvidence[];
+    motivationalStructure?: SupportingEvidence[];
+    interpersonalDynamics?: SupportingEvidence[];
+    stressResponsePattern?: SupportingEvidence[];
+  };
   cognitiveProfile?: any;
   psychologicalProfile?: any;
   comprehensiveInsights?: any;
@@ -893,50 +916,207 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             Analysis results showing cognitive and psychological insights
           </div>
           
-          <div className="space-y-6">            
-            {/* Show analysis content directly */}
+          <div className="space-y-8">            
+            {/* Enhanced analysis content with evidence */}
             {results && (
-              <div className="space-y-6">
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h4 className="font-bold text-yellow-800 mb-2">Raw Analysis Data:</h4>
-                  <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-auto max-h-96">
-                    {JSON.stringify(results, null, 2)}
-                  </pre>
-                </div>
-                
-                {/* Direct text display */}
+              <div className="space-y-8">
+                {/* Emotional Pattern Analysis */}
                 {results.emotionalPattern && (
-                  <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
-                    <h3 className="text-xl font-bold text-red-800 mb-4">Emotional Pattern</h3>
-                    <div className="text-gray-800 leading-relaxed">
-                      {results.emotionalPattern}
+                  <div className="p-8 bg-red-50 rounded-xl border-2 border-red-200 shadow-sm">
+                    <h3 className="text-2xl font-bold text-red-800 mb-6 flex items-center gap-3">
+                      <Heart className="h-7 w-7" />
+                      Emotional Pattern Analysis
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      <div className="p-5 bg-white rounded-lg border border-red-100">
+                        <h4 className="font-semibold text-red-700 mb-3 text-lg">Primary Finding</h4>
+                        <p className="text-gray-800 leading-relaxed text-base">
+                          {results.emotionalPattern}
+                        </p>
+                      </div>
+                      
+                      {results.supportingEvidence?.emotionalPattern && (
+                        <div className="space-y-4">
+                          <h4 className="font-semibold text-red-700 text-lg">Supporting Evidence</h4>
+                          {results.supportingEvidence.emotionalPattern.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-red-25 rounded-lg border-l-4 border-red-300">
+                              <div className="mb-3">
+                                <span className="text-sm font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Quote</span>
+                                <blockquote className="mt-2 text-gray-700 italic border-l-3 border-red-200 pl-4">
+                                  "{evidence.quote}"
+                                </blockquote>
+                              </div>
+                              <div>
+                                <span className="text-sm font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 leading-relaxed">
+                                  {evidence.explanation}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
                 
+                {/* Motivational Structure Analysis */}
                 {results.motivationalStructure && (
-                  <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
-                    <h3 className="text-xl font-bold text-blue-800 mb-4">Motivational Structure</h3>
-                    <div className="text-gray-800 leading-relaxed">
-                      {results.motivationalStructure}
+                  <div className="p-8 bg-blue-50 rounded-xl border-2 border-blue-200 shadow-sm">
+                    <h3 className="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-3">
+                      <Zap className="h-7 w-7" />
+                      Motivational Structure
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h4 className="font-semibold text-blue-700 mb-3 text-lg">Core Drivers</h4>
+                        <p className="text-gray-800 leading-relaxed text-base">
+                          {results.motivationalStructure}
+                        </p>
+                      </div>
+                      
+                      {results.supportingEvidence?.motivationalStructure && (
+                        <div className="space-y-4">
+                          <h4 className="font-semibold text-blue-700 text-lg">Supporting Evidence</h4>
+                          {results.supportingEvidence.motivationalStructure.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-blue-25 rounded-lg border-l-4 border-blue-300">
+                              <div className="mb-3">
+                                <span className="text-sm font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">Quote</span>
+                                <blockquote className="mt-2 text-gray-700 italic border-l-3 border-blue-200 pl-4">
+                                  "{evidence.quote}"
+                                </blockquote>
+                              </div>
+                              <div>
+                                <span className="text-sm font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 leading-relaxed">
+                                  {evidence.explanation}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
                 
+                {/* Interpersonal Dynamics Analysis */}
                 {results.interpersonalDynamics && (
-                  <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
-                    <h3 className="text-xl font-bold text-green-800 mb-4">Interpersonal Dynamics</h3>
-                    <div className="text-gray-800 leading-relaxed">
-                      {results.interpersonalDynamics}
+                  <div className="p-8 bg-green-50 rounded-xl border-2 border-green-200 shadow-sm">
+                    <h3 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                      <User className="h-7 w-7" />
+                      Interpersonal Dynamics
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      <div className="p-5 bg-white rounded-lg border border-green-100">
+                        <h4 className="font-semibold text-green-700 mb-3 text-lg">Relationship Patterns</h4>
+                        <p className="text-gray-800 leading-relaxed text-base">
+                          {results.interpersonalDynamics}
+                        </p>
+                      </div>
+                      
+                      {results.supportingEvidence?.interpersonalDynamics && (
+                        <div className="space-y-4">
+                          <h4 className="font-semibold text-green-700 text-lg">Supporting Evidence</h4>
+                          {results.supportingEvidence.interpersonalDynamics.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-green-25 rounded-lg border-l-4 border-green-300">
+                              <div className="mb-3">
+                                <span className="text-sm font-medium text-green-600 bg-green-100 px-2 py-1 rounded">Quote</span>
+                                <blockquote className="mt-2 text-gray-700 italic border-l-3 border-green-200 pl-4">
+                                  "{evidence.quote}"
+                                </blockquote>
+                              </div>
+                              <div>
+                                <span className="text-sm font-medium text-green-600 bg-green-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 leading-relaxed">
+                                  {evidence.explanation}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
                 
+                {/* Intellectual Approach Analysis */}
                 {results.intellectualApproach && (
-                  <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
-                    <h3 className="text-xl font-bold text-purple-800 mb-4">Intellectual Approach</h3>
-                    <div className="text-gray-800 leading-relaxed">
-                      {results.intellectualApproach}
+                  <div className="p-8 bg-purple-50 rounded-xl border-2 border-purple-200 shadow-sm">
+                    <h3 className="text-2xl font-bold text-purple-800 mb-6 flex items-center gap-3">
+                      <Brain className="h-7 w-7" />
+                      Intellectual Approach
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      <div className="p-5 bg-white rounded-lg border border-purple-100">
+                        <h4 className="font-semibold text-purple-700 mb-3 text-lg">Cognitive Style</h4>
+                        <p className="text-gray-800 leading-relaxed text-base">
+                          {results.intellectualApproach}
+                        </p>
+                      </div>
+                      
+                      {results.supportingEvidence?.intellectualApproach && (
+                        <div className="space-y-4">
+                          <h4 className="font-semibold text-purple-700 text-lg">Supporting Evidence</h4>
+                          {results.supportingEvidence.intellectualApproach.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-purple-25 rounded-lg border-l-4 border-purple-300">
+                              <div className="mb-3">
+                                <span className="text-sm font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Quote</span>
+                                <blockquote className="mt-2 text-gray-700 italic border-l-3 border-purple-200 pl-4">
+                                  "{evidence.quote}"
+                                </blockquote>
+                              </div>
+                              <div>
+                                <span className="text-sm font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 leading-relaxed">
+                                  {evidence.explanation}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Personality Metrics */}
+                {(results.personalityTraits || results.emotionalIntelligence) && (
+                  <div className="p-8 bg-gray-50 rounded-xl border-2 border-gray-200 shadow-sm">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                      <BarChart3 className="h-7 w-7" />
+                      Personality Metrics
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {results.personalityTraits && (
+                        <div className="p-5 bg-white rounded-lg border border-gray-100">
+                          <h4 className="font-semibold text-gray-700 mb-3 text-lg">Core Traits</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {results.personalityTraits.map((trait: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-sm">
+                                {trait}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.emotionalIntelligence && (
+                        <div className="p-5 bg-white rounded-lg border border-gray-100">
+                          <h4 className="font-semibold text-gray-700 mb-3 text-lg">Emotional Intelligence</h4>
+                          <div className="flex items-center gap-3">
+                            <div className="text-3xl font-bold text-blue-600">
+                              {results.emotionalIntelligence}/10
+                            </div>
+                            <Progress value={results.emotionalIntelligence * 10} className="flex-1" />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
