@@ -116,17 +116,35 @@ Analyze the actual synthesis psychology behind their communication choices.
 
 Provide a ${analysisDepth} analysis with this JSON structure:
 {
-  "intellectEmotionBalance": "analysis of actual intellectual-emotional integration revealed by communication patterns, not claimed balance",
+  "intellectEmotionBalance": "detailed analysis of actual intellectual-emotional integration revealed by communication patterns, not claimed balance",
   "rationalEmotionalIntegration": 7,
-  "decisionMakingStyle": "analysis of actual decision-making psychology revealed by communication choices",
-  "stressVsClarity": "analysis of how stress actually affects their communication patterns",
+  "decisionMakingStyle": "comprehensive analysis of actual decision-making psychology revealed by communication choices",
+  "stressVsClarity": "detailed analysis of how stress actually affects their communication patterns and thinking clarity",
   "creativeRationalFusion": "analysis of actual creative-rational integration revealed by communication patterns",
-  "emotionalReasoningPattern": "analysis of how emotions actually influence their reasoning based on communication choices",
+  "emotionalReasoningPattern": "comprehensive analysis of how emotions actually influence their reasoning based on communication choices",
   "intellectualEmpathy": 8,
-  "synthesisStrengths": ["actual strengths in intellectual-emotional integration", "not claimed abilities"],
-  "integrationChallenges": ["actual integration problems revealed", "not self-reported challenges"],
-  "holisticSignature": "actual signature of intellectual-emotional integration based on communication psychology",
-  "detailedAnalysis": "comprehensive analysis focusing on synthesis psychology behind communication choices"
+  "synthesisStrengths": ["detailed strengths in intellectual-emotional integration with specific examples", "authentic abilities demonstrated through communication"],
+  "integrationChallenges": ["specific integration problems revealed through communication analysis", "actual challenges not self-reported ones"],
+  "holisticSignature": "comprehensive signature of intellectual-emotional integration based on communication psychology",
+  "cognitiveEmotionalArchitecture": "detailed analysis of how cognitive and emotional systems actually interface in this person's mind",
+  "authenticityVsPerformance": "analysis of whether intellectual-emotional integration is genuine or strategically performed",
+  "stressIntegrationPattern": "how intellectual and emotional processing changes under pressure based on communication evidence",
+  "empathyVsManipulation": "analysis distinguishing genuine empathy from strategic emotional positioning",
+  "balanceVsCompensation": "whether apparent balance represents genuine integration or compensatory mechanisms",
+  "synthesisEvolution": "how their intellectual-emotional integration appears to develop over time",
+  "contextualFlexibility": "how their synthesis adapts to different contexts and audiences",
+  "integrationMaturity": 8,
+  "authenticityScore": 7,
+  "supportingEvidence": {
+    "intellectEmotionBalance": [{"quote": "specific quote demonstrating balance or imbalance", "explanation": "why this shows their integration pattern"}],
+    "decisionMakingStyle": [{"quote": "quote showing decision process", "explanation": "what this reveals about their decision psychology"}],
+    "emotionalReasoning": [{"quote": "quote showing emotional reasoning", "explanation": "how emotions influence their logic"}]
+  },
+  "developmentPathways": ["specific pathways for improving intellectual-emotional integration", "targeted growth areas"],
+  "potentialPitfalls": ["specific risks in their current integration pattern", "areas where synthesis might break down"],
+  "optimalEnvironments": ["contexts where their synthesis works best", "situations that support their integration style"],
+  "collaborationStyle": "how their intellectual-emotional integration affects their ability to work with others",
+  "detailedAnalysis": "comprehensive multi-paragraph analysis focusing on synthesis psychology behind communication choices, including specific examples and evidence"
 }
 
 Focus on the dynamic interplay between rational and emotional processing, decision-making patterns, and how this person integrates head and heart in their thinking and expression.`;
@@ -137,7 +155,7 @@ Focus on the dynamic interplay between rational and emotional processing, decisi
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: 4000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
