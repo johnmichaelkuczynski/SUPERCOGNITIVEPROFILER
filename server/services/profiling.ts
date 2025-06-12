@@ -455,7 +455,7 @@ Format as JSON with this EXACT structure:
 
     return JSON.parse(response.choices[0].message.content || "{}");
   } catch (error) {
-    throw new Error("Failed to generate psychological profile: " + error.message);
+    throw new Error("Failed to generate psychological profile: " + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 
@@ -507,7 +507,7 @@ Format as JSON with this structure:
 
     return JSON.parse(response.choices[0].message.content || "{}");
   } catch (error) {
-    throw new Error("Failed to generate comprehensive insights: " + error.message);
+    throw new Error("Failed to generate comprehensive insights: " + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 

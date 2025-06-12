@@ -1348,9 +1348,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 {results.cognitiveEmotionalArchitecture && (
                   <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
                     <h4 className="font-bold text-purple-900 mb-4 text-lg">Cognitive-Emotional Architecture</h4>
-                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      {results.cognitiveEmotionalArchitecture}
-                    </ReactMarkdown>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>{results.cognitiveEmotionalArchitecture}</ReactMarkdown>
+                    </div>
                   </div>
                 )}
 
@@ -1358,9 +1358,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 {results.authenticityVsPerformance && (
                   <div className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border-2 border-orange-200">
                     <h4 className="font-bold text-orange-900 mb-4 text-lg">Authenticity vs Performance</h4>
-                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      {results.authenticityVsPerformance}
-                    </ReactMarkdown>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>{results.authenticityVsPerformance}</ReactMarkdown>
+                    </div>
                   </div>
                 )}
 
@@ -1457,9 +1457,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 {results.holisticSignature && (
                   <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-300">
                     <h4 className="font-bold text-purple-900 mb-4 text-lg">Holistic Signature</h4>
-                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      {results.holisticSignature}
-                    </ReactMarkdown>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>{results.holisticSignature}</ReactMarkdown>
+                    </div>
                   </div>
                 )}
 
@@ -1467,9 +1467,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 {results.detailedAnalysis && (
                   <div className="p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
                     <h4 className="font-bold text-gray-900 mb-4 text-lg">Detailed Analysis</h4>
-                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      {results.detailedAnalysis}
-                    </ReactMarkdown>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>{results.detailedAnalysis}</ReactMarkdown>
+                    </div>
                   </div>
                 )}
               </div>
