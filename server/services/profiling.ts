@@ -124,9 +124,9 @@ Provide a ${analysisDepth} analysis with this JSON structure:
   "emotionalReasoningPattern": "analysis of how emotions actually influence their reasoning based on communication choices",
   "intellectualEmpathy": 8,
   "synthesisStrengths": ["actual strengths in intellectual-emotional integration", "not claimed abilities"],
-  "integrationChallenges": ["challenge1", "challenge2"],
-  "holisticSignature": "Overall signature of their mind-heart integration",
-  "detailedAnalysis": "Deep analysis of intellect/emotion synthesis patterns"
+  "integrationChallenges": ["actual integration problems revealed", "not self-reported challenges"],
+  "holisticSignature": "actual signature of intellectual-emotional integration based on communication psychology",
+  "detailedAnalysis": "comprehensive analysis focusing on synthesis psychology behind communication choices"
 }
 
 Focus on the dynamic interplay between rational and emotional processing, decision-making patterns, and how this person integrates head and heart in their thinking and expression.`;
