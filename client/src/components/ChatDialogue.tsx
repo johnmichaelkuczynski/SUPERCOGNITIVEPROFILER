@@ -47,7 +47,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const [shareEmail, setShareEmail] = useState('');
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [messageToShare, setMessageToShare] = useState<ChatMessage | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+
   const [conversationId, setConversationId] = useState<number | null>(1); // Default ID for auxiliary chat
   const [conversationShareEmail, setConversationShareEmail] = useState('');
   
@@ -67,25 +67,27 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     const textarea = textareaRef.current;
     if (!textarea) return;
 
+    let dragCounter = 0;
+
+    const handleDragEnter = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter++;
+      textarea.style.border = "2px dashed #3b82f6";
+      textarea.style.backgroundColor = "#eff6ff";
+    };
+
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsDragging(true);
-      textarea.style.border = "2px dashed #3b82f6";
-      textarea.style.backgroundColor = "#eff6ff";
     };
 
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      dragCounter--;
       
-      // Check if we're really leaving the textarea
-      const rect = textarea.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-        setIsDragging(false);
+      if (dragCounter === 0) {
         textarea.style.border = "";
         textarea.style.backgroundColor = "";
       }
@@ -94,18 +96,24 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsDragging(false);
+      dragCounter = 0;
       textarea.style.border = "";
       textarea.style.backgroundColor = "";
+
+      console.log('Drop event triggered', e.dataTransfer);
 
       // Handle plain text drag
       if (e.dataTransfer?.types.includes('text/plain')) {
         const text = e.dataTransfer.getData('text/plain');
+        console.log('Dropped text:', text);
         setInput(prev => prev + (prev ? '\n\n' : '') + text);
+        return;
       }
+      
       // Handle file drag
-      else if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         const droppedFiles = Array.from(e.dataTransfer.files);
+        console.log('Dropped files:', droppedFiles);
         
         // Handle text files by reading their content
         for (const file of droppedFiles) {
@@ -114,6 +122,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
             reader.onload = (event) => {
               const text = event.target?.result as string;
               if (text) {
+                console.log('File text content:', text);
                 setInput(prev => prev + (prev ? '\n\n' : '') + text);
               }
             };
@@ -131,16 +140,18 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
       }
     };
 
+    textarea.addEventListener('dragenter', handleDragEnter);
     textarea.addEventListener('dragover', handleDragOver);
     textarea.addEventListener('dragleave', handleDragLeave);
     textarea.addEventListener('drop', handleDrop);
 
     return () => {
+      textarea.removeEventListener('dragenter', handleDragEnter);
       textarea.removeEventListener('dragover', handleDragOver);
       textarea.removeEventListener('dragleave', handleDragLeave);
       textarea.removeEventListener('drop', handleDrop);
     };
-  }, []);
+  }, [setInput, setFiles]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -374,17 +385,8 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   return (
     <div className="h-full" data-chat-container="true">
       <Card 
-        className={`h-full flex flex-col shadow-sm relative ${isDragging ? 'border-2 border-dashed border-blue-400' : ''}`}
+        className="h-full flex flex-col shadow-sm relative"
       >
-        {isDragging && (
-          <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
-            <div className="text-center">
-              <Upload className="h-12 w-12 mx-auto mb-2 text-blue-500" />
-              <p className="text-lg font-medium text-blue-700">Drop files here to upload</p>
-              <p className="text-sm text-blue-600">PDF, DOCX, TXT, JPG, PNG supported</p>
-            </div>
-          </div>
-        )}
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">Auxiliary AI Chat</CardTitle>
