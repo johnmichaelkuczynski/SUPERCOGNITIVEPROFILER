@@ -792,6 +792,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document Rewriter API Endpoints
+  app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
+    try {
+      const { content, instructions, model, processingMode, rewriteMode, includeChatContext, chatHistory, newChunkInstructions, numberOfNewChunks } = req.body;
+      
+      if (!content || !instructions) {
+        return res.status(400).json({ error: 'Content and instructions are required' });
+      }
+
+      // Build prompt based on processing mode
+      let prompt = '';
+      if (processingMode === 'homework') {
+        prompt = `Complete this homework assignment following the given instructions:\n\nInstructions: ${instructions}\n\nHomework content:\n${content}\n\nProvide complete, accurate answers that demonstrate understanding.`;
+      } else {
+        prompt = `Rewrite and improve the following text according to these instructions: ${instructions}\n\nOriginal text:\n${content}\n\nProvide the rewritten version that improves clarity, flow, and overall quality.`;
+      }
+
+      // Add chat context if requested
+      if (includeChatContext && chatHistory && chatHistory.length > 0) {
+        const contextMessages = chatHistory.slice(-5).map((msg: any) => `${msg.role}: ${msg.content}`).join('\n');
+        prompt += `\n\nChat context for reference:\n${contextMessages}`;
+      }
+
+      let result: string;
+      
+      if (model === 'claude') {
+        result = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      } else if (model === 'gpt4') {
+        const { default: OpenAI } = await import('openai');
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+          max_tokens: 4000
+        });
+        
+        result = response.choices[0].message.content || '';
+      } else {
+        result = await processClaude(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      }
+      
+      res.json({ rewritten: result });
+      
+    } catch (error) {
+      console.error('Chunk rewrite error:', error);
+      res.status(500).json({ error: 'Failed to process chunk' });
+    }
+  });
+
   app.post('/api/rewrite-document', async (req: Request, res: Response) => {
     try {
       console.log("Document rewrite request received:", JSON.stringify(req.body).substring(0, 200) + "...");

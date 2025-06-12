@@ -90,9 +90,24 @@ export default function Home() {
 
       const result = await response.json();
       console.log('Document processed successfully:', result);
+      console.log('Result content length:', result.content ? result.content.length : 'NO CONTENT');
+      console.log('Result content preview:', result.content ? result.content.substring(0, 200) : 'NO CONTENT');
+      console.log('Current directInputText before update:', directInputText.length, 'characters');
       
       if (result.content) {
-        setDirectInputText(prev => prev ? prev + '\n\n' + result.content : result.content);
+        console.log('Setting directInputText with content');
+        setDirectInputText(prev => {
+          const newValue = prev ? prev + '\n\n' + result.content : result.content;
+          console.log('New directInputText length:', newValue.length);
+          console.log('About to set textarea value to:', newValue.substring(0, 100) + '...');
+          
+          // Alert user that content was added
+          alert(`Successfully added ${result.content.length} characters from ${file.name} to the text area.`);
+          
+          return newValue;
+        });
+      } else {
+        console.log('NO CONTENT IN RESULT - checking result structure:', Object.keys(result));
       }
     } catch (error) {
       console.error('Processing error:', error);
