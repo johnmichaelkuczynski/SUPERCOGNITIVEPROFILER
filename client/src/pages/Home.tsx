@@ -8,6 +8,7 @@ import { useLocation } from 'wouter';
 import DocumentRewriterModal from '@/components/DocumentRewriterModal';
 import DocumentChunkSelector from '@/components/DocumentChunkSelector';
 import ChunkedRewriter from '@/components/ChunkedRewriter';
+import RewriteResults from '@/components/RewriteResults';
 import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
 import { useSpeechInput } from '@/components/ui/speech-input';
 import MindProfiler from '@/components/MindProfiler';
@@ -320,7 +321,54 @@ export default function Home() {
     }
   };
 
-  // Open chunked rewriter with document content
+  // Process rewrite directly and show results
+  const processDirectRewrite = async (content: string, title: string) => {
+    console.log('processDirectRewrite called with:', { content: content.substring(0, 100), title, processingMode });
+    
+    try {
+      setIsDirectProcessing(true);
+      
+      const instructions = processingMode === 'homework' 
+        ? 'Solve all problems step by step with clear explanations and show your work.'
+        : 'Improve clarity, flow, and overall quality while maintaining the original meaning.';
+      
+      const response = await fetch('/api/rewrite-chunk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+          instructions,
+          model: 'claude',
+          chunkIndex: 0,
+          totalChunks: 1
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to process rewrite');
+      }
+      
+      const data = await response.json();
+      
+      // Show results modal
+      setRewriteResults({
+        originalText: content,
+        rewrittenText: data.rewritten,
+        mode: processingMode,
+        model: 'claude',
+        chunksProcessed: 1
+      });
+      setIsRewriteResultsOpen(true);
+      
+    } catch (error) {
+      console.error('Rewrite error:', error);
+      alert('Failed to process rewrite. Please try again.');
+    } finally {
+      setIsDirectProcessing(false);
+    }
+  };
+  
+  // Open chunked rewriter with document content (for long documents)
   const openChunkedRewriter = (content: string, title: string) => {
     console.log('openChunkedRewriter called with:', { content: content.substring(0, 100), title, processingMode });
     setRewriterText(content);
@@ -435,8 +483,8 @@ export default function Home() {
                     console.log('Calling processHomeworkDirectly...');
                     processHomeworkDirectly();
                   } else {
-                    console.log('Calling openChunkedRewriter...');
-                    openChunkedRewriter(directInputText, `${processingMode === 'rewrite' ? 'Rewrite' : 'Homework'} Task`);
+                    console.log('Calling processDirectRewrite...');
+                    processDirectRewrite(directInputText, `${processingMode === 'rewrite' ? 'Rewrite' : 'Homework'} Task`);
                   }
                 }}
                 disabled={!directInputText.trim() || isDirectProcessing}
@@ -612,6 +660,44 @@ export default function Home() {
         chatHistory={messages.map(msg => ({ role: msg.role, content: msg.content }))}
         initialProcessingMode={rewriterProcessingMode}
       />
+
+      {/* Rewrite Results Modal */}
+      {rewriteResults && (
+        <RewriteResults
+          isOpen={isRewriteResultsOpen}
+          onClose={() => setIsRewriteResultsOpen(false)}
+          originalText={rewriteResults.originalText}
+          rewrittenText={rewriteResults.rewrittenText}
+          mode={rewriteResults.mode}
+          model={rewriteResults.model}
+          chunksProcessed={rewriteResults.chunksProcessed}
+          onRewriteAgain={() => {
+            setIsRewriteResultsOpen(false);
+            processDirectRewrite(rewriteResults.originalText, `${rewriteResults.mode === 'rewrite' ? 'Rewrite' : 'Homework'} Task - Rewrite Again`);
+          }}
+          onAddToChat={() => {
+            const userMessage: Message = {
+              id: Date.now(),
+              content: `I've completed a ${rewriteResults.mode} task using ${rewriteResults.model}.`,
+              role: 'user',
+              timestamp: new Date()
+            };
+            
+            const aiMessage: Message = {
+              id: Date.now() + 1,
+              content: rewriteResults.rewrittenText,
+              role: 'assistant',
+              timestamp: new Date()
+            };
+            
+            setMessages(prev => [...prev, userMessage, aiMessage]);
+            setIsRewriteResultsOpen(false);
+          }}
+          onBackToChat={() => {
+            setIsRewriteResultsOpen(false);
+          }}
+        />
+      )}
     </main>
   );
 }
