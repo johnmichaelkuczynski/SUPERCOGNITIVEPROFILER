@@ -28,15 +28,21 @@ export function SpeechInput({
   const { toast } = useToast();
 
   const startRecording = useCallback(async () => {
+    console.log('🎤 Starting recording process...');
+    
     try {
       // Check if getUserMedia is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('❌ getUserMedia not available');
         throw new Error('Your browser does not support microphone access. Please use Chrome, Firefox, or Safari.');
       }
+
+      console.log('✅ getUserMedia available, requesting microphone permission...');
 
       // Request microphone permission with fallback options
       let stream: MediaStream;
       try {
+        console.log('🔧 Trying with optimal audio constraints...');
         // Try with optimal settings first
         stream = await navigator.mediaDevices.getUserMedia({ 
           audio: {
@@ -46,13 +52,16 @@ export function SpeechInput({
             sampleRate: 16000
           }
         });
+        console.log('✅ Audio stream obtained with constraints');
       } catch (constraintError) {
-        console.warn('Failed with constraints, trying basic audio:', constraintError);
+        console.warn('⚠️ Failed with constraints, trying basic audio:', constraintError);
         // Fallback to basic audio if constraints fail
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('✅ Audio stream obtained with basic settings');
       }
 
       // Check MediaRecorder support and find best mime type
+      console.log('🔍 Checking MediaRecorder support...');
       let mimeType = '';
       const supportedTypes = [
         'audio/webm;codecs=opus',
@@ -65,37 +74,45 @@ export function SpeechInput({
       for (const type of supportedTypes) {
         if (MediaRecorder.isTypeSupported(type)) {
           mimeType = type;
+          console.log(`✅ Found supported mime type: ${type}`);
           break;
         }
       }
 
       if (!mimeType) {
+        console.error('❌ No supported audio mime types found');
         throw new Error('Your browser does not support audio recording. Please update your browser.');
       }
 
       // Create MediaRecorder
+      console.log('🎙️ Creating MediaRecorder...');
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
+        console.log(`📦 Audio data chunk received: ${event.data.size} bytes`);
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
 
       mediaRecorder.onstop = async () => {
+        console.log('⏹️ Recording stopped, processing audio...');
         // Stop all tracks to release microphone
         stream.getTracks().forEach(track => track.stop());
         
         if (audioChunksRef.current.length > 0) {
+          console.log(`🔄 Processing ${audioChunksRef.current.length} audio chunks...`);
           await processRecording();
+        } else {
+          console.warn('⚠️ No audio chunks to process');
         }
       };
 
       mediaRecorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event);
+        console.error('❌ MediaRecorder error:', event);
         toast({
           title: "Recording error",
           description: "An error occurred during recording. Please try again.",
@@ -104,9 +121,11 @@ export function SpeechInput({
         setIsRecording(false);
       };
 
+      console.log('▶️ Starting MediaRecorder...');
       mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
 
+      console.log('✅ Recording started successfully');
       toast({
         title: "Recording started",
         description: "Speak clearly into your microphone. Click again to stop.",
@@ -144,17 +163,21 @@ export function SpeechInput({
   }, [isRecording]);
 
   const processRecording = async () => {
+    console.log('🔄 Starting audio processing...');
     setIsProcessing(true);
 
     try {
       // Create audio blob
+      console.log(`📦 Creating audio blob from ${audioChunksRef.current.length} chunks...`);
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      console.log(`📊 Audio blob size: ${audioBlob.size} bytes`);
       
       if (audioBlob.size === 0) {
         throw new Error('No audio data recorded');
       }
 
       // Convert to FormData for upload
+      console.log('📤 Preparing FormData for upload...');
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
       formData.append('language', language);
@@ -162,25 +185,32 @@ export function SpeechInput({
       formData.append('format_text', 'true');
 
       // Send to transcription API
+      console.log('🌐 Sending audio to transcription API...');
       const response = await fetch('/api/speech-to-text', {
         method: 'POST',
         body: formData,
       });
 
+      console.log(`📡 API response status: ${response.status}`);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API error:', errorData);
         throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('📝 API response:', result);
       
       if (result.success && result.text) {
+        console.log(`✅ Transcription successful: "${result.text}"`);
         onTranscript(result.text);
         toast({
           title: "Speech transcribed",
           description: `Successfully transcribed ${result.text.length} characters`,
         });
       } else {
+        console.warn('⚠️ No text in response:', result);
         throw new Error(result.error || 'No speech detected');
       }
 
