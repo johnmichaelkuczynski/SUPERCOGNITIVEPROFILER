@@ -55,6 +55,16 @@ export default function Home() {
   const [rewriterTitle, setRewriterTitle] = useState<string>('');
   const [rewriterProcessingMode, setRewriterProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
   
+  // Rewrite Results Modal State
+  const [isRewriteResultsOpen, setIsRewriteResultsOpen] = useState(false);
+  const [rewriteResults, setRewriteResults] = useState<{
+    originalText: string;
+    rewrittenText: string;
+    mode: 'rewrite' | 'homework';
+    model: string;
+    chunksProcessed: number;
+  } | null>(null);
+  
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
   
@@ -312,10 +322,12 @@ export default function Home() {
 
   // Open chunked rewriter with document content
   const openChunkedRewriter = (content: string, title: string) => {
+    console.log('openChunkedRewriter called with:', { content: content.substring(0, 100), title, processingMode });
     setRewriterText(content);
     setRewriterTitle(title);
     setRewriterProcessingMode(processingMode);
     setIsChunkedRewriterOpen(true);
+    console.log('ChunkedRewriter modal state set to true');
   };
 
   return (
