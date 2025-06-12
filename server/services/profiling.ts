@@ -14,6 +14,11 @@ interface CognitiveProfile {
   growthAreas: string[];
   cognitiveSignature: string;
   detailedAnalysis: string;
+  supportingEvidence: {
+    intellectualApproach: SupportingEvidence[];
+    reasoningStyle: SupportingEvidence[];
+    problemSolvingPattern: SupportingEvidence[];
+  };
 }
 
 interface SupportingEvidence {
@@ -115,38 +120,62 @@ Focus on the dynamic interplay between rational and emotional processing, decisi
 async function generateCognitiveProfile(text: string, isComprehensive: boolean = false): Promise<CognitiveProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `Analyze this writing sample for cognitive and intellectual patterns. Provide a ${analysisDepth} analysis.
+  const prompt = `Analyze this writing sample for cognitive and intellectual patterns. Provide a ${analysisDepth} analysis with extensive supporting evidence.
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
 
-Provide a detailed cognitive profile including:
-1. Intellectual approach and reasoning style
-2. Problem-solving patterns and analytical depth
-3. Conceptual integration abilities
-4. Logical structuring preferences
-5. Cognitive strengths and growth areas
-6. A unique cognitive signature
+CRITICAL REQUIREMENTS:
+1. For EACH cognitive finding, provide at least 2-3 direct quotes from the text as evidence
+2. For EACH quote, provide a detailed explanation of how it demonstrates the cognitive pattern
+3. Make the analysis substantial and comprehensive, equivalent in depth to a psychological analysis
+4. Focus on deep intellectual insights backed by textual evidence
+5. The analysis should be as detailed and substantive as psychological profiling
 
-Rate the following on a 1-10 scale with specific evidence:
+Analyze in depth:
+1. Intellectual Approach: How they approach complex ideas and concepts
+2. Reasoning Style: Their pattern of logical thinking and argumentation
+3. Problem-Solving Pattern: How they tackle challenges and obstacles
+4. Analytical Depth: The sophistication of their analytical thinking
+5. Conceptual Integration: How they connect disparate ideas and concepts
+6. Logical Structuring: How they organize and present their thoughts
+7. Cognitive Strengths: Areas of intellectual excellence
+8. Growth Areas: Potential areas for cognitive development
+9. Cognitive Signature: Unique intellectual fingerprint
+
+Rate the following on a 1-10 scale with specific textual evidence:
 - Analytical Depth: How deeply does this person analyze concepts?
 - Conceptual Integration: How well do they connect different ideas?
 - Logical Structuring: How systematically do they organize thoughts?
 
-Provide detailed explanations for each rating based on specific examples from the text.
+Provide comprehensive supporting evidence with direct quotes and detailed explanations.
 
 Format as JSON with this structure:
 {
-  "intellectualApproach": "detailed description",
-  "reasoningStyle": "description of how they reason",
-  "problemSolvingPattern": "their approach to problems",
+  "intellectualApproach": "detailed 3-4 paragraph description with specific examples",
+  "reasoningStyle": "detailed description of reasoning patterns with examples",
+  "problemSolvingPattern": "comprehensive analysis of problem-solving approach",
   "analyticalDepth": number,
   "conceptualIntegration": number,
   "logicalStructuring": number,
-  "strengths": ["strength1", "strength2", ...],
-  "growthAreas": ["area1", "area2", ...],
-  "cognitiveSignature": "unique defining characteristic",
-  "detailedAnalysis": "comprehensive narrative analysis"
+  "strengths": ["detailed strength 1", "detailed strength 2", "detailed strength 3"],
+  "growthAreas": ["specific area 1", "specific area 2"],
+  "cognitiveSignature": "unique defining intellectual characteristic",
+  "detailedAnalysis": "comprehensive multi-paragraph narrative analysis of cognitive patterns",
+  "supportingEvidence": {
+    "intellectualApproach": [
+      {"quote": "exact quote from text", "explanation": "detailed explanation of how this demonstrates the pattern"},
+      {"quote": "exact quote from text", "explanation": "detailed explanation of how this demonstrates the pattern"}
+    ],
+    "reasoningStyle": [
+      {"quote": "exact quote from text", "explanation": "detailed explanation"},
+      {"quote": "exact quote from text", "explanation": "detailed explanation"}
+    ],
+    "problemSolvingPattern": [
+      {"quote": "exact quote from text", "explanation": "detailed explanation"},
+      {"quote": "exact quote from text", "explanation": "detailed explanation"}
+    ]
+  }
 }`;
 
   try {
@@ -154,11 +183,13 @@ Format as JSON with this structure:
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 2500,
     });
 
     return JSON.parse(response.choices[0].message.content || "{}");
   } catch (error) {
-    throw new Error("Failed to generate cognitive profile: " + error.message);
+    throw new Error("Failed to generate cognitive profile: " + (error as Error).message);
   }
 }
 

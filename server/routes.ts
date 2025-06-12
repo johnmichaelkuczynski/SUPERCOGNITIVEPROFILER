@@ -2488,28 +2488,132 @@ Return only the new content without any additional comments, explanations, or he
         
         let yPosition = 180;
         
-        if (results.cognitiveProfile) {
-          doc.fontSize(16).text('Cognitive Profile', 50, yPosition);
+        // Add all analysis sections using the flat structure
+        if (results.emotionalPattern) {
+          doc.fontSize(16).text('Emotional Pattern Analysis', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(`Intellectual Approach: ${results.cognitiveProfile.intellectualApproach}`, 50, yPosition, { width: 500 });
-          yPosition += 50;
-          doc.text(`Cognitive Signature: ${results.cognitiveProfile.cognitiveSignature}`, 50, yPosition, { width: 500 });
+          doc.fontSize(12).text(results.emotionalPattern, 50, yPosition, { width: 500 });
+          yPosition += 100;
+          
+          if (results.supportingEvidence?.emotionalPattern) {
+            doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
+            yPosition += 25;
+            results.supportingEvidence.emotionalPattern.forEach((evidence: any, index: number) => {
+              doc.fontSize(11).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+              yPosition += 20;
+              doc.fontSize(10).text(evidence.explanation, 60, yPosition, { width: 480 });
+              yPosition += 30;
+            });
+            yPosition += 20;
+          }
+        }
+
+        if (results.motivationalStructure) {
+          doc.fontSize(16).text('Motivational Structure', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(results.motivationalStructure, 50, yPosition, { width: 500 });
+          yPosition += 100;
+          
+          if (results.supportingEvidence?.motivationalStructure) {
+            doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
+            yPosition += 25;
+            results.supportingEvidence.motivationalStructure.forEach((evidence: any, index: number) => {
+              doc.fontSize(11).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+              yPosition += 20;
+              doc.fontSize(10).text(evidence.explanation, 60, yPosition, { width: 480 });
+              yPosition += 30;
+            });
+            yPosition += 20;
+          }
+        }
+
+        if (results.interpersonalDynamics) {
+          doc.fontSize(16).text('Interpersonal Dynamics', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(results.interpersonalDynamics, 50, yPosition, { width: 500 });
+          yPosition += 100;
+          
+          if (results.supportingEvidence?.interpersonalDynamics) {
+            doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
+            yPosition += 25;
+            results.supportingEvidence.interpersonalDynamics.forEach((evidence: any, index: number) => {
+              doc.fontSize(11).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+              yPosition += 20;
+              doc.fontSize(10).text(evidence.explanation, 60, yPosition, { width: 480 });
+              yPosition += 30;
+            });
+            yPosition += 20;
+          }
+        }
+
+        if (results.intellectualApproach) {
+          doc.fontSize(16).text('Intellectual Approach', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(results.intellectualApproach, 50, yPosition, { width: 500 });
+          yPosition += 100;
+          
+          if (results.supportingEvidence?.intellectualApproach) {
+            doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
+            yPosition += 25;
+            results.supportingEvidence.intellectualApproach.forEach((evidence: any, index: number) => {
+              doc.fontSize(11).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+              yPosition += 20;
+              doc.fontSize(10).text(evidence.explanation, 60, yPosition, { width: 480 });
+              yPosition += 30;
+            });
+            yPosition += 20;
+          }
+        }
+
+        if (results.reasoningStyle) {
+          doc.fontSize(16).text('Reasoning Style', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(results.reasoningStyle, 50, yPosition, { width: 500 });
+          yPosition += 100;
+          
+          if (results.supportingEvidence?.reasoningStyle) {
+            doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
+            yPosition += 25;
+            results.supportingEvidence.reasoningStyle.forEach((evidence: any, index: number) => {
+              doc.fontSize(11).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+              yPosition += 20;
+              doc.fontSize(10).text(evidence.explanation, 60, yPosition, { width: 480 });
+              yPosition += 30;
+            });
+            yPosition += 20;
+          }
+        }
+
+        if (results.problemSolvingPattern) {
+          doc.fontSize(16).text('Problem Solving Pattern', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(results.problemSolvingPattern, 50, yPosition, { width: 500 });
+          yPosition += 100;
+          
+          if (results.supportingEvidence?.problemSolvingPattern) {
+            doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
+            yPosition += 25;
+            results.supportingEvidence.problemSolvingPattern.forEach((evidence: any, index: number) => {
+              doc.fontSize(11).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+              yPosition += 20;
+              doc.fontSize(10).text(evidence.explanation, 60, yPosition, { width: 480 });
+              yPosition += 30;
+            });
+            yPosition += 20;
+          }
+        }
+
+        if (results.personalityTraits && results.personalityTraits.length > 0) {
+          doc.fontSize(16).text('Personality Traits', 50, yPosition);
+          yPosition += 30;
+          doc.fontSize(12).text(results.personalityTraits.join(", "), 50, yPosition, { width: 500 });
           yPosition += 50;
         }
-        
-        if (results.psychologicalProfile) {
-          doc.fontSize(16).text('Psychological Profile', 50, yPosition);
+
+        if (results.emotionalIntelligence) {
+          doc.fontSize(16).text('Emotional Intelligence Score', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(`Emotional Pattern: ${results.psychologicalProfile.emotionalPattern}`, 50, yPosition, { width: 500 });
-          yPosition += 50;
-          doc.text(`Psychological Signature: ${results.psychologicalProfile.psychologicalSignature}`, 50, yPosition, { width: 500 });
-          yPosition += 50;
-        }
-        
-        if (results.comprehensiveInsights) {
-          doc.fontSize(16).text('Comprehensive Insights', 50, yPosition);
-          yPosition += 30;
-          doc.fontSize(12).text(results.comprehensiveInsights.overallProfile, 50, yPosition, { width: 500 });
+          doc.fontSize(12).text(`${results.emotionalIntelligence}/10`, 50, yPosition, { width: 500 });
         }
         
         doc.end();
@@ -2721,6 +2825,135 @@ Return only the new content without any additional comments, explanations, or he
             }),
             new Paragraph({ children: [new TextRun("")] })
           );
+
+          if (results.supportingEvidence?.intellectualApproach) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Supporting Evidence:",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+              })
+            );
+
+            results.supportingEvidence.intellectualApproach.forEach((evidence: any, index: number) => {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Quote ${index + 1}: "${evidence.quote}"`,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            });
+          }
+        }
+
+        if (results.reasoningStyle) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Reasoning Style",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(results.reasoningStyle)],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+
+          if (results.supportingEvidence?.reasoningStyle) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Supporting Evidence:",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+              })
+            );
+
+            results.supportingEvidence.reasoningStyle.forEach((evidence: any, index: number) => {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Quote ${index + 1}: "${evidence.quote}"`,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            });
+          }
+        }
+
+        if (results.problemSolvingPattern) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Problem Solving Pattern",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(results.problemSolvingPattern)],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+
+          if (results.supportingEvidence?.problemSolvingPattern) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Supporting Evidence:",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+              })
+            );
+
+            results.supportingEvidence.problemSolvingPattern.forEach((evidence: any, index: number) => {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Quote ${index + 1}: "${evidence.quote}"`,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            });
+          }
         }
 
         if (results.personalityTraits && results.personalityTraits.length > 0) {

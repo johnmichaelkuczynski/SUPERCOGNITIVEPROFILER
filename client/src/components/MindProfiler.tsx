@@ -21,7 +21,9 @@ import {
   Clock,
   Database,
   Loader2,
-  CheckCircle
+  CheckCircle,
+  Lightbulb,
+  Target
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -737,48 +739,132 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </TabsContent>
 
               <TabsContent value="cognitive" className="space-y-6">
-                {results.cognitiveProfile && (
+                {/* Use flat structure for cognitive analysis */}
+                {(results?.intellectualApproach || results?.reasoningStyle || results?.problemSolvingPattern) && (
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                       <Brain className="h-6 w-6 text-blue-600" />
-                      Cognitive Profile
+                      Cognitive Analysis
                     </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-blue-50 rounded-lg">
-                        <h4 className="font-semibold text-blue-800 mb-2">Analytical Depth</h4>
-                        <div className="flex items-center gap-2">
-                          <Progress value={results.cognitiveProfile.analyticalDepth * 10} className="flex-1" />
-                          <span className="text-sm font-medium">{results.cognitiveProfile.analyticalDepth}/10</span>
-                        </div>
-                      </div>
-                      
-                      <div className="p-4 bg-green-50 rounded-lg">
-                        <h4 className="font-semibold text-green-800 mb-2">Conceptual Integration</h4>
-                        <div className="flex items-center gap-2">
-                          <Progress value={results.cognitiveProfile.conceptualIntegration * 10} className="flex-1" />
-                          <span className="text-sm font-medium">{results.cognitiveProfile.conceptualIntegration}/10</span>
-                        </div>
-                      </div>
-                      
-                      <div className="p-4 bg-purple-50 rounded-lg">
-                        <h4 className="font-semibold text-purple-800 mb-2">Logical Structuring</h4>
-                        <div className="flex items-center gap-2">
-                          <Progress value={results.cognitiveProfile.logicalStructuring * 10} className="flex-1" />
-                          <span className="text-sm font-medium">{results.cognitiveProfile.logicalStructuring}/10</span>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="p-4 bg-white rounded-lg border">
-                      <h4 className="font-semibold text-gray-800 mb-2">Intellectual Approach</h4>
-                      <p className="text-gray-700">{results.cognitiveProfile.intellectualApproach}</p>
-                    </div>
+                    {results.intellectualApproach && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                            <Brain className="h-5 w-5" />
+                            Intellectual Approach
+                          </h4>
+                          <ReactMarkdown className="text-blue-700 prose prose-sm max-w-none">
+                            {results.intellectualApproach}
+                          </ReactMarkdown>
+                        </div>
 
-                    <div className="p-4 bg-white rounded-lg border">
-                      <h4 className="font-semibold text-gray-800 mb-2">Cognitive Signature</h4>
-                      <p className="text-gray-700 italic">"{results.cognitiveProfile.cognitiveSignature}"</p>
-                    </div>
+                        {results.supportingEvidence?.intellectualApproach && (
+                          <div className="ml-4 space-y-3">
+                            <h5 className="font-medium text-gray-700 text-sm">Supporting Evidence:</h5>
+                            {results.supportingEvidence.intellectualApproach.map((evidence: any, index: number) => (
+                              <div key={index} className="border-l-4 border-blue-300 pl-4 py-2 bg-gray-50 rounded-r">
+                                <blockquote className="text-sm italic text-gray-600 mb-2">
+                                  "{evidence.quote}"
+                                </blockquote>
+                                <p className="text-sm text-gray-700">{evidence.explanation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {results.reasoningStyle && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                          <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                            <Lightbulb className="h-5 w-5" />
+                            Reasoning Style
+                          </h4>
+                          <ReactMarkdown className="text-green-700 prose prose-sm max-w-none">
+                            {results.reasoningStyle}
+                          </ReactMarkdown>
+                        </div>
+
+                        {results.supportingEvidence?.reasoningStyle && (
+                          <div className="ml-4 space-y-3">
+                            <h5 className="font-medium text-gray-700 text-sm">Supporting Evidence:</h5>
+                            {results.supportingEvidence.reasoningStyle.map((evidence: any, index: number) => (
+                              <div key={index} className="border-l-4 border-green-300 pl-4 py-2 bg-gray-50 rounded-r">
+                                <blockquote className="text-sm italic text-gray-600 mb-2">
+                                  "{evidence.quote}"
+                                </blockquote>
+                                <p className="text-sm text-gray-700">{evidence.explanation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {results.problemSolvingPattern && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                          <h4 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                            <Target className="h-5 w-5" />
+                            Problem Solving Pattern
+                          </h4>
+                          <ReactMarkdown className="text-purple-700 prose prose-sm max-w-none">
+                            {results.problemSolvingPattern}
+                          </ReactMarkdown>
+                        </div>
+
+                        {results.supportingEvidence?.problemSolvingPattern && (
+                          <div className="ml-4 space-y-3">
+                            <h5 className="font-medium text-gray-700 text-sm">Supporting Evidence:</h5>
+                            {results.supportingEvidence.problemSolvingPattern.map((evidence: any, index: number) => (
+                              <div key={index} className="border-l-4 border-purple-300 pl-4 py-2 bg-gray-50 rounded-r">
+                                <blockquote className="text-sm italic text-gray-600 mb-2">
+                                  "{evidence.quote}"
+                                </blockquote>
+                                <p className="text-sm text-gray-700">{evidence.explanation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Cognitive scores display */}
+                    {(results.analyticalDepth || results.conceptualIntegration || results.logicalStructuring) && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                        {results.analyticalDepth && (
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <h4 className="font-semibold text-blue-800 mb-2">Analytical Depth</h4>
+                            <div className="flex items-center gap-2">
+                              <Progress value={results.analyticalDepth * 10} className="flex-1" />
+                              <span className="text-sm font-medium">{results.analyticalDepth}/10</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {results.conceptualIntegration && (
+                          <div className="p-4 bg-green-50 rounded-lg">
+                            <h4 className="font-semibold text-green-800 mb-2">Conceptual Integration</h4>
+                            <div className="flex items-center gap-2">
+                              <Progress value={results.conceptualIntegration * 10} className="flex-1" />
+                              <span className="text-sm font-medium">{results.conceptualIntegration}/10</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {results.logicalStructuring && (
+                          <div className="p-4 bg-purple-50 rounded-lg">
+                            <h4 className="font-semibold text-purple-800 mb-2">Logical Structuring</h4>
+                            <div className="flex items-center gap-2">
+                              <Progress value={results.logicalStructuring * 10} className="flex-1" />
+                              <span className="text-sm font-medium">{results.logicalStructuring}/10</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </TabsContent>
