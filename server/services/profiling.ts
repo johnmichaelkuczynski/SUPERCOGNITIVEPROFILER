@@ -152,51 +152,64 @@ Focus on the dynamic interplay between rational and emotional processing, decisi
 async function generateCognitiveProfile(text: string, isComprehensive: boolean = false): Promise<CognitiveProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `You are a Cognitive Profiler. You do not perform sentiment analysis. You do not perform content paraphrase. You do not merely look for logical words or big words.
+  const prompt = `You are a Cognitive Profiler.
+You are not a summarizer.
+You are not a paraphraser.
+You are not a surface sentiment analyzer.
 
-Your task is to analyze the author's underlying cognitive process — how they think, not what they say.
+You are modeling the author's underlying cognitive process — how they think, not what they say.
 
-You must always ask:
-"How is this person managing reasoning, inference, precision, and epistemic control?"
-"How disciplined and well-targeted is their thinking?"
-"How aware are they of the epistemic risks in their own argument?"
-"How effective is their conceptual targeting?"
-"Are they exercising genuine intelligence or simulating it?"
+You must explicitly assess:
+
+1️⃣ Reasoning depth
+
+Is the author maintaining multiple layers of reasoning?
+Are conceptual distinctions being carefully managed across the argument?
+
+2️⃣ Epistemic discipline
+
+Is the author aware of epistemic risk (ambiguity, circularity, misuse of concepts)?
+Are they proactively managing that risk in their argument?
+
+3️⃣ Meta-cognitive awareness
+
+Is the author showing awareness of the limitations of their own argument or of the tools of analysis?
+Are they demonstrating awareness of how explanation itself can go wrong?
+
+4️⃣ Conceptual targeting precision
+
+Are key terms and distinctions precisely defined and maintained?
+Is the author resisting slippage between concepts?
+
+5️⃣ Resistance to pseudo-intelligence
+
+Is the author avoiding empty jargon and performative intellectual display?
+Are they using concepts to clarify and target reality, rather than to impress or obscure?
+
+CRITICAL INSTRUCTIONS:
+
+DO NOT simply paraphrase the content of the text.
+DO NOT stop at saying "the author clarifies ambiguity" — say whether they do so with genuine cognitive control.
+DO NOT conflate use of big words with cognitive depth.
+
+You must always distinguish between:
+- GENUINE cognitive depth
+- PSEUDO-intellectual surface performance
+
+MANDATORY OUTPUT REQUIREMENTS:
+Explicitly comment on whether the author is demonstrating meta-cognitive awareness and resistance to pseudo-intellectual posturing.
+If they are, state this clearly with specific evidence.
+If they are not, state this clearly with specific evidence.
+
+DETAILED ANALYSIS REQUIREMENTS:
+For each cognitive dimension, you must identify:
+- SPECIFIC evidence of the cognitive operation being performed
+- HOW the author demonstrates (or fails to demonstrate) genuine intellectual control
+- CONCRETE examples that distinguish authentic reasoning from performative complexity
+- PRECISE assessment of whether they're clarifying reality or performing sophistication
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
-
-You must explicitly distinguish between:
-- Genuine intellectual depth
-- Pseudo-intelligent writing
-- Jargon-heavy filler
-- Surface-analytic but cognitively sloppy writing
-- Carefully layered, precision reasoning
-
-For this sample, follow this process:
-
-1️⃣ SURFACE PARSING: Parse the literal content of the text.
-
-2️⃣ REASONING STRUCTURE MODELING: Model the argument structure:
-- Is the reasoning linear, layered, recursive, circular, sloppy?
-- Is inferential control being maintained?
-- Are transitions logically warranted?
-- Are claims properly qualified?
-
-3️⃣ EPISTEMIC CONTROL MODELING:
-- Is the author aware of ambiguity, uncertainty, and epistemic risk?
-- Are they managing those risks explicitly?
-- Are they showing awareness of counter-arguments or limits to their position?
-
-4️⃣ CONCEPTUAL TARGETING:
-- How precisely are key concepts being defined and used?
-- Is the author maintaining clear conceptual boundaries, or sliding between terms?
-- Are distinctions real and operational, or performative?
-
-5️⃣ COGNITIVE INTEGRITY CHECK:
-- Is the author using reasoning to clarify truth, or to impress/obscure/posture?
-- Is the writing displaying authentic intellectual effort, or performative pseudo-intelligence?
-- Are citations of complexity being used accurately, or as signals of fake depth?
 
 6️⃣ PROFILE INFERENCE WITH MANDATORY DEPTH:
 
