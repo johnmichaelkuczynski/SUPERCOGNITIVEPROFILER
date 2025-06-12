@@ -3236,5 +3236,132 @@ Return only the new content without any additional comments, explanations, or he
     }
   });
 
+  // Document chunking endpoint for large document processing
+  app.post('/api/documents/chunk', async (req: Request, res: Response) => {
+    try {
+      const { content, filename } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      const chunks = createIntelligentChunks(content, filename);
+      res.json(chunks);
+    } catch (error) {
+      console.error('Error chunking document:', error);
+      res.status(500).json({ error: 'Failed to chunk document' });
+    }
+  });
+
   return httpServer;
+}
+
+// Helper function to create intelligent document chunks
+function createIntelligentChunks(content: string, filename?: string): Array<{
+  title: string;
+  content: string;
+  startPosition: number;
+  endPosition: number;
+}> {
+  const maxChunkSize = 2000; // words
+  const chunks: Array<{
+    title: string;
+    content: string;
+    startPosition: number;
+    endPosition: number;
+  }> = [];
+  
+  // Split content into lines for analysis
+  const lines = content.split('\n');
+  
+  // Detect headings (lines that look like section headers)
+  const headingPatterns = [
+    /^#{1,6}\s+/, // Markdown headings
+    /^[A-Z][A-Z\s0-9]{5,50}:?\s*$/, // ALL CAPS headings
+    /^\d+\.\s+[A-Z]/, // Numbered sections
+    /^Chapter\s+\d+/i, // Chapter headings
+    /^Section\s+\d+/i, // Section headings
+    /^[IVX]+\.\s+[A-Z]/, // Roman numeral sections
+  ];
+  
+  let currentChunk = '';
+  let currentTitle = 'Introduction';
+  let chunkIndex = 0;
+  let startPos = 0;
+  let currentLineIndex = 0;
+  
+  for (const line of lines) {
+    const isHeading = headingPatterns.some(pattern => pattern.test(line.trim()));
+    const currentWordCount = currentChunk.split(/\s+/).length;
+    
+    // Start new chunk if we hit a heading and current chunk is substantial
+    if (isHeading && currentWordCount > 100) {
+      // Save previous chunk
+      chunks.push({
+        title: currentTitle,
+        content: currentChunk.trim(),
+        startPosition: startPos,
+        endPosition: startPos + currentChunk.length
+      });
+      
+      startPos += currentChunk.length;
+      currentChunk = '';
+      chunkIndex++;
+    }
+    
+    // Update title if this is a heading
+    if (isHeading) {
+      currentTitle = line.replace(/^#+\s*/, '').replace(/^\d+\.\s*/, '').trim() || `Section ${chunkIndex + 1}`;
+      if (currentTitle.length > 100) {
+        currentTitle = currentTitle.substring(0, 97) + '...';
+      }
+    }
+    
+    // Add line to current chunk
+    currentChunk += line + '\n';
+    
+    // Split chunk if it gets too large, even without a heading
+    if (currentWordCount > maxChunkSize) {
+      chunks.push({
+        title: currentTitle,
+        content: currentChunk.trim(),
+        startPosition: startPos,
+        endPosition: startPos + currentChunk.length
+      });
+      
+      startPos += currentChunk.length;
+      currentChunk = '';
+      currentTitle = `Section ${chunkIndex + 2}`;
+      chunkIndex++;
+    }
+    
+    currentLineIndex++;
+  }
+  
+  // Add final chunk if there's remaining content
+  if (currentChunk.trim()) {
+    chunks.push({
+      title: currentTitle,
+      content: currentChunk.trim(),
+      startPosition: startPos,
+      endPosition: content.length
+    });
+  }
+  
+  // If no intelligent chunking worked, fall back to word-based splitting
+  if (chunks.length === 0) {
+    const words = content.split(/\s+/);
+    for (let i = 0; i < words.length; i += maxChunkSize) {
+      const chunkWords = words.slice(i, i + maxChunkSize);
+      const chunkContent = chunkWords.join(' ');
+      chunks.push({
+        title: `Section ${Math.floor(i / maxChunkSize) + 1}`,
+        content: chunkContent,
+        startPosition: i,
+        endPosition: Math.min(i + maxChunkSize, words.length)
+      });
+    }
+  }
+  
+  return chunks;
 }
