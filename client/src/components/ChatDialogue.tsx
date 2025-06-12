@@ -71,18 +71,32 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(true);
+      textarea.style.border = "2px dashed #3b82f6";
+      textarea.style.backgroundColor = "#eff6ff";
     };
 
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsDragging(false);
+      
+      // Check if we're really leaving the textarea
+      const rect = textarea.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        setIsDragging(false);
+        textarea.style.border = "";
+        textarea.style.backgroundColor = "";
+      }
     };
 
     const handleDrop = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
+      textarea.style.border = "";
+      textarea.style.backgroundColor = "";
 
       // Handle plain text drag
       if (e.dataTransfer?.types.includes('text/plain')) {
@@ -92,15 +106,27 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
       // Handle file drag
       else if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         const droppedFiles = Array.from(e.dataTransfer.files);
-        const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
         
-        const validFiles = droppedFiles.filter(file => {
-          const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-          return allowedTypes.includes(extension);
-        });
-        
-        if (validFiles.length > 0) {
-          setFiles(prev => [...prev, ...validFiles]);
+        // Handle text files by reading their content
+        for (const file of droppedFiles) {
+          if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const text = event.target?.result as string;
+              if (text) {
+                setInput(prev => prev + (prev ? '\n\n' : '') + text);
+              }
+            };
+            reader.readAsText(file);
+          } else {
+            // Handle other file types (PDF, DOCX, images)
+            const allowedTypes = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
+            const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+            
+            if (allowedTypes.includes(extension)) {
+              setFiles(prev => [...prev, file]);
+            }
+          }
         }
       }
     };
@@ -349,10 +375,6 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     <div className="h-full" data-chat-container="true">
       <Card 
         className={`h-full flex flex-col shadow-sm relative ${isDragging ? 'border-2 border-dashed border-blue-400' : ''}`}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
         {isDragging && (
           <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
