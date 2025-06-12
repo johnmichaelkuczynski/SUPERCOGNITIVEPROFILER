@@ -57,6 +57,8 @@ interface ProfileResults {
   conceptualIntegration?: number;
   logicalStructuring?: number;
   cognitiveSignature?: string;
+  strengths?: string[];
+  growthAreas?: string[];
   
   // Synthesis fields
   intellectEmotionBalance?: string;
@@ -897,6 +899,26 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       </div>
                     )}
 
+                    {/* Cognitive Signature */}
+                    {results && results.cognitiveSignature && (
+                      <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
+                        <h4 className="font-bold text-blue-900 mb-4 text-lg">Cognitive Signature</h4>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.cognitiveSignature}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Detailed Analysis */}
+                    {results && results.detailedAnalysis && (
+                      <div className="p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
+                        <h4 className="font-bold text-gray-900 mb-4 text-lg">Detailed Analysis</h4>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.detailedAnalysis}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Cognitive scores display */}
                     {(results.analyticalDepth || results.conceptualIntegration || results.logicalStructuring) && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -931,6 +953,37 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                         )}
                       </div>
                     )}
+
+                    {/* Strengths and Growth Areas */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {results.strengths && (
+                        <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                          <h4 className="font-bold text-green-800 mb-3">Cognitive Strengths</h4>
+                          <ul className="space-y-2">
+                            {results.strengths.map((strength: string, index: number) => (
+                              <li key={index} className="text-green-700 flex items-start">
+                                <span className="text-green-600 mr-2 font-bold">•</span>
+                                {strength}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {results.growthAreas && (
+                        <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                          <h4 className="font-bold text-orange-800 mb-3">Growth Areas</h4>
+                          <ul className="space-y-2">
+                            {results.growthAreas.map((area: string, index: number) => (
+                              <li key={index} className="text-orange-700 flex items-start">
+                                <span className="text-orange-600 mr-2 font-bold">•</span>
+                                {area}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </TabsContent>
