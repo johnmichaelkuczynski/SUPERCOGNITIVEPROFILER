@@ -38,6 +38,9 @@ interface ChunkedRewriterProps {
 }
 
 export default function ChunkedRewriter({ 
+  isOpen,
+  onClose,
+  title,
   originalText, 
   onRewriteComplete, 
   onAddToChat,
@@ -876,8 +879,15 @@ export default function ChunkedRewriter({
   };
 
   return (
-    <>
-      <Card className="w-full">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            Rewrite large documents chunk by chunk with full control and real-time preview
+          </DialogDescription>
+        </DialogHeader>
+        <Card className="w-full border-0 shadow-none">
         <CardHeader>
           <CardTitle>Smart Document Rewriter</CardTitle>
           <CardDescription>
@@ -1689,8 +1699,8 @@ export default function ChunkedRewriter({
             ></div>
           </div>
         </div>
+        </Card>
       </DialogContent>
     </Dialog>
-    </>
   );
 }

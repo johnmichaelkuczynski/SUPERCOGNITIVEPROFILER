@@ -13,19 +13,25 @@ interface DocumentChunk {
 }
 
 interface DocumentChunkSelectorProps {
+  isOpen: boolean;
+  onClose: () => void;
   documentId: string;
   documentTitle: string;
   chunks: DocumentChunk[];
-  onSelectChunks: (selectedChunks: number[]) => void;
+  selectedChunks: number[];
+  onChunksSelected: (selectedChunks: number[]) => void;
 }
 
 export default function DocumentChunkSelector({
+  isOpen,
+  onClose,
   documentId,
   documentTitle,
   chunks,
-  onSelectChunks
+  selectedChunks: initialSelectedChunks,
+  onChunksSelected
 }: DocumentChunkSelectorProps) {
-  const [selectedChunks, setSelectedChunks] = useState<number[]>([]);
+  const [selectedChunks, setSelectedChunks] = useState<number[]>(initialSelectedChunks);
   
   const handleToggleChunk = (index: number) => {
     setSelectedChunks(prev => {
@@ -48,7 +54,7 @@ export default function DocumentChunkSelector({
   };
   
   const handleApply = () => {
-    onSelectChunks(selectedChunks);
+    onChunksSelected(selectedChunks);
   };
   
   return (
@@ -112,7 +118,7 @@ export default function DocumentChunkSelector({
       <CardFooter className="flex justify-between">
         <Button 
           variant="outline" 
-          onClick={() => onSelectChunks([])}
+          onClick={() => onChunksSelected([])}
         >
           Cancel
         </Button>
