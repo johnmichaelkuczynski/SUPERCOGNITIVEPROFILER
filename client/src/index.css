@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* KaTeX CSS for mathematical notation */
+@import "katex/dist/katex.min.css";
+
 :root {
       --background: 0 0% 100%;
 --foreground: 20 14.3% 4.1%;

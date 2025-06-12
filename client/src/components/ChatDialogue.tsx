@@ -15,6 +15,7 @@ import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
+import MathRenderer from '@/components/MathRenderer';
 
 interface ChatMessage {
   id: number;
