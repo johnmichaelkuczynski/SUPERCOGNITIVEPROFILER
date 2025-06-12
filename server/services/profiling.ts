@@ -77,21 +77,53 @@ interface ComprehensiveInsights {
 async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<SynthesisProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `Analyze this writing sample for the synthesis between intellectual and emotional dimensions. Provide a ${analysisDepth} analysis of how reason and emotion interact in this person's thinking.
+  const prompt = `You are analyzing the synthesis between intellectual and emotional psychology revealed through communication patterns. You do not analyze literal content or stated beliefs. You analyze what the integration of reasoning and emotional patterns reveals about how this person's mind actually works.
 
-Writing Sample:
-"${text}"
+You must ask: "What does this communication reveal about how this person actually integrates intellectual and emotional processing?"
 
-Analyze and provide a JSON response with this structure:
+TEXT TO ANALYZE:
+${text.slice(0, 8000)}
+
+SYNTHESIS PROFILING METHODOLOGY:
+
+1. INTELLECTUAL-EMOTIONAL INTEGRATION ANALYSIS: Examine how cognitive and emotional patterns interact in their communication choices, not their stated integration.
+
+2. AUTHENTIC VS. PERFORMED BALANCE: Distinguish between:
+   - Genuine intellectual-emotional integration
+   - Strategic emotional manipulation disguised as balance
+   - Performed rationality masking emotional dysfunction
+   - Authentic emotional intelligence vs. emotional manipulation
+
+3. DECISION-MAKING PSYCHOLOGY: Analyze what their communication reveals about:
+   - How they actually process decisions (not how they claim to)
+   - Whether emotional and rational elements truly integrate or conflict
+   - Their actual stress responses vs. claimed resilience
+   - Real vs. performed emotional regulation
+
+4. COMMUNICATION SYNTHESIS PATTERNS: Identify:
+   - Whether logical and emotional appeals are strategically deployed or naturally integrated
+   - Signs of authentic vs. manipulative emotional reasoning
+   - Genuine empathy vs. strategic emotional positioning
+
+CRITICAL HEURISTICS:
+- Over-emphasis on "balance" often indicates imbalance
+- Claims of emotional intelligence may mask emotional manipulation
+- True synthesis shows natural integration, not forced balance
+- Authentic emotional reasoning doesn't need to announce itself
+- Genuine intellectual empathy shows through natural understanding, not performed concern
+
+Analyze the actual synthesis psychology behind their communication choices.
+
+Provide a ${analysisDepth} analysis with this JSON structure:
 {
-  "intellectEmotionBalance": "How the person balances rational thinking with emotional awareness",
+  "intellectEmotionBalance": "analysis of actual intellectual-emotional integration revealed by communication patterns, not claimed balance",
   "rationalEmotionalIntegration": 7,
-  "decisionMakingStyle": "How they integrate logic and feelings in decisions",
-  "stressVsClarity": "How emotional stress affects intellectual clarity",
-  "creativeRationalFusion": "How they blend creative/intuitive and analytical thinking",
-  "emotionalReasoningPattern": "Pattern of how emotions inform or interfere with reasoning",
+  "decisionMakingStyle": "analysis of actual decision-making psychology revealed by communication choices",
+  "stressVsClarity": "analysis of how stress actually affects their communication patterns",
+  "creativeRationalFusion": "analysis of actual creative-rational integration revealed by communication patterns",
+  "emotionalReasoningPattern": "analysis of how emotions actually influence their reasoning based on communication choices",
   "intellectualEmpathy": 8,
-  "synthesisStrengths": ["strength1", "strength2", "strength3"],
+  "synthesisStrengths": ["actual strengths in intellectual-emotional integration", "not claimed abilities"],
   "integrationChallenges": ["challenge1", "challenge2"],
   "holisticSignature": "Overall signature of their mind-heart integration",
   "detailedAnalysis": "Deep analysis of intellect/emotion synthesis patterns"
@@ -120,60 +152,73 @@ Focus on the dynamic interplay between rational and emotional processing, decisi
 async function generateCognitiveProfile(text: string, isComprehensive: boolean = false): Promise<CognitiveProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `Analyze this writing sample for cognitive and intellectual patterns. Provide a ${analysisDepth} analysis with extensive supporting evidence.
+  const prompt = `You are a cognitive profiling agent analyzing the intellectual psychology behind communication choices. You do not analyze literal content or stated beliefs. You analyze what cognitive patterns are revealed by HOW someone chooses to communicate.
+
+You must always ask: "What does this communication pattern reveal about how this person's mind actually works?"
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
 
-CRITICAL REQUIREMENTS:
-1. For EACH cognitive finding, provide at least 2-3 direct quotes from the text as evidence
-2. For EACH quote, provide a detailed explanation of how it demonstrates the cognitive pattern
-3. Make the analysis substantial and comprehensive, equivalent in depth to a psychological analysis
-4. Focus on deep intellectual insights backed by textual evidence
-5. The analysis should be as detailed and substantive as psychological profiling
+COGNITIVE PROFILING METHODOLOGY:
 
-Analyze in depth:
-1. Intellectual Approach: How they approach complex ideas and concepts
-2. Reasoning Style: Their pattern of logical thinking and argumentation
-3. Problem-Solving Pattern: How they tackle challenges and obstacles
-4. Analytical Depth: The sophistication of their analytical thinking
-5. Conceptual Integration: How they connect disparate ideas and concepts
-6. Logical Structuring: How they organize and present their thoughts
-7. Cognitive Strengths: Areas of intellectual excellence
-8. Growth Areas: Potential areas for cognitive development
-9. Cognitive Signature: Unique intellectual fingerprint
+1. COMMUNICATION PATTERN ANALYSIS: Examine HOW they structure their thoughts, not WHAT they claim to think.
 
-Rate the following on a 1-10 scale with specific textual evidence:
-- Analytical Depth: How deeply does this person analyze concepts?
-- Conceptual Integration: How well do they connect different ideas?
-- Logical Structuring: How systematically do they organize thoughts?
+2. INTELLECTUAL STRATEGY DETECTION: Identify whether their communication shows:
+   - Genuine analytical thinking
+   - Pseudo-intellectual posturing  
+   - Cognitive shortcuts and biases
+   - Strategic intellectual manipulation
+   - Actual vs. performed sophistication
 
-Provide comprehensive supporting evidence with direct quotes and detailed explanations.
+3. REASONING PATTERN INFERENCE: Based on communication structure, infer:
+   - How they actually process complex information
+   - Whether they engage in genuine analysis or mimicry
+   - Their actual problem-solving approach vs. claimed approach
+   - Real vs. performed logical capabilities
+
+4. COGNITIVE AUTHENTICITY ASSESSMENT: Distinguish between:
+   - Genuine intellectual engagement vs. intellectual performance
+   - Real analytical depth vs. surface-level complexity mimicry
+   - Authentic reasoning vs. borrowed intellectual frameworks
+
+CRITICAL HEURISTICS:
+- Overly complex language often masks simple or confused thinking
+- True analytical minds show specific, concrete reasoning patterns
+- Intellectual posturing uses complexity without substance
+- Genuine problem-solvers focus on solutions, not demonstrating intelligence
+- Real conceptual integration shows organic connections, not forced links
+
+Analyze the actual cognitive psychology behind their communication choices, not their stated intellectual positions.
+
+Rate on 1-10 scale based on ACTUAL cognitive patterns revealed:
+- Analytical Depth: Based on genuine vs. performed analysis in communication
+- Conceptual Integration: Based on authentic vs. superficial connection-making
+- Logical Structuring: Based on natural vs. forced organizational patterns
 
 Format as JSON with this structure:
 {
-  "intellectualApproach": "detailed 3-4 paragraph description with specific examples",
-  "reasoningStyle": "detailed description of reasoning patterns with examples",
-  "problemSolvingPattern": "comprehensive analysis of problem-solving approach",
+  "intellectualApproach": "analysis of actual intellectual patterns revealed by communication structure, not stated beliefs",
+  "reasoningStyle": "analysis of actual reasoning patterns behind speech choices, not claimed logic",
+  "problemSolvingPattern": "analysis of actual problem-solving psychology revealed by communication approach",
   "analyticalDepth": number,
   "conceptualIntegration": number,
   "logicalStructuring": number,
-  "strengths": ["detailed strength 1", "detailed strength 2", "detailed strength 3"],
-  "growthAreas": ["specific area 1", "specific area 2"],
-  "cognitiveSignature": "unique defining intellectual characteristic",
-  "detailedAnalysis": "comprehensive multi-paragraph narrative analysis of cognitive patterns",
+  "strengths": ["actual cognitive strengths based on communication patterns", "not self-reported abilities"],
+  "growthAreas": ["actual cognitive limitations revealed", "not self-awareness claims"],
+  "cognitiveSignature": "actual intellectual fingerprint based on communication psychology",
+  "detailedAnalysis": "comprehensive analysis focusing on cognitive psychology behind speech choices",
   "supportingEvidence": {
     "intellectualApproach": [
-      {"quote": "exact quote from text", "explanation": "detailed explanation of how this demonstrates the pattern"},
-      {"quote": "exact quote from text", "explanation": "detailed explanation of how this demonstrates the pattern"}
+      {"quote": "exact quote from text", "explanation": "what this communication pattern reveals about actual intellectual approach"},
+      {"quote": "exact quote from text", "explanation": "cognitive psychology analysis of why they chose this structure"}
     ],
     "reasoningStyle": [
-      {"quote": "exact quote from text", "explanation": "detailed explanation"},
-      {"quote": "exact quote from text", "explanation": "detailed explanation"}
+      {"quote": "exact quote from text", "explanation": "what this reveals about actual reasoning patterns"},
+      {"quote": "exact quote from text", "explanation": "analysis of cognitive strategy behind this choice"}
     ],
     "problemSolvingPattern": [
-      {"quote": "exact quote from text", "explanation": "detailed explanation"},
-      {"quote": "exact quote from text", "explanation": "detailed explanation"}
+      {"quote": "exact quote from text", "explanation": "what this reveals about actual problem-solving psychology"},
+      {"quote": "exact quote from text", "explanation": "analysis of cognitive approach behind this communication"}
     ]
   }
 }`;
@@ -197,57 +242,82 @@ Format as JSON with this structure:
 async function generatePsychologicalProfile(text: string, isComprehensive: boolean = false): Promise<PsychologicalProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `Analyze this writing sample for psychological and emotional patterns. Provide a ${analysisDepth} analysis with supporting evidence.
+  const prompt = `You are a psychological profiling agent. You do not perform sentiment analysis. You do not perform literal belief extraction. You do not assume that the author sincerely believes what they say.
+
+You must always ask: "What kind of person would choose to say this, in this way, in this context?"
+You must never assume that the content of an utterance reflects the author's sincere values or beliefs.
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
 
-CRITICAL REQUIREMENTS:
-1. For EACH psychological finding, provide at least 2-3 direct quotes from the text
-2. For EACH quote, provide a detailed explanation of how it supports the analysis
-3. Make the analysis substantial and detailed, not lean or superficial
-4. Focus on deep psychological insights backed by textual evidence
+For every utterance, follow this process:
 
-Analyze:
-1. Emotional patterns and motivational structure
-2. Interpersonal dynamics and communication style  
-3. Stress response patterns and adaptability
-4. Personality traits and social orientation
-5. Emotional intelligence indicators
+1. SURFACE PARSING: Parse the literal meaning of the utterance.
+
+2. PLAUSIBILITY MODELING: Ask: Is this a plausible sincere expression of an ordinary person's inner state?
+   If NO → mark this utterance as performative/strategic/manipulative candidate.
+   If YES → proceed to step 3.
+
+3. SPEECH ACT MODELING: For each utterance, identify the most likely social function:
+   - Sincere self-report
+   - Virtue-signaling
+   - Reputation management
+   - Flattery/seduction
+   - Threat/dominance display
+   - Irony/satire
+   - Defensive posturing
+   - Identity signaling
+   - Other manipulation
+
+4. PROFILE INFERENCE: Only after identifying the speech function, infer personality traits.
+   CRITICALLY: if the utterance is marked performative/manipulative, then your inference should focus on the speaker's manipulativeness, social strategy, or likely psychopathic traits — not on the literal content.
+
+HEURISTICS TO APPLY:
+- Too good to be true → probably not true
+- Unusual moral heroism → probable signaling
+- Extreme flattening of complex values → probable signaling or manipulation
+- Statements designed to pre-empt social judgment → probable identity performance
+- Implausible flattery → probable seduction or manipulation
+
+You are not a belief extractor. You are a profiler of speaker psychology based on how and why they speak as they do.
+You must model speech acts first, then profile.
+You must explicitly distinguish between what the person says and what kind of person says it.
+
+Provide a ${analysisDepth} psychological profile with supporting evidence showing your reasoning process.
 
 Rate the following on a 1-10 scale:
-- Emotional Intelligence: How well do they understand and manage emotions?
-- Adaptability: How well do they handle change and uncertainty?
-- Social Orientation: How much do they focus on relationships vs individual achievement?
+- Emotional Intelligence: Based on manipulation sophistication and social awareness
+- Adaptability: Based on strategic flexibility in communication
+- Social Orientation: Based on actual social manipulation vs genuine connection patterns
 
 Format as JSON with this EXACT structure:
 {
-  "emotionalPattern": "detailed comprehensive description with specific insights",
-  "motivationalStructure": "what drives them - detailed analysis",
-  "interpersonalDynamics": "how they relate to others - comprehensive view",
-  "stressResponsePattern": "how they handle stress - detailed pattern",
-  "communicationStyle": "their communication approach - thorough analysis",
-  "personalityTraits": ["trait1", "trait2", "trait3", "trait4", "trait5"],
+  "emotionalPattern": "analysis of actual emotional patterns behind speech choices, not content",
+  "motivationalStructure": "analysis of what actually drives this person based on speech psychology",
+  "interpersonalDynamics": "analysis of how they actually relate to others based on communication strategy",
+  "stressResponsePattern": "analysis of actual stress patterns evident in speech choices",
+  "communicationStyle": "analysis of actual communication psychology, not surface content",
+  "personalityTraits": ["actual traits based on speech psychology", "not literal content", "focus on manipulation vs authenticity"],
   "emotionalIntelligence": number,
   "adaptability": number,
   "socialOrientation": number,
-  "psychologicalSignature": "unique defining characteristic",
-  "detailedAnalysis": "comprehensive narrative analysis",
+  "psychologicalSignature": "actual psychological fingerprint based on speech patterns",
+  "detailedAnalysis": "comprehensive narrative focusing on psychology behind speech choices",
   "supportingEvidence": {
     "emotionalPattern": [
       {
         "quote": "exact quote from text",
-        "explanation": "detailed explanation of how this quote demonstrates the emotional pattern"
+        "explanation": "why this speech choice reveals this actual emotional pattern, not what they claim"
       },
       {
         "quote": "another exact quote from text",
-        "explanation": "detailed explanation of psychological significance"
+        "explanation": "psychological analysis of why they chose these words - what it reveals about them"
       }
     ],
     "motivationalStructure": [
       {
         "quote": "exact quote from text",
-        "explanation": "detailed explanation of motivational insight"
+        "explanation": "what this reveals about their actual motivations behind saying this"
       },
       {
         "quote": "another exact quote from text", 
