@@ -954,36 +954,143 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       </div>
                     )}
 
-                    {/* Strengths and Growth Areas */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {results.strengths && (
-                        <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                          <h4 className="font-bold text-green-800 mb-3">Cognitive Strengths</h4>
-                          <ul className="space-y-2">
-                            {results.strengths.map((strength: string, index: number) => (
-                              <li key={index} className="text-green-700 flex items-start">
-                                <span className="text-green-600 mr-2 font-bold">•</span>
-                                {strength}
-                              </li>
-                            ))}
-                          </ul>
+                    {/* Show comprehensive cognitive profile data */}
+                    {results.cognitiveProfile && (
+                      <div className="space-y-6">
+                        {/* Cognitive Signature from nested structure */}
+                        {results.cognitiveProfile.cognitiveSignature && (
+                          <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
+                            <h4 className="font-bold text-blue-900 mb-4 text-lg">Cognitive Signature</h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.cognitiveProfile.cognitiveSignature}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Detailed Analysis from nested structure */}
+                        {results.cognitiveProfile.detailedAnalysis && (
+                          <div className="p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
+                            <h4 className="font-bold text-gray-900 mb-4 text-lg">Comprehensive Detailed Analysis</h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.cognitiveProfile.detailedAnalysis}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Strengths and Growth Areas from nested structure */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {results.cognitiveProfile.strengths && (
+                            <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                              <h4 className="font-bold text-green-800 mb-3">Cognitive Strengths</h4>
+                              <ul className="space-y-2">
+                                {results.cognitiveProfile.strengths.map((strength: string, index: number) => (
+                                  <li key={index} className="text-green-700 flex items-start">
+                                    <span className="text-green-600 mr-2 font-bold">•</span>
+                                    {strength}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {results.cognitiveProfile.growthAreas && (
+                            <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                              <h4 className="font-bold text-orange-800 mb-3">Growth Areas</h4>
+                              <ul className="space-y-2">
+                                {results.cognitiveProfile.growthAreas.map((area: string, index: number) => (
+                                  <li key={index} className="text-orange-700 flex items-start">
+                                    <span className="text-orange-600 mr-2 font-bold">•</span>
+                                    {area}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      
-                      {results.growthAreas && (
-                        <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
-                          <h4 className="font-bold text-orange-800 mb-3">Growth Areas</h4>
-                          <ul className="space-y-2">
-                            {results.growthAreas.map((area: string, index: number) => (
-                              <li key={index} className="text-orange-700 flex items-start">
-                                <span className="text-orange-600 mr-2 font-bold">•</span>
-                                {area}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
+
+                        {/* Supporting Evidence from nested structure */}
+                        {results.cognitiveProfile.supportingEvidence && (
+                          <div className="space-y-4">
+                            <h4 className="font-bold text-gray-800 mb-3">Supporting Evidence</h4>
+                            
+                            {results.cognitiveProfile.supportingEvidence.intellectualApproach && (
+                              <div className="p-4 bg-gray-50 rounded-lg">
+                                <h5 className="font-medium text-gray-700 mb-3">Intellectual Approach Evidence</h5>
+                                {results.cognitiveProfile.supportingEvidence.intellectualApproach.map((evidence: any, index: number) => (
+                                  <div key={index} className="border-l-4 border-blue-300 pl-4 py-2 mb-3 bg-white rounded-r">
+                                    <blockquote className="text-sm italic text-gray-600 mb-2">
+                                      "{evidence.quote}"
+                                    </blockquote>
+                                    <p className="text-sm text-gray-700">{evidence.explanation}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {results.cognitiveProfile.supportingEvidence.reasoningStyle && (
+                              <div className="p-4 bg-gray-50 rounded-lg">
+                                <h5 className="font-medium text-gray-700 mb-3">Reasoning Style Evidence</h5>
+                                {results.cognitiveProfile.supportingEvidence.reasoningStyle.map((evidence: any, index: number) => (
+                                  <div key={index} className="border-l-4 border-green-300 pl-4 py-2 mb-3 bg-white rounded-r">
+                                    <blockquote className="text-sm italic text-gray-600 mb-2">
+                                      "{evidence.quote}"
+                                    </blockquote>
+                                    <p className="text-sm text-gray-700">{evidence.explanation}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {results.cognitiveProfile.supportingEvidence.problemSolvingPattern && (
+                              <div className="p-4 bg-gray-50 rounded-lg">
+                                <h5 className="font-medium text-gray-700 mb-3">Problem Solving Evidence</h5>
+                                {results.cognitiveProfile.supportingEvidence.problemSolvingPattern.map((evidence: any, index: number) => (
+                                  <div key={index} className="border-l-4 border-purple-300 pl-4 py-2 mb-3 bg-white rounded-r">
+                                    <blockquote className="text-sm italic text-gray-600 mb-2">
+                                      "{evidence.quote}"
+                                    </blockquote>
+                                    <p className="text-sm text-gray-700">{evidence.explanation}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Fallback: Strengths and Growth Areas from flat structure */}
+                    {!results.cognitiveProfile && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {results.strengths && (
+                          <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                            <h4 className="font-bold text-green-800 mb-3">Cognitive Strengths</h4>
+                            <ul className="space-y-2">
+                              {results.strengths.map((strength: string, index: number) => (
+                                <li key={index} className="text-green-700 flex items-start">
+                                  <span className="text-green-600 mr-2 font-bold">•</span>
+                                  {strength}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {results.growthAreas && (
+                          <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                            <h4 className="font-bold text-orange-800 mb-3">Growth Areas</h4>
+                            <ul className="space-y-2">
+                              {results.growthAreas.map((area: string, index: number) => (
+                                <li key={index} className="text-orange-700 flex items-start">
+                                  <span className="text-orange-600 mr-2 font-bold">•</span>
+                                  {area}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </TabsContent>
@@ -1528,49 +1635,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
             )}
             
-            {/* Show Cognitive Profile */}
-            {results?.cognitiveProfile && (
-              <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-blue-800 flex items-center gap-2">
-                  <Brain className="h-6 w-6" />
-                  Cognitive Analysis
-                </h3>
-                
-                <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
-                  <h4 className="font-bold text-blue-900 mb-4 text-lg">Intellectual Approach</h4>
-                  <div className="text-gray-800 leading-relaxed">
-                    {results.cognitiveProfile.intellectualApproach}
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-4 bg-white rounded-lg border-2 border-blue-200">
-                    <h4 className="font-bold text-blue-800 mb-3">Reasoning Style</h4>
-                    <p className="text-gray-700 leading-relaxed">{results.cognitiveProfile.reasoningStyle}</p>
-                  </div>
-                  <div className="p-4 bg-white rounded-lg border-2 border-blue-200">
-                    <h4 className="font-bold text-blue-800 mb-3">Problem Solving Pattern</h4>
-                    <p className="text-gray-700 leading-relaxed">{results.cognitiveProfile.problemSolvingPattern}</p>
-                  </div>
-                </div>
-                
-                {/* Cognitive Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-blue-50 rounded-lg text-center">
-                    <h4 className="font-bold text-blue-800 mb-2">Analytical Depth</h4>
-                    <div className="text-3xl font-bold text-blue-600">{results.cognitiveProfile.analyticalDepth}/10</div>
-                  </div>
-                  <div className="p-4 bg-green-50 rounded-lg text-center">
-                    <h4 className="font-bold text-green-800 mb-2">Conceptual Integration</h4>
-                    <div className="text-3xl font-bold text-green-600">{results.cognitiveProfile.conceptualIntegration}/10</div>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-lg text-center">
-                    <h4 className="font-bold text-purple-800 mb-2">Logical Structuring</h4>
-                    <div className="text-3xl font-bold text-purple-600">{results.cognitiveProfile.logicalStructuring}/10</div>
-                  </div>
-                </div>
-              </div>
-            )}
+
 
             {/* Show Comprehensive Insights */}
             {results?.comprehensiveInsights && (
