@@ -95,44 +95,76 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
 
       const handleTextareaDrop = (e: DragEvent) => {
         console.log('Textarea drop detected', e.dataTransfer);
+        console.log('DataTransfer types:', e.dataTransfer?.types);
+        console.log('DataTransfer files length:', e.dataTransfer?.files?.length);
         e.preventDefault();
         e.stopPropagation();
         textarea.style.border = "";
         textarea.style.backgroundColor = "";
 
-        // Handle plain text drag
-        if (e.dataTransfer?.types.includes('text/plain')) {
+        // Handle plain text drag FIRST
+        if (e.dataTransfer?.types && e.dataTransfer.types.includes('text/plain')) {
           const text = e.dataTransfer.getData('text/plain');
-          console.log('Dropped text:', text);
-          setInput(prev => prev + (prev ? '\n\n' : '') + text);
-          return;
+          console.log('Dropped text length:', text?.length);
+          console.log('Dropped text content:', text);
+          if (text && text.trim()) {
+            setInput(prev => {
+              const newValue = prev ? prev + '\n\n' + text : text;
+              console.log('Setting input to:', newValue);
+              return newValue;
+            });
+            return;
+          }
         }
         
         // Handle file drag
         if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
           const droppedFiles = Array.from(e.dataTransfer.files);
-          console.log('Dropped files:', droppedFiles);
+          console.log('Processing', droppedFiles.length, 'files:');
+          droppedFiles.forEach((file, index) => {
+            console.log(`File ${index}:`, file.name, file.type, file.size);
+          });
           
           for (const file of droppedFiles) {
+            console.log('Processing file:', file.name, 'type:', file.type);
             if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+              console.log('Reading as text file...');
               const reader = new FileReader();
               reader.onload = (event) => {
                 const text = event.target?.result as string;
+                console.log('File read complete, text length:', text?.length);
                 if (text) {
-                  console.log('File text content:', text);
-                  setInput(prev => prev + (prev ? '\n\n' : '') + text);
+                  console.log('File text content preview:', text.substring(0, 100));
+                  setInput(prev => {
+                    const newValue = prev ? prev + '\n\n' + text : text;
+                    console.log('Setting input from file to:', newValue.substring(0, 100));
+                    return newValue;
+                  });
                 }
+              };
+              reader.onerror = (error) => {
+                console.error('FileReader error:', error);
               };
               reader.readAsText(file);
             } else {
+              console.log('Adding to files list...');
               const allowedTypes = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
               const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+              console.log('File extension:', extension);
               
               if (allowedTypes.includes(extension)) {
-                setFiles(prev => [...prev, file]);
+                console.log('File type allowed, adding to files');
+                setFiles(prev => {
+                  console.log('Current files count:', prev.length);
+                  return [...prev, file];
+                });
+              } else {
+                console.log('File type not allowed');
               }
             }
           }
+        } else {
+          console.log('No files in drop data');
         }
       };
 
