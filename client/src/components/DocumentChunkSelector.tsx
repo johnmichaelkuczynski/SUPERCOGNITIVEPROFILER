@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface DocumentChunk {
   index: number;
@@ -58,7 +59,15 @@ export default function DocumentChunkSelector({
   };
   
   return (
-    <Card className="w-full max-w-3xl mx-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Document Sections</DialogTitle>
+          <DialogDescription>
+            Select specific sections of "{documentTitle}" to analyze instead of the entire document
+          </DialogDescription>
+        </DialogHeader>
+        <Card className="w-full border-0 shadow-none">
       <CardHeader>
         <CardTitle>Document Sections</CardTitle>
         <CardDescription>
@@ -126,6 +135,8 @@ export default function DocumentChunkSelector({
           Analyze Selected Sections
         </Button>
       </CardFooter>
-    </Card>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
