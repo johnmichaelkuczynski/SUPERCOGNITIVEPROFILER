@@ -52,6 +52,7 @@ interface ProfileResults {
     motivationalStructure?: SupportingEvidence[];
     interpersonalDynamics?: SupportingEvidence[];
     stressResponsePattern?: SupportingEvidence[];
+    intellectualApproach?: SupportingEvidence[];
   };
   cognitiveProfile?: any;
   psychologicalProfile?: any;
@@ -1252,15 +1253,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
             )}
 
-            {/* Debug: Show raw results if nothing else renders */}
-            {results && !results.psychologicalProfile && !results.cognitiveProfile && !results.comprehensiveInsights && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 className="font-bold text-yellow-800 mb-2">Analysis Results (Debug View)</h4>
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto max-h-96">
-                  {JSON.stringify(results, null, 2)}
-                </pre>
-              </div>
-            )}
+
 
             {/* Export Options */}
             <div className="flex justify-between items-center pt-6 border-t-2 border-gray-200">
