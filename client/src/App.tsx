@@ -4,7 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { MathJaxContext } from 'better-react-mathjax';
+
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Analytics from "@/pages/Analytics";
@@ -75,30 +75,16 @@ function Router() {
   );
 }
 
-// MathJax configuration for LaTeX rendering
-const mathJaxConfig = {
-  loader: { load: ["input/tex", "output/chtml"] },
-  tex: {
-    inlineMath: [['\\(', '\\)'], ['$', '$']],
-    displayMath: [['\\[', '\\]'], ['$$', '$$']],
-    processEscapes: true,
-    processEnvironments: true
-  },
-  options: {
-    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-  }
-};
+
 
 function App() {
   return (
-    <MathJaxContext version={3} config={mathJaxConfig}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </MathJaxContext>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
