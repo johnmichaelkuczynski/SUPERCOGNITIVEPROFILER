@@ -893,19 +893,58 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             Analysis results showing cognitive and psychological insights
           </div>
           
-          <div className="space-y-6">
-            {/* Debug Results */}
+          <div className="space-y-6">            
+            {/* Show analysis content directly */}
             {results && (
-              <div className="p-4 bg-gray-100 rounded-lg mb-4">
-                <h4 className="font-bold mb-2">Debug - Results Object:</h4>
-                <pre className="text-xs overflow-auto max-h-32">
-                  {JSON.stringify(results, null, 2)}
-                </pre>
+              <div className="space-y-6">
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-bold text-yellow-800 mb-2">Raw Analysis Data:</h4>
+                  <pre className="text-xs text-gray-700 whitespace-pre-wrap overflow-auto max-h-96">
+                    {JSON.stringify(results, null, 2)}
+                  </pre>
+                </div>
+                
+                {/* Direct text display */}
+                {results.emotionalPattern && (
+                  <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
+                    <h3 className="text-xl font-bold text-red-800 mb-4">Emotional Pattern</h3>
+                    <div className="text-gray-800 leading-relaxed">
+                      {results.emotionalPattern}
+                    </div>
+                  </div>
+                )}
+                
+                {results.motivationalStructure && (
+                  <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                    <h3 className="text-xl font-bold text-blue-800 mb-4">Motivational Structure</h3>
+                    <div className="text-gray-800 leading-relaxed">
+                      {results.motivationalStructure}
+                    </div>
+                  </div>
+                )}
+                
+                {results.interpersonalDynamics && (
+                  <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
+                    <h3 className="text-xl font-bold text-green-800 mb-4">Interpersonal Dynamics</h3>
+                    <div className="text-gray-800 leading-relaxed">
+                      {results.interpersonalDynamics}
+                    </div>
+                  </div>
+                )}
+                
+                {results.intellectualApproach && (
+                  <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                    <h3 className="text-xl font-bold text-purple-800 mb-4">Intellectual Approach</h3>
+                    <div className="text-gray-800 leading-relaxed">
+                      {results.intellectualApproach}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
             {/* Show Psychological Profile First */}
-            {results?.psychologicalProfile && (
+            {false && results?.psychologicalProfile && (
               <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-red-800 flex items-center gap-2">
                   <Heart className="h-6 w-6" />
