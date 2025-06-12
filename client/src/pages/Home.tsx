@@ -71,6 +71,35 @@ export default function Home() {
 
   // Drag and drop functionality for main textarea
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Process document files (PDF, Word, images) via API
+  const processDocumentFile = async (file: File) => {
+    try {
+      console.log('Processing document file:', file.name);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to process document: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Document processed successfully:', result);
+      
+      if (result.content) {
+        setDirectInputText(prev => prev ? prev + '\n\n' + result.content : result.content);
+      }
+    } catch (error) {
+      console.error('Processing error:', error);
+      // Show user-friendly error message
+      alert(`Failed to process file "${file.name}". Please try again or use a different file format.`);
+    }
+  };
   
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -113,7 +142,10 @@ export default function Home() {
         console.log('Dropped files:', droppedFiles);
         
         for (const file of droppedFiles) {
-          if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+          console.log('Processing file:', file.name, 'type:', file.type);
+          
+          if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+            // Handle text files directly
             const reader = new FileReader();
             reader.onload = (event) => {
               const text = event.target?.result as string;
@@ -123,6 +155,12 @@ export default function Home() {
               }
             };
             reader.readAsText(file);
+          } else if (file.type === 'application/pdf' || 
+                     file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                     file.type === 'application/msword' ||
+                     file.type.startsWith('image/')) {
+            // Handle PDF, Word, and image files via document processing API
+            processDocumentFile(file);
           }
         }
       }
@@ -139,6 +177,35 @@ export default function Home() {
       textarea.removeEventListener('drop', handleDrop);
     };
   }, []);
+
+  // Process document files (PDF, Word, images) via API
+  const processDocumentFile = async (file: File) => {
+    try {
+      console.log('Processing document file:', file.name);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to process document: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Document processed successfully:', result);
+      
+      if (result.content) {
+        setDirectInputText(prev => prev ? prev + '\n\n' + result.content : result.content);
+      }
+    } catch (error) {
+      console.error('Processing error:', error);
+      // Show user-friendly error message
+      alert(`Failed to process file "${file.name}". Please try again or use a different file format.`);
+    }
+  };
 
   // Handle when rewritten content is received from the modal
   const handleRewriteComplete = (rewrittenContent: string) => {
