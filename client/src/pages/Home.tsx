@@ -72,7 +72,33 @@ export default function Home() {
   // Drag and drop functionality for main textarea
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Process document files (PDF, Word, images) via API
+  const processDocumentFile = async (file: File) => {
+    try {
+      console.log('Processing document file:', file.name);
+      const formData = new FormData();
+      formData.append('file', file);
 
+      const response = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to process document: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('Document processed successfully:', result);
+      
+      if (result.content) {
+        setDirectInputText(prev => prev ? prev + '\n\n' + result.content : result.content);
+      }
+    } catch (error) {
+      console.error('Processing error:', error);
+      alert(`Failed to process file "${file.name}". Please try again or use a different file format.`);
+    }
+  };
   
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -132,9 +158,9 @@ export default function Home() {
                      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
                      file.type === 'application/msword' ||
                      file.type.startsWith('image/')) {
-            // Handle PDF, Word, and image files - just show message for now
+            // Handle PDF, Word, and image files via document processing API
             console.log('Document file detected:', file.name, 'type:', file.type);
-            alert(`Document processing for ${file.name} will be added soon. Currently only text files are supported.`);
+            processDocumentFile(file);
           }
         }
       }
@@ -150,7 +176,7 @@ export default function Home() {
       textarea.removeEventListener('dragleave', handleDragLeave);
       textarea.removeEventListener('drop', handleDrop);
     };
-  }, []);
+  }, [processDocumentFile]);
 
   // Handle when rewritten content is received from the modal
   const handleRewriteComplete = (rewrittenContent: string) => {
