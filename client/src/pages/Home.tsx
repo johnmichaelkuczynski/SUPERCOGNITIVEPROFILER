@@ -250,10 +250,63 @@ export default function Home() {
     }
   };
 
+  // Process homework directly without opening modal
+  const processHomeworkDirectly = async () => {
+    if (!directInputText.trim()) return;
+    
+    setIsDirectProcessing(true);
+    
+    try {
+      const response = await fetch('/api/homework-mode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructions: directInputText,
+          model: 'claude'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process homework');
+      }
+
+      const result = await response.json();
+      
+      // Add homework and solution to chat
+      const userMessage: Message = {
+        id: Date.now(),
+        content: `**Homework Assignment:**\n\n${directInputText}`,
+        role: 'user',
+        timestamp: new Date()
+      };
+      
+      const aiMessage: Message = {
+        id: Date.now() + 1,
+        content: `**Complete Solution:**\n\n${result.response}`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, userMessage, aiMessage]);
+      
+      // Clear the input after successful processing
+      setDirectInputText('');
+      
+    } catch (error) {
+      console.error('Homework processing error:', error);
+      alert('Failed to process homework. Please try again.');
+    } finally {
+      setIsDirectProcessing(false);
+    }
+  };
+
   // Open chunked rewriter with document content
   const openChunkedRewriter = (content: string, title: string) => {
     setRewriterText(content);
     setRewriterTitle(title);
+    setRewriterProcessingMode(processingMode);
     setIsChunkedRewriterOpen(true);
   };
 
@@ -348,7 +401,13 @@ export default function Home() {
               </div>
               
               <Button
-                onClick={() => openChunkedRewriter(directInputText, `${processingMode === 'rewrite' ? 'Rewrite' : 'Homework'} Task`)}
+                onClick={() => {
+                  if (processingMode === 'homework') {
+                    processHomeworkDirectly();
+                  } else {
+                    openChunkedRewriter(directInputText, `${processingMode === 'rewrite' ? 'Rewrite' : 'Homework'} Task`);
+                  }
+                }}
                 disabled={!directInputText.trim() || isDirectProcessing}
                 className={processingMode === 'homework' ? 'bg-green-600 hover:bg-green-700' : ''}
               >
