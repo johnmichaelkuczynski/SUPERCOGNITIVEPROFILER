@@ -37,10 +37,10 @@ interface SupportingEvidence {
 }
 
 interface ProfileResults {
+  // Psychological fields
   emotionalPattern?: string;
   motivationalStructure?: string;
   interpersonalDynamics?: string;
-  intellectualApproach?: string;
   stressResponsePattern?: string;
   communicationStyle?: string;
   personalityTraits?: string[];
@@ -48,6 +48,17 @@ interface ProfileResults {
   adaptability?: number;
   socialOrientation?: number;
   psychologicalSignature?: string;
+  
+  // Cognitive fields
+  intellectualApproach?: string;
+  reasoningStyle?: string;
+  problemSolvingPattern?: string;
+  analyticalDepth?: number;
+  conceptualIntegration?: number;
+  logicalStructuring?: number;
+  cognitiveSignature?: string;
+  
+  // General fields
   detailedAnalysis?: string;
   supportingEvidence?: {
     emotionalPattern?: SupportingEvidence[];
@@ -55,7 +66,11 @@ interface ProfileResults {
     interpersonalDynamics?: SupportingEvidence[];
     stressResponsePattern?: SupportingEvidence[];
     intellectualApproach?: SupportingEvidence[];
+    reasoningStyle?: SupportingEvidence[];
+    problemSolvingPattern?: SupportingEvidence[];
   };
+  
+  // Legacy nested structures (for backwards compatibility)
   cognitiveProfile?: any;
   psychologicalProfile?: any;
   comprehensiveInsights?: any;
@@ -740,7 +755,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
               <TabsContent value="cognitive" className="space-y-6">
                 {/* Use flat structure for cognitive analysis */}
-                {(results?.intellectualApproach || results?.reasoningStyle || results?.problemSolvingPattern) && (
+                {results && (results.intellectualApproach || results.reasoningStyle || results.problemSolvingPattern) && (
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                       <Brain className="h-6 w-6 text-blue-600" />
