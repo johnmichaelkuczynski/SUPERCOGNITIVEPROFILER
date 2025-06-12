@@ -94,6 +94,20 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Clear/reset function
+  const handleClear = () => {
+    setInputText('');
+    setResults(null);
+    setShowResultsDialog(false);
+    setAnalysisProgress(0);
+    setAnalysisStage('');
+    setShowLoadingAnimation(false);
+    toast({
+      title: "Interface Cleared",
+      description: "Ready for new analysis",
+    });
+  };
+
   // Speech input functionality
   const { SpeechButton } = useSpeechInput(
     (text: string) => setInputText(text),
@@ -596,6 +610,15 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   Full Mind Profile
                 </>
               )}
+            </Button>
+
+            <Button
+              onClick={handleClear}
+              variant="secondary"
+              className="flex items-center gap-2 px-6 py-3"
+            >
+              <Target className="h-4 w-4" />
+              Clear
             </Button>
           </div>
 
