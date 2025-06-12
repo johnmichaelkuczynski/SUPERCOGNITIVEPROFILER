@@ -402,9 +402,12 @@ export default function Home() {
               
               <Button
                 onClick={() => {
+                  console.log('Button clicked! Processing mode:', processingMode);
                   if (processingMode === 'homework') {
+                    console.log('Calling processHomeworkDirectly...');
                     processHomeworkDirectly();
                   } else {
+                    console.log('Calling openChunkedRewriter...');
                     openChunkedRewriter(directInputText, `${processingMode === 'rewrite' ? 'Rewrite' : 'Homework'} Task`);
                   }
                 }}
