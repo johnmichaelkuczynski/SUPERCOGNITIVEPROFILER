@@ -91,6 +91,41 @@ export default function Home() {
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
 
+  // NUKE function to clear all data
+  const handleNuke = async () => {
+    const confirmed = window.confirm('Are you sure you want to clear ALL data? This action cannot be undone.');
+    if (confirmed) {
+      try {
+        const response = await fetch('/api/nuke', { method: 'POST' });
+        if (response.ok) {
+          // Clear all local state
+          setMessages([]);
+          setFiles([]);
+          setPrompt('');
+          setDirectInputText('');
+          setUploadedDocuments({});
+          setAllDocuments([]);
+          setDocumentContent('');
+          setDocumentName('');
+          setSelectedChunks([]);
+          setSelectedChunk(null);
+          setDocumentChunks([]);
+          
+          // Reset all modals
+          setIsRewriterOpen(false);
+          setIsDocumentViewerOpen(false);
+          setIsChunkSelectorOpen(false);
+          setIsChunkedRewriterOpen(false);
+          
+          alert('All data has been cleared successfully.');
+        }
+      } catch (error) {
+        console.error('Error nuking data:', error);
+        alert('Error clearing data. Please try again.');
+      }
+    }
+  };
+
   // Handle file upload for main interface
   const processUploadedFile = async (file: File) => {
     try {
@@ -279,7 +314,7 @@ export default function Home() {
                              userContent.match(/focus\s+on\s+(?:the\s+)?(?:document\s+)?(?:titled\s+)?["]?([^"]+)["]?/i) ||
                              userContent.match(/about\s+(?:the\s+)?([^?.,]+?)(?:\s+document)?[\s,.?]/i);
         
-        let focusedDocuments = [];
+        let focusedDocuments: {name: string, content: string}[] = [];
         
         if (docNameMatch && docNameMatch[1]) {
           const docName = docNameMatch[1].trim();
@@ -292,7 +327,7 @@ export default function Home() {
             console.log(`Focusing on specific document: ${matchingDocs[0]}`);
             // Only use the matched document
             focusedDocuments = matchingDocs.map(filename => ({
-              filename,
+              name: filename,
               content: uploadedDocuments[filename]
             }));
           }
@@ -301,14 +336,14 @@ export default function Home() {
         // If no specific document was identified, include all documents
         if (focusedDocuments.length === 0) {
           focusedDocuments = Object.entries(uploadedDocuments).map(([filename, content]) => ({
-            filename,
+            name: filename,
             content
           }));
         }
         
         // Format document contexts with proper titles
         const documentContexts = focusedDocuments
-          .map(({filename, content}) => {
+          .map(({name, content}) => {
             // Limit each document's content to prevent tokens overflow
             const truncatedContent = content.length > 4000 ? 
               content.substring(0, 4000) + "..." : 
@@ -316,9 +351,9 @@ export default function Home() {
             
             // Extract possible title from first line
             const firstLine = content.split('\n')[0].trim();
-            const title = firstLine.length < 100 ? firstLine : filename;
+            const title = firstLine.length < 100 ? firstLine : name;
             
-            return `Document title: ${title}\nFilename: ${filename}\nContent: ${truncatedContent}\n\n`;
+            return `Document title: ${title}\nFilename: ${name}\nContent: ${truncatedContent}\n\n`;
           })
           .join("\n");
         
@@ -757,6 +792,19 @@ Document text: ${extractedText}`;
 
   return (
     <main className="container mx-auto px-4 py-6">
+      {/* NUKE Button - Prominent at top */}
+      <div className="mb-6 flex justify-center">
+        <Button 
+          variant="destructive" 
+          size="lg"
+          onClick={handleNuke}
+          className="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 text-lg"
+        >
+          <Trash2 className="h-6 w-6 mr-2" />
+          NUKE - CLEAR ALL DATA
+        </Button>
+      </div>
+
       {/* Mind Profiler - Heart of the App */}
       <MindProfiler userId={1} />
       
