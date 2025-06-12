@@ -29,20 +29,52 @@ export function SpeechInput({
 
   const startRecording = useCallback(async () => {
     try {
-      // Request microphone permission
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 16000
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Your browser does not support microphone access. Please use Chrome, Firefox, or Safari.');
+      }
+
+      // Request microphone permission with fallback options
+      let stream: MediaStream;
+      try {
+        // Try with optimal settings first
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 16000
+          }
+        });
+      } catch (constraintError) {
+        console.warn('Failed with constraints, trying basic audio:', constraintError);
+        // Fallback to basic audio if constraints fail
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
+      // Check MediaRecorder support and find best mime type
+      let mimeType = '';
+      const supportedTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/ogg',
+        'audio/wav'
+      ];
+
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
         }
-      });
+      }
+
+      if (!mimeType) {
+        throw new Error('Your browser does not support audio recording. Please update your browser.');
+      }
 
       // Create MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -62,19 +94,43 @@ export function SpeechInput({
         }
       };
 
+      mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        toast({
+          title: "Recording error",
+          description: "An error occurred during recording. Please try again.",
+          variant: "destructive"
+        });
+        setIsRecording(false);
+      };
+
       mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
 
       toast({
         title: "Recording started",
-        description: "Speak clearly into your microphone",
+        description: "Speak clearly into your microphone. Click again to stop.",
       });
 
     } catch (error) {
       console.error('Error starting recording:', error);
+      
+      let errorMessage = "Please check microphone permissions";
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage = "Microphone access denied. Please allow microphone permissions and try again.";
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = "No microphone found. Please connect a microphone and try again.";
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage = "Your browser doesn't support microphone recording. Please use Chrome, Firefox, or Safari.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Recording failed",
-        description: "Please check microphone permissions",
+        description: errorMessage,
         variant: "destructive"
       });
     }

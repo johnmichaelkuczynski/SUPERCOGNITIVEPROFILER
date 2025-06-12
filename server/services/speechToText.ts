@@ -1,21 +1,27 @@
 import { Readable } from 'stream';
-
-interface AssemblyAIResponse {
-  id: string;
-  status: 'queued' | 'processing' | 'completed' | 'error';
-  text?: string;
-  error?: string;
-}
+import OpenAI from 'openai';
 
 export class SpeechToTextService {
+  private azureOpenAI: OpenAI;
+  private endpoint: string;
   private apiKey: string;
-  private baseURL = 'https://api.assemblyai.com/v2';
 
   constructor() {
-    this.apiKey = process.env.ASSEMBLYAI_API_KEY || '';
-    if (!this.apiKey) {
-      console.warn('ASSEMBLYAI_API_KEY not found - Speech-to-text features will be disabled');
+    this.endpoint = process.env.AZURE_OPENAI_ENDPOINT || '';
+    this.apiKey = process.env.AZURE_OPENAI_KEY || '';
+    
+    if (!this.endpoint || !this.apiKey) {
+      console.warn('AZURE_OPENAI_ENDPOINT or AZURE_OPENAI_KEY not found - Speech-to-text features will be disabled');
     }
+
+    this.azureOpenAI = new OpenAI({
+      apiKey: this.apiKey,
+      baseURL: `${this.endpoint}/openai/deployments/whisper`,
+      defaultQuery: { 'api-version': '2024-02-01' },
+      defaultHeaders: {
+        'api-key': this.apiKey,
+      },
+    });
   }
 
   async transcribeAudio(audioBuffer: Buffer, options: {
@@ -25,95 +31,30 @@ export class SpeechToTextService {
     speaker_labels?: boolean;
   } = {}): Promise<string> {
     try {
-      // Upload audio file first
-      const uploadUrl = await this.uploadAudio(audioBuffer);
+      if (!this.endpoint || !this.apiKey) {
+        throw new Error('Azure OpenAI credentials not configured');
+      }
+
+      // Convert buffer to File-like object for Azure OpenAI
+      const audioFile = new File([audioBuffer], 'audio.webm', { type: 'audio/webm' });
       
-      // Request transcription
-      const transcriptionId = await this.requestTranscription(uploadUrl, options);
-      
-      // Poll for completion
-      const result = await this.pollForCompletion(transcriptionId);
-      
-      return result.text || '';
+      const transcription = await this.azureOpenAI.audio.transcriptions.create({
+        file: audioFile,
+        model: 'whisper-1',
+        language: options.language || 'en',
+        response_format: 'text',
+        temperature: 0.0,
+      });
+
+      return transcription || '';
     } catch (error) {
-      console.error('Speech-to-text error:', error);
+      console.error('Azure OpenAI speech-to-text error:', error);
       throw new Error(`Transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  private async uploadAudio(audioBuffer: Buffer): Promise<string> {
-    const response = await fetch(`${this.baseURL}/upload`, {
-      method: 'POST',
-      headers: {
-        'authorization': this.apiKey,
-        'content-type': 'application/octet-stream',
-      },
-      body: audioBuffer,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.upload_url;
-  }
-
-  private async requestTranscription(audioUrl: string, options: any): Promise<string> {
-    const response = await fetch(`${this.baseURL}/transcript`, {
-      method: 'POST',
-      headers: {
-        'authorization': this.apiKey,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        audio_url: audioUrl,
-        language_code: options.language || 'en',
-        punctuate: options.punctuate !== false,
-        format_text: options.format_text !== false,
-        speaker_labels: options.speaker_labels || false,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Transcription request failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.id;
-  }
-
-  private async pollForCompletion(transcriptionId: string, maxAttempts = 60): Promise<AssemblyAIResponse> {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const response = await fetch(`${this.baseURL}/transcript/${transcriptionId}`, {
-        headers: {
-          'authorization': this.apiKey,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Polling failed: ${response.statusText}`);
-      }
-
-      const data: AssemblyAIResponse = await response.json();
-
-      if (data.status === 'completed') {
-        return data;
-      } else if (data.status === 'error') {
-        throw new Error(`Transcription failed: ${data.error}`);
-      }
-
-      // Wait 2 seconds before next poll
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-
-    throw new Error('Transcription timed out');
-  }
-
   async transcribeRealtime(audioStream: Readable): Promise<string> {
-    // For real-time transcription, we'll use AssemblyAI's WebSocket API
-    // This is more complex and would require WebSocket implementation
-    // For now, we'll focus on file-based transcription
+    // Real-time transcription not implemented yet
     throw new Error('Real-time transcription not yet implemented');
   }
 }
