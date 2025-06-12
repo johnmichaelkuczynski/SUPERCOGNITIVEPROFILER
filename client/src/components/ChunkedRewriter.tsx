@@ -53,6 +53,15 @@ export default function ChunkedRewriter({
   const [includeChatContext, setIncludeChatContext] = useState(false);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
   const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>(initialProcessingMode);
+
+  // Set default instructions based on processing mode
+  useEffect(() => {
+    if (processingMode === 'homework' && !instructions.trim()) {
+      setInstructions('Solve all problems step by step with clear explanations and show your work.');
+    } else if (processingMode === 'rewrite' && !instructions.trim()) {
+      setInstructions('Improve clarity, flow, and overall quality while maintaining the original meaning.');
+    }
+  }, [processingMode]);
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
   const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);
@@ -110,6 +119,15 @@ export default function ChunkedRewriter({
       toast({
         title: "No chunks selected",
         description: "Please select at least one chunk to process.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!instructions.trim()) {
+      toast({
+        title: "Instructions required",
+        description: "Please provide instructions for how to process the content.",
         variant: "destructive"
       });
       return;
