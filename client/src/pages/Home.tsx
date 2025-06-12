@@ -337,7 +337,7 @@ export default function Home() {
         if (focusedDocuments.length === 0) {
           focusedDocuments = Object.entries(uploadedDocuments).map(([filename, content]) => ({
             name: filename,
-            content
+            content: content
           }));
         }
         
@@ -896,6 +896,15 @@ Document text: ${extractedText}`;
               <div className="flex items-center space-x-2">
                 <Button 
                   variant="outline" 
+                  size="sm"
+                  onClick={() => setDirectInputText('')}
+                  className="flex items-center space-x-1"
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </Button>
+                <Button 
+                  variant="outline" 
                   className="flex items-center space-x-2"
                   onClick={() => directFileInputRef.current?.click()}
                 >
@@ -1328,6 +1337,15 @@ Document text: ${extractedText}`;
                   />
                 </div>
                 <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPrompt('')}
+                    disabled={isLoading}
+                    title="Clear input"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon"
