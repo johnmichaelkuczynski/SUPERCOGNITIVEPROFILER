@@ -328,9 +328,9 @@ export default function Home() {
     try {
       setIsDirectProcessing(true);
       
-      const instructions = processingMode === 'homework' 
+      const instructions = customInstructions || (processingMode === 'homework' 
         ? 'Solve all problems step by step with clear explanations and show your work.'
-        : 'Improve clarity, flow, and overall quality while maintaining the original meaning.';
+        : 'Improve clarity, flow, and overall quality while maintaining the original meaning.');
       
       const response = await fetch('/api/rewrite-chunk', {
         method: 'POST',

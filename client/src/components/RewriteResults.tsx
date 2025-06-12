@@ -57,28 +57,7 @@ export default function RewriteResults({
 
     setIsRewriting(true);
     try {
-      const response = await fetch('/api/rewrite-chunk', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: originalText,
-          instructions: rewriteInstructions,
-          model: model,
-          chunkIndex: 0,
-          totalChunks: 1
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to rewrite content');
-      }
-
-      const data = await response.json();
-      // Update the rewritten text with the new result
-      window.location.reload(); // Simple refresh to show new results
-      
+      onRewriteAgain(rewriteInstructions);
     } catch (error) {
       console.error('Rewrite error:', error);
       toast({
