@@ -11,6 +11,7 @@ import ChunkedRewriter from '@/components/ChunkedRewriter';
 import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
 import { useSpeechInput } from '@/components/ui/speech-input';
 import MindProfiler from '@/components/MindProfiler';
+import MathRenderer from '@/components/MathRenderer';
 
 interface Message {
   id: number;
@@ -367,6 +368,14 @@ export default function Home() {
                 <DirectSpeechButton className="h-8 w-8" />
               </div>
             </div>
+            
+            {/* Math Preview */}
+            {directInputText && (directInputText.includes('\\') || directInputText.includes('$')) && (
+              <div className="border rounded-lg p-3 bg-gray-50">
+                <div className="text-sm text-gray-600 mb-2">Mathematical Preview:</div>
+                <MathRenderer content={directInputText} className="text-sm" />
+              </div>
+            )}
             
             <div className="flex justify-between items-center">
               <div className="flex gap-2">

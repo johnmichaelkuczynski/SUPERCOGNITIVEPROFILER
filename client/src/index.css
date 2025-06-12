@@ -1,9 +1,9 @@
+/* KaTeX CSS for mathematical notation */
+@import "katex/dist/katex.min.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* KaTeX CSS for mathematical notation */
-@import "katex/dist/katex.min.css";
 
 :root {
       --background: 0 0% 100%;
