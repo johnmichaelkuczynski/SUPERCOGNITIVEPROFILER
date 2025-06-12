@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { X, Download, Mail, ArrowLeft, RefreshCw, Plus, Share } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -35,6 +36,12 @@ export default function RewriteResults({
   onBackToChat
 }: RewriteResultsProps) {
   const [emailAddress, setEmailAddress] = useState('');
+  const [rewriteInstructions, setRewriteInstructions] = useState(
+    mode === 'homework' 
+      ? 'Solve all problems step by step with clear explanations and show your work.'
+      : 'Improve clarity, flow, and overall quality while maintaining the original meaning.'
+  );
+  const [isRewriting, setIsRewriting] = useState(false);
   const { toast } = useToast();
 
   const handleDownloadPDF = async () => {
