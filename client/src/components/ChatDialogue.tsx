@@ -62,56 +62,66 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     { onAppend: true }
   );
 
+  // Native drag and drop for textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+    };
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      // Handle plain text drag
+      if (e.dataTransfer?.types.includes('text/plain')) {
+        const text = e.dataTransfer.getData('text/plain');
+        setInput(prev => prev + (prev ? '\n\n' : '') + text);
+      }
+      // Handle file drag
+      else if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
+        
+        const validFiles = droppedFiles.filter(file => {
+          const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+          return allowedTypes.includes(extension);
+        });
+        
+        if (validFiles.length > 0) {
+          setFiles(prev => [...prev, ...validFiles]);
+        }
+      }
+    };
+
+    textarea.addEventListener('dragover', handleDragOver);
+    textarea.addEventListener('dragleave', handleDragLeave);
+    textarea.addEventListener('drop', handleDrop);
+
+    return () => {
+      textarea.removeEventListener('dragover', handleDragOver);
+      textarea.removeEventListener('dragleave', handleDragLeave);
+      textarea.removeEventListener('drop', handleDrop);
+    };
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Drag and drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
 
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only set to false if we're leaving the entire card area
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    
-    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      setIsDragging(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
-    
-    const validFiles = droppedFiles.filter(file => {
-      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-      return allowedTypes.includes(extension);
-    });
-    
-    if (validFiles.length > 0) {
-      setFiles(prev => [...prev, ...validFiles]);
-    }
-  };
 
 
 
