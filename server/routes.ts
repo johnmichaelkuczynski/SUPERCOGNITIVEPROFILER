@@ -2515,45 +2515,253 @@ Return only the new content without any additional comments, explanations, or he
         doc.end();
         
       } else if (format === 'docx') {
-        // Generate Word document
+        // Generate comprehensive Word document with proper analysis content
+        const paragraphs = [];
+        
+        // Header
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Mind Profile Report",
+                bold: true,
+                size: 32,
+              }),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Profile Type: ${profileType}`,
+                size: 24,
+              }),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Analysis Mode: ${analysisMode}`,
+                size: 24,
+              }),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Generated: ${new Date().toLocaleDateString()}`,
+                size: 24,
+              }),
+            ],
+          }),
+          new Paragraph({ children: [new TextRun("")] }) // Empty line
+        );
+
+        // Analysis sections based on new flat structure
+        if (results.emotionalPattern) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Emotional Pattern Analysis",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(results.emotionalPattern)],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+
+          // Add supporting evidence if available
+          if (results.supportingEvidence?.emotionalPattern) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Supporting Evidence:",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+              })
+            );
+
+            results.supportingEvidence.emotionalPattern.forEach((evidence: any, index: number) => {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Quote ${index + 1}: "${evidence.quote}"`,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            });
+          }
+        }
+
+        if (results.motivationalStructure) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Motivational Structure",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(results.motivationalStructure)],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+
+          if (results.supportingEvidence?.motivationalStructure) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Supporting Evidence:",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+              })
+            );
+
+            results.supportingEvidence.motivationalStructure.forEach((evidence: any, index: number) => {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Quote ${index + 1}: "${evidence.quote}"`,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            });
+          }
+        }
+
+        if (results.interpersonalDynamics) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Interpersonal Dynamics",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(results.interpersonalDynamics)],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+
+          if (results.supportingEvidence?.interpersonalDynamics) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Supporting Evidence:",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+              })
+            );
+
+            results.supportingEvidence.interpersonalDynamics.forEach((evidence: any, index: number) => {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Quote ${index + 1}: "${evidence.quote}"`,
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            });
+          }
+        }
+
+        if (results.intellectualApproach) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Intellectual Approach",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(results.intellectualApproach)],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+        }
+
+        if (results.personalityTraits && results.personalityTraits.length > 0) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Personality Traits",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(results.personalityTraits.join(", "))],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+        }
+
+        if (results.emotionalIntelligence) {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Emotional Intelligence Score",
+                  bold: true,
+                  size: 28,
+                }),
+              ],
+            }),
+            new Paragraph({
+              children: [new TextRun(`${results.emotionalIntelligence}/10`)],
+            })
+          );
+        }
+
         const doc = new Document({
           sections: [{
             properties: {},
-            children: [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "Mind Profile Report",
-                    bold: true,
-                    size: 32,
-                  }),
-                ],
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: `Profile Type: ${profileType}`,
-                    size: 24,
-                  }),
-                ],
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: `Analysis Mode: ${analysisMode}`,
-                    size: 24,
-                  }),
-                ],
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: `Generated: ${new Date().toLocaleDateString()}`,
-                    size: 24,
-                  }),
-                ],
-              }),
-            ],
+            children: paragraphs,
           }],
         });
         
@@ -2565,13 +2773,11 @@ Return only the new content without any additional comments, explanations, or he
           res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
           res.send(buffer);
         } catch (docxError) {
-          // Fallback to simple text file if DOCX fails
-          const content = `Mind Profile Report\n\nProfile Type: ${profileType}\nAnalysis Mode: ${analysisMode}\nGenerated: ${new Date().toLocaleDateString()}\n\n${results.cognitiveProfile ? `Cognitive Analysis:\n${results.cognitiveProfile.intellectualApproach}\n\n` : ''}${results.psychologicalProfile ? `Psychological Analysis:\n${results.psychologicalProfile.emotionalPatterns}\n\n` : ''}${results.comprehensiveInsights ? `Key Insights:\n${results.comprehensiveInsights.overallProfile}` : ''}`;
-          
-          const filename = `mind-profile-${profileType}-${Date.now()}.txt`;
-          res.setHeader('Content-Type', 'text/plain');
-          res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-          res.send(content);
+          console.error('DOCX generation error:', docxError);
+          res.status(500).json({ 
+            error: 'Failed to generate Word document', 
+            details: docxError instanceof Error ? docxError.message : String(docxError) 
+          });
         }
       }
       
