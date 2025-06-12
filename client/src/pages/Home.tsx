@@ -322,7 +322,7 @@ export default function Home() {
   };
 
   // Process rewrite directly and show results
-  const processDirectRewrite = async (content: string, title: string) => {
+  const processDirectRewrite = async (content: string, title: string, customInstructions?: string) => {
     console.log('processDirectRewrite called with:', { content: content.substring(0, 100), title, processingMode });
     
     try {
@@ -671,9 +671,10 @@ export default function Home() {
           mode={rewriteResults.mode}
           model={rewriteResults.model}
           chunksProcessed={rewriteResults.chunksProcessed}
-          onRewriteAgain={() => {
+          onRewriteAgain={(customInstructions: string) => {
             setIsRewriteResultsOpen(false);
-            processDirectRewrite(rewriteResults.originalText, `${rewriteResults.mode === 'rewrite' ? 'Rewrite' : 'Homework'} Task - Rewrite Again`);
+            // Process the rewrite with custom instructions
+            processDirectRewrite(rewriteResults.originalText, `${rewriteResults.mode === 'rewrite' ? 'Rewrite' : 'Homework'} Task - Custom Rewrite`, customInstructions);
           }}
           onAddToChat={() => {
             const userMessage: Message = {

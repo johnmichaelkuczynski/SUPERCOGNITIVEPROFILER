@@ -18,7 +18,7 @@ interface RewriteResultsProps {
   mode: 'rewrite' | 'homework';
   model: string;
   chunksProcessed: number;
-  onRewriteAgain: () => void;
+  onRewriteAgain: (customInstructions: string) => void;
   onAddToChat: () => void;
   onBackToChat: () => void;
 }
@@ -42,7 +42,54 @@ export default function RewriteResults({
       : 'Improve clarity, flow, and overall quality while maintaining the original meaning.'
   );
   const [isRewriting, setIsRewriting] = useState(false);
+  const [showCustomInstructions, setShowCustomInstructions] = useState(false);
   const { toast } = useToast();
+
+  const handleRewriteWithCustomInstructions = async () => {
+    if (!rewriteInstructions.trim()) {
+      toast({
+        title: "Instructions Required",
+        description: "Please provide instructions for the rewrite.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsRewriting(true);
+    try {
+      const response = await fetch('/api/rewrite-chunk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: originalText,
+          instructions: rewriteInstructions,
+          model: model,
+          chunkIndex: 0,
+          totalChunks: 1
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to rewrite content');
+      }
+
+      const data = await response.json();
+      // Update the rewritten text with the new result
+      window.location.reload(); // Simple refresh to show new results
+      
+    } catch (error) {
+      console.error('Rewrite error:', error);
+      toast({
+        title: "Rewrite Failed",
+        description: "Failed to rewrite with custom instructions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRewriting(false);
+    }
+  };
 
   const handleDownloadPDF = async () => {
     try {
@@ -180,48 +227,66 @@ export default function RewriteResults({
           </div>
         </DialogHeader>
 
-        {/* Action Buttons */}
-        <div className="flex-shrink-0 flex items-center justify-between gap-2 py-4 border-t border-b">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={onRewriteAgain} className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Rewrite the Rewrite
-            </Button>
-            <Button onClick={onAddToChat} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add to Chat
-            </Button>
-            <Button variant="outline" onClick={onBackToChat} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Chat
-            </Button>
+        {/* Custom Instructions Section */}
+        <div className="flex-shrink-0 space-y-3 py-4 border-t border-b">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Custom Instructions for Rewrite:
+            </label>
+            <Textarea
+              value={rewriteInstructions}
+              onChange={(e) => setRewriteInstructions(e.target.value)}
+              placeholder="Enter specific instructions for how you want the text rewritten..."
+              className="min-h-[80px] resize-none"
+            />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleDownloadPDF} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Save as PDF
-            </Button>
-            <Button variant="outline" onClick={handleDownloadWord} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Download Word
-            </Button>
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Input
-                placeholder="Enter email address"
-                value={emailAddress}
-                onChange={(e) => setEmailAddress(e.target.value)}
-                className="w-48"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleShare();
-                  }
-                }}
-              />
-              <Button onClick={handleShare} className="flex items-center gap-2">
-                <Share className="h-4 w-4" />
-                Share
+              <Button 
+                onClick={handleRewriteWithCustomInstructions} 
+                disabled={isRewriting}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRewriting ? 'animate-spin' : ''}`} />
+                {isRewriting ? 'Rewriting...' : 'Rewrite with Instructions'}
               </Button>
+              <Button onClick={onAddToChat} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add to Chat
+              </Button>
+              <Button variant="outline" onClick={onBackToChat} className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Chat
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleDownloadPDF} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Save as PDF
+              </Button>
+              <Button variant="outline" onClick={handleDownloadWord} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Download Word
+              </Button>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Enter email address"
+                  value={emailAddress}
+                  onChange={(e) => setEmailAddress(e.target.value)}
+                  className="w-48"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleShare();
+                    }
+                  }}
+                />
+                <Button onClick={handleShare} className="flex items-center gap-2">
+                  <Share className="h-4 w-4" />
+                  Share
+                </Button>
+              </div>
             </div>
           </div>
         </div>
