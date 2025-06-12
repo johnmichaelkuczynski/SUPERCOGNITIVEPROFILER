@@ -62,94 +62,94 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     { onAppend: true }
   );
 
-  // Native drag and drop for textarea
+  // REPLIT DRAG/DROP TEST - Force global event handling
   useEffect(() => {
+    console.log('Setting up global drag/drop test...');
+    
+    const handleGlobalDragOver = (e: DragEvent) => {
+      console.log('Global dragover detected');
+      e.preventDefault();
+    };
+
+    const handleGlobalDrop = (e: DragEvent) => {
+      console.log('Global drop detected', e.dataTransfer);
+      e.preventDefault();
+    };
+
+    // Force global event listeners
+    document.addEventListener('dragover', handleGlobalDragOver);
+    document.addEventListener('drop', handleGlobalDrop);
+
+    // Also try on textarea specifically
     const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    let dragCounter = 0;
-
-    const handleDragEnter = (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dragCounter++;
-      textarea.style.border = "2px dashed #3b82f6";
-      textarea.style.backgroundColor = "#eff6ff";
-    };
-
-    const handleDragOver = (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    const handleDragLeave = (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dragCounter--;
+    if (textarea) {
+      console.log('Setting up textarea-specific drag/drop...');
       
-      if (dragCounter === 0) {
+      const handleTextareaDragOver = (e: DragEvent) => {
+        console.log('Textarea dragover detected');
+        e.preventDefault();
+        e.stopPropagation();
+        textarea.style.border = "2px dashed #3b82f6";
+        textarea.style.backgroundColor = "#eff6ff";
+      };
+
+      const handleTextareaDrop = (e: DragEvent) => {
+        console.log('Textarea drop detected', e.dataTransfer);
+        e.preventDefault();
+        e.stopPropagation();
         textarea.style.border = "";
         textarea.style.backgroundColor = "";
-      }
-    };
 
-    const handleDrop = (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dragCounter = 0;
-      textarea.style.border = "";
-      textarea.style.backgroundColor = "";
-
-      console.log('Drop event triggered', e.dataTransfer);
-
-      // Handle plain text drag
-      if (e.dataTransfer?.types.includes('text/plain')) {
-        const text = e.dataTransfer.getData('text/plain');
-        console.log('Dropped text:', text);
-        setInput(prev => prev + (prev ? '\n\n' : '') + text);
-        return;
-      }
-      
-      // Handle file drag
-      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        const droppedFiles = Array.from(e.dataTransfer.files);
-        console.log('Dropped files:', droppedFiles);
+        // Handle plain text drag
+        if (e.dataTransfer?.types.includes('text/plain')) {
+          const text = e.dataTransfer.getData('text/plain');
+          console.log('Dropped text:', text);
+          setInput(prev => prev + (prev ? '\n\n' : '') + text);
+          return;
+        }
         
-        // Handle text files by reading their content
-        for (const file of droppedFiles) {
-          if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const text = event.target?.result as string;
-              if (text) {
-                console.log('File text content:', text);
-                setInput(prev => prev + (prev ? '\n\n' : '') + text);
+        // Handle file drag
+        if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+          const droppedFiles = Array.from(e.dataTransfer.files);
+          console.log('Dropped files:', droppedFiles);
+          
+          for (const file of droppedFiles) {
+            if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const text = event.target?.result as string;
+                if (text) {
+                  console.log('File text content:', text);
+                  setInput(prev => prev + (prev ? '\n\n' : '') + text);
+                }
+              };
+              reader.readAsText(file);
+            } else {
+              const allowedTypes = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
+              const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+              
+              if (allowedTypes.includes(extension)) {
+                setFiles(prev => [...prev, file]);
               }
-            };
-            reader.readAsText(file);
-          } else {
-            // Handle other file types (PDF, DOCX, images)
-            const allowedTypes = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
-            const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-            
-            if (allowedTypes.includes(extension)) {
-              setFiles(prev => [...prev, file]);
             }
           }
         }
-      }
-    };
+      };
 
-    textarea.addEventListener('dragenter', handleDragEnter);
-    textarea.addEventListener('dragover', handleDragOver);
-    textarea.addEventListener('dragleave', handleDragLeave);
-    textarea.addEventListener('drop', handleDrop);
+      textarea.addEventListener('dragover', handleTextareaDragOver);
+      textarea.addEventListener('drop', handleTextareaDrop);
+
+      return () => {
+        document.removeEventListener('dragover', handleGlobalDragOver);
+        document.removeEventListener('drop', handleGlobalDrop);
+        textarea.removeEventListener('dragover', handleTextareaDragOver);
+        textarea.removeEventListener('drop', handleTextareaDrop);
+      };
+    }
 
     return () => {
-      textarea.removeEventListener('dragenter', handleDragEnter);
-      textarea.removeEventListener('dragover', handleDragOver);
-      textarea.removeEventListener('dragleave', handleDragLeave);
-      textarea.removeEventListener('drop', handleDrop);
+      document.removeEventListener('dragover', handleGlobalDragOver);
+      document.removeEventListener('drop', handleGlobalDrop);
     };
   }, [setInput, setFiles]);
 
