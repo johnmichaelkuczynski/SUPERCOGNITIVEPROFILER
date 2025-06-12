@@ -198,43 +198,61 @@ For this sample, follow this process:
 - Is the writing displaying authentic intellectual effort, or performative pseudo-intelligence?
 - Are citations of complexity being used accurately, or as signals of fake depth?
 
-CRITICAL WARNINGS:
-- Do not equate "mentioning ambiguity" with "being an intelligent thinker"
-- Do not equate "using big words" with "being an intelligent thinker"
-- Do not equate "sounding analytic" with "being analytic"
-- Model the actual cognitive process
+6️⃣ PROFILE INFERENCE WITH MANDATORY DEPTH:
 
-You are profiling how the author thinks, not how their text sounds.
+DETAILED ANALYSIS REQUIREMENTS:
+For each quote you analyze, you must:
+1. Identify the SPECIFIC cognitive operation being performed
+2. Analyze the EXACT inferential structure and logical transitions
+3. Assess the PRECISE conceptual boundaries maintained
+4. Evaluate the SPECIFIC epistemic discipline demonstrated
+5. Distinguish CONCRETELY between authentic vs. performative complexity
 
-Rate on 1-10 scale based on ACTUAL cognitive processes:
-- Analytical Depth: Based on genuine reasoning quality vs. performed analysis
-- Conceptual Integration: Based on authentic precision vs. superficial complexity
-- Logical Structuring: Based on epistemic discipline vs. pseudo-intellectual posturing
+MANDATORY SPECIFICITY REQUIREMENTS:
+- Identify SPECIFIC reasoning stages in the argument structure
+- Analyze HOW inferential control is maintained throughout each transition
+- Describe PRECISELY how concepts are targeted and bounded
+- Identify SPECIFIC evidence of epistemic risk awareness and management
+- Your analysis must be so detailed it could only apply to THIS particular reasoning pattern
+
+CRITICAL FAILURE MODES TO AVOID:
+- Generic statements like "shows epistemic control" without specifying HOW
+- Surface paraphrasing disguised as cognitive analysis
+- Pattern matching on academic vocabulary instead of modeling actual reasoning process
+- Conflating mention of complexity with demonstration of complex thinking
+- Any language that could describe any "sophisticated" text generically
+
+You are profiling the specific cognitive architecture revealed by this particular reasoning process.
+
+Rate on 1-10 scale with DETAILED JUSTIFICATION citing specific textual evidence:
+- Analytical Depth: Provide specific evidence of reasoning quality vs. performed analysis
+- Conceptual Integration: Cite specific examples of precision vs. superficial complexity  
+- Logical Structuring: Identify specific evidence of epistemic discipline vs. posturing
 
 Format as JSON with this structure:
 {
-  "intellectualApproach": "analysis of epistemic control and reasoning discipline revealed in text structure",
-  "reasoningStyle": "analysis of inferential control, logical warranting, and argument structure quality",
-  "problemSolvingPattern": "analysis of conceptual targeting, precision, and cognitive integrity vs. posturing",
+  "intellectualApproach": "DETAILED MULTI-PARAGRAPH analysis identifying SPECIFIC stages of the argument, HOW epistemic control is maintained, and PRECISE evidence of reasoning discipline vs. performative complexity",
+  "reasoningStyle": "DETAILED analysis of EXACT inferential structure, identifying SPECIFIC logical transitions, how claims are warranted, and evidence of genuine vs. superficial analytical thinking",
+  "problemSolvingPattern": "DETAILED analysis of SPECIFIC conceptual targeting strategies, HOW boundaries are maintained, evidence of meta-cognitive awareness, and CONCRETE distinction between authentic vs. performative intellectual effort",
   "analyticalDepth": number,
   "conceptualIntegration": number,
   "logicalStructuring": number,
-  "strengths": ["genuine cognitive strengths based on epistemic discipline", "authentic reasoning capabilities"],
-  "growthAreas": ["actual cognitive limitations in reasoning structure", "epistemic blind spots revealed"],
-  "cognitiveSignature": "intellectual fingerprint based on reasoning quality and epistemic awareness",
-  "detailedAnalysis": "comprehensive analysis of cognitive processes: reasoning structure, epistemic control, conceptual precision, and cognitive integrity",
+  "strengths": ["SPECIFIC cognitive strengths with detailed textual evidence", "PRECISE reasoning capabilities demonstrated with examples"],
+  "growthAreas": ["SPECIFIC cognitive limitations with detailed evidence", "PRECISE epistemic blind spots identified with textual support"],
+  "cognitiveSignature": "DETAILED intellectual fingerprint that could only apply to this specific reasoning pattern, citing specific cognitive operations and inferential strategies",
+  "detailedAnalysis": "COMPREHENSIVE 4-5 paragraph analysis modeling the specific cognitive architecture revealed: detailed reasoning structure analysis, specific epistemic control evidence, precise conceptual targeting assessment, and concrete cognitive integrity evaluation",
   "supportingEvidence": {
     "intellectualApproach": [
-      {"quote": "exact quote from text", "explanation": "analysis of epistemic control and reasoning discipline shown here"},
-      {"quote": "exact quote from text", "explanation": "evidence of genuine vs. pseudo-intellectual approach"}
+      {"quote": "exact quote from text", "explanation": "DETAILED analysis of the specific cognitive operation performed here, how epistemic control is demonstrated, and what this reveals about reasoning discipline"},
+      {"quote": "exact quote from text", "explanation": "SPECIFIC analysis of inferential structure and evidence of genuine vs. pseudo-intellectual approach"}
     ],
     "reasoningStyle": [
-      {"quote": "exact quote from text", "explanation": "analysis of inferential control and logical warranting"},
-      {"quote": "exact quote from text", "explanation": "evidence of reasoning structure quality vs. superficial analysis"}
+      {"quote": "exact quote from text", "explanation": "DETAILED analysis of specific logical transitions, inferential control, and how claims are warranted"},
+      {"quote": "exact quote from text", "explanation": "SPECIFIC evidence of reasoning structure quality, identifying exact cognitive operations and their effectiveness"}
     ],
     "problemSolvingPattern": [
-      {"quote": "exact quote from text", "explanation": "analysis of conceptual targeting and precision"},
-      {"quote": "exact quote from text", "explanation": "evidence of cognitive integrity vs. intellectual posturing"}
+      {"quote": "exact quote from text", "explanation": "DETAILED analysis of specific conceptual targeting, how boundaries are maintained, and evidence of meta-cognitive awareness"},
+      {"quote": "exact quote from text", "explanation": "SPECIFIC analysis of cognitive integrity vs. intellectual posturing with precise evidence"}
     ]
   }
 }`;
@@ -245,7 +263,7 @@ Format as JSON with this structure:
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 2500,
+      max_tokens: 4000,
     });
 
     return JSON.parse(response.choices[0].message.content || "{}");
