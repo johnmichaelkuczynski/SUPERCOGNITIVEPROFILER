@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Upload, FileText, Download, Share, Trash2, X } from 'lucide-react';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
@@ -738,15 +738,18 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
             {/* Input controls */}
             <div className="flex space-x-2">
               <div className="flex-1 relative">
-                <Textarea
+                <textarea
                   id="chat-input"
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyPress}
                   placeholder="Ask anything about your documents or chat with the AI..."
-                  className="min-h-[120px] max-h-[400px] pr-24 resize-y"
+                  className="flex min-h-[120px] max-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-24 resize-y"
                   disabled={isLoading}
+                  style={{
+                    fontFamily: 'inherit',
+                  }}
                 />
                 <div className="absolute bottom-2 right-2 flex space-x-1">
                   <Button
