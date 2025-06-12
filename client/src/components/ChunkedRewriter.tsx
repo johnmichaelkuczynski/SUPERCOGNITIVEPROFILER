@@ -27,6 +27,9 @@ interface TextChunk {
 }
 
 interface ChunkedRewriterProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
   originalText: string;
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
   onAddToChat: (content: string, metadata: any) => void;
