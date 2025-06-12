@@ -128,20 +128,12 @@ export default function Home() {
       }
     };
 
-    // Add global document listeners to override Replit interference
-    document.addEventListener('dragover', handleDragOver);
-    document.addEventListener('dragleave', handleDragLeave);
-    document.addEventListener('drop', handleDrop);
-
-    // Also add direct textarea listeners
+    // Add textarea-specific listeners only
     textarea.addEventListener('dragover', handleDragOver);
     textarea.addEventListener('dragleave', handleDragLeave);
     textarea.addEventListener('drop', handleDrop);
 
     return () => {
-      document.removeEventListener('dragover', handleDragOver);
-      document.removeEventListener('dragleave', handleDragLeave);
-      document.removeEventListener('drop', handleDrop);
       textarea.removeEventListener('dragover', handleDragOver);
       textarea.removeEventListener('dragleave', handleDragLeave);
       textarea.removeEventListener('drop', handleDrop);
@@ -264,14 +256,43 @@ export default function Home() {
             </div>
             
             <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={() => setDirectInputText('')}
-                disabled={!directInputText.trim()}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setDirectInputText('')}
+                  disabled={!directInputText.trim()}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Clear
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById('text-file-input')?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Text
+                </Button>
+                <input
+                  id="text-file-input"
+                  type="file"
+                  accept=".txt,.md,.rtf,text/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const text = event.target?.result as string;
+                        if (text) {
+                          setDirectInputText(prev => prev ? prev + '\n\n' + text : text);
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+              </div>
               
               <Button
                 onClick={() => openChunkedRewriter(directInputText, `${processingMode === 'rewrite' ? 'Rewrite' : 'Homework'} Task`)}
