@@ -4,7 +4,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface DocumentChunk {
   index: number;
@@ -14,25 +13,19 @@ interface DocumentChunk {
 }
 
 interface DocumentChunkSelectorProps {
-  isOpen: boolean;
-  onClose: () => void;
   documentId: string;
   documentTitle: string;
   chunks: DocumentChunk[];
-  selectedChunks: number[];
-  onChunksSelected: (selectedChunks: number[]) => void;
+  onSelectChunks: (selectedChunks: number[]) => void;
 }
 
 export default function DocumentChunkSelector({
-  isOpen,
-  onClose,
   documentId,
   documentTitle,
   chunks,
-  selectedChunks: initialSelectedChunks,
-  onChunksSelected
+  onSelectChunks
 }: DocumentChunkSelectorProps) {
-  const [selectedChunks, setSelectedChunks] = useState<number[]>(initialSelectedChunks);
+  const [selectedChunks, setSelectedChunks] = useState<number[]>([]);
   
   const handleToggleChunk = (index: number) => {
     setSelectedChunks(prev => {
@@ -55,19 +48,11 @@ export default function DocumentChunkSelector({
   };
   
   const handleApply = () => {
-    onChunksSelected(selectedChunks);
+    onSelectChunks(selectedChunks);
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Document Sections</DialogTitle>
-          <DialogDescription>
-            Select specific sections of "{documentTitle}" to analyze instead of the entire document
-          </DialogDescription>
-        </DialogHeader>
-        <Card className="w-full border-0 shadow-none">
+    <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
         <CardTitle>Document Sections</CardTitle>
         <CardDescription>
@@ -127,7 +112,7 @@ export default function DocumentChunkSelector({
       <CardFooter className="flex justify-between">
         <Button 
           variant="outline" 
-          onClick={() => onChunksSelected([])}
+          onClick={() => onSelectChunks([])}
         >
           Cancel
         </Button>
@@ -135,8 +120,6 @@ export default function DocumentChunkSelector({
           Analyze Selected Sections
         </Button>
       </CardFooter>
-        </Card>
-      </DialogContent>
-    </Dialog>
+    </Card>
   );
 }

@@ -1,6 +1,3 @@
-/* KaTeX CSS for mathematical notation */
-@import "katex/dist/katex.min.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

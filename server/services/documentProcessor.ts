@@ -1,4 +1,4 @@
-import { extractMathFromPDFWithMathpix, extractMathWithMathpix, isMathematicalContent } from './mathpix';
+import { extractMathWithMathpix, isMathematicalContent } from './mathpix';
 import { PdfReader } from 'pdfreader';
 import mammoth from 'mammoth';
 import { detectAIContent, type AIDetectionResult } from './gptZero';
@@ -34,16 +34,8 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
     
     switch (fileType) {
       case 'pdf':
-        // First try Mathpix OCR for mathematical content
-        try {
-          console.log('Attempting Mathpix OCR for mathematical PDF content...');
-          extractedText = await extractMathFromPDFWithMathpix(file.buffer);
-          log(`Mathpix OCR extracted ${extractedText.length} characters from PDF`, 'document');
-        } catch (mathpixError) {
-          console.log('Mathpix OCR failed, falling back to standard PDF extraction:', mathpixError);
-          extractedText = await extractTextFromPDF(file.buffer);
-          log(`Standard PDF extraction: ${extractedText.length} characters from PDF`, 'document');
-        }
+        extractedText = await extractTextFromPDF(file.buffer);
+        log(`Extracted ${extractedText.length} characters from PDF`, 'document');
         
         if (extractedText.length > 10000) {
           chunks = splitIntoChunks(extractedText);

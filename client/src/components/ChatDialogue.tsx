@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Upload, FileText, Download, Share, Trash2, X } from 'lucide-react';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
@@ -11,10 +11,10 @@ import { Input } from '@/components/ui/input';
 import { LLMModel, formatBytes } from '@/lib/utils';
 import { downloadOutput } from '@/lib/llm';
 import ReactMarkdown from 'react-markdown';
+import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
-import MathRenderer from '@/components/MathRenderer';
 
 interface ChatMessage {
   id: number;
@@ -47,7 +47,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const [shareEmail, setShareEmail] = useState('');
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [messageToShare, setMessageToShare] = useState<ChatMessage | null>(null);
-
+  const [isDragging, setIsDragging] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(1); // Default ID for auxiliary chat
   const [conversationShareEmail, setConversationShareEmail] = useState('');
   
@@ -62,135 +62,43 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
     { onAppend: true }
   );
 
-  // REPLIT DRAG/DROP TEST - Force global event handling
-  useEffect(() => {
-    console.log('Setting up global drag/drop test...');
-    
-    const handleGlobalDragOver = (e: DragEvent) => {
-      console.log('Global dragover detected');
-      e.preventDefault();
-    };
 
-    const handleGlobalDrop = (e: DragEvent) => {
-      console.log('Global drop detected', e.dataTransfer);
-      e.preventDefault();
-    };
-
-    // Force global event listeners
-    document.addEventListener('dragover', handleGlobalDragOver);
-    document.addEventListener('drop', handleGlobalDrop);
-
-    // Also try on textarea specifically
-    const textarea = textareaRef.current;
-    if (textarea) {
-      console.log('Setting up textarea-specific drag/drop...');
-      
-      const handleTextareaDragOver = (e: DragEvent) => {
-        console.log('Textarea dragover detected');
-        e.preventDefault();
-        e.stopPropagation();
-        textarea.style.border = "2px dashed #3b82f6";
-        textarea.style.backgroundColor = "#eff6ff";
-      };
-
-      const handleTextareaDrop = (e: DragEvent) => {
-        console.log('Textarea drop detected', e.dataTransfer);
-        console.log('DataTransfer types:', e.dataTransfer?.types);
-        console.log('DataTransfer files length:', e.dataTransfer?.files?.length);
-        e.preventDefault();
-        e.stopPropagation();
-        textarea.style.border = "";
-        textarea.style.backgroundColor = "";
-
-        // Handle plain text drag FIRST
-        if (e.dataTransfer?.types && e.dataTransfer.types.includes('text/plain')) {
-          const text = e.dataTransfer.getData('text/plain');
-          console.log('Dropped text length:', text?.length);
-          console.log('Dropped text content:', text);
-          if (text && text.trim()) {
-            setInput(prev => {
-              const newValue = prev ? prev + '\n\n' + text : text;
-              console.log('Setting input to:', newValue);
-              return newValue;
-            });
-            return;
-          }
-        }
-        
-        // Handle file drag
-        if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-          const droppedFiles = Array.from(e.dataTransfer.files);
-          console.log('Processing', droppedFiles.length, 'files:');
-          droppedFiles.forEach((file, index) => {
-            console.log(`File ${index}:`, file.name, file.type, file.size);
-          });
-          
-          for (const file of droppedFiles) {
-            console.log('Processing file:', file.name, 'type:', file.type);
-            if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-              console.log('Reading as text file...');
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                const text = event.target?.result as string;
-                console.log('File read complete, text length:', text?.length);
-                if (text) {
-                  console.log('File text content preview:', text.substring(0, 100));
-                  setInput(prev => {
-                    const newValue = prev ? prev + '\n\n' + text : text;
-                    console.log('Setting input from file to:', newValue.substring(0, 100));
-                    return newValue;
-                  });
-                }
-              };
-              reader.onerror = (error) => {
-                console.error('FileReader error:', error);
-              };
-              reader.readAsText(file);
-            } else {
-              console.log('Adding to files list...');
-              const allowedTypes = ['.pdf', '.docx', '.jpg', '.jpeg', '.png'];
-              const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-              console.log('File extension:', extension);
-              
-              if (allowedTypes.includes(extension)) {
-                console.log('File type allowed, adding to files');
-                setFiles(prev => {
-                  console.log('Current files count:', prev.length);
-                  return [...prev, file];
-                });
-              } else {
-                console.log('File type not allowed');
-              }
-            }
-          }
-        } else {
-          console.log('No files in drop data');
-        }
-      };
-
-      textarea.addEventListener('dragover', handleTextareaDragOver);
-      textarea.addEventListener('drop', handleTextareaDrop);
-
-      return () => {
-        document.removeEventListener('dragover', handleGlobalDragOver);
-        document.removeEventListener('drop', handleGlobalDrop);
-        textarea.removeEventListener('dragover', handleTextareaDragOver);
-        textarea.removeEventListener('drop', handleTextareaDrop);
-      };
-    }
-
-    return () => {
-      document.removeEventListener('dragover', handleGlobalDragOver);
-      document.removeEventListener('drop', handleGlobalDrop);
-    };
-  }, [setInput, setFiles]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    // Only set to false if we're leaving the entire card area
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    const allowedTypes = ['.pdf', '.docx', '.txt', '.jpg', '.jpeg', '.png'];
+    
+    const validFiles = droppedFiles.filter(file => {
+      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      return allowedTypes.includes(extension);
+    });
+    
+    if (validFiles.length > 0) {
+      setFiles(prev => [...prev, ...validFiles]);
+    }
+  };
 
 
 
@@ -225,7 +133,36 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   }));
 
   const formatMessage = (content: string) => {
-    return <MathRenderer content={content} className="prose prose-sm max-w-none" />;
+    return (
+      <MathJax>
+        <ReactMarkdown
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+          components={{
+            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+            h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+            h2: ({ children }) => <h2 className="text-lg font-semibold mb-2">{children}</h2>,
+            h3: ({ children }) => <h3 className="text-md font-medium mb-2">{children}</h3>,
+            ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+            li: ({ children }) => <li className="mb-1">{children}</li>,
+            blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2">{children}</blockquote>,
+            code: ({ children, className }) => {
+              const isInline = !className;
+              return isInline ? (
+                <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">{children}</code>
+              ) : (
+                <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto mb-2">
+                  <code>{children}</code>
+                </pre>
+              );
+            }
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </MathJax>
+    );
   };
 
   const handleSend = async () => {
@@ -388,8 +325,20 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   return (
     <div className="h-full" data-chat-container="true">
       <Card 
-        className="h-full flex flex-col shadow-sm relative"
+        className={`h-full flex flex-col shadow-sm relative ${isDragging ? 'border-2 border-dashed border-blue-400' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
+        {isDragging && (
+          <div className="absolute inset-0 bg-blue-50 bg-opacity-90 flex items-center justify-center z-50 rounded-lg">
+            <div className="text-center">
+              <Upload className="h-12 w-12 mx-auto mb-2 text-blue-500" />
+              <p className="text-lg font-medium text-blue-700">Drop files here to upload</p>
+              <p className="text-sm text-blue-600">PDF, DOCX, TXT, JPG, PNG supported</p>
+            </div>
+          </div>
+        )}
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">Auxiliary AI Chat</CardTitle>
@@ -741,18 +690,15 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
             {/* Input controls */}
             <div className="flex space-x-2">
               <div className="flex-1 relative">
-                <textarea
+                <Textarea
                   id="chat-input"
                   ref={textareaRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyPress}
                   placeholder="Ask anything about your documents or chat with the AI..."
-                  className="flex min-h-[120px] max-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-24 resize-y"
+                  className="min-h-[120px] max-h-[400px] pr-24 resize-y"
                   disabled={isLoading}
-                  style={{
-                    fontFamily: 'inherit',
-                  }}
                 />
                 <div className="absolute bottom-2 right-2 flex space-x-1">
                   <Button
