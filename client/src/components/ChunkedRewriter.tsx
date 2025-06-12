@@ -11,11 +11,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { MathJax } from 'better-react-mathjax';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import MathRenderer from '@/components/MathRenderer';
 
 interface TextChunk {
   id: string;
@@ -371,14 +371,12 @@ export default function ChunkedRewriter({
                                 <DialogTitle>Chunk {index + 1} - Rewritten</DialogTitle>
                               </DialogHeader>
                               <div className="prose dark:prose-invert prose-sm max-w-none">
-                                <MathJax>
-                                  <ReactMarkdown
-                                    rehypePlugins={[rehypeKatex]}
-                                    remarkPlugins={[remarkMath]}
-                                  >
-                                    {chunk.rewritten}
-                                  </ReactMarkdown>
-                                </MathJax>
+                                <ReactMarkdown
+                                  rehypePlugins={[rehypeKatex]}
+                                  remarkPlugins={[remarkMath]}
+                                >
+                                  {chunk.rewritten}
+                                </ReactMarkdown>
                               </div>
                             </DialogContent>
                           </Dialog>
