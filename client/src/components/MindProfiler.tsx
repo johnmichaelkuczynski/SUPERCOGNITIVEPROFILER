@@ -562,6 +562,20 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             Analysis using: OpenAI, Anthropic & Perplexity
           </div>
 
+          {/* Debug - Show Results Button */}
+          {results && (
+            <div className="mt-4 text-center">
+              <Button
+                onClick={() => setShowResultsDialog(true)}
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-50 font-medium"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                View Analysis Results
+              </Button>
+            </div>
+          )}
+
           {/* Animated Loading Overlay */}
           {showLoadingAnimation && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300">
@@ -601,64 +615,12 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             </div>
           )}
 
-          {/* Simple Results Display */}
-          {results && (
-            <div className="mt-8 p-6 bg-green-50 border-2 border-green-200 rounded-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-green-800">Analysis Complete!</h3>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportProfile.mutate('pdf')}
-                    disabled={exportProfile.isPending}
-                  >
-                    {exportProfile.isPending ? 'Exporting...' : 'Download PDF'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportProfile.mutate('docx')}
-                    disabled={exportProfile.isPending}
-                  >
-                    {exportProfile.isPending ? 'Exporting...' : 'Download Word'}
-                  </Button>
-                </div>
-              </div>
-              
-              {results.cognitiveProfile && (
-                <div className="mb-4">
-                  <h4 className="font-medium text-blue-700 mb-2">Cognitive Analysis:</h4>
-                  <div className="text-sm text-gray-700 bg-white p-3 rounded border">
-                    {results.cognitiveProfile.intellectualApproach}
-                  </div>
-                </div>
-              )}
-              
-              {results.psychologicalProfile && (
-                <div className="mb-4">
-                  <h4 className="font-medium text-red-700 mb-2">Psychological Analysis:</h4>
-                  <div className="text-sm text-gray-700 bg-white p-3 rounded border">
-                    {results.psychologicalProfile.emotionalPattern}
-                  </div>
-                </div>
-              )}
-              
-              {results.comprehensiveInsights && (
-                <div className="mb-4">
-                  <h4 className="font-medium text-purple-700 mb-2">Key Insights:</h4>
-                  <div className="text-sm text-gray-700 bg-white p-3 rounded border">
-                    {results.comprehensiveInsights.overallProfile}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+
         </CardContent>
       </Card>
 
-      {/* Results Section */}
-      {results && (
+      {/* Removed old results section - now only shows in popup dialog */}
+      {false && results && (
         <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
           <CardHeader>
             <div className="flex justify-between items-center">
