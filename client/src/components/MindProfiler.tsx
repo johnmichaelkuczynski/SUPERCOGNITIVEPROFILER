@@ -58,6 +58,31 @@ interface ProfileResults {
   logicalStructuring?: number;
   cognitiveSignature?: string;
   
+  // Synthesis fields
+  intellectEmotionBalance?: string;
+  rationalEmotionalIntegration?: number;
+  decisionMakingStyle?: string;
+  stressVsClarity?: string;
+  creativeRationalFusion?: string;
+  emotionalReasoningPattern?: string;
+  intellectualEmpathy?: number;
+  synthesisStrengths?: string[];
+  integrationChallenges?: string[];
+  holisticSignature?: string;
+  cognitiveEmotionalArchitecture?: string;
+  authenticityVsPerformance?: string;
+  stressIntegrationPattern?: string;
+  empathyVsManipulation?: string;
+  balanceVsCompensation?: string;
+  synthesisEvolution?: string;
+  contextualFlexibility?: string;
+  integrationMaturity?: number;
+  authenticityScore?: number;
+  developmentPathways?: string[];
+  potentialPitfalls?: string[];
+  optimalEnvironments?: string[];
+  collaborationStyle?: string;
+  
   // General fields
   detailedAnalysis?: string;
   supportingEvidence?: {
@@ -68,6 +93,9 @@ interface ProfileResults {
     intellectualApproach?: SupportingEvidence[];
     reasoningStyle?: SupportingEvidence[];
     problemSolvingPattern?: SupportingEvidence[];
+    intellectEmotionBalance?: SupportingEvidence[];
+    decisionMakingStyle?: SupportingEvidence[];
+    emotionalReasoning?: SupportingEvidence[];
   };
   
   // Legacy nested structures (for backwards compatibility)
@@ -1276,6 +1304,177 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
             )}
 
+            {/* Show Synthesis Profile */}
+            {profileType === 'synthesis' && results && (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-purple-800 flex items-center gap-2">
+                  <Zap className="h-6 w-6" />
+                  Synthesis Analysis
+                </h3>
+                
+                {/* Intellect-Emotion Balance */}
+                {results.intellectEmotionBalance && (
+                  <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Intellect-Emotion Balance</h4>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>
+                        {results.intellectEmotionBalance}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Decision Making & Emotional Reasoning */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {results.decisionMakingStyle && (
+                    <div className="p-4 bg-white rounded-lg border-2 border-purple-200">
+                      <h4 className="font-bold text-purple-800 mb-3">Decision Making Style</h4>
+                      <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
+                        <ReactMarkdown>{results.decisionMakingStyle}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                  {results.emotionalReasoningPattern && (
+                    <div className="p-4 bg-white rounded-lg border-2 border-purple-200">
+                      <h4 className="font-bold text-purple-800 mb-3">Emotional Reasoning Pattern</h4>
+                      <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
+                        <ReactMarkdown>{results.emotionalReasoningPattern}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Cognitive-Emotional Architecture */}
+                {results.cognitiveEmotionalArchitecture && (
+                  <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
+                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Cognitive-Emotional Architecture</h4>
+                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      {results.cognitiveEmotionalArchitecture}
+                    </ReactMarkdown>
+                  </div>
+                )}
+
+                {/* Authenticity vs Performance */}
+                {results.authenticityVsPerformance && (
+                  <div className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border-2 border-orange-200">
+                    <h4 className="font-bold text-orange-900 mb-4 text-lg">Authenticity vs Performance</h4>
+                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      {results.authenticityVsPerformance}
+                    </ReactMarkdown>
+                  </div>
+                )}
+
+                {/* Synthesis Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {results.rationalEmotionalIntegration && (
+                    <div className="p-4 bg-purple-50 rounded-lg text-center">
+                      <h4 className="font-bold text-purple-800 mb-2">Integration Score</h4>
+                      <div className="text-3xl font-bold text-purple-600">{results.rationalEmotionalIntegration}/10</div>
+                    </div>
+                  )}
+                  {results.intellectualEmpathy && (
+                    <div className="p-4 bg-pink-50 rounded-lg text-center">
+                      <h4 className="font-bold text-pink-800 mb-2">Intellectual Empathy</h4>
+                      <div className="text-3xl font-bold text-pink-600">{results.intellectualEmpathy}/10</div>
+                    </div>
+                  )}
+                  {results.authenticityScore && (
+                    <div className="p-4 bg-orange-50 rounded-lg text-center">
+                      <h4 className="font-bold text-orange-800 mb-2">Authenticity Score</h4>
+                      <div className="text-3xl font-bold text-orange-600">{results.authenticityScore}/10</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Strengths and Challenges */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {results.synthesisStrengths && (
+                    <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                      <h4 className="font-bold text-green-800 mb-3">Synthesis Strengths</h4>
+                      <ul className="space-y-2">
+                        {results.synthesisStrengths.map((strength: string, index: number) => (
+                          <li key={index} className="text-green-700 flex items-start">
+                            <span className="text-green-600 mr-2 font-bold">•</span>
+                            {strength}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {results.integrationChallenges && (
+                    <div className="p-4 bg-red-50 rounded-lg border-2 border-red-200">
+                      <h4 className="font-bold text-red-800 mb-3">Integration Challenges</h4>
+                      <ul className="space-y-2">
+                        {results.integrationChallenges.map((challenge: string, index: number) => (
+                          <li key={index} className="text-red-700 flex items-start">
+                            <span className="text-red-600 mr-2 font-bold">•</span>
+                            {challenge}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Development Pathways */}
+                {results.developmentPathways && (
+                  <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                    <h4 className="font-bold text-blue-800 mb-3">Development Pathways</h4>
+                    <ul className="space-y-2">
+                      {results.developmentPathways.map((pathway: string, index: number) => (
+                        <li key={index} className="text-blue-700 flex items-start">
+                          <span className="text-blue-600 mr-2 font-bold">•</span>
+                          {pathway}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Supporting Evidence */}
+                {results.supportingEvidence && (
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-gray-800 mb-3">Supporting Evidence</h4>
+                    
+                    {results.supportingEvidence.intellectEmotionBalance && (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h5 className="font-medium text-gray-700 mb-3">Intellect-Emotion Balance Evidence</h5>
+                        {results.supportingEvidence.intellectEmotionBalance.map((evidence: any, index: number) => (
+                          <div key={index} className="border-l-4 border-purple-300 pl-4 py-2 mb-3 bg-white rounded-r">
+                            <blockquote className="text-sm italic text-gray-600 mb-2">
+                              "{evidence.quote}"
+                            </blockquote>
+                            <p className="text-sm text-gray-700">{evidence.explanation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Holistic Signature */}
+                {results.holisticSignature && (
+                  <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-300">
+                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Holistic Signature</h4>
+                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      {results.holisticSignature}
+                    </ReactMarkdown>
+                  </div>
+                )}
+
+                {/* Detailed Analysis */}
+                {results.detailedAnalysis && (
+                  <div className="p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
+                    <h4 className="font-bold text-gray-900 mb-4 text-lg">Detailed Analysis</h4>
+                    <ReactMarkdown className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      {results.detailedAnalysis}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            )}
+            
             {/* Show Cognitive Profile */}
             {results?.cognitiveProfile && (
               <div className="space-y-4">

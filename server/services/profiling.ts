@@ -57,6 +57,24 @@ interface SynthesisProfile {
   synthesisStrengths: string[];
   integrationChallenges: string[];
   holisticSignature: string;
+  cognitiveEmotionalArchitecture: string;
+  authenticityVsPerformance: string;
+  stressIntegrationPattern: string;
+  empathyVsManipulation: string;
+  balanceVsCompensation: string;
+  synthesisEvolution: string;
+  contextualFlexibility: string;
+  integrationMaturity: number;
+  authenticityScore: number;
+  supportingEvidence: {
+    intellectEmotionBalance: SupportingEvidence[];
+    decisionMakingStyle: SupportingEvidence[];
+    emotionalReasoning: SupportingEvidence[];
+  };
+  developmentPathways: string[];
+  potentialPitfalls: string[];
+  optimalEnvironments: string[];
+  collaborationStyle: string;
   detailedAnalysis: string;
 }
 
@@ -77,7 +95,9 @@ interface ComprehensiveInsights {
 async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<SynthesisProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `You are analyzing the synthesis between intellectual and emotional psychology revealed through communication patterns. You do not analyze literal content or stated beliefs. You analyze what the integration of reasoning and emotional patterns reveals about how this person's mind actually works.
+  const prompt = `You are a SYNTHESIS PROFILER analyzing the integration between intellectual and emotional psychology revealed through communication patterns. You do not analyze literal content or stated beliefs. You analyze what the integration of reasoning and emotional patterns reveals about how this person's mind actually works.
+
+CRITICAL MANDATE: You must be DECISIVE and HARD-HITTING in your conclusions. Do not be timid or bland. Drive your analysis to clear, bold conclusions about this person's intellectual-emotional integration patterns.
 
 You must ask: "What does this communication reveal about how this person actually integrates intellectual and emotional processing?"
 
@@ -112,7 +132,21 @@ CRITICAL HEURISTICS:
 - Authentic emotional reasoning doesn't need to announce itself
 - Genuine intellectual empathy shows through natural understanding, not performed concern
 
-Analyze the actual synthesis psychology behind their communication choices.
+SYNTHESIS ANALYSIS REQUIREMENTS:
+- Make BOLD, DECISIVE conclusions about their integration patterns
+- Identify specific cognitive weaknesses driven by emotional patterns
+- Call out emotional strategies that undermine epistemic control
+- Provide an overall profile that is direct and uncompromising
+- Don't be timid - drive the analysis to clear, hard conclusions
+
+Examples of the kind of decisive conclusions you should make:
+- "This pattern shows cognitive weakness driven by emotional self-promotion"
+- "The emotional strategy undermines epistemic control"
+- "Overall profile: self-referential moral narcissism with shallow cognitive architecture"
+- "Emotional reasoning dominates intellectual processing"
+- "Poor intellectual-emotional integration masked by performative balance"
+
+Analyze the actual synthesis psychology behind their communication choices with DECISIVE, HARD-HITTING conclusions.
 
 Provide a ${analysisDepth} analysis with this JSON structure:
 {
