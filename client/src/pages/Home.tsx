@@ -101,8 +101,7 @@ export default function Home() {
           console.log('New directInputText length:', newValue.length);
           console.log('About to set textarea value to:', newValue.substring(0, 100) + '...');
           
-          // Alert user that content was added
-          alert(`Successfully added ${result.content.length} characters from ${file.name} to the text area.`);
+          // Content added silently without popup
           
           return newValue;
         });
