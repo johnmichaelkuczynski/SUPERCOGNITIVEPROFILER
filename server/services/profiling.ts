@@ -213,28 +213,28 @@ Rate on 1-10 scale based on ACTUAL cognitive processes:
 
 Format as JSON with this structure:
 {
-  "intellectualApproach": "analysis of actual intellectual patterns revealed by communication structure, not stated beliefs",
-  "reasoningStyle": "analysis of actual reasoning patterns behind speech choices, not claimed logic",
-  "problemSolvingPattern": "analysis of actual problem-solving psychology revealed by communication approach",
+  "intellectualApproach": "analysis of epistemic control and reasoning discipline revealed in text structure",
+  "reasoningStyle": "analysis of inferential control, logical warranting, and argument structure quality",
+  "problemSolvingPattern": "analysis of conceptual targeting, precision, and cognitive integrity vs. posturing",
   "analyticalDepth": number,
   "conceptualIntegration": number,
   "logicalStructuring": number,
-  "strengths": ["actual cognitive strengths based on communication patterns", "not self-reported abilities"],
-  "growthAreas": ["actual cognitive limitations revealed", "not self-awareness claims"],
-  "cognitiveSignature": "actual intellectual fingerprint based on communication psychology",
-  "detailedAnalysis": "comprehensive analysis focusing on cognitive psychology behind speech choices",
+  "strengths": ["genuine cognitive strengths based on epistemic discipline", "authentic reasoning capabilities"],
+  "growthAreas": ["actual cognitive limitations in reasoning structure", "epistemic blind spots revealed"],
+  "cognitiveSignature": "intellectual fingerprint based on reasoning quality and epistemic awareness",
+  "detailedAnalysis": "comprehensive analysis of cognitive processes: reasoning structure, epistemic control, conceptual precision, and cognitive integrity",
   "supportingEvidence": {
     "intellectualApproach": [
-      {"quote": "exact quote from text", "explanation": "what this communication pattern reveals about actual intellectual approach"},
-      {"quote": "exact quote from text", "explanation": "cognitive psychology analysis of why they chose this structure"}
+      {"quote": "exact quote from text", "explanation": "analysis of epistemic control and reasoning discipline shown here"},
+      {"quote": "exact quote from text", "explanation": "evidence of genuine vs. pseudo-intellectual approach"}
     ],
     "reasoningStyle": [
-      {"quote": "exact quote from text", "explanation": "what this reveals about actual reasoning patterns"},
-      {"quote": "exact quote from text", "explanation": "analysis of cognitive strategy behind this choice"}
+      {"quote": "exact quote from text", "explanation": "analysis of inferential control and logical warranting"},
+      {"quote": "exact quote from text", "explanation": "evidence of reasoning structure quality vs. superficial analysis"}
     ],
     "problemSolvingPattern": [
-      {"quote": "exact quote from text", "explanation": "what this reveals about actual problem-solving psychology"},
-      {"quote": "exact quote from text", "explanation": "analysis of cognitive approach behind this communication"}
+      {"quote": "exact quote from text", "explanation": "analysis of conceptual targeting and precision"},
+      {"quote": "exact quote from text", "explanation": "evidence of cognitive integrity vs. intellectual posturing"}
     ]
   }
 }`;
