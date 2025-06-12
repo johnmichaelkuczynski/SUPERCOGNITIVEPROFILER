@@ -246,8 +246,7 @@ export default function Home() {
         setChunkedViewerName(file.name);
         setIsChunkedViewerOpen(true);
         
-        // Show user notification
-        alert(`Document "${file.name}" (${wordCount} words) is too large for the input box. Opening in document viewer where you can work with manageable sections.`);
+        // Silently open in chunked viewer - no annoying popup
       } else {
         // Small document - can put in input box
         setDirectInputText(extractedText);
