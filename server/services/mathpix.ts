@@ -80,6 +80,62 @@ function formatMathText(rawText: string): string {
   return formatted;
 }
 
+export async function extractMathFromPDFWithMathpix(pdfBuffer: Buffer): Promise<string> {
+  const pdf2pic = (await import('pdf2pic')).default;
+  const fs = await import('fs');
+  
+  try {
+    console.log('[mathpix] Converting PDF to images for OCR...');
+    
+    // Convert PDF to images
+    const convert = pdf2pic.fromBuffer(pdfBuffer, {
+      density: 300,           // High DPI for better OCR
+      saveFilename: "page",
+      savePath: "/tmp",
+      format: "png",
+      width: 2000,
+      height: 2600
+    });
+    
+    const results = await convert.bulk(-1); // Convert all pages
+    console.log(`[mathpix] Converted ${results.length} pages to images`);
+    
+    let combinedText = '';
+    
+    // Process each page with Mathpix OCR
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      
+      // Read the image file that was created
+      if (result.path) {
+        console.log(`[mathpix] Processing page ${i + 1} with OCR...`);
+        try {
+          const imageBuffer = fs.readFileSync(result.path);
+          const pageText = await extractMathWithMathpix(imageBuffer);
+          combinedText += `\n\n--- Page ${i + 1} ---\n\n${pageText}`;
+          
+          // Clean up the temporary file
+          fs.unlinkSync(result.path);
+        } catch (pageError) {
+          console.warn(`[mathpix] Failed to process page ${i + 1}:`, pageError);
+          combinedText += `\n\n--- Page ${i + 1} (OCR failed) ---\n\n`;
+        }
+      }
+    }
+    
+    if (!combinedText.trim()) {
+      throw new Error('No text extracted from any PDF pages');
+    }
+    
+    console.log(`[mathpix] Successfully processed PDF: ${combinedText.length} characters total`);
+    return combinedText.trim();
+    
+  } catch (error) {
+    console.error('[mathpix] PDF processing error:', error);
+    throw new Error(`PDF to Mathpix conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 export async function extractMathWithMathpix(imageBuffer: Buffer): Promise<string> {
   const appId = process.env.MATHPIX_APP_ID;
   const appKey = process.env.MATHPIX_APP_KEY;
