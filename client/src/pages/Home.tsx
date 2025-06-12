@@ -95,16 +95,24 @@ export default function Home() {
       console.log('Current directInputText before update:', directInputText.length, 'characters');
       
       if (result.content) {
-        console.log('Setting directInputText with content');
-        setDirectInputText(prev => {
-          const newValue = prev ? prev + '\n\n' + result.content : result.content;
-          console.log('New directInputText length:', newValue.length);
-          console.log('About to set textarea value to:', newValue.substring(0, 100) + '...');
-          
-          // Content added silently without popup
-          
-          return newValue;
-        });
+        const wordCount = result.content.split(/\s+/).length;
+        console.log('Document word count:', wordCount);
+        
+        if (wordCount > 500) {
+          // Large document - open chunk selector instead of dumping into textarea
+          console.log('Large document detected, opening chunk selector');
+          setSelectedDocumentId(result.id);
+          setSelectedDocumentTitle(result.name || file.name);
+          setDocumentChunks(result.chunks || []);
+          setIsChunkSelectorOpen(true);
+        } else {
+          // Small document - add to textarea as before
+          console.log('Small document, adding to textarea');
+          setDirectInputText(prev => {
+            const newValue = prev ? prev + '\n\n' + result.content : result.content;
+            return newValue;
+          });
+        }
       } else {
         console.log('NO CONTENT IN RESULT - checking result structure:', Object.keys(result));
       }
@@ -551,19 +559,23 @@ export default function Home() {
         documentTitle={selectedDocumentTitle}
         chunks={documentChunks}
         selectedChunks={selectedChunks}
-        onChunksSelected={(chunks) => {
-          setSelectedChunks(chunks);
+        onChunksSelected={(chunkIndices) => {
+          setSelectedChunks(chunkIndices);
           setIsChunkSelectorOpen(false);
           
-          // Add selected chunks to chat
-          const userMessage: Message = {
-            id: Date.now(),
-            content: `Selected ${chunks.length} sections from "${selectedDocumentTitle}"`,
-            role: 'user',
-            timestamp: new Date()
-          };
+          // Get the actual content from selected chunks
+          const selectedContent = chunkIndices.map(index => {
+            const chunk = documentChunks[index];
+            return chunk ? chunk.content || chunk.summary : '';
+          }).filter(content => content).join('\n\n---\n\n');
           
-          setMessages(prev => [...prev, userMessage]);
+          if (selectedContent) {
+            // Open ChunkedRewriter with selected chunks
+            setRewriterText(selectedContent);
+            setRewriterTitle(`Selected sections from "${selectedDocumentTitle}"`);
+            setRewriterProcessingMode(processingMode);
+            setIsChunkedRewriterOpen(true);
+          }
         }}
       />
 
