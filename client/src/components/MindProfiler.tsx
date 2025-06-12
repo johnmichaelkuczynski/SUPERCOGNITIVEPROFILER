@@ -893,123 +893,187 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             Analysis results showing cognitive and psychological insights
           </div>
           
-          {results && (
-            <div className="space-y-6">
-              {results.cognitiveProfile && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-blue-800">Cognitive Analysis</h3>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <ReactMarkdown>{results.cognitiveProfile.intellectualApproach}</ReactMarkdown>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-3 bg-white rounded border">
-                      <h4 className="font-medium text-blue-700 mb-2">Thinking Style</h4>
-                      <p className="text-sm text-gray-700">{results.cognitiveProfile.thinkingStyle}</p>
-                    </div>
-                    <div className="p-3 bg-white rounded border">
-                      <h4 className="font-medium text-blue-700 mb-2">Problem Solving</h4>
-                      <p className="text-sm text-gray-700">{results.cognitiveProfile.problemSolving}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {results.psychologicalProfile && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-red-800">Psychological Analysis</h3>
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                    <ReactMarkdown>{results.psychologicalProfile.emotionalPattern}</ReactMarkdown>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-3 bg-white rounded border">
-                      <h4 className="font-medium text-red-700 mb-2">Communication Style</h4>
-                      <p className="text-sm text-gray-700">{results.psychologicalProfile.communicationStyle}</p>
-                    </div>
-                    <div className="p-3 bg-white rounded border">
-                      <h4 className="font-medium text-red-700 mb-2">Social Tendencies</h4>
-                      <p className="text-sm text-gray-700">{results.psychologicalProfile.socialTendencies}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {results.comprehensiveInsights && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-purple-800">Synthesis Insights</h3>
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <ReactMarkdown>{results.comprehensiveInsights.overallProfile}</ReactMarkdown>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-3 bg-green-50 rounded border border-green-200">
-                      <h4 className="font-medium text-green-700 mb-2">Strengths</h4>
-                      <ul className="text-sm space-y-1">
-                        {results.comprehensiveInsights.uniqueStrengths?.slice(0, 3).map((strength: string, index: number) => (
-                          <li key={index} className="text-green-600">• {strength}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="p-3 bg-orange-50 rounded border border-orange-200">
-                      <h4 className="font-medium text-orange-700 mb-2">Development Areas</h4>
-                      <ul className="text-sm space-y-1">
-                        {results.comprehensiveInsights.developmentAreas?.slice(0, 3).map((area: string, index: number) => (
-                          <li key={index} className="text-orange-600">• {area}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="p-3 bg-blue-50 rounded border border-blue-200">
-                      <h4 className="font-medium text-blue-700 mb-2">Recommendations</h4>
-                      <ul className="text-sm space-y-1">
-                        {results.comprehensiveInsights.recommendations?.slice(0, 3).map((rec: string, index: number) => (
-                          <li key={index} className="text-blue-600">• {rec}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-between pt-4 border-t">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportProfile.mutate('pdf')}
-                    disabled={exportProfile.isPending}
-                    className="flex items-center gap-1"
-                  >
-                    <Download className="h-4 w-4" />
-                    PDF
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportProfile.mutate('docx')}
-                    disabled={exportProfile.isPending}
-                    className="flex items-center gap-1"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Word
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleEmailProfile}
-                    disabled={emailProfile.isPending}
-                    className="flex items-center gap-1"
-                  >
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Button>
-                </div>
-                <Button onClick={() => setShowResultsDialog(false)}>
-                  Close
-                </Button>
+          <div className="space-y-6">
+            {/* Debug Results */}
+            {results && (
+              <div className="p-4 bg-gray-100 rounded-lg mb-4">
+                <h4 className="font-bold mb-2">Debug - Results Object:</h4>
+                <pre className="text-xs overflow-auto max-h-32">
+                  {JSON.stringify(results, null, 2)}
+                </pre>
               </div>
+            )}
+            
+            {/* Show Psychological Profile First */}
+            {results?.psychologicalProfile && (
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-red-800 flex items-center gap-2">
+                  <Heart className="h-6 w-6" />
+                  Psychological Analysis
+                </h3>
+                
+                <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
+                  <h4 className="font-bold text-red-900 mb-4 text-lg">Emotional Pattern</h4>
+                  <div className="text-gray-800 leading-relaxed">
+                    {results.psychologicalProfile.emotionalPattern}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 bg-white rounded-lg border-2 border-red-200">
+                    <h4 className="font-bold text-red-800 mb-3">Motivational Structure</h4>
+                    <p className="text-gray-700 leading-relaxed">{results.psychologicalProfile.motivationalStructure}</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-lg border-2 border-red-200">
+                    <h4 className="font-bold text-red-800 mb-3">Interpersonal Dynamics</h4>
+                    <p className="text-gray-700 leading-relaxed">{results.psychologicalProfile.interpersonalDynamics}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Show Cognitive Profile */}
+            {results?.cognitiveProfile && (
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-blue-800 flex items-center gap-2">
+                  <Brain className="h-6 w-6" />
+                  Cognitive Analysis
+                </h3>
+                
+                <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <h4 className="font-bold text-blue-900 mb-4 text-lg">Intellectual Approach</h4>
+                  <div className="text-gray-800 leading-relaxed">
+                    {results.cognitiveProfile.intellectualApproach}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 bg-white rounded-lg border-2 border-blue-200">
+                    <h4 className="font-bold text-blue-800 mb-3">Reasoning Style</h4>
+                    <p className="text-gray-700 leading-relaxed">{results.cognitiveProfile.reasoningStyle}</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-lg border-2 border-blue-200">
+                    <h4 className="font-bold text-blue-800 mb-3">Problem Solving Pattern</h4>
+                    <p className="text-gray-700 leading-relaxed">{results.cognitiveProfile.problemSolvingPattern}</p>
+                  </div>
+                </div>
+                
+                {/* Cognitive Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-lg text-center">
+                    <h4 className="font-bold text-blue-800 mb-2">Analytical Depth</h4>
+                    <div className="text-3xl font-bold text-blue-600">{results.cognitiveProfile.analyticalDepth}/10</div>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-lg text-center">
+                    <h4 className="font-bold text-green-800 mb-2">Conceptual Integration</h4>
+                    <div className="text-3xl font-bold text-green-600">{results.cognitiveProfile.conceptualIntegration}/10</div>
+                  </div>
+                  <div className="p-4 bg-purple-50 rounded-lg text-center">
+                    <h4 className="font-bold text-purple-800 mb-2">Logical Structuring</h4>
+                    <div className="text-3xl font-bold text-purple-600">{results.cognitiveProfile.logicalStructuring}/10</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Show Comprehensive Insights */}
+            {results?.comprehensiveInsights && (
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-purple-800 flex items-center gap-2">
+                  <Sparkles className="h-6 w-6" />
+                  Comprehensive Insights
+                </h3>
+                
+                <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                  <h4 className="font-bold text-purple-900 mb-4 text-lg">Overall Profile</h4>
+                  <div className="text-gray-800 leading-relaxed">
+                    {results.comprehensiveInsights.overallProfile}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                    <h4 className="font-bold text-green-800 mb-3">Strengths</h4>
+                    <ul className="space-y-2">
+                      {results.comprehensiveInsights.uniqueStrengths?.map((strength: string, index: number) => (
+                        <li key={index} className="text-green-700 flex items-start">
+                          <span className="text-green-600 mr-2 font-bold">•</span>
+                          {strength}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                    <h4 className="font-bold text-orange-800 mb-3">Development Areas</h4>
+                    <ul className="space-y-2">
+                      {results.comprehensiveInsights.developmentAreas?.map((area: string, index: number) => (
+                        <li key={index} className="text-orange-700 flex items-start">
+                          <span className="text-orange-600 mr-2 font-bold">•</span>
+                          {area}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                
+                {results.comprehensiveInsights.recommendations && (
+                  <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                    <h4 className="font-bold text-blue-800 mb-3">Recommendations</h4>
+                    <ul className="space-y-2">
+                      {results.comprehensiveInsights.recommendations.map((rec: string, index: number) => (
+                        <li key={index} className="text-blue-700 flex items-start">
+                          <span className="text-blue-600 mr-2 font-bold">•</span>
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Debug: Show raw results if nothing else renders */}
+            {results && !results.psychologicalProfile && !results.cognitiveProfile && !results.comprehensiveInsights && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="font-bold text-yellow-800 mb-2">Analysis Results (Debug View)</h4>
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto max-h-96">
+                  {JSON.stringify(results, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {/* Export Options */}
+            <div className="flex justify-between items-center pt-6 border-t-2 border-gray-200">
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => exportProfile.mutate('pdf')}
+                  disabled={exportProfile.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => exportProfile.mutate('docx')}
+                  disabled={exportProfile.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Export Word
+                </Button>
+
+              </div>
+              <Button 
+                onClick={() => setShowResultsDialog(false)}
+                className="bg-gray-600 hover:bg-gray-700"
+              >
+                Close
+              </Button>
             </div>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
