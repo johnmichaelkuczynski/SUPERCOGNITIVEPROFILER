@@ -2490,10 +2490,20 @@ Return only the new content without any additional comments, explanations, or he
         
         // Add all analysis sections using the flat structure
         if (results.emotionalPattern) {
+          // Check if we need a new page
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Emotional Pattern Analysis', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(results.emotionalPattern, 50, yPosition, { width: 500 });
-          yPosition += 100;
+          
+          // Clean and wrap the text properly
+          const cleanText = String(results.emotionalPattern || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 20, 80);
           
           if (results.supportingEvidence?.emotionalPattern) {
             doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
@@ -2509,10 +2519,19 @@ Return only the new content without any additional comments, explanations, or he
         }
 
         if (results.motivationalStructure) {
+          // Check if we need a new page
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Motivational Structure', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(results.motivationalStructure, 50, yPosition, { width: 500 });
-          yPosition += 100;
+          
+          const cleanText = String(results.motivationalStructure || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 20, 80);
           
           if (results.supportingEvidence?.motivationalStructure) {
             doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
@@ -2528,10 +2547,18 @@ Return only the new content without any additional comments, explanations, or he
         }
 
         if (results.interpersonalDynamics) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Interpersonal Dynamics', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(results.interpersonalDynamics, 50, yPosition, { width: 500 });
-          yPosition += 100;
+          
+          const cleanText = String(results.interpersonalDynamics || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 20, 80);
           
           if (results.supportingEvidence?.interpersonalDynamics) {
             doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
@@ -2547,10 +2574,18 @@ Return only the new content without any additional comments, explanations, or he
         }
 
         if (results.intellectualApproach) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Intellectual Approach', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(results.intellectualApproach, 50, yPosition, { width: 500 });
-          yPosition += 100;
+          
+          const cleanText = String(results.intellectualApproach || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 20, 80);
           
           if (results.supportingEvidence?.intellectualApproach) {
             doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
@@ -2566,10 +2601,18 @@ Return only the new content without any additional comments, explanations, or he
         }
 
         if (results.reasoningStyle) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Reasoning Style', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(results.reasoningStyle, 50, yPosition, { width: 500 });
-          yPosition += 100;
+          
+          const cleanText = String(results.reasoningStyle || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 20, 80);
           
           if (results.supportingEvidence?.reasoningStyle) {
             doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
@@ -2585,10 +2628,18 @@ Return only the new content without any additional comments, explanations, or he
         }
 
         if (results.problemSolvingPattern) {
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+          
           doc.fontSize(16).text('Problem Solving Pattern', 50, yPosition);
           yPosition += 30;
-          doc.fontSize(12).text(results.problemSolvingPattern, 50, yPosition, { width: 500 });
-          yPosition += 100;
+          
+          const cleanText = String(results.problemSolvingPattern || '').replace(/\n{3,}/g, '\n\n').trim();
+          const textHeight = doc.heightOfString(cleanText, { width: 500 });
+          doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+          yPosition += Math.max(textHeight + 20, 80);
           
           if (results.supportingEvidence?.problemSolvingPattern) {
             doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
