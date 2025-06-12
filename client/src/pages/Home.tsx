@@ -20,6 +20,7 @@ import ChunkedRewriter from '@/components/ChunkedRewriter';
 import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import MindProfiler from '@/components/MindProfiler';
+import ChunkedDocumentViewer from '@/components/ChunkedDocumentViewer';
 
 interface Message {
   id: number;
@@ -81,6 +82,11 @@ export default function Home() {
   const [rewriterText, setRewriterText] = useState<string>('');
   const [rewriterTitle, setRewriterTitle] = useState<string>('');
   const [rewriterProcessingMode, setRewriterProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
+  
+  // Chunked document viewer state
+  const [isChunkedViewerOpen, setIsChunkedViewerOpen] = useState(false);
+  const [chunkedViewerDocument, setChunkedViewerDocument] = useState<string>('');
+  const [chunkedViewerName, setChunkedViewerName] = useState<string>('');
   
   // Track all uploaded documents for the sidebar
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
@@ -230,8 +236,22 @@ export default function Home() {
       const data = await response.json();
       const extractedText = data.text || data.content || '';
       
-      // Set the extracted text in the direct input
-      setDirectInputText(extractedText);
+      // Check document size - NEVER put large documents in input boxes
+      const wordCount = extractedText.split(/\s+/).length;
+      const charCount = extractedText.length;
+      
+      if (wordCount > 1000 || charCount > 5000) {
+        // LARGE DOCUMENT - Open in chunked viewer instead
+        setChunkedViewerDocument(extractedText);
+        setChunkedViewerName(file.name);
+        setIsChunkedViewerOpen(true);
+        
+        // Show user notification
+        alert(`Document "${file.name}" (${wordCount} words) is too large for the input box. Opening in document viewer where you can work with manageable sections.`);
+      } else {
+        // Small document - can put in input box
+        setDirectInputText(extractedText);
+      }
       
       // Add to uploaded documents
       setUploadedDocuments(prev => ({
@@ -1808,6 +1828,27 @@ Document text: ${extractedText}`;
           />
         </DialogContent>
       </Dialog>
+
+      {/* Chunked Document Viewer - For Large Documents */}
+      <ChunkedDocumentViewer
+        isOpen={isChunkedViewerOpen}
+        onClose={() => setIsChunkedViewerOpen(false)}
+        documentName={chunkedViewerName}
+        documentContent={chunkedViewerDocument}
+        onEditChunk={(chunkId, title, content) => {
+          // Put chunk content in direct input for editing
+          setDirectInputText(content);
+          setIsChunkedViewerOpen(false);
+        }}
+        onRewriteChunk={(chunkId, title, content) => {
+          // Open chunk in rewriter
+          setRewriterText(content);
+          setRewriterTitle(`${title} - Chunk ${chunkId + 1}`);
+          setRewriterProcessingMode('rewrite');
+          setIsChunkedRewriterOpen(true);
+          setIsChunkedViewerOpen(false);
+        }}
+      />
     </main>
   );
 }
