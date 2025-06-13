@@ -1215,21 +1215,24 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       {/* Results Dialog */}
       <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
         <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0" aria-describedby="results-description">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {profileType === 'cognitive' && <Brain className="h-5 w-5 text-blue-600" />}
-              {profileType === 'psychological' && <Heart className="h-5 w-5 text-red-600" />}
-              {profileType === 'synthesis' && <Sparkles className="h-5 w-5 text-purple-600" />}
-              {profileType === 'cognitive' ? 'Cognitive Profile' : 
-               profileType === 'psychological' ? 'Psychological Profile' : 
-               'Synthesis Profile'} Analysis
-            </DialogTitle>
-          </DialogHeader>
-          <div id="results-description" className="sr-only">
-            Analysis results showing cognitive and psychological insights
+          <div className="p-6 border-b border-gray-200">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {profileType === 'cognitive' && <Brain className="h-5 w-5 text-blue-600" />}
+                {profileType === 'psychological' && <Heart className="h-5 w-5 text-red-600" />}
+                {profileType === 'synthesis' && <Sparkles className="h-5 w-5 text-purple-600" />}
+                {profileType === 'cognitive' ? 'Cognitive Profile' : 
+                 profileType === 'psychological' ? 'Psychological Profile' : 
+                 'Synthesis Profile'} Analysis
+              </DialogTitle>
+            </DialogHeader>
+            <div id="results-description" className="sr-only">
+              Analysis results showing cognitive and psychological insights
+            </div>
           </div>
           
-          <div className="space-y-8">            
+          <div className="overflow-y-auto max-h-[calc(95vh-180px)] p-6">
+            <div className="space-y-8">            
             {/* Enhanced analysis content with evidence */}
             {results && (
               <div className="space-y-8">
@@ -1696,8 +1699,12 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
 
 
-            {/* Export Options */}
-            <div className="flex justify-between items-center pt-6 border-t-2 border-gray-200">
+            </div>
+          </div>
+          
+          {/* Fixed footer with export options */}
+          <div className="border-t border-gray-200 p-6 bg-white">
+            <div className="flex justify-between items-center">
               <div className="flex gap-3">
                 <Button
                   variant="outline"
@@ -1717,7 +1724,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <FileText className="h-4 w-4" />
                   Export Word
                 </Button>
-
               </div>
               <Button 
                 onClick={() => setShowResultsDialog(false)}
