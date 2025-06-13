@@ -473,7 +473,7 @@ CRITICAL: ONLY return the JSON structure above. Do not include any other fields 
   }
 }
 
-// Generate psychological profile from text analysis
+// Generate psychological profile with dialectical structure
 async function generatePsychologicalProfile(text: string, isComprehensive: boolean = false): Promise<PsychologicalProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
@@ -518,67 +518,106 @@ You are not a belief extractor. You are a profiler of speaker psychology based o
 You must model speech acts first, then profile.
 You must explicitly distinguish between what the person says and what kind of person says it.
 
-Provide a ${analysisDepth} psychological profile with supporting evidence showing your reasoning process.
-
-Rate the following on a 1-10 scale:
-- Emotional Intelligence: Based on manipulation sophistication and social awareness
-- Adaptability: Based on strategic flexibility in communication
-- Social Orientation: Based on actual social manipulation vs genuine connection patterns
+Provide a ${analysisDepth} psychological profile using the DIALECTICAL STRUCTURE below:
 
 Format as JSON with this EXACT structure:
 {
-  "emotionalPattern": "analysis of actual emotional patterns behind speech choices, not content",
-  "motivationalStructure": "analysis of what actually drives this person based on speech psychology",
-  "interpersonalDynamics": "analysis of how they actually relate to others based on communication strategy",
-  "stressResponsePattern": "analysis of actual stress patterns evident in speech choices",
-  "communicationStyle": "analysis of actual communication psychology, not surface content",
-  "personalityTraits": ["actual traits based on speech psychology", "not literal content", "focus on manipulation vs authenticity"],
-  "emotionalIntelligence": number,
-  "adaptability": number,
-  "socialOrientation": number,
-  "psychologicalSignature": "actual psychological fingerprint based on speech patterns",
-  "detailedAnalysis": "comprehensive narrative focusing on psychology behind speech choices",
-  "supportingEvidence": {
-    "emotionalPattern": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "why this speech choice reveals this actual emotional pattern, not what they claim"
-      },
-      {
-        "quote": "another exact quote from text",
-        "explanation": "psychological analysis of why they chose these words - what it reveals about them"
-      }
-    ],
-    "motivationalStructure": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "what this reveals about their actual motivations behind saying this"
-      },
-      {
-        "quote": "another exact quote from text", 
-        "explanation": "detailed explanation of what this reveals about motivation"
-      }
-    ],
-    "interpersonalDynamics": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "detailed explanation of interpersonal pattern"
-      },
-      {
-        "quote": "another exact quote from text",
-        "explanation": "detailed explanation of relationship approach"
-      }
-    ],
-    "stressResponsePattern": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "detailed explanation of stress response indicator"
-      },
-      {
-        "quote": "another exact quote from text",
-        "explanation": "detailed explanation of coping mechanism"
-      }
-    ]
+  "thesis": {
+    "title": "🧠 THESIS: PRIMARY PSYCHOLOGICAL ANALYSIS",
+    "emotionalPattern": "Primary analysis of actual emotional patterns behind speech choices, not content",
+    "motivationalStructure": "Primary analysis of what actually drives this person based on speech psychology",
+    "interpersonalDynamics": "Primary analysis of how they actually relate to others based on communication strategy",
+    "stressResponsePattern": "Primary analysis of actual stress patterns evident in speech choices",
+    "communicationStyle": "Primary analysis of actual communication psychology, not surface content",
+    "personalityTraits": ["primary traits based on speech psychology", "authentic vs manipulative tendencies"],
+    "emotionalIntelligence": number,
+    "adaptability": number,
+    "socialOrientation": number,
+    "psychologicalSignature": "Primary psychological fingerprint based on speech patterns",
+    "detailedAnalysis": "Comprehensive primary narrative focusing on psychology behind speech choices",
+    "supportingEvidence": {
+      "emotionalPattern": [
+        {"quote": "exact quote from text", "explanation": "why this speech choice reveals this emotional pattern"},
+        {"quote": "another exact quote from text", "explanation": "psychological analysis of word choice reveals"}
+      ],
+      "motivationalStructure": [
+        {"quote": "exact quote from text", "explanation": "what this reveals about actual motivations"},
+        {"quote": "another exact quote from text", "explanation": "detailed motivation analysis"}
+      ],
+      "interpersonalDynamics": [
+        {"quote": "exact quote from text", "explanation": "detailed interpersonal pattern explanation"},
+        {"quote": "another exact quote from text", "explanation": "relationship approach analysis"}
+      ],
+      "stressResponsePattern": [
+        {"quote": "exact quote from text", "explanation": "stress response indicator analysis"},
+        {"quote": "another exact quote from text", "explanation": "coping mechanism explanation"}
+      ]
+    }
+  },
+  "antithesis": {
+    "title": "🤔 ANTITHESIS: DISSENTING PSYCHOLOGICAL ANALYSIS",
+    "emotionalPattern": "ALTERNATIVE interpretation of emotional patterns - challenge the primary analysis with contrarian evidence",
+    "motivationalStructure": "CONTRARIAN assessment of motivational drivers - question the primary interpretation",
+    "interpersonalDynamics": "SKEPTICAL view of interpersonal patterns - alternative explanation for relationship behaviors",
+    "stressResponsePattern": "CRITICAL reinterpretation of stress responses - challenge the primary stress assessment",
+    "communicationStyle": "OPPOSING view of communication psychology - question the primary communication analysis",
+    "personalityTraits": ["contrarian traits assessment", "challenge to authenticity claims"],
+    "emotionalIntelligence": number,
+    "adaptability": number,
+    "socialOrientation": number,
+    "psychologicalSignature": "Alternative psychological interpretation",
+    "detailedAnalysis": "Counter-narrative challenging primary psychological conclusions",
+    "supportingEvidence": {
+      "emotionalPattern": [
+        {"quote": "exact quote from text", "explanation": "critical reinterpretation of emotional evidence"},
+        {"quote": "exact quote from text", "explanation": "skeptical analysis of emotional claims"}
+      ],
+      "motivationalStructure": [
+        {"quote": "exact quote from text", "explanation": "contrarian motivation assessment"},
+        {"quote": "exact quote from text", "explanation": "challenge to motivation interpretation"}
+      ],
+      "interpersonalDynamics": [
+        {"quote": "exact quote from text", "explanation": "alternative interpersonal interpretation"},
+        {"quote": "exact quote from text", "explanation": "skeptical relationship analysis"}
+      ],
+      "stressResponsePattern": [
+        {"quote": "exact quote from text", "explanation": "contrarian stress pattern assessment"},
+        {"quote": "exact quote from text", "explanation": "challenge to stress response claims"}
+      ]
+    }
+  },
+  "superThesis": {
+    "title": "3️⃣ SUPER-THESIS: REFINED PSYCHOLOGICAL JUDGMENT",
+    "emotionalPattern": "DEFEND and REFINE the primary emotional analysis by systematically REFUTING the dissenting analysis",
+    "motivationalStructure": "REINFORCED motivational assessment that addresses dissenting concerns while maintaining validity",
+    "interpersonalDynamics": "STRENGTHENED interpersonal evaluation that counters dissenting interpretations",
+    "stressResponsePattern": "VALIDATED stress response analysis that withstands critical examination",
+    "communicationStyle": "DEFINITIVE communication psychology assessment defending primary conclusions",
+    "personalityTraits": ["confirmed traits with reinforced evidence", "validated authenticity assessment"],
+    "emotionalIntelligence": number,
+    "adaptability": number,
+    "socialOrientation": number,
+    "psychologicalSignature": "Definitive psychological assessment defending primary conclusions",
+    "detailedAnalysis": "Authoritative psychological profile that withstands critical examination",
+    "refinedConclusion": "FINAL authoritative statement defending the primary analysis against all dissenting interpretations",
+    "supportingEvidence": {
+      "emotionalPattern": [
+        {"quote": "exact quote from text", "explanation": "defensive reinforcement of emotional assessment"},
+        {"quote": "exact quote from text", "explanation": "additional evidence supporting primary analysis"}
+      ],
+      "motivationalStructure": [
+        {"quote": "exact quote from text", "explanation": "strengthened motivation assessment"},
+        {"quote": "exact quote from text", "explanation": "refutation of dissenting concerns"}
+      ],
+      "interpersonalDynamics": [
+        {"quote": "exact quote from text", "explanation": "refined interpersonal evaluation"},
+        {"quote": "exact quote from text", "explanation": "conclusive relationship pattern evidence"}
+      ],
+      "stressResponsePattern": [
+        {"quote": "exact quote from text", "explanation": "validated stress response assessment"},
+        {"quote": "exact quote from text", "explanation": "definitive coping mechanism analysis"}
+      ]
+    }
   }
 }`;
 
