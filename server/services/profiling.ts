@@ -328,16 +328,58 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
   },
   "dissentingAnalysis": {
     "title": "2️⃣ DISSENTING ANALYSIS (ANTITHESIS)",
-    "counterArgument": "SERIOUS, WELL-REASONED challenge to the Primary Analysis. Write as if you are an expert cognitive analyst who completely disagrees with the Primary Analysis. Use specific evidence from the text to attack the conclusions.",
-    "alternativeInterpretation": "COMPELLING alternative reading of the same textual evidence that fundamentally challenges the Primary Analysis conclusions. Show how the same evidence could support a different cognitive profile.",
-    "methodologicalConcerns": "LEGITIMATE, SERIOUS concerns about the analytical approach used in Primary Analysis. Challenge the methodology and evidence interpretation with expert-level critique.",
-    "potentialOverreads": "SPECIFIC examples where Primary Analysis might be overinterpreting, misreading cognitive indicators, or making unjustified leaps. Be precise and devastating in this critique."
+    "intellectualApproach": "CRITICAL re-examination challenging the primary assessment. What evidence might suggest performative complexity rather than genuine reasoning? Where might the author be displaying conceptual confusion rather than precision?",
+    "reasoningStyle": "SKEPTICAL analysis identifying potential weaknesses in inferential structure. Where might logical transitions be superficial? What evidence suggests possible intellectual posturing?",
+    "problemSolvingPattern": "CONTRARIAN assessment questioning whether apparent meta-cognitive awareness might be performative. Challenge assumptions about authentic vs. performative intellectual effort.",
+    "analyticalDepth": 6,
+    "conceptualIntegration": 5,
+    "logicalStructuring": 6,
+    "strengths": ["Limited strength with counter-evidence", "Questionable strength with critique"],
+    "growthAreas": ["Critical weakness with evidence", "Major limitation with analysis"],
+    "cognitiveSignature": "Alternative interpretation of cognitive pattern",
+    "detailedAnalysis": "Counter-narrative challenging primary conclusions",
+    "supportingEvidence": {
+      "intellectualApproach": [
+        {"quote": "exact quote from text", "explanation": "critical reinterpretation of evidence"},
+        {"quote": "exact quote from text", "explanation": "skeptical analysis of reasoning"}
+      ],
+      "reasoningStyle": [
+        {"quote": "exact quote from text", "explanation": "identification of potential weaknesses"},
+        {"quote": "exact quote from text", "explanation": "evidence of possible posturing"}
+      ],
+      "problemSolvingPattern": [
+        {"quote": "exact quote from text", "explanation": "contrarian assessment of competence"},
+        {"quote": "exact quote from text", "explanation": "challenge to authenticity claims"}
+      ]
+    }
   },
   "superThesis": {
-    "title": "3️⃣ SUPER-THESIS (FINAL ASSESSMENT)",
-    "strengthenedAssessment": "REFINED and STRONGER version of Primary Analysis that responds to the Dissenting Analysis. Defend your original assessment while incorporating valid concerns. Show why your reading is more compelling despite the critique.",
-    "refutationOfDissent": "SPECIFIC point-by-point response to the Dissenting Analysis. Show where the critique fails, where it succeeds, and how this strengthens rather than weakens your assessment. Be intellectually honest.",
-    "reinforcedConclusions": "FINAL, more nuanced and defensible conclusions about the cognitive profile. This should be your strongest, most refined assessment that can withstand intelligent criticism."
+    "title": "3️⃣ SUPER-THESIS (REFINED JUDGMENT)",
+    "intellectualApproach": "DEFEND and REFINE the primary analysis by systematically REFUTING the dissenting analysis. Why does the original assessment remain compelling despite the criticisms? What additional evidence strengthens the primary conclusion?",
+    "reasoningStyle": "REINFORCED assessment that addresses dissenting concerns while maintaining the validity of the original reasoning analysis. Provide additional evidence that the primary assessment was correct.",
+    "problemSolvingPattern": "STRENGTHENED evaluation that counters dissenting interpretations while refining the original problem-solving assessment. Demonstrate why the primary analysis captures the authentic cognitive pattern.",
+    "analyticalDepth": 9,
+    "conceptualIntegration": 8,
+    "logicalStructuring": 9,
+    "strengths": ["Confirmed strength with reinforced evidence", "Validated strength with additional support"],
+    "growthAreas": ["Refined limitation with nuanced analysis", "Clarified area with precise assessment"],
+    "cognitiveSignature": "Definitive intellectual assessment defending primary conclusions",
+    "detailedAnalysis": "Authoritative cognitive profile that withstands critical examination",
+    "refinedConclusion": "FINAL authoritative statement defending the primary analysis against all dissenting interpretations",
+    "supportingEvidence": {
+      "intellectualApproach": [
+        {"quote": "exact quote from text", "explanation": "defensive reinforcement of original assessment"},
+        {"quote": "exact quote from text", "explanation": "additional evidence supporting primary analysis"}
+      ],
+      "reasoningStyle": [
+        {"quote": "exact quote from text", "explanation": "strengthened reasoning assessment"},
+        {"quote": "exact quote from text", "explanation": "refutation of dissenting concerns"}
+      ],
+      "problemSolvingPattern": [
+        {"quote": "exact quote from text", "explanation": "refined evaluation defending authenticity"},
+        {"quote": "exact quote from text", "explanation": "conclusive evidence of genuine competence"}
+      ]
+    }
   },
   "typeOfIntelligence": "FORMAL identification of intelligence type(s): abstract, practical, verbal, social, conceptual, analytic, synthetic, philosophical, emotional, manipulative, pseudo-intellectual, etc. State in formal terms.",
   "comparisonToParadigms": "DETAILED comparison to paradigm examples of this intelligence type. Are they weak/strong/mixed? What is distinctive about their style relative to typical strong examples?",
