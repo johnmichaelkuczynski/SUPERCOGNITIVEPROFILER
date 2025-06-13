@@ -706,6 +706,17 @@ CRITICAL REQUIREMENTS:
 2. Support each contention with specific quotes and arguments
 3. Antithesis must present the most opposed view that aligns with the data
 4. Super-Thesis must defend original position and refute antithesis
+5. MANDATORY: Include all six formal diagnostic components in formalDiagnostics section
+6. Be precise and discriminative - avoid generic terms
+7. Target analysis for highly intelligent readers (top 1% intelligence)
+
+FORMAL DIAGNOSTIC REQUIREMENTS:
+- Type of Intelligence: Identify specific intelligence types (abstract, practical, verbal, conceptual, synthetic, analytic, strategic, philosophical, emotional, manipulative, pseudo-intellectual, procedural, systemic, aesthetic, etc.)
+- Paradigm Comparison: Compare to paradigm examples - weak/average/strong/unusual example
+- Unique Cognitive Strengths: List precise, discriminative strengths (no generic terms)
+- Unique Cognitive Weaknesses: Specify how reasoning falls short or shows bias
+- Career/Ecosystem Fit: Where would this cognitive style thrive vs face challenges
+- Most Revealing Quotation: Single most diagnostically significant quote with analysis
 
 RETURN EXACTLY THIS JSON STRUCTURE:
 {
@@ -829,6 +840,55 @@ RETURN EXACTLY THIS JSON STRUCTURE:
         {"quote": "exact quote", "explanation": "authenticity defense"},
         {"quote": "exact quote", "explanation": "authenticity defense"}
       ]
+    }
+  },
+  "formalDiagnostics": {
+    "typeOfIntelligence": {
+      "primaryTypes": ["specific intelligence types demonstrated"],
+      "analysis": "Formal identification of intelligence type(s) with precise terminology",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "evidence for intelligence type"},
+        {"quote": "exact quote", "explanation": "additional intelligence evidence"}
+      ]
+    },
+    "paradigmComparison": {
+      "strength": "weak/average/strong/unusual example of this intelligence type",
+      "distinguishingFeatures": "What distinguishes their style from paradigm examples",
+      "analysis": "Detailed comparison to typical examples of this intelligence type",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "comparison evidence"},
+        {"quote": "exact quote", "explanation": "distinguishing feature evidence"}
+      ]
+    },
+    "uniqueCognitiveStrengths": {
+      "strengths": ["precise, discriminative strength 1", "precise, discriminative strength 2", "precise, discriminative strength 3"],
+      "analysis": "Detailed analysis of unique cognitive strengths revealed in text",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "strength demonstration"},
+        {"quote": "exact quote", "explanation": "additional strength evidence"}
+      ]
+    },
+    "uniqueCognitiveWeaknesses": {
+      "weaknesses": ["specific cognitive weakness 1", "specific cognitive weakness 2", "specific cognitive weakness 3"],
+      "analysis": "Precise identification of how reasoning falls short or shows bias",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "weakness demonstration"},
+        {"quote": "exact quote", "explanation": "additional weakness evidence"}
+      ]
+    },
+    "careerEcosystemFit": {
+      "thriveEnvironments": ["specific career/intellectual ecosystem 1", "specific career/intellectual ecosystem 2"],
+      "challengeEnvironments": ["environment where they'd face difficulties 1", "environment where they'd face difficulties 2"],
+      "analysis": "Detailed assessment of where cognitive style would be rewarded vs challenged",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "career fit evidence"},
+        {"quote": "exact quote", "explanation": "ecosystem compatibility evidence"}
+      ]
+    },
+    "mostRevealingQuotation": {
+      "quote": "Single most diagnostically revealing quotation from the text",
+      "analysis": "Why this quotation best reveals core cognitive strengths and/or weaknesses",
+      "cognitiveSignificance": "What this quote tells us about their fundamental cognitive architecture"
     }
   },
   "overallMetacognitiveProfile": "Comprehensive synthesis of intellectual configuration analysis",

@@ -2835,6 +2835,248 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                     </div>
                   )}
                 </div>
+
+                {/* Formal Diagnostic Components */}
+                {results.formalDiagnostics && (
+                  <div className="space-y-8 mt-8">
+                    <h3 className="text-2xl font-bold text-indigo-800 flex items-center gap-3 border-b-2 border-indigo-200 pb-3">
+                      <Target className="h-7 w-7" />
+                      Formal Diagnostic Assessment
+                    </h3>
+
+                    {/* 1. Type of Intelligence */}
+                    {results.formalDiagnostics.typeOfIntelligence && (
+                      <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
+                        <h4 className="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">1</span>
+                          Type of Intelligence
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {results.formalDiagnostics.typeOfIntelligence.primaryTypes?.map((type: string, index: number) => (
+                              <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                {type}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            {results.formalDiagnostics.typeOfIntelligence.analysis}
+                          </div>
+                          {/* Supporting Evidence */}
+                          {results.formalDiagnostics.typeOfIntelligence.supportingEvidence && (
+                            <div className="mt-4 space-y-3">
+                              <h5 className="font-semibold text-blue-700">Supporting Evidence:</h5>
+                              {results.formalDiagnostics.typeOfIntelligence.supportingEvidence.map((evidence: any, index: number) => (
+                                <div key={index} className="p-4 bg-blue-25 rounded-lg border-l-4 border-blue-300">
+                                  <blockquote className="text-gray-700 italic mb-2">"{evidence.quote}"</blockquote>
+                                  <p className="text-gray-800 text-sm">{evidence.explanation}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 2. Paradigm Comparison */}
+                    {results.formalDiagnostics.paradigmComparison && (
+                      <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-sm">
+                        <h4 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                          <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm">2</span>
+                          Comparison to Paradigm Examples
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="p-4 bg-white rounded-lg border border-green-200">
+                            <div className="flex justify-between items-center mb-3">
+                              <span className="font-semibold text-green-700">Strength Level:</span>
+                              <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                {results.formalDiagnostics.paradigmComparison.strength}
+                              </span>
+                            </div>
+                            <div className="mb-3">
+                              <span className="font-semibold text-green-700">Distinguishing Features:</span>
+                              <p className="text-gray-800 mt-2">{results.formalDiagnostics.paradigmComparison.distinguishingFeatures}</p>
+                            </div>
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            {results.formalDiagnostics.paradigmComparison.analysis}
+                          </div>
+                          {/* Supporting Evidence */}
+                          {results.formalDiagnostics.paradigmComparison.supportingEvidence && (
+                            <div className="mt-4 space-y-3">
+                              <h5 className="font-semibold text-green-700">Supporting Evidence:</h5>
+                              {results.formalDiagnostics.paradigmComparison.supportingEvidence.map((evidence: any, index: number) => (
+                                <div key={index} className="p-4 bg-green-25 rounded-lg border-l-4 border-green-300">
+                                  <blockquote className="text-gray-700 italic mb-2">"{evidence.quote}"</blockquote>
+                                  <p className="text-gray-800 text-sm">{evidence.explanation}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 3. Unique Cognitive Strengths */}
+                    {results.formalDiagnostics.uniqueCognitiveStrengths && (
+                      <div className="p-6 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border-2 border-purple-200 shadow-sm">
+                        <h4 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                          <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm">3</span>
+                          Unique Cognitive Strengths
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {results.formalDiagnostics.uniqueCognitiveStrengths.strengths?.map((strength: string, index: number) => (
+                              <div key={index} className="p-3 bg-white rounded-lg border border-purple-200">
+                                <div className="flex items-start">
+                                  <CheckCircle className="h-5 w-5 text-purple-600 mr-2 mt-0.5 flex-shrink-0" />
+                                  <span className="text-gray-800 text-sm">{strength}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            {results.formalDiagnostics.uniqueCognitiveStrengths.analysis}
+                          </div>
+                          {/* Supporting Evidence */}
+                          {results.formalDiagnostics.uniqueCognitiveStrengths.supportingEvidence && (
+                            <div className="mt-4 space-y-3">
+                              <h5 className="font-semibold text-purple-700">Supporting Evidence:</h5>
+                              {results.formalDiagnostics.uniqueCognitiveStrengths.supportingEvidence.map((evidence: any, index: number) => (
+                                <div key={index} className="p-4 bg-purple-25 rounded-lg border-l-4 border-purple-300">
+                                  <blockquote className="text-gray-700 italic mb-2">"{evidence.quote}"</blockquote>
+                                  <p className="text-gray-800 text-sm">{evidence.explanation}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 4. Unique Cognitive Weaknesses */}
+                    {results.formalDiagnostics.uniqueCognitiveWeaknesses && (
+                      <div className="p-6 bg-gradient-to-br from-red-50 to-pink-50 rounded-xl border-2 border-red-200 shadow-sm">
+                        <h4 className="text-xl font-bold text-red-800 mb-4 flex items-center gap-2">
+                          <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm">4</span>
+                          Unique Cognitive Weaknesses
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {results.formalDiagnostics.uniqueCognitiveWeaknesses.weaknesses?.map((weakness: string, index: number) => (
+                              <div key={index} className="p-3 bg-white rounded-lg border border-red-200">
+                                <div className="flex items-start">
+                                  <AlertTriangle className="h-5 w-5 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
+                                  <span className="text-gray-800 text-sm">{weakness}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            {results.formalDiagnostics.uniqueCognitiveWeaknesses.analysis}
+                          </div>
+                          {/* Supporting Evidence */}
+                          {results.formalDiagnostics.uniqueCognitiveWeaknesses.supportingEvidence && (
+                            <div className="mt-4 space-y-3">
+                              <h5 className="font-semibold text-red-700">Supporting Evidence:</h5>
+                              {results.formalDiagnostics.uniqueCognitiveWeaknesses.supportingEvidence.map((evidence: any, index: number) => (
+                                <div key={index} className="p-4 bg-red-25 rounded-lg border-l-4 border-red-300">
+                                  <blockquote className="text-gray-700 italic mb-2">"{evidence.quote}"</blockquote>
+                                  <p className="text-gray-800 text-sm">{evidence.explanation}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 5. Career/Ecosystem Fit */}
+                    {results.formalDiagnostics.careerEcosystemFit && (
+                      <div className="p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-200 shadow-sm">
+                        <h4 className="text-xl font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                          <span className="bg-yellow-600 text-white px-3 py-1 rounded-full text-sm">5</span>
+                          Career / Intellectual Ecosystem Fit
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-4 bg-white rounded-lg border border-yellow-200">
+                              <h5 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5" />
+                                Thrive Environments
+                              </h5>
+                              <ul className="space-y-2">
+                                {results.formalDiagnostics.careerEcosystemFit.thriveEnvironments?.map((env: string, index: number) => (
+                                  <li key={index} className="text-gray-800 text-sm flex items-start">
+                                    <span className="text-green-600 mr-2">•</span>
+                                    {env}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div className="p-4 bg-white rounded-lg border border-yellow-200">
+                              <h5 className="font-semibold text-red-700 mb-3 flex items-center gap-2">
+                                <TrendingDown className="h-5 w-5" />
+                                Challenge Environments
+                              </h5>
+                              <ul className="space-y-2">
+                                {results.formalDiagnostics.careerEcosystemFit.challengeEnvironments?.map((env: string, index: number) => (
+                                  <li key={index} className="text-gray-800 text-sm flex items-start">
+                                    <span className="text-red-600 mr-2">•</span>
+                                    {env}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                          <div className="text-gray-800 leading-relaxed">
+                            {results.formalDiagnostics.careerEcosystemFit.analysis}
+                          </div>
+                          {/* Supporting Evidence */}
+                          {results.formalDiagnostics.careerEcosystemFit.supportingEvidence && (
+                            <div className="mt-4 space-y-3">
+                              <h5 className="font-semibold text-yellow-700">Supporting Evidence:</h5>
+                              {results.formalDiagnostics.careerEcosystemFit.supportingEvidence.map((evidence: any, index: number) => (
+                                <div key={index} className="p-4 bg-yellow-25 rounded-lg border-l-4 border-yellow-300">
+                                  <blockquote className="text-gray-700 italic mb-2">"{evidence.quote}"</blockquote>
+                                  <p className="text-gray-800 text-sm">{evidence.explanation}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 6. Most Revealing Quotation */}
+                    {results.formalDiagnostics.mostRevealingQuotation && (
+                      <div className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 shadow-sm">
+                        <h4 className="text-xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
+                          <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm">6</span>
+                          Most Revealing Quotation
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="p-6 bg-white rounded-lg border-2 border-indigo-300 shadow-sm">
+                            <Quote className="h-8 w-8 text-indigo-600 mb-3" />
+                            <blockquote className="text-lg text-gray-800 italic leading-relaxed mb-4">
+                              "{results.formalDiagnostics.mostRevealingQuotation.quote}"
+                            </blockquote>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                              <h5 className="font-semibold text-indigo-700 mb-2">Why This Quote is Most Revealing:</h5>
+                              <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.mostRevealingQuotation.analysis}</p>
+                            </div>
+                            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                              <h5 className="font-semibold text-purple-700 mb-2">Cognitive Significance:</h5>
+                              <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.mostRevealingQuotation.cognitiveSignificance}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
