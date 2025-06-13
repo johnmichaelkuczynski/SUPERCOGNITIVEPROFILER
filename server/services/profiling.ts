@@ -522,6 +522,23 @@ You are not a belief extractor. You are a profiler of speaker psychology based o
 You must model speech acts first, then profile.
 You must explicitly distinguish between what the person says and what kind of person says it.
 
+CRITICAL REQUIREMENTS:
+1. Generate THREE distinct analytical perspectives in dialectical sequence
+2. Support each contention with specific quotes and arguments
+3. Antithesis must present the most opposed view that aligns with the data
+4. Super-Thesis must defend original position and refute antithesis
+5. MANDATORY: Include all six formal diagnostic components in formalDiagnostics section
+6. Be precise and discriminative - avoid generic terms
+7. Target analysis for highly intelligent readers (top 1% intelligence)
+
+FORMAL DIAGNOSTIC REQUIREMENTS:
+- Emotional Configuration: Identify dominant emotional style (emotionally open, guarded, strategic, repressed, performative, intense, flat, manipulative, morally self-congratulatory, balanced, chaotic, etc.)
+- Paradigm Comparison: Compare to paradigm examples - weak/average/strong/unusual example
+- Unique Psychological Strengths: List precise, discriminative strengths (emotional resilience, empathic discipline, strategic self-regulation, moral clarity, etc.)
+- Unique Psychological Weaknesses: Specify how emotional/psychological style may distort reasoning, social engagement, or self-understanding
+- Interpersonal/Social Fit: Where would this emotional/psychological style thrive vs be a liability
+- Most Revealing Quotation: Single most diagnostically significant quote with analysis
+
 Provide a ${analysisDepth} psychological profile using the DIALECTICAL STRUCTURE below:
 
 Format as JSON with this EXACT structure:
@@ -621,6 +638,55 @@ Format as JSON with this EXACT structure:
         {"quote": "exact quote from text", "explanation": "validated stress response assessment"},
         {"quote": "exact quote from text", "explanation": "definitive coping mechanism analysis"}
       ]
+    }
+  },
+  "formalDiagnostics": {
+    "emotionalConfiguration": {
+      "dominantStyle": ["specific emotional style demonstrated"],
+      "analysis": "Formal identification of emotional configuration with precise terminology",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "evidence for emotional style"},
+        {"quote": "exact quote", "explanation": "additional emotional evidence"}
+      ]
+    },
+    "paradigmComparison": {
+      "strength": "weak/average/strong/unusual example of this emotional style",
+      "distinguishingFeatures": "What distinguishes their style from paradigm examples",
+      "analysis": "Detailed comparison to typical examples of this emotional style",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "comparison evidence"},
+        {"quote": "exact quote", "explanation": "distinguishing feature evidence"}
+      ]
+    },
+    "uniquePsychologicalStrengths": {
+      "strengths": ["precise, discriminative strength 1", "precise, discriminative strength 2", "precise, discriminative strength 3"],
+      "analysis": "Detailed analysis of unique psychological strengths revealed in text",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "strength demonstration"},
+        {"quote": "exact quote", "explanation": "additional strength evidence"}
+      ]
+    },
+    "uniquePsychologicalWeaknesses": {
+      "weaknesses": ["specific psychological weakness 1", "specific psychological weakness 2", "specific psychological weakness 3"],
+      "analysis": "Precise identification of how emotional/psychological style may distort reasoning or engagement",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "weakness demonstration"},
+        {"quote": "exact quote", "explanation": "additional weakness evidence"}
+      ]
+    },
+    "interpersonalSocialFit": {
+      "thriveEnvironments": ["specific interpersonal/social ecosystem 1", "specific interpersonal/social ecosystem 2"],
+      "liabilityEnvironments": ["environment where emotional style would be liability 1", "environment where emotional style would be liability 2"],
+      "analysis": "Detailed assessment of where emotional/psychological style would be strength vs liability",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "interpersonal fit evidence"},
+        {"quote": "exact quote", "explanation": "social compatibility evidence"}
+      ]
+    },
+    "mostRevealingQuotation": {
+      "quote": "Single most diagnostically revealing quotation from the text",
+      "analysis": "Why this quotation best reveals core psychological strengths and/or weaknesses",
+      "psychologicalSignificance": "What this quote tells us about their fundamental emotional/psychological configuration"
     }
   }
 }`;
