@@ -511,6 +511,14 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               <Zap className="h-5 w-5" />
               Synthesis
             </Button>
+            <Button
+              variant={profileType === 'metacognitive' ? 'default' : 'outline'}
+              onClick={() => setProfileType('metacognitive')}
+              className="flex items-center gap-2 px-6 py-3"
+            >
+              <Shield className="h-5 w-5" />
+              Metacognitive
+            </Button>
           </div>
 
           {/* Profile Description */}

@@ -91,6 +91,73 @@ interface ComprehensiveInsights {
   };
 }
 
+interface MetacognitiveProfile {
+  thesis: {
+    title: string;
+    intellectualConfiguration: string;
+    cognitiveArchitecture: string;
+    metacognitiveAwareness: string;
+    intellectualHabits: string;
+    epistemicVirtues: string;
+    reflectiveCapacity: string;
+    selfKnowledge: string;
+    supportingEvidence: {
+      intellectualConfiguration: SupportingEvidence[];
+      cognitiveArchitecture: SupportingEvidence[];
+      metacognitiveAwareness: SupportingEvidence[];
+      intellectualHabits: SupportingEvidence[];
+      epistemicVirtues: SupportingEvidence[];
+      reflectiveCapacity: SupportingEvidence[];
+      selfKnowledge: SupportingEvidence[];
+    };
+  };
+  antithesis: {
+    title: string;
+    counterConfiguration: string;
+    alternativeArchitecture: string;
+    limitedAwareness: string;
+    problematicHabits: string;
+    epistemicVices: string;
+    reflectiveLimitations: string;
+    selfDeception: string;
+    supportingEvidence: {
+      counterConfiguration: SupportingEvidence[];
+      alternativeArchitecture: SupportingEvidence[];
+      limitedAwareness: SupportingEvidence[];
+      problematicHabits: SupportingEvidence[];
+      epistemicVices: SupportingEvidence[];
+      reflectiveLimitations: SupportingEvidence[];
+      selfDeception: SupportingEvidence[];
+    };
+  };
+  superThesis: {
+    title: string;
+    reinforcedConfiguration: string;
+    defendedArchitecture: string;
+    validatedAwareness: string;
+    confirmedHabits: string;
+    strengthenedVirtues: string;
+    enhancedReflection: string;
+    authenticSelfKnowledge: string;
+    refutationOfAntithesis: string;
+    finalAssessment: string;
+    supportingEvidence: {
+      reinforcedConfiguration: SupportingEvidence[];
+      defendedArchitecture: SupportingEvidence[];
+      validatedAwareness: SupportingEvidence[];
+      confirmedHabits: SupportingEvidence[];
+      strengthenedVirtues: SupportingEvidence[];
+      enhancedReflection: SupportingEvidence[];
+      authenticSelfKnowledge: SupportingEvidence[];
+    };
+  };
+  overallMetacognitiveProfile: string;
+  intellectualMaturity: number;
+  selfAwarenessLevel: number;
+  epistemicHumility: number;
+  reflectiveDepth: number;
+}
+
 // Generate synthesis profile analyzing intellect/emotion interactions
 async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<SynthesisProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
@@ -580,10 +647,173 @@ Format as JSON with this structure:
   }
 }
 
+// Generate metacognitive profile from text analysis
+async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false): Promise<MetacognitiveProfile> {
+  const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
+  
+  const prompt = `You are a metacognitive analysis expert specializing in intellectual configuration assessment using dialectical analysis.
+
+Analyze the following text with ${analysisDepth} depth to understand the author's intellectual configuration from every possible angle:
+
+TEXT TO ANALYZE:
+${text.slice(0, 8000)}
+
+CRITICAL REQUIREMENTS:
+1. Generate THREE distinct analytical perspectives in dialectical sequence
+2. Support each contention with specific quotes and arguments
+3. Antithesis must present the most opposed view that aligns with the data
+4. Super-Thesis must defend original position and refute antithesis
+
+RETURN EXACTLY THIS JSON STRUCTURE:
+{
+  "thesis": {
+    "title": "🧠 THESIS: INTELLECTUAL CONFIGURATION ANALYSIS",
+    "intellectualConfiguration": "Comprehensive analysis of the person's overall intellectual setup, cognitive style, and mental architecture with specific evidence",
+    "cognitiveArchitecture": "Detailed assessment of how their mind processes information, makes connections, and structures knowledge with examples",
+    "metacognitiveAwareness": "Analysis of their awareness of their own thinking processes, intellectual strengths/limitations with quotes",
+    "intellectualHabits": "Identification of recurring patterns in their thinking, reasoning habits, and cognitive tendencies with evidence",
+    "epistemicVirtues": "Assessment of intellectual virtues like curiosity, humility, precision, honesty demonstrated in the text",
+    "reflectiveCapacity": "Evaluation of their ability to examine their own beliefs, assumptions, and reasoning processes",
+    "selfKnowledge": "Analysis of how well they understand their own intellectual capabilities and limitations",
+    "supportingEvidence": {
+      "intellectualConfiguration": [
+        {"quote": "exact quote", "explanation": "detailed analysis"},
+        {"quote": "exact quote", "explanation": "detailed analysis"}
+      ],
+      "cognitiveArchitecture": [
+        {"quote": "exact quote", "explanation": "detailed analysis"},
+        {"quote": "exact quote", "explanation": "detailed analysis"}
+      ],
+      "metacognitiveAwareness": [
+        {"quote": "exact quote", "explanation": "detailed analysis"},
+        {"quote": "exact quote", "explanation": "detailed analysis"}
+      ],
+      "intellectualHabits": [
+        {"quote": "exact quote", "explanation": "detailed analysis"},
+        {"quote": "exact quote", "explanation": "detailed analysis"}
+      ],
+      "epistemicVirtues": [
+        {"quote": "exact quote", "explanation": "detailed analysis"},
+        {"quote": "exact quote", "explanation": "detailed analysis"}
+      ],
+      "reflectiveCapacity": [
+        {"quote": "exact quote", "explanation": "detailed analysis"},
+        {"quote": "exact quote", "explanation": "detailed analysis"}
+      ],
+      "selfKnowledge": [
+        {"quote": "exact quote", "explanation": "detailed analysis"},
+        {"quote": "exact quote", "explanation": "detailed analysis"}
+      ]
+    }
+  },
+  "antithesis": {
+    "title": "🔄 ANTITHESIS: OPPOSING INTELLECTUAL ASSESSMENT",
+    "counterConfiguration": "Most opposed view of their intellectual setup that still aligns with textual data",
+    "alternativeArchitecture": "Alternative interpretation of their cognitive processing that challenges the thesis",
+    "limitedAwareness": "Evidence suggesting limited metacognitive awareness or self-understanding",
+    "problematicHabits": "Identification of potentially problematic thinking patterns or cognitive habits",
+    "epistemicVices": "Assessment of intellectual vices like arrogance, closed-mindedness, or imprecision",
+    "reflectiveLimitations": "Evidence of limitations in their self-examination capabilities",
+    "selfDeception": "Analysis of potential self-deception or blind spots in their self-knowledge",
+    "supportingEvidence": {
+      "counterConfiguration": [
+        {"quote": "exact quote", "explanation": "opposing interpretation"},
+        {"quote": "exact quote", "explanation": "opposing interpretation"}
+      ],
+      "alternativeArchitecture": [
+        {"quote": "exact quote", "explanation": "alternative analysis"},
+        {"quote": "exact quote", "explanation": "alternative analysis"}
+      ],
+      "limitedAwareness": [
+        {"quote": "exact quote", "explanation": "evidence of limitations"},
+        {"quote": "exact quote", "explanation": "evidence of limitations"}
+      ],
+      "problematicHabits": [
+        {"quote": "exact quote", "explanation": "problematic pattern identification"},
+        {"quote": "exact quote", "explanation": "problematic pattern identification"}
+      ],
+      "epistemicVices": [
+        {"quote": "exact quote", "explanation": "vice identification"},
+        {"quote": "exact quote", "explanation": "vice identification"}
+      ],
+      "reflectiveLimitations": [
+        {"quote": "exact quote", "explanation": "limitation analysis"},
+        {"quote": "exact quote", "explanation": "limitation analysis"}
+      ],
+      "selfDeception": [
+        {"quote": "exact quote", "explanation": "blind spot identification"},
+        {"quote": "exact quote", "explanation": "blind spot identification"}
+      ]
+    }
+  },
+  "superThesis": {
+    "title": "⚡ SUPER-THESIS: DEFENDED INTELLECTUAL ASSESSMENT",
+    "reinforcedConfiguration": "Defense of original intellectual configuration analysis against antithesis challenges",
+    "defendedArchitecture": "Reinforced assessment of cognitive architecture that refutes alternative interpretations",
+    "validatedAwareness": "Defense of metacognitive awareness assessment against limitations claims",
+    "confirmedHabits": "Validation of positive intellectual habits against problematic pattern claims",
+    "strengthenedVirtues": "Reinforced assessment of epistemic virtues that refutes vice claims",
+    "enhancedReflection": "Enhanced assessment of reflective capacity that addresses limitation concerns",
+    "authenticSelfKnowledge": "Defended assessment of self-knowledge that refutes self-deception claims",
+    "refutationOfAntithesis": "Point-by-point refutation of antithesis arguments with additional evidence",
+    "finalAssessment": "Definitive intellectual configuration assessment that withstands opposition",
+    "supportingEvidence": {
+      "reinforcedConfiguration": [
+        {"quote": "exact quote", "explanation": "defensive reinforcement"},
+        {"quote": "exact quote", "explanation": "defensive reinforcement"}
+      ],
+      "defendedArchitecture": [
+        {"quote": "exact quote", "explanation": "architectural defense"},
+        {"quote": "exact quote", "explanation": "architectural defense"}
+      ],
+      "validatedAwareness": [
+        {"quote": "exact quote", "explanation": "awareness validation"},
+        {"quote": "exact quote", "explanation": "awareness validation"}
+      ],
+      "confirmedHabits": [
+        {"quote": "exact quote", "explanation": "habit confirmation"},
+        {"quote": "exact quote", "explanation": "habit confirmation"}
+      ],
+      "strengthenedVirtues": [
+        {"quote": "exact quote", "explanation": "virtue strengthening"},
+        {"quote": "exact quote", "explanation": "virtue strengthening"}
+      ],
+      "enhancedReflection": [
+        {"quote": "exact quote", "explanation": "reflection enhancement"},
+        {"quote": "exact quote", "explanation": "reflection enhancement"}
+      ],
+      "authenticSelfKnowledge": [
+        {"quote": "exact quote", "explanation": "authenticity defense"},
+        {"quote": "exact quote", "explanation": "authenticity defense"}
+      ]
+    }
+  },
+  "overallMetacognitiveProfile": "Comprehensive synthesis of intellectual configuration analysis",
+  "intellectualMaturity": 8,
+  "selfAwarenessLevel": 7,
+  "epistemicHumility": 6,
+  "reflectiveDepth": 9
+}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 8000,
+    });
+
+    return JSON.parse(response.choices[0].message.content || "{}");
+  } catch (error) {
+    throw new Error("Failed to generate metacognitive profile: " + (error as Error).message);
+  }
+}
+
 // Generate instant profile from a single text sample
 export async function generateInstantProfile(
   text: string,
-  profileType: 'cognitive' | 'psychological' | 'synthesis',
+  profileType: 'cognitive' | 'psychological' | 'synthesis' | 'metacognitive',
   userId: number
 ): Promise<any> {
   let profile;
@@ -592,6 +822,8 @@ export async function generateInstantProfile(
     profile = await generateCognitiveProfile(text, false);
   } else if (profileType === 'psychological') {
     profile = await generatePsychologicalProfile(text, false);
+  } else if (profileType === 'metacognitive') {
+    profile = await generateMetacognitiveProfile(text, false);
   } else {
     profile = await generateSynthesisProfile(text, false);
   }
