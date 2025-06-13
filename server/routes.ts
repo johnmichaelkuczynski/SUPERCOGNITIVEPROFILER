@@ -2559,15 +2559,19 @@ Return only the new content without any additional comments, explanations, or he
         
         let yPosition = 180;
         
-        // Handle dialectical structure for psychological analysis
-        if (results.thesis && profileType === 'psychological') {
+        // Handle dialectical structure for psychological and synthesis analysis
+        if (results.thesis && (profileType === 'psychological' || profileType === 'synthesis')) {
           // THESIS SECTION
           if (yPosition > 650) {
             doc.addPage();
             yPosition = 50;
           }
           
-          doc.fontSize(18).text('1. THESIS: PRIMARY PSYCHOLOGICAL ANALYSIS', 50, yPosition);
+          if (profileType === 'psychological') {
+            doc.fontSize(18).text('1. THESIS: PRIMARY PSYCHOLOGICAL ANALYSIS', 50, yPosition);
+          } else if (profileType === 'synthesis') {
+            doc.fontSize(18).text('1. THESIS: PRIMARY SYNTHESIS ANALYSIS', 50, yPosition);
+          }
           yPosition += 35;
           
           if (results.thesis.title) {
@@ -2575,44 +2579,106 @@ Return only the new content without any additional comments, explanations, or he
             yPosition += 25;
           }
           
-          // Emotional Pattern
-          if (results.thesis.emotionalPattern) {
-            doc.fontSize(14).text('Emotional Pattern:', 50, yPosition);
-            yPosition += 20;
-            const cleanText = String(results.thesis.emotionalPattern || '').replace(/\n{3,}/g, '\n\n').trim();
-            const textHeight = doc.heightOfString(cleanText, { width: 500 });
-            doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
-            yPosition += Math.max(textHeight + 15, 40);
-          }
-          
-          // Motivational Structure
-          if (results.thesis.motivationalStructure) {
-            doc.fontSize(14).text('Motivational Structure:', 50, yPosition);
-            yPosition += 20;
-            const cleanText = String(results.thesis.motivationalStructure || '').replace(/\n{3,}/g, '\n\n').trim();
-            const textHeight = doc.heightOfString(cleanText, { width: 500 });
-            doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
-            yPosition += Math.max(textHeight + 15, 40);
-          }
-          
-          // Interpersonal Dynamics
-          if (results.thesis.interpersonalDynamics) {
-            doc.fontSize(14).text('Interpersonal Dynamics:', 50, yPosition);
-            yPosition += 20;
-            const cleanText = String(results.thesis.interpersonalDynamics || '').replace(/\n{3,}/g, '\n\n').trim();
-            const textHeight = doc.heightOfString(cleanText, { width: 500 });
-            doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
-            yPosition += Math.max(textHeight + 15, 40);
-          }
-          
-          // Stress Response Pattern
-          if (results.thesis.stressResponsePattern) {
-            doc.fontSize(14).text('Stress Response Pattern:', 50, yPosition);
-            yPosition += 20;
-            const cleanText = String(results.thesis.stressResponsePattern || '').replace(/\n{3,}/g, '\n\n').trim();
-            const textHeight = doc.heightOfString(cleanText, { width: 500 });
-            doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
-            yPosition += Math.max(textHeight + 20, 40);
+          if (profileType === 'psychological') {
+            // Emotional Pattern
+            if (results.thesis.emotionalPattern) {
+              doc.fontSize(14).text('Emotional Pattern:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.emotionalPattern || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Motivational Structure
+            if (results.thesis.motivationalStructure) {
+              doc.fontSize(14).text('Motivational Structure:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.motivationalStructure || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Interpersonal Dynamics
+            if (results.thesis.interpersonalDynamics) {
+              doc.fontSize(14).text('Interpersonal Dynamics:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.interpersonalDynamics || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Stress Response Pattern
+            if (results.thesis.stressResponsePattern) {
+              doc.fontSize(14).text('Stress Response Pattern:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.stressResponsePattern || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 40);
+            }
+          } else if (profileType === 'synthesis') {
+            // Intellectual-Emotional Integration
+            if (results.thesis.intellectualEmotionalIntegration) {
+              doc.fontSize(14).text('Intellectual-Emotional Integration:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.intellectualEmotionalIntegration || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Decision-Making Synthesis
+            if (results.thesis.decisionMakingSynthesis) {
+              doc.fontSize(14).text('Decision-Making Synthesis:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.decisionMakingSynthesis || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Authenticity Assessment
+            if (results.thesis.authenticityAssessment) {
+              doc.fontSize(14).text('Authenticity Assessment:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.authenticityAssessment || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Stress-Clarity Dynamics
+            if (results.thesis.stressClarityDynamics) {
+              doc.fontSize(14).text('Stress-Clarity Dynamics:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.stressClarityDynamics || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Empathy Authenticity
+            if (results.thesis.empathyAuthenticity) {
+              doc.fontSize(14).text('Empathy Authenticity:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.empathyAuthenticity || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 15, 40);
+            }
+            
+            // Cognitive-Emotional Architecture
+            if (results.thesis.cognitiveEmotionalArchitecture) {
+              doc.fontSize(14).text('Cognitive-Emotional Architecture:', 50, yPosition);
+              yPosition += 20;
+              const cleanText = String(results.thesis.cognitiveEmotionalArchitecture || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 40);
+            }
           }
           
           // Supporting Evidence for Thesis
@@ -2625,8 +2691,12 @@ Return only the new content without any additional comments, explanations, or he
             doc.fontSize(14).text('Supporting Evidence:', 50, yPosition);
             yPosition += 25;
             
-            // Evidence for each component
-            ['emotionalPattern', 'motivationalStructure', 'interpersonalDynamics', 'stressResponsePattern'].forEach(component => {
+            // Evidence for each component based on profile type
+            const evidenceComponents = profileType === 'psychological' 
+              ? ['emotionalPattern', 'motivationalStructure', 'interpersonalDynamics', 'stressResponsePattern']
+              : ['intellectualEmotionalIntegration', 'decisionMakingSynthesis', 'authenticityAssessment'];
+            
+            evidenceComponents.forEach(component => {
               if (results.thesis.supportingEvidence[component]) {
                 doc.fontSize(12).text(`${component.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:`, 60, yPosition);
                 yPosition += 20;
@@ -2649,7 +2719,7 @@ Return only the new content without any additional comments, explanations, or he
         }
         
         // ANTITHESIS SECTION
-        if (results.antithesis && profileType === 'psychological') {
+        if (results.antithesis && (profileType === 'psychological' || profileType === 'synthesis')) {
           if (yPosition > 650) {
             doc.addPage();
             yPosition = 50;
@@ -2702,7 +2772,7 @@ Return only the new content without any additional comments, explanations, or he
         }
         
         // SUPER-THESIS SECTION
-        if (results.superThesis && profileType === 'psychological') {
+        if (results.superThesis && (profileType === 'psychological' || profileType === 'synthesis')) {
           if (yPosition > 650) {
             doc.addPage();
             yPosition = 50;
