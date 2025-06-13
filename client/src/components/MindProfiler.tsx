@@ -30,7 +30,9 @@ import {
   AlertTriangle,
   Briefcase,
   Quote,
-  Shield
+  Shield,
+  XCircle,
+  Crown
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -1541,9 +1543,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 {profileType === 'cognitive' && <Brain className="h-5 w-5 text-blue-600" />}
                 {profileType === 'psychological' && <Heart className="h-5 w-5 text-red-600" />}
                 {profileType === 'synthesis' && <Sparkles className="h-5 w-5 text-purple-600" />}
+                {profileType === 'metacognitive' && <Brain className="h-5 w-5 text-indigo-600" />}
                 {profileType === 'cognitive' ? 'Cognitive Profile' : 
                  profileType === 'psychological' ? 'Psychological Profile' : 
-                 'Synthesis Profile'} Analysis
+                 profileType === 'synthesis' ? 'Synthesis Profile' :
+                 'Metacognitive Profile'} Analysis
               </DialogTitle>
             </DialogHeader>
             <div id="results-description" className="sr-only">
@@ -1957,8 +1961,301 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 )}
               </div>
             )}
-            
 
+            {/* Show Metacognitive Profile */}
+            {profileType === 'metacognitive' && results && (
+              <div className="space-y-8">
+                <h3 className="text-2xl font-bold text-indigo-800 flex items-center gap-2">
+                  <Brain className="h-6 w-6" />
+                  Metacognitive Analysis
+                </h3>
+
+                {/* Thesis Section */}
+                {results.thesis && (
+                  <div className="p-8 bg-green-50 rounded-xl border-2 border-green-200 shadow-sm">
+                    <h4 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                      <CheckCircle className="h-7 w-7" />
+                      {results.thesis.title || "Thesis: Primary Analysis"}
+                    </h4>
+                    
+                    <div className="space-y-6">
+                      {results.thesis.intellectualConfiguration && (
+                        <div className="p-5 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Intellectual Configuration</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.thesis.intellectualConfiguration}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.thesis.cognitiveArchitecture && (
+                        <div className="p-5 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Cognitive Architecture</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.thesis.cognitiveArchitecture}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.thesis.metacognitiveAwareness && (
+                        <div className="p-5 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Metacognitive Awareness</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.thesis.metacognitiveAwareness}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.thesis.intellectualHabits && (
+                        <div className="p-5 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Intellectual Habits</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.thesis.intellectualHabits}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.thesis.epistemicVirtues && (
+                        <div className="p-5 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Epistemic Virtues</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.thesis.epistemicVirtues}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.thesis.reflectiveCapacity && (
+                        <div className="p-5 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Reflective Capacity</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.thesis.reflectiveCapacity}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.thesis.selfKnowledge && (
+                        <div className="p-5 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Self-Knowledge</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.thesis.selfKnowledge}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Antithesis Section */}
+                {results.antithesis && (
+                  <div className="p-8 bg-red-50 rounded-xl border-2 border-red-200 shadow-sm">
+                    <h4 className="text-2xl font-bold text-red-800 mb-6 flex items-center gap-3">
+                      <XCircle className="h-7 w-7" />
+                      {results.antithesis.title || "Antithesis: Dissenting Analysis"}
+                    </h4>
+                    
+                    <div className="space-y-6">
+                      {results.antithesis.counterConfiguration && (
+                        <div className="p-5 bg-white rounded-lg border border-red-100">
+                          <h5 className="font-semibold text-red-700 mb-3 text-lg">Counter-Configuration</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.antithesis.counterConfiguration}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.antithesis.alternativeArchitecture && (
+                        <div className="p-5 bg-white rounded-lg border border-red-100">
+                          <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Architecture</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.antithesis.alternativeArchitecture}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.antithesis.limitedAwareness && (
+                        <div className="p-5 bg-white rounded-lg border border-red-100">
+                          <h5 className="font-semibold text-red-700 mb-3 text-lg">Limited Awareness</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.antithesis.limitedAwareness}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.antithesis.problematicHabits && (
+                        <div className="p-5 bg-white rounded-lg border border-red-100">
+                          <h5 className="font-semibold text-red-700 mb-3 text-lg">Problematic Habits</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.antithesis.problematicHabits}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.antithesis.epistemicVices && (
+                        <div className="p-5 bg-white rounded-lg border border-red-100">
+                          <h5 className="font-semibold text-red-700 mb-3 text-lg">Epistemic Vices</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.antithesis.epistemicVices}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.antithesis.reflectiveLimitations && (
+                        <div className="p-5 bg-white rounded-lg border border-red-100">
+                          <h5 className="font-semibold text-red-700 mb-3 text-lg">Reflective Limitations</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.antithesis.reflectiveLimitations}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.antithesis.selfDeception && (
+                        <div className="p-5 bg-white rounded-lg border border-red-100">
+                          <h5 className="font-semibold text-red-700 mb-3 text-lg">Self-Deception</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.antithesis.selfDeception}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Super-Thesis Section */}
+                {results.superThesis && (
+                  <div className="p-8 bg-blue-50 rounded-xl border-2 border-blue-200 shadow-sm">
+                    <h4 className="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-3">
+                      <Crown className="h-7 w-7" />
+                      {results.superThesis.title || "Super-Thesis: Reinforced Analysis"}
+                    </h4>
+                    
+                    <div className="space-y-6">
+                      {results.superThesis.reinforcedConfiguration && (
+                        <div className="p-5 bg-white rounded-lg border border-blue-100">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Reinforced Configuration</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.reinforcedConfiguration}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.defendedArchitecture && (
+                        <div className="p-5 bg-white rounded-lg border border-blue-100">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Defended Architecture</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.defendedArchitecture}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.validatedAwareness && (
+                        <div className="p-5 bg-white rounded-lg border border-blue-100">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Validated Awareness</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.validatedAwareness}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.confirmedHabits && (
+                        <div className="p-5 bg-white rounded-lg border border-blue-100">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Habits</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.confirmedHabits}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.strengthenedVirtues && (
+                        <div className="p-5 bg-white rounded-lg border border-blue-100">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Strengthened Virtues</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.strengthenedVirtues}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.enhancedReflection && (
+                        <div className="p-5 bg-white rounded-lg border border-blue-100">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Enhanced Reflection</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.enhancedReflection}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.authenticSelfKnowledge && (
+                        <div className="p-5 bg-white rounded-lg border border-blue-100">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Authentic Self-Knowledge</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.authenticSelfKnowledge}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.refutationOfAntithesis && (
+                        <div className="p-5 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <h5 className="font-semibold text-yellow-700 mb-3 text-lg">Refutation of Dissenting Analysis</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.refutationOfAntithesis}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+
+                      {results.superThesis.finalAssessment && (
+                        <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                          <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Assessment</h5>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.superThesis.finalAssessment}</ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Overall Metacognitive Profile */}
+                {results.overallMetacognitiveProfile && (
+                  <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200">
+                    <h4 className="font-bold text-indigo-900 mb-4 text-lg">Overall Metacognitive Profile</h4>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>{results.overallMetacognitiveProfile}</ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+
+                {/* Metacognitive Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {results.intellectualMaturity && (
+                    <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
+                      <div className="text-sm font-medium text-indigo-600 mb-2">Intellectual Maturity</div>
+                      <div className="text-2xl font-bold text-indigo-800">{results.intellectualMaturity}/10</div>
+                      <Progress value={results.intellectualMaturity * 10} className="mt-2" />
+                    </div>
+                  )}
+                  {results.selfAwarenessLevel && (
+                    <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
+                      <div className="text-sm font-medium text-indigo-600 mb-2">Self-Awareness Level</div>
+                      <div className="text-2xl font-bold text-indigo-800">{results.selfAwarenessLevel}/10</div>
+                      <Progress value={results.selfAwarenessLevel * 10} className="mt-2" />
+                    </div>
+                  )}
+                  {results.epistemicHumility && (
+                    <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
+                      <div className="text-sm font-medium text-indigo-600 mb-2">Epistemic Humility</div>
+                      <div className="text-2xl font-bold text-indigo-800">{results.epistemicHumility}/10</div>
+                      <Progress value={results.epistemicHumility * 10} className="mt-2" />
+                    </div>
+                  )}
+                  {results.reflectiveDepth && (
+                    <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
+                      <div className="text-sm font-medium text-indigo-600 mb-2">Reflective Depth</div>
+                      <div className="text-2xl font-bold text-indigo-800">{results.reflectiveDepth}/10</div>
+                      <Progress value={results.reflectiveDepth * 10} className="mt-2" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Show Comprehensive Insights */}
             {results?.comprehensiveInsights && (
