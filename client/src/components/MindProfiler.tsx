@@ -53,9 +53,9 @@ interface ProfileResults {
     potentialOverreads?: string;
   };
   superThesis?: {
-    refinedAssessment?: string;
-    methodologicalDefense?: string;
-    integratedConclusions?: string;
+    strengthenedAssessment?: string;
+    refutationOfDissent?: string;
+    reinforcedConclusions?: string;
   };
 
   // Psychological fields
@@ -968,29 +968,29 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                             3️⃣ Super-Thesis (Final Assessment)
                           </h4>
                           
-                          {results.superThesis.refinedAssessment && (
+                          {results.superThesis.strengthenedAssessment && (
                             <div className="mb-6">
-                              <h5 className="font-semibold text-emerald-800 mb-3">Refined Assessment</h5>
+                              <h5 className="font-semibold text-emerald-800 mb-3">Strengthened Assessment</h5>
                               <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                                <ReactMarkdown>{results.superThesis.refinedAssessment}</ReactMarkdown>
+                                <ReactMarkdown>{results.superThesis.strengthenedAssessment}</ReactMarkdown>
                               </div>
                             </div>
                           )}
                           
-                          {results.superThesis.methodologicalDefense && (
+                          {results.superThesis.refutationOfDissent && (
                             <div className="mb-6">
-                              <h5 className="font-semibold text-emerald-800 mb-3">Methodological Defense</h5>
+                              <h5 className="font-semibold text-emerald-800 mb-3">Refutation of Dissent</h5>
                               <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                                <ReactMarkdown>{results.superThesis.methodologicalDefense}</ReactMarkdown>
+                                <ReactMarkdown>{results.superThesis.refutationOfDissent}</ReactMarkdown>
                               </div>
                             </div>
                           )}
                           
-                          {results.superThesis.integratedConclusions && (
+                          {results.superThesis.reinforcedConclusions && (
                             <div className="mb-6">
-                              <h5 className="font-semibold text-emerald-800 mb-3">Integrated Conclusions</h5>
+                              <h5 className="font-semibold text-emerald-800 mb-3">Reinforced Conclusions</h5>
                               <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                                <ReactMarkdown>{results.superThesis.integratedConclusions}</ReactMarkdown>
+                                <ReactMarkdown>{results.superThesis.reinforcedConclusions}</ReactMarkdown>
                               </div>
                             </div>
                           )}

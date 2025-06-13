@@ -254,11 +254,12 @@ DISSENTING ANALYSIS must be intellectually serious:
 - Should challenge specific aspects of the Primary Analysis with genuine evidence
 - Must consider alternative interpretations of the same textual evidence
 
-SUPER-THESIS must genuinely integrate:
-- Defend Primary Analysis where it withstands critique
-- Concede points where Dissenting Analysis reveals valid concerns
-- Produce a more nuanced, defensible final assessment
-- Must not just repeat Primary Analysis or split the difference
+SUPER-THESIS must strengthen the Primary Analysis:
+- Directly refute the Dissenting Analysis where it fails
+- Reinforce Primary Analysis with additional evidence and reasoning
+- Address potential weaknesses by making the original argument stronger
+- Produce a more robust, defensible version of the Primary Analysis
+- Must not compromise or synthesize - must be a STRONGER version of the original thesis
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
@@ -292,13 +293,13 @@ Format as JSON with this structure:
     "potentialOverreads": "SPECIFIC examples where Primary Analysis might be overinterpreting or misreading cognitive indicators"
   },
   "superThesis": {
-    "refinedAssessment": "FINAL COMPREHENSIVE cognitive assessment that integrates critical testing, defends valid points from Primary Analysis, concedes where Dissenting Analysis reveals genuine concerns",
-    "methodologicalDefense": "SPECIFIC defense of analytical approach where it withstands critique, with acknowledgment of legitimate limitations",
-    "integratedConclusions": "NUANCED final conclusions about cognitive patterns that emerge from structured critical testing"
+    "strengthenedAssessment": "REINFORCED and STRONGER version of Primary Analysis that directly refutes the Dissenting Analysis and addresses weaknesses with additional evidence",
+    "refutationOfDissent": "SPECIFIC point-by-point refutation of the Dissenting Analysis, showing where it fails and why the Primary Analysis remains valid",
+    "reinforcedConclusions": "STRONGER, more defensible conclusions that emerge from successfully defending the Primary Analysis against critique"
   },
-  "intellectualApproach": "Content from superThesis.refinedAssessment focusing on intellectual approach",
-  "reasoningStyle": "Content from superThesis.refinedAssessment focusing on reasoning style", 
-  "problemSolvingPattern": "Content from superThesis.refinedAssessment focusing on problem solving pattern",
+  "intellectualApproach": "Content from superThesis.strengthenedAssessment focusing on intellectual approach",
+  "reasoningStyle": "Content from superThesis.strengthenedAssessment focusing on reasoning style", 
+  "problemSolvingPattern": "Content from superThesis.strengthenedAssessment focusing on problem solving pattern",
   "analyticalDepth": number,
   "conceptualIntegration": number,
   "logicalStructuring": number,
