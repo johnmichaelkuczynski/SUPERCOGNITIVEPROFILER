@@ -807,24 +807,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </TabsContent>
 
               <TabsContent value="cognitive" className="space-y-6">
-                {/* Use flat structure for cognitive analysis */}
-                {results && (results.intellectualApproach || results.reasoningStyle || results.problemSolvingPattern) && (
-                  <div className="space-y-4">
+                {/* Complete cognitive analysis display */}
+                {results && (
+                  <div className="space-y-6">
                     <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                       <Brain className="h-6 w-6 text-blue-600" />
                       Cognitive Analysis
                     </h3>
 
+                    {/* Intellectual Approach Section */}
                     {results.intellectualApproach && (
                       <div className="space-y-4">
-                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                        <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                          <h4 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
                             <Brain className="h-5 w-5" />
                             Intellectual Approach
                           </h4>
-                          <ReactMarkdown className="text-blue-700 prose prose-sm max-w-none">
-                            {results.intellectualApproach}
-                          </ReactMarkdown>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.intellectualApproach}</ReactMarkdown>
+                          </div>
                         </div>
 
                         {results.supportingEvidence?.intellectualApproach && (
@@ -843,16 +844,17 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       </div>
                     )}
 
+                    {/* Reasoning Style Section */}
                     {results.reasoningStyle && (
                       <div className="space-y-4">
-                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                        <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
+                          <h4 className="font-bold text-green-900 mb-4 text-lg flex items-center gap-2">
                             <Lightbulb className="h-5 w-5" />
                             Reasoning Style
                           </h4>
-                          <ReactMarkdown className="text-green-700 prose prose-sm max-w-none">
-                            {results.reasoningStyle}
-                          </ReactMarkdown>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.reasoningStyle}</ReactMarkdown>
+                          </div>
                         </div>
 
                         {results.supportingEvidence?.reasoningStyle && (
