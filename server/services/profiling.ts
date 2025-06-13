@@ -341,19 +341,7 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
       max_tokens: 8000,
     });
 
-    const result = JSON.parse(response.choices[0].message.content || "{}");
-    console.log("Raw OpenAI response for cognitive analysis:", JSON.stringify(result, null, 2));
-    
-    // Verify structured analysis format
-    if (!result.primaryAnalysis || !result.dissentingAnalysis || !result.superThesis) {
-      console.error("Missing structured analysis components:", {
-        hasPrimary: !!result.primaryAnalysis,
-        hasDisssenting: !!result.dissentingAnalysis,
-        hasSuperThesis: !!result.superThesis
-      });
-    }
-    
-    return result;
+    return JSON.parse(response.choices[0].message.content || "{}");
   } catch (error) {
     throw new Error("Failed to generate cognitive profile: " + (error as Error).message);
   }

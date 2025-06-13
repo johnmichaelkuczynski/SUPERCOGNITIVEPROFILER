@@ -796,9 +796,9 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold text-gray-800">Overall Profile</h3>
                     <div className="p-4 bg-white rounded-lg border">
-                      <ReactMarkdown className="text-gray-700">
-                        {results.comprehensiveInsights.overallProfile}
-                      </ReactMarkdown>
+                      <div className="text-gray-700">
+                        <ReactMarkdown>{results.comprehensiveInsights.overallProfile}</ReactMarkdown>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -970,7 +970,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                         <div className="p-6 bg-emerald-50 rounded-lg border-2 border-emerald-200">
                           <h4 className="font-bold text-emerald-900 mb-4 text-lg flex items-center gap-2">
                             <Sparkles className="h-5 w-5" />
-                            3️⃣ Super-Thesis (Final Assessment)
+                            {results.superThesis.title || "3️⃣ Super-Thesis (Final Assessment)"}
                           </h4>
                           
                           {results.superThesis.strengthenedAssessment && (
