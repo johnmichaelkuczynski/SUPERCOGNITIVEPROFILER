@@ -2839,6 +2839,178 @@ Return only the new content without any additional comments, explanations, or he
           doc.fontSize(16).text('Emotional Intelligence Score', 50, yPosition);
           yPosition += 30;
           doc.fontSize(12).text(`${results.emotionalIntelligence}/10`, 50, yPosition, { width: 500 });
+          yPosition += 50;
+        }
+
+        // Handle Metacognitive Profile Structure
+        if (profileType === 'metacognitive') {
+          // Thesis Section
+          if (results.thesis) {
+            if (yPosition > 650) {
+              doc.addPage();
+              yPosition = 50;
+            }
+            
+            doc.fontSize(18).text('THESIS: PRIMARY ANALYSIS', 50, yPosition);
+            yPosition += 40;
+            
+            if (results.thesis.intellectualConfiguration) {
+              doc.fontSize(14).text('Intellectual Configuration', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.thesis.intellectualConfiguration || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+            
+            if (results.thesis.cognitiveArchitecture) {
+              if (yPosition > 700) {
+                doc.addPage();
+                yPosition = 50;
+              }
+              doc.fontSize(14).text('Cognitive Architecture', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.thesis.cognitiveArchitecture || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+            
+            if (results.thesis.metacognitiveAwareness) {
+              if (yPosition > 700) {
+                doc.addPage();
+                yPosition = 50;
+              }
+              doc.fontSize(14).text('Metacognitive Awareness', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.thesis.metacognitiveAwareness || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+          }
+          
+          // Antithesis Section
+          if (results.antithesis) {
+            if (yPosition > 650) {
+              doc.addPage();
+              yPosition = 50;
+            }
+            
+            doc.fontSize(18).text('ANTITHESIS: DISSENTING ANALYSIS', 50, yPosition);
+            yPosition += 40;
+            
+            if (results.antithesis.counterConfiguration) {
+              doc.fontSize(14).text('Counter-Configuration', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.antithesis.counterConfiguration || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+            
+            if (results.antithesis.alternativeArchitecture) {
+              if (yPosition > 700) {
+                doc.addPage();
+                yPosition = 50;
+              }
+              doc.fontSize(14).text('Alternative Architecture', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.antithesis.alternativeArchitecture || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+          }
+          
+          // Super-Thesis Section
+          if (results.superThesis) {
+            if (yPosition > 650) {
+              doc.addPage();
+              yPosition = 50;
+            }
+            
+            doc.fontSize(18).text('SUPER-THESIS: REINFORCED ANALYSIS', 50, yPosition);
+            yPosition += 40;
+            
+            if (results.superThesis.reinforcedConfiguration) {
+              doc.fontSize(14).text('Reinforced Configuration', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.superThesis.reinforcedConfiguration || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+            
+            if (results.superThesis.refutationOfAntithesis) {
+              if (yPosition > 700) {
+                doc.addPage();
+                yPosition = 50;
+              }
+              doc.fontSize(14).text('Refutation of Dissenting Analysis', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.superThesis.refutationOfAntithesis || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+            
+            if (results.superThesis.finalAssessment) {
+              if (yPosition > 700) {
+                doc.addPage();
+                yPosition = 50;
+              }
+              doc.fontSize(14).text('Final Assessment', 50, yPosition);
+              yPosition += 25;
+              const cleanText = String(results.superThesis.finalAssessment || '').replace(/\n{3,}/g, '\n\n').trim();
+              const textHeight = doc.heightOfString(cleanText, { width: 500 });
+              doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
+              yPosition += Math.max(textHeight + 20, 60);
+            }
+          }
+          
+          // Overall Metacognitive Profile
+          if (results.overallMetacognitiveProfile) {
+            if (yPosition > 700) {
+              doc.addPage();
+              yPosition = 50;
+            }
+            
+            doc.fontSize(16).text('Overall Metacognitive Profile', 50, yPosition);
+            yPosition += 30;
+            const cleanText = String(results.overallMetacognitiveProfile || '').replace(/\n{3,}/g, '\n\n').trim();
+            const textHeight = doc.heightOfString(cleanText, { width: 500 });
+            doc.fontSize(12).text(cleanText, 50, yPosition, { width: 500 });
+            yPosition += Math.max(textHeight + 20, 60);
+          }
+          
+          // Metacognitive Metrics
+          if (results.intellectualMaturity || results.selfAwarenessLevel || results.epistemicHumility || results.reflectiveDepth) {
+            if (yPosition > 700) {
+              doc.addPage();
+              yPosition = 50;
+            }
+            
+            doc.fontSize(16).text('Metacognitive Assessment Scores', 50, yPosition);
+            yPosition += 30;
+            
+            if (results.intellectualMaturity) {
+              doc.fontSize(12).text(`Intellectual Maturity: ${results.intellectualMaturity}/10`, 50, yPosition);
+              yPosition += 20;
+            }
+            if (results.selfAwarenessLevel) {
+              doc.fontSize(12).text(`Self-Awareness Level: ${results.selfAwarenessLevel}/10`, 50, yPosition);
+              yPosition += 20;
+            }
+            if (results.epistemicHumility) {
+              doc.fontSize(12).text(`Epistemic Humility: ${results.epistemicHumility}/10`, 50, yPosition);
+              yPosition += 20;
+            }
+            if (results.reflectiveDepth) {
+              doc.fontSize(12).text(`Reflective Depth: ${results.reflectiveDepth}/10`, 50, yPosition);
+              yPosition += 20;
+            }
+          }
         }
         
         doc.end();
@@ -3214,6 +3386,264 @@ Return only the new content without any additional comments, explanations, or he
               children: [new TextRun(`${results.emotionalIntelligence}/10`)],
             })
           );
+        }
+
+        // Handle Metacognitive Profile Structure for Word
+        if (profileType === 'metacognitive') {
+          // Thesis Section
+          if (results.thesis) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "THESIS: PRIMARY ANALYSIS",
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+            
+            if (results.thesis.intellectualConfiguration) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Intellectual Configuration",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.intellectualConfiguration)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+            
+            if (results.thesis.cognitiveArchitecture) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Cognitive Architecture",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.cognitiveArchitecture)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+            
+            if (results.thesis.metacognitiveAwareness) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Metacognitive Awareness",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.metacognitiveAwareness)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+          }
+          
+          // Antithesis Section
+          if (results.antithesis) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "ANTITHESIS: DISSENTING ANALYSIS",
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+            
+            if (results.antithesis.counterConfiguration) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Counter-Configuration",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.antithesis.counterConfiguration)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+            
+            if (results.antithesis.alternativeArchitecture) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Alternative Architecture",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.antithesis.alternativeArchitecture)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+          }
+          
+          // Super-Thesis Section
+          if (results.superThesis) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "SUPER-THESIS: REINFORCED ANALYSIS",
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+            
+            if (results.superThesis.reinforcedConfiguration) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Reinforced Configuration",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.superThesis.reinforcedConfiguration)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+            
+            if (results.superThesis.refutationOfAntithesis) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Refutation of Dissenting Analysis",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.superThesis.refutationOfAntithesis)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+            
+            if (results.superThesis.finalAssessment) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Final Assessment",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.superThesis.finalAssessment)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+          }
+          
+          // Overall Metacognitive Profile
+          if (results.overallMetacognitiveProfile) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Overall Metacognitive Profile",
+                    bold: true,
+                    size: 28,
+                  }),
+                ],
+              }),
+              new Paragraph({
+                children: [new TextRun(results.overallMetacognitiveProfile)],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+          }
+          
+          // Metacognitive Metrics
+          if (results.intellectualMaturity || results.selfAwarenessLevel || results.epistemicHumility || results.reflectiveDepth) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Metacognitive Assessment Scores",
+                    bold: true,
+                    size: 28,
+                  }),
+                ],
+              })
+            );
+            
+            if (results.intellectualMaturity) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [new TextRun(`Intellectual Maturity: ${results.intellectualMaturity}/10`)],
+                })
+              );
+            }
+            if (results.selfAwarenessLevel) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [new TextRun(`Self-Awareness Level: ${results.selfAwarenessLevel}/10`)],
+                })
+              );
+            }
+            if (results.epistemicHumility) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [new TextRun(`Epistemic Humility: ${results.epistemicHumility}/10`)],
+                })
+              );
+            }
+            if (results.reflectiveDepth) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [new TextRun(`Reflective Depth: ${results.reflectiveDepth}/10`)],
+                })
+              );
+            }
+          }
         }
 
         const doc = new Document({
