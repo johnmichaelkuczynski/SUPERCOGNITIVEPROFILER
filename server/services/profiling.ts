@@ -204,74 +204,64 @@ Focus on the dynamic interplay between rational and emotional processing, decisi
 async function generateCognitiveProfile(text: string, isComprehensive: boolean = false): Promise<CognitiveProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `You are a Cognitive Profiler.
-You are not a summarizer.
-You are not a paraphraser.
-You are not a surface sentiment analyzer.
+  const prompt = `You are a Cognitive Profiler employing STRUCTURED ANALYSIS methodology.
+
+STRUCTURED ANALYSIS INSTRUCTION:
+
+For the given text, you must generate three distinct outputs:
+
+1️⃣ PRIMARY ANALYSIS → Your best cognitive read of the text
+2️⃣ DISSENTING ANALYSIS → A plausible, well-argued counter-read that challenges your Primary Analysis
+3️⃣ SUPER-THESIS → Critique the Dissenting Analysis, defend your Primary Analysis where correct, concede where appropriate, and produce a sharpened, more accurate final assessment
+
+COGNITIVE PROFILING FRAMEWORK:
 
 You are modeling the author's underlying cognitive process — how they think, not what they say.
 
 You must explicitly assess:
 
 1️⃣ Reasoning depth
-
 Is the author maintaining multiple layers of reasoning?
 Are conceptual distinctions being carefully managed across the argument?
 
 2️⃣ Epistemic discipline
-
 Is the author aware of epistemic risk (ambiguity, circularity, misuse of concepts)?
 Are they proactively managing that risk in their argument?
 
 3️⃣ Meta-cognitive awareness
-
 Is the author showing awareness of the limitations of their own argument or of the tools of analysis?
 Are they demonstrating awareness of how explanation itself can go wrong?
 
 4️⃣ Conceptual targeting precision
-
 Are key terms and distinctions precisely defined and maintained?
 Is the author resisting slippage between concepts?
 
 5️⃣ Resistance to pseudo-intelligence
-
 Is the author avoiding empty jargon and performative intellectual display?
 Are they using concepts to clarify and target reality, rather than to impress or obscure?
 
-CRITICAL INSTRUCTIONS:
+CRITICAL ANALYSIS REQUIREMENTS:
 
-DO NOT simply paraphrase the content of the text.
-DO NOT stop at saying "the author clarifies ambiguity" — say whether they do so with genuine cognitive control.
-DO NOT conflate use of big words with cognitive depth.
-
-You must always distinguish between:
-- GENUINE cognitive depth
-- PSEUDO-intellectual surface performance
-
-MANDATORY OUTPUT REQUIREMENTS:
-Explicitly comment on whether the author is demonstrating meta-cognitive awareness and resistance to pseudo-intellectual posturing.
-If they are, state this clearly with specific evidence.
-If they are not, state this clearly with specific evidence.
-
-DETAILED ANALYSIS REQUIREMENTS:
-For each cognitive dimension, you must identify:
-- SPECIFIC evidence of the cognitive operation being performed
+PRIMARY ANALYSIS must identify:
+- SPECIFIC evidence of cognitive operations being performed
 - HOW the author demonstrates (or fails to demonstrate) genuine intellectual control
 - CONCRETE examples that distinguish authentic reasoning from performative complexity
 - PRECISE assessment of whether they're clarifying reality or performing sophistication
 
+DISSENTING ANALYSIS must be intellectually serious:
+- NOT a straw man argument
+- Must represent a real possible critique that a highly intelligent critic might make
+- Should challenge specific aspects of the Primary Analysis with genuine evidence
+- Must consider alternative interpretations of the same textual evidence
+
+SUPER-THESIS must genuinely integrate:
+- Defend Primary Analysis where it withstands critique
+- Concede points where Dissenting Analysis reveals valid concerns
+- Produce a more nuanced, defensible final assessment
+- Must not just repeat Primary Analysis or split the difference
+
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
-
-6️⃣ PROFILE INFERENCE WITH MANDATORY DEPTH:
-
-DETAILED ANALYSIS REQUIREMENTS:
-For each quote you analyze, you must:
-1. Identify the SPECIFIC cognitive operation being performed
-2. Analyze the EXACT inferential structure and logical transitions
-3. Assess the PRECISE conceptual boundaries maintained
-4. Evaluate the SPECIFIC epistemic discipline demonstrated
-5. Distinguish CONCRETELY between authentic vs. performative complexity
 
 MANDATORY SPECIFICITY REQUIREMENTS:
 - Identify SPECIFIC reasoning stages in the argument structure
@@ -280,15 +270,6 @@ MANDATORY SPECIFICITY REQUIREMENTS:
 - Identify SPECIFIC evidence of epistemic risk awareness and management
 - Your analysis must be so detailed it could only apply to THIS particular reasoning pattern
 
-CRITICAL FAILURE MODES TO AVOID:
-- Generic statements like "shows epistemic control" without specifying HOW
-- Surface paraphrasing disguised as cognitive analysis
-- Pattern matching on academic vocabulary instead of modeling actual reasoning process
-- Conflating mention of complexity with demonstration of complex thinking
-- Any language that could describe any "sophisticated" text generically
-
-You are profiling the specific cognitive architecture revealed by this particular reasoning process.
-
 Rate on 1-10 scale with DETAILED JUSTIFICATION citing specific textual evidence:
 - Analytical Depth: Provide specific evidence of reasoning quality vs. performed analysis
 - Conceptual Integration: Cite specific examples of precision vs. superficial complexity  
@@ -296,9 +277,28 @@ Rate on 1-10 scale with DETAILED JUSTIFICATION citing specific textual evidence:
 
 Format as JSON with this structure:
 {
-  "intellectualApproach": "DETAILED MULTI-PARAGRAPH analysis identifying SPECIFIC stages of the argument, HOW epistemic control is maintained, and PRECISE evidence of reasoning discipline vs. performative complexity",
-  "reasoningStyle": "DETAILED analysis of EXACT inferential structure, identifying SPECIFIC logical transitions, how claims are warranted, and evidence of genuine vs. superficial analytical thinking",
-  "problemSolvingPattern": "DETAILED analysis of SPECIFIC conceptual targeting strategies, HOW boundaries are maintained, evidence of meta-cognitive awareness, and CONCRETE distinction between authentic vs. performative intellectual effort",
+  "primaryAnalysis": {
+    "intellectualApproach": "DETAILED MULTI-PARAGRAPH analysis identifying SPECIFIC stages of the argument, HOW epistemic control is maintained, and PRECISE evidence of reasoning discipline vs. performative complexity",
+    "reasoningStyle": "DETAILED analysis of EXACT inferential structure, identifying SPECIFIC logical transitions, how claims are warranted, and evidence of genuine vs. superficial analytical thinking", 
+    "problemSolvingPattern": "DETAILED analysis of SPECIFIC conceptual targeting strategies, HOW boundaries are maintained, evidence of meta-cognitive awareness, and CONCRETE distinction between authentic vs. performative intellectual effort",
+    "analyticalDepth": 8,
+    "conceptualIntegration": 7,
+    "logicalStructuring": 9
+  },
+  "dissentingAnalysis": {
+    "counterArgument": "INTELLECTUALLY SERIOUS challenge to the Primary Analysis, representing genuine critiques a highly intelligent reader might raise about the cognitive assessment",
+    "alternativeInterpretation": "PLAUSIBLE alternative reading of the same textual evidence that challenges key conclusions from Primary Analysis",
+    "methodologicalConcerns": "LEGITIMATE concerns about the analytical approach or evidence interpretation used in Primary Analysis",
+    "potentialOverreads": "SPECIFIC examples where Primary Analysis might be overinterpreting or misreading cognitive indicators"
+  },
+  "superThesis": {
+    "refinedAssessment": "FINAL COMPREHENSIVE cognitive assessment that integrates critical testing, defends valid points from Primary Analysis, concedes where Dissenting Analysis reveals genuine concerns",
+    "methodologicalDefense": "SPECIFIC defense of analytical approach where it withstands critique, with acknowledgment of legitimate limitations",
+    "integratedConclusions": "NUANCED final conclusions about cognitive patterns that emerge from structured critical testing"
+  },
+  "intellectualApproach": "Content from superThesis.refinedAssessment focusing on intellectual approach",
+  "reasoningStyle": "Content from superThesis.refinedAssessment focusing on reasoning style", 
+  "problemSolvingPattern": "Content from superThesis.refinedAssessment focusing on problem solving pattern",
   "analyticalDepth": number,
   "conceptualIntegration": number,
   "logicalStructuring": number,

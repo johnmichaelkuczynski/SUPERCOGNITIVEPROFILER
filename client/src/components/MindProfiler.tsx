@@ -37,6 +37,27 @@ interface SupportingEvidence {
 }
 
 interface ProfileResults {
+  // Structured Analysis fields
+  primaryAnalysis?: {
+    intellectualApproach?: string;
+    reasoningStyle?: string;
+    problemSolvingPattern?: string;
+    analyticalDepth?: number;
+    conceptualIntegration?: number;
+    logicalStructuring?: number;
+  };
+  dissentingAnalysis?: {
+    counterArgument?: string;
+    alternativeInterpretation?: string;
+    methodologicalConcerns?: string;
+    potentialOverreads?: string;
+  };
+  superThesis?: {
+    refinedAssessment?: string;
+    methodologicalDefense?: string;
+    integratedConclusions?: string;
+  };
+
   // Psychological fields
   emotionalPattern?: string;
   motivationalStructure?: string;
@@ -807,16 +828,178 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </TabsContent>
 
               <TabsContent value="cognitive" className="space-y-6">
-                {/* Complete cognitive analysis display */}
+                {/* Enhanced structured cognitive analysis display */}
                 {results && (
                   <div className="space-y-6">
                     <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                       <Brain className="h-6 w-6 text-blue-600" />
-                      Cognitive Analysis
+                      Structured Cognitive Analysis
                     </h3>
 
-                    {/* Intellectual Approach Section */}
-                    {results.intellectualApproach && (
+                    {/* Primary Analysis Section */}
+                    {results.primaryAnalysis && (
+                      <div className="space-y-4">
+                        <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                          <h4 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
+                            <Brain className="h-5 w-5" />
+                            1️⃣ Primary Analysis
+                          </h4>
+                          
+                          {/* Primary Analysis Sub-sections */}
+                          {results.primaryAnalysis.intellectualApproach && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-blue-800 mb-3">Intellectual Approach</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.primaryAnalysis.intellectualApproach}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {results.primaryAnalysis.reasoningStyle && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-blue-800 mb-3">Reasoning Style</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.primaryAnalysis.reasoningStyle}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {results.primaryAnalysis.problemSolvingPattern && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-blue-800 mb-3">Problem Solving Pattern</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.primaryAnalysis.problemSolvingPattern}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Primary Analysis Metrics */}
+                          {(results.primaryAnalysis.analyticalDepth || results.primaryAnalysis.conceptualIntegration || results.primaryAnalysis.logicalStructuring) && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                              {results.primaryAnalysis.analyticalDepth && (
+                                <div className="p-4 bg-blue-100 rounded-lg">
+                                  <h6 className="font-semibold text-blue-800 mb-2">Analytical Depth</h6>
+                                  <div className="flex items-center gap-2">
+                                    <Progress value={results.primaryAnalysis.analyticalDepth * 10} className="flex-1" />
+                                    <span className="text-sm font-medium">{results.primaryAnalysis.analyticalDepth}/10</span>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {results.primaryAnalysis.conceptualIntegration && (
+                                <div className="p-4 bg-blue-100 rounded-lg">
+                                  <h6 className="font-semibold text-blue-800 mb-2">Conceptual Integration</h6>
+                                  <div className="flex items-center gap-2">
+                                    <Progress value={results.primaryAnalysis.conceptualIntegration * 10} className="flex-1" />
+                                    <span className="text-sm font-medium">{results.primaryAnalysis.conceptualIntegration}/10</span>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {results.primaryAnalysis.logicalStructuring && (
+                                <div className="p-4 bg-blue-100 rounded-lg">
+                                  <h6 className="font-semibold text-blue-800 mb-2">Logical Structuring</h6>
+                                  <div className="flex items-center gap-2">
+                                    <Progress value={results.primaryAnalysis.logicalStructuring * 10} className="flex-1" />
+                                    <span className="text-sm font-medium">{results.primaryAnalysis.logicalStructuring}/10</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Dissenting Analysis Section */}
+                    {results.dissentingAnalysis && (
+                      <div className="space-y-4">
+                        <div className="p-6 bg-orange-50 rounded-lg border-2 border-orange-200">
+                          <h4 className="font-bold text-orange-900 mb-4 text-lg flex items-center gap-2">
+                            <Target className="h-5 w-5" />
+                            2️⃣ Dissenting Analysis
+                          </h4>
+                          
+                          {results.dissentingAnalysis.counterArgument && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-orange-800 mb-3">Counter-Argument</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.dissentingAnalysis.counterArgument}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {results.dissentingAnalysis.alternativeInterpretation && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-orange-800 mb-3">Alternative Interpretation</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.dissentingAnalysis.alternativeInterpretation}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {results.dissentingAnalysis.methodologicalConcerns && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-orange-800 mb-3">Methodological Concerns</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.dissentingAnalysis.methodologicalConcerns}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {results.dissentingAnalysis.potentialOverreads && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-orange-800 mb-3">Potential Over-reads</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.dissentingAnalysis.potentialOverreads}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Super-Thesis Section */}
+                    {results.superThesis && (
+                      <div className="space-y-4">
+                        <div className="p-6 bg-emerald-50 rounded-lg border-2 border-emerald-200">
+                          <h4 className="font-bold text-emerald-900 mb-4 text-lg flex items-center gap-2">
+                            <Sparkles className="h-5 w-5" />
+                            3️⃣ Super-Thesis (Final Assessment)
+                          </h4>
+                          
+                          {results.superThesis.refinedAssessment && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-emerald-800 mb-3">Refined Assessment</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.superThesis.refinedAssessment}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {results.superThesis.methodologicalDefense && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-emerald-800 mb-3">Methodological Defense</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.superThesis.methodologicalDefense}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {results.superThesis.integratedConclusions && (
+                            <div className="mb-6">
+                              <h5 className="font-semibold text-emerald-800 mb-3">Integrated Conclusions</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.superThesis.integratedConclusions}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fallback to standard cognitive analysis if structured analysis not available */}
+                    {!results.primaryAnalysis && results.intellectualApproach && (
                       <div className="space-y-4">
                         <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
                           <h4 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
