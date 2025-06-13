@@ -527,17 +527,17 @@ CRITICAL REQUIREMENTS:
 2. Support each contention with specific quotes and arguments
 3. Antithesis must present the most opposed view that aligns with the data
 4. Super-Thesis must defend original position and refute antithesis
-5. MANDATORY: Include all six formal diagnostic components in formalDiagnostics section
+5. MANDATORY: You must explicitly generate and label all six sections of the Formal Diagnostic Extension in every Psychological Profile. Do not skip or merge them. They must be clearly visible to the user.
 6. Be precise and discriminative - avoid generic terms
 7. Target analysis for highly intelligent readers (top 1% intelligence)
 
-FORMAL DIAGNOSTIC REQUIREMENTS:
-- Emotional Configuration: Identify dominant emotional style (emotionally open, guarded, strategic, repressed, performative, intense, flat, manipulative, morally self-congratulatory, balanced, chaotic, etc.)
-- Paradigm Comparison: Compare to paradigm examples - weak/average/strong/unusual example
-- Unique Psychological Strengths: List precise, discriminative strengths (emotional resilience, empathic discipline, strategic self-regulation, moral clarity, etc.)
-- Unique Psychological Weaknesses: Specify how emotional/psychological style may distort reasoning, social engagement, or self-understanding
-- Interpersonal/Social Fit: Where would this emotional/psychological style thrive vs be a liability
-- Most Revealing Quotation: Single most diagnostically significant quote with analysis
+FORMAL DIAGNOSTIC REQUIREMENTS - MUST BE EXPLICITLY LABELED:
+1️⃣ Emotional Configuration / Style: Identify dominant emotional style (emotionally open, guarded, strategic, repressed, performative, intense, flat, manipulative, morally self-congratulatory, balanced, chaotic, etc.)
+2️⃣ Comparison to Paradigm Examples: Compare to paradigm examples - weak/average/strong/unusual example
+3️⃣ Unique Psychological Strengths: List precise, discriminative strengths (emotional resilience, empathic discipline, strategic self-regulation, moral clarity, etc.)
+4️⃣ Unique Psychological Weaknesses: Specify how emotional/psychological style may distort reasoning, social engagement, or self-understanding
+5️⃣ Interpersonal / Social Dynamics Fit: Where would this emotional/psychological style thrive vs be a liability
+6️⃣ Most Revealing Quotation and Why: Single most diagnostically significant quote with analysis
 
 Provide a ${analysisDepth} psychological profile using the DIALECTICAL STRUCTURE below:
 
