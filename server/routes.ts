@@ -2861,6 +2861,27 @@ Return only the new content without any additional comments, explanations, or he
               const textHeight = doc.heightOfString(cleanText, { width: 500 });
               doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
               yPosition += Math.max(textHeight + 20, 60);
+              
+              // Add supporting evidence if available
+              if (results.thesis.supportingEvidence?.intellectualConfiguration) {
+                if (yPosition > 700) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.fontSize(12).text('Supporting Evidence:', 50, yPosition);
+                yPosition += 25;
+                results.thesis.supportingEvidence.intellectualConfiguration.forEach((evidence: any, index: number) => {
+                  if (yPosition > 720) {
+                    doc.addPage();
+                    yPosition = 50;
+                  }
+                  doc.fontSize(10).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+                  yPosition += 20;
+                  doc.fontSize(9).text(evidence.explanation, 60, yPosition, { width: 480 });
+                  yPosition += 30;
+                });
+                yPosition += 20;
+              }
             }
             
             if (results.thesis.cognitiveArchitecture) {
@@ -2874,6 +2895,27 @@ Return only the new content without any additional comments, explanations, or he
               const textHeight = doc.heightOfString(cleanText, { width: 500 });
               doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
               yPosition += Math.max(textHeight + 20, 60);
+              
+              // Add supporting evidence if available
+              if (results.thesis.supportingEvidence?.cognitiveArchitecture) {
+                if (yPosition > 700) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.fontSize(12).text('Supporting Evidence:', 50, yPosition);
+                yPosition += 25;
+                results.thesis.supportingEvidence.cognitiveArchitecture.forEach((evidence: any, index: number) => {
+                  if (yPosition > 720) {
+                    doc.addPage();
+                    yPosition = 50;
+                  }
+                  doc.fontSize(10).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+                  yPosition += 20;
+                  doc.fontSize(9).text(evidence.explanation, 60, yPosition, { width: 480 });
+                  yPosition += 30;
+                });
+                yPosition += 20;
+              }
             }
             
             if (results.thesis.metacognitiveAwareness) {
@@ -2887,6 +2929,27 @@ Return only the new content without any additional comments, explanations, or he
               const textHeight = doc.heightOfString(cleanText, { width: 500 });
               doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
               yPosition += Math.max(textHeight + 20, 60);
+              
+              // Add supporting evidence if available
+              if (results.thesis.supportingEvidence?.metacognitiveAwareness) {
+                if (yPosition > 700) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.fontSize(12).text('Supporting Evidence:', 50, yPosition);
+                yPosition += 25;
+                results.thesis.supportingEvidence.metacognitiveAwareness.forEach((evidence: any, index: number) => {
+                  if (yPosition > 720) {
+                    doc.addPage();
+                    yPosition = 50;
+                  }
+                  doc.fontSize(10).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+                  yPosition += 20;
+                  doc.fontSize(9).text(evidence.explanation, 60, yPosition, { width: 480 });
+                  yPosition += 30;
+                });
+                yPosition += 20;
+              }
             }
           }
           
@@ -2907,6 +2970,27 @@ Return only the new content without any additional comments, explanations, or he
               const textHeight = doc.heightOfString(cleanText, { width: 500 });
               doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
               yPosition += Math.max(textHeight + 20, 60);
+              
+              // Add supporting evidence if available
+              if (results.antithesis.supportingEvidence?.counterConfiguration) {
+                if (yPosition > 700) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.fontSize(12).text('Supporting Evidence:', 50, yPosition);
+                yPosition += 25;
+                results.antithesis.supportingEvidence.counterConfiguration.forEach((evidence: any, index: number) => {
+                  if (yPosition > 720) {
+                    doc.addPage();
+                    yPosition = 50;
+                  }
+                  doc.fontSize(10).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+                  yPosition += 20;
+                  doc.fontSize(9).text(evidence.explanation, 60, yPosition, { width: 480 });
+                  yPosition += 30;
+                });
+                yPosition += 20;
+              }
             }
             
             if (results.antithesis.alternativeArchitecture) {
@@ -2920,6 +3004,27 @@ Return only the new content without any additional comments, explanations, or he
               const textHeight = doc.heightOfString(cleanText, { width: 500 });
               doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
               yPosition += Math.max(textHeight + 20, 60);
+              
+              // Add supporting evidence if available
+              if (results.antithesis.supportingEvidence?.alternativeArchitecture) {
+                if (yPosition > 700) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.fontSize(12).text('Supporting Evidence:', 50, yPosition);
+                yPosition += 25;
+                results.antithesis.supportingEvidence.alternativeArchitecture.forEach((evidence: any, index: number) => {
+                  if (yPosition > 720) {
+                    doc.addPage();
+                    yPosition = 50;
+                  }
+                  doc.fontSize(10).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+                  yPosition += 20;
+                  doc.fontSize(9).text(evidence.explanation, 60, yPosition, { width: 480 });
+                  yPosition += 30;
+                });
+                yPosition += 20;
+              }
             }
           }
           
@@ -2940,6 +3045,27 @@ Return only the new content without any additional comments, explanations, or he
               const textHeight = doc.heightOfString(cleanText, { width: 500 });
               doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
               yPosition += Math.max(textHeight + 20, 60);
+              
+              // Add supporting evidence if available
+              if (results.superThesis.supportingEvidence?.reinforcedConfiguration) {
+                if (yPosition > 700) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.fontSize(12).text('Supporting Evidence:', 50, yPosition);
+                yPosition += 25;
+                results.superThesis.supportingEvidence.reinforcedConfiguration.forEach((evidence: any, index: number) => {
+                  if (yPosition > 720) {
+                    doc.addPage();
+                    yPosition = 50;
+                  }
+                  doc.fontSize(10).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+                  yPosition += 20;
+                  doc.fontSize(9).text(evidence.explanation, 60, yPosition, { width: 480 });
+                  yPosition += 30;
+                });
+                yPosition += 20;
+              }
             }
             
             if (results.superThesis.refutationOfAntithesis) {
@@ -2966,6 +3092,27 @@ Return only the new content without any additional comments, explanations, or he
               const textHeight = doc.heightOfString(cleanText, { width: 500 });
               doc.fontSize(11).text(cleanText, 50, yPosition, { width: 500 });
               yPosition += Math.max(textHeight + 20, 60);
+              
+              // Add supporting evidence if available
+              if (results.superThesis.supportingEvidence?.authenticSelfKnowledge) {
+                if (yPosition > 700) {
+                  doc.addPage();
+                  yPosition = 50;
+                }
+                doc.fontSize(12).text('Supporting Evidence:', 50, yPosition);
+                yPosition += 25;
+                results.superThesis.supportingEvidence.authenticSelfKnowledge.forEach((evidence: any, index: number) => {
+                  if (yPosition > 720) {
+                    doc.addPage();
+                    yPosition = 50;
+                  }
+                  doc.fontSize(10).text(`Quote ${index + 1}: "${evidence.quote}"`, 60, yPosition, { width: 480 });
+                  yPosition += 20;
+                  doc.fontSize(9).text(evidence.explanation, 60, yPosition, { width: 480 });
+                  yPosition += 30;
+                });
+                yPosition += 20;
+              }
             }
           }
           
@@ -3421,6 +3568,38 @@ Return only the new content without any additional comments, explanations, or he
                 }),
                 new Paragraph({ children: [new TextRun("")] })
               );
+              
+              // Add supporting evidence if available
+              if (results.thesis.supportingEvidence?.intellectualConfiguration) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Supporting Evidence:",
+                        bold: true,
+                        size: 20,
+                      }),
+                    ],
+                  })
+                );
+                
+                results.thesis.supportingEvidence.intellectualConfiguration.forEach((evidence: any, index: number) => {
+                  paragraphs.push(
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: `Quote ${index + 1}: "${evidence.quote}"`,
+                          italics: true,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                    }),
+                    new Paragraph({ children: [new TextRun("")] })
+                  );
+                });
+              }
             }
             
             if (results.thesis.cognitiveArchitecture) {
