@@ -873,16 +873,17 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       </div>
                     )}
 
+                    {/* Problem Solving Pattern Section */}
                     {results.problemSolvingPattern && (
                       <div className="space-y-4">
-                        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                          <h4 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                        <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                          <h4 className="font-bold text-purple-900 mb-4 text-lg flex items-center gap-2">
                             <Target className="h-5 w-5" />
                             Problem Solving Pattern
                           </h4>
-                          <ReactMarkdown className="text-purple-700 prose prose-sm max-w-none">
-                            {results.problemSolvingPattern}
-                          </ReactMarkdown>
+                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                            <ReactMarkdown>{results.problemSolvingPattern}</ReactMarkdown>
+                          </div>
                         </div>
 
                         {results.supportingEvidence?.problemSolvingPattern && (
