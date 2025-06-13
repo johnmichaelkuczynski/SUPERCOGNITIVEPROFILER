@@ -306,7 +306,25 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
     "problemSolvingPattern": "COMPREHENSIVE analysis of SPECIFIC conceptual targeting strategies, HOW boundaries are maintained, evidence of meta-cognitive awareness, and CONCRETE distinction between authentic vs. performative intellectual effort. Cite specific evidence.",
     "analyticalDepth": 8,
     "conceptualIntegration": 7,
-    "logicalStructuring": 9
+    "logicalStructuring": 9,
+    "strengths": ["Specific cognitive strength with evidence", "Another specific strength"],
+    "growthAreas": ["Specific limitation with evidence", "Another specific area"],
+    "cognitiveSignature": "Unique intellectual fingerprint based on analysis",
+    "detailedAnalysis": "Comprehensive cognitive architecture analysis",
+    "supportingEvidence": {
+      "intellectualApproach": [
+        {"quote": "exact quote from text", "explanation": "detailed analysis of cognitive operation"},
+        {"quote": "exact quote from text", "explanation": "analysis of reasoning discipline"}
+      ],
+      "reasoningStyle": [
+        {"quote": "exact quote from text", "explanation": "analysis of logical transitions"},
+        {"quote": "exact quote from text", "explanation": "evidence of analytical thinking"}
+      ],
+      "problemSolvingPattern": [
+        {"quote": "exact quote from text", "explanation": "analysis of conceptual targeting"},
+        {"quote": "exact quote from text", "explanation": "evidence of meta-cognitive awareness"}
+      ]
+    }
   },
   "dissentingAnalysis": {
     "title": "2️⃣ DISSENTING ANALYSIS (ANTITHESIS)",
@@ -326,32 +344,10 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
   "uniqueStrengths": "LIST of unique cognitive strengths evident in this text. Focus on real evidence of unusual competence, not generic praise.",
   "uniqueWeaknesses": "LIST of unique cognitive weaknesses evident in this text. Specify what kind of weaknesses, in what way. Distinguish from typical weaknesses in their intelligence type.",
   "careerFitEcosystem": "ANALYSIS of what intellectual ecosystem or career would this speaker thrive in. Where would their cognitive style be rewarded vs. a liability?",
-  "mostRevealingQuotation": "The single most diagnostically revealing quotation from the text with explanation of why this quotation reveals the core of their cognitive strengths/weaknesses.",
-  "intellectualApproach": "Content from superThesis.strengthenedAssessment focusing on intellectual approach",
-  "reasoningStyle": "Content from superThesis.strengthenedAssessment focusing on reasoning style", 
-  "problemSolvingPattern": "Content from superThesis.strengthenedAssessment focusing on problem solving pattern",
-  "analyticalDepth": number,
-  "conceptualIntegration": number,
-  "logicalStructuring": number,
-  "strengths": ["SPECIFIC cognitive strengths with detailed textual evidence", "PRECISE reasoning capabilities demonstrated with examples"],
-  "growthAreas": ["SPECIFIC cognitive limitations with detailed evidence", "PRECISE epistemic blind spots identified with textual support"],
-  "cognitiveSignature": "DETAILED intellectual fingerprint that could only apply to this specific reasoning pattern, citing specific cognitive operations and inferential strategies",
-  "detailedAnalysis": "COMPREHENSIVE 8-10 paragraph analysis modeling the specific cognitive architecture revealed: 1) Detailed reasoning structure analysis with specific examples, 2) Epistemic control evidence with precise textual support, 3) Conceptual targeting assessment with concrete demonstrations, 4) Cognitive integrity evaluation with specific evidence, 5) Meta-cognitive awareness assessment, 6) Inferential discipline analysis, 7) Intellectual authenticity vs posturing evaluation, 8) Systematic thinking pattern identification, 9) Cognitive strengths and limitations integration, 10) Overall cognitive signature synthesis",
-  "supportingEvidence": {
-    "intellectualApproach": [
-      {"quote": "exact quote from text", "explanation": "DETAILED analysis of the specific cognitive operation performed here, how epistemic control is demonstrated, and what this reveals about reasoning discipline"},
-      {"quote": "exact quote from text", "explanation": "SPECIFIC analysis of inferential structure and evidence of genuine vs. pseudo-intellectual approach"}
-    ],
-    "reasoningStyle": [
-      {"quote": "exact quote from text", "explanation": "DETAILED analysis of specific logical transitions, inferential control, and how claims are warranted"},
-      {"quote": "exact quote from text", "explanation": "SPECIFIC evidence of reasoning structure quality, identifying exact cognitive operations and their effectiveness"}
-    ],
-    "problemSolvingPattern": [
-      {"quote": "exact quote from text", "explanation": "DETAILED analysis of specific conceptual targeting, how boundaries are maintained, and evidence of meta-cognitive awareness"},
-      {"quote": "exact quote from text", "explanation": "SPECIFIC analysis of cognitive integrity vs. intellectual posturing with precise evidence"}
-    ]
-  }
-}`;
+  "mostRevealingQuotation": "The single most diagnostically revealing quotation from the text with explanation of why this quotation reveals the core of their cognitive strengths/weaknesses."
+}
+
+CRITICAL: ONLY return the JSON structure above. Do not include any other fields at the top level.`;
 
   try {
     const response = await openai.chat.completions.create({
