@@ -39,6 +39,7 @@ interface SupportingEvidence {
 interface ProfileResults {
   // Structured Analysis fields
   primaryAnalysis?: {
+    title?: string;
     intellectualApproach?: string;
     reasoningStyle?: string;
     problemSolvingPattern?: string;
@@ -47,12 +48,14 @@ interface ProfileResults {
     logicalStructuring?: number;
   };
   dissentingAnalysis?: {
+    title?: string;
     counterArgument?: string;
     alternativeInterpretation?: string;
     methodologicalConcerns?: string;
     potentialOverreads?: string;
   };
   superThesis?: {
+    title?: string;
     strengthenedAssessment?: string;
     refutationOfDissent?: string;
     reinforcedConclusions?: string;
@@ -836,11 +839,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       Structured Cognitive Analysis
                     </h3>
 
-                    {/* Debug - show what data is available */}
-                    {console.log('Results object:', results)}
-                    {console.log('Has primaryAnalysis:', !!results.primaryAnalysis)}
-                    {console.log('Has dissentingAnalysis:', !!results.dissentingAnalysis)}
-                    {console.log('Has superThesis:', !!results.superThesis)}
+
 
                     {/* Primary Analysis Section */}
                     {results.primaryAnalysis && (
@@ -848,7 +847,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                         <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
                           <h4 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
                             <Brain className="h-5 w-5" />
-                            1️⃣ Primary Analysis
+                            {results.primaryAnalysis.title || "1️⃣ Primary Analysis"}
                           </h4>
                           
                           {/* Primary Analysis Sub-sections */}
@@ -923,7 +922,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                         <div className="p-6 bg-orange-50 rounded-lg border-2 border-orange-200">
                           <h4 className="font-bold text-orange-900 mb-4 text-lg flex items-center gap-2">
                             <Target className="h-5 w-5" />
-                            2️⃣ Dissenting Analysis
+                            {results.dissentingAnalysis.title || "2️⃣ Dissenting Analysis"}
                           </h4>
                           
                           {results.dissentingAnalysis.counterArgument && (

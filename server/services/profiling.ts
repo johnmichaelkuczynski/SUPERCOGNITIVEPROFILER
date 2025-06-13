@@ -242,24 +242,30 @@ Are they using concepts to clarify and target reality, rather than to impress or
 
 CRITICAL ANALYSIS REQUIREMENTS:
 
-PRIMARY ANALYSIS must identify:
+MANDATORY STRUCTURE - FOLLOW EXACTLY:
+
+1️⃣ PRIMARY ANALYSIS (THESIS):
+Your best initial read of the text. Give your clearest, strongest cognitive profile of the text using your existing profiling instructions. Must identify:
 - SPECIFIC evidence of cognitive operations being performed
 - HOW the author demonstrates (or fails to demonstrate) genuine intellectual control
 - CONCRETE examples that distinguish authentic reasoning from performative complexity
 - PRECISE assessment of whether they're clarifying reality or performing sophistication
 
-DISSENTING ANALYSIS must be intellectually serious:
+2️⃣ DISSENTING ANALYSIS (ANTITHESIS):
+Generate a well-argued Dissenting Analysis that seriously challenges your Primary Analysis:
 - NOT a straw man argument
-- Must represent a real possible critique that a highly intelligent critic might make
-- Should challenge specific aspects of the Primary Analysis with genuine evidence
+- Must represent how a highly intelligent critic would attack your Primary Analysis
+- Should challenge specific aspects with genuine evidence
 - Must consider alternative interpretations of the same textual evidence
+- Think: "How would an expert cognitive analyst completely disagree with my reading?"
 
-SUPER-THESIS must strengthen the Primary Analysis:
-- Directly refute the Dissenting Analysis where it fails
-- Reinforce Primary Analysis with additional evidence and reasoning
-- Address potential weaknesses by making the original argument stronger
-- Produce a more robust, defensible version of the Primary Analysis
-- Must not compromise or synthesize - must be a STRONGER version of the original thesis
+3️⃣ SUPER-THESIS:
+Generate a final assessment that responds to the Dissenting Analysis:
+- Defend and refine your Primary Analysis against the critique
+- Concede any valid points from the Dissent where appropriate  
+- Sharpen your original read to produce a final, stronger profile
+- Do NOT simply split the difference - produce a clarified, defensible, high-quality profile
+- Must be a STRONGER, more defensible version that withstands intelligent critique
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
@@ -276,26 +282,29 @@ Rate on 1-10 scale with DETAILED JUSTIFICATION citing specific textual evidence:
 - Conceptual Integration: Cite specific examples of precision vs. superficial complexity  
 - Logical Structuring: Identify specific evidence of epistemic discipline vs. posturing
 
-Format as JSON with this structure:
+YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
 {
   "primaryAnalysis": {
-    "intellectualApproach": "DETAILED MULTI-PARAGRAPH analysis identifying SPECIFIC stages of the argument, HOW epistemic control is maintained, and PRECISE evidence of reasoning discipline vs. performative complexity",
-    "reasoningStyle": "DETAILED analysis of EXACT inferential structure, identifying SPECIFIC logical transitions, how claims are warranted, and evidence of genuine vs. superficial analytical thinking", 
-    "problemSolvingPattern": "DETAILED analysis of SPECIFIC conceptual targeting strategies, HOW boundaries are maintained, evidence of meta-cognitive awareness, and CONCRETE distinction between authentic vs. performative intellectual effort",
+    "title": "1️⃣ PRIMARY ANALYSIS (THESIS)",
+    "intellectualApproach": "COMPREHENSIVE MULTI-PARAGRAPH analysis identifying SPECIFIC stages of the argument, HOW epistemic control is maintained, and PRECISE evidence of reasoning discipline vs. performative complexity. Must be detailed enough to stand as a complete cognitive assessment.",
+    "reasoningStyle": "COMPREHENSIVE analysis of EXACT inferential structure, identifying SPECIFIC logical transitions, how claims are warranted, and evidence of genuine vs. superficial analytical thinking. Include concrete textual examples.", 
+    "problemSolvingPattern": "COMPREHENSIVE analysis of SPECIFIC conceptual targeting strategies, HOW boundaries are maintained, evidence of meta-cognitive awareness, and CONCRETE distinction between authentic vs. performative intellectual effort. Cite specific evidence.",
     "analyticalDepth": 8,
     "conceptualIntegration": 7,
     "logicalStructuring": 9
   },
   "dissentingAnalysis": {
-    "counterArgument": "INTELLECTUALLY SERIOUS challenge to the Primary Analysis, representing genuine critiques a highly intelligent reader might raise about the cognitive assessment",
-    "alternativeInterpretation": "PLAUSIBLE alternative reading of the same textual evidence that challenges key conclusions from Primary Analysis",
-    "methodologicalConcerns": "LEGITIMATE concerns about the analytical approach or evidence interpretation used in Primary Analysis",
-    "potentialOverreads": "SPECIFIC examples where Primary Analysis might be overinterpreting or misreading cognitive indicators"
+    "title": "2️⃣ DISSENTING ANALYSIS (ANTITHESIS)",
+    "counterArgument": "SERIOUS, WELL-REASONED challenge to the Primary Analysis. Write as if you are an expert cognitive analyst who completely disagrees with the Primary Analysis. Use specific evidence from the text to attack the conclusions.",
+    "alternativeInterpretation": "COMPELLING alternative reading of the same textual evidence that fundamentally challenges the Primary Analysis conclusions. Show how the same evidence could support a different cognitive profile.",
+    "methodologicalConcerns": "LEGITIMATE, SERIOUS concerns about the analytical approach used in Primary Analysis. Challenge the methodology and evidence interpretation with expert-level critique.",
+    "potentialOverreads": "SPECIFIC examples where Primary Analysis might be overinterpreting, misreading cognitive indicators, or making unjustified leaps. Be precise and devastating in this critique."
   },
   "superThesis": {
-    "strengthenedAssessment": "REINFORCED and STRONGER version of Primary Analysis that directly refutes the Dissenting Analysis and addresses weaknesses with additional evidence",
-    "refutationOfDissent": "SPECIFIC point-by-point refutation of the Dissenting Analysis, showing where it fails and why the Primary Analysis remains valid",
-    "reinforcedConclusions": "STRONGER, more defensible conclusions that emerge from successfully defending the Primary Analysis against critique"
+    "title": "3️⃣ SUPER-THESIS (FINAL ASSESSMENT)",
+    "strengthenedAssessment": "REFINED and STRONGER version of Primary Analysis that responds to the Dissenting Analysis. Defend your original assessment while incorporating valid concerns. Show why your reading is more compelling despite the critique.",
+    "refutationOfDissent": "SPECIFIC point-by-point response to the Dissenting Analysis. Show where the critique fails, where it succeeds, and how this strengthens rather than weakens your assessment. Be intellectually honest.",
+    "reinforcedConclusions": "FINAL, more nuanced and defensible conclusions about the cognitive profile. This should be your strongest, most refined assessment that can withstand intelligent criticism."
   },
   "intellectualApproach": "Content from superThesis.strengthenedAssessment focusing on intellectual approach",
   "reasoningStyle": "Content from superThesis.strengthenedAssessment focusing on reasoning style", 
@@ -332,7 +341,19 @@ Format as JSON with this structure:
       max_tokens: 8000,
     });
 
-    return JSON.parse(response.choices[0].message.content || "{}");
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    console.log("Raw OpenAI response for cognitive analysis:", JSON.stringify(result, null, 2));
+    
+    // Verify structured analysis format
+    if (!result.primaryAnalysis || !result.dissentingAnalysis || !result.superThesis) {
+      console.error("Missing structured analysis components:", {
+        hasPrimary: !!result.primaryAnalysis,
+        hasDisssenting: !!result.dissentingAnalysis,
+        hasSuperThesis: !!result.superThesis
+      });
+    }
+    
+    return result;
   } catch (error) {
     throw new Error("Failed to generate cognitive profile: " + (error as Error).message);
   }
