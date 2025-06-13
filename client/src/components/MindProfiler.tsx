@@ -1985,6 +1985,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.thesis.intellectualConfiguration}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.thesis.supportingEvidence?.intellectualConfiguration && (
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                              <h6 className="font-semibold text-green-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.thesis.supportingEvidence.intellectualConfiguration.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-green-25 rounded-md border-l-4 border-green-300">
+                                    <div className="text-sm font-medium text-green-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -1994,6 +2013,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.thesis.cognitiveArchitecture}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.thesis.supportingEvidence?.cognitiveArchitecture && (
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                              <h6 className="font-semibold text-green-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.thesis.supportingEvidence.cognitiveArchitecture.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-green-25 rounded-md border-l-4 border-green-300">
+                                    <div className="text-sm font-medium text-green-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2003,6 +2041,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.thesis.metacognitiveAwareness}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.thesis.supportingEvidence?.metacognitiveAwareness && (
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                              <h6 className="font-semibold text-green-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.thesis.supportingEvidence.metacognitiveAwareness.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-green-25 rounded-md border-l-4 border-green-300">
+                                    <div className="text-sm font-medium text-green-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2060,6 +2117,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.antithesis.counterConfiguration}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.antithesis.supportingEvidence?.counterConfiguration && (
+                            <div className="mt-4 pt-4 border-t border-red-200">
+                              <h6 className="font-semibold text-red-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.antithesis.supportingEvidence.counterConfiguration.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-red-25 rounded-md border-l-4 border-red-300">
+                                    <div className="text-sm font-medium text-red-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2069,6 +2145,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.antithesis.alternativeArchitecture}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.antithesis.supportingEvidence?.alternativeArchitecture && (
+                            <div className="mt-4 pt-4 border-t border-red-200">
+                              <h6 className="font-semibold text-red-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.antithesis.supportingEvidence.alternativeArchitecture.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-red-25 rounded-md border-l-4 border-red-300">
+                                    <div className="text-sm font-medium text-red-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2135,6 +2230,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.superThesis.reinforcedConfiguration}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.superThesis.supportingEvidence?.reinforcedConfiguration && (
+                            <div className="mt-4 pt-4 border-t border-blue-200">
+                              <h6 className="font-semibold text-blue-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.superThesis.supportingEvidence.reinforcedConfiguration.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-blue-25 rounded-md border-l-4 border-blue-300">
+                                    <div className="text-sm font-medium text-blue-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2207,6 +2321,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.superThesis.finalAssessment}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.superThesis.supportingEvidence?.authenticSelfKnowledge && (
+                            <div className="mt-4 pt-4 border-t border-blue-200">
+                              <h6 className="font-semibold text-blue-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.superThesis.supportingEvidence.authenticSelfKnowledge.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-blue-25 rounded-md border-l-4 border-blue-300">
+                                    <div className="text-sm font-medium text-blue-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
