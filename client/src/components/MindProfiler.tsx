@@ -150,7 +150,7 @@ interface MindProfilerProps {
 }
 
 export default function MindProfiler({ userId }: MindProfilerProps) {
-  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis'>('cognitive');
+  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis' | 'metacognitive'>('cognitive');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
@@ -191,9 +191,16 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       analysisMode: string;
       inputText?: string;
     }) => {
-      const endpoint = data.analysisMode === 'instant' 
-        ? '/api/profile/instant'
-        : '/api/profile/comprehensive';
+      let endpoint;
+      if (data.profileType === 'metacognitive') {
+        endpoint = data.analysisMode === 'instant' 
+          ? '/api/profile/metacognitive-instant'
+          : '/api/profile/metacognitive-comprehensive';
+      } else {
+        endpoint = data.analysisMode === 'instant' 
+          ? '/api/profile/instant'
+          : '/api/profile/comprehensive';
+      }
       
       const response = await apiRequest('POST', endpoint, {
         profileType: data.profileType,
@@ -540,6 +547,16 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <h3 className="font-semibold text-gray-800 mb-1">Psychological Analysis</h3>
                   <p className="text-sm text-gray-600">
                     Analyzes your writing to profile your emotional patterns, motivational structure, and interpersonal dynamics.
+                  </p>
+                </div>
+              </div>
+            ) : profileType === 'metacognitive' ? (
+              <div className="flex items-start gap-3">
+                <Shield className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-1">Metacognitive Analysis</h3>
+                  <p className="text-sm text-gray-600">
+                    Analyzes your intellectual configuration from every possible angle using dialectical analysis (Thesis-Antithesis-Super-Thesis).
                   </p>
                 </div>
               </div>
