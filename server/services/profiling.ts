@@ -267,6 +267,21 @@ Generate a final assessment that responds to the Dissenting Analysis:
 - Do NOT simply split the difference - produce a clarified, defensible, high-quality profile
 - Must be a STRONGER, more defensible version that withstands intelligent critique
 
+MANDATORY FORMAL DIAGNOSTIC COMPONENTS:
+In addition to the Thesis/Antithesis/Super-Thesis structure, you MUST include these six formal diagnostic components:
+
+1️⃣ TYPE OF INTELLIGENCE: Identify what type(s) of intelligence the speaker exhibits (abstract, practical, verbal, social, conceptual, analytic, synthetic, philosophical, emotional, manipulative, pseudo-intellectual, etc.). State this in formal terms.
+
+2️⃣ COMPARISON TO PARADIGM EXAMPLES: How does this person's cognitive style compare to paradigm examples of this intelligence type? Are they weak/strong/mixed? What is distinctive about their style relative to typical strong examples?
+
+3️⃣ UNIQUE STRENGTHS: List unique cognitive strengths evident in this text. Focus on real evidence of unusual competence, not generic praise.
+
+4️⃣ UNIQUE WEAKNESSES: List unique cognitive weaknesses evident in this text. Specify what kind of weaknesses, in what way. Distinguish from typical weaknesses in their intelligence type.
+
+5️⃣ LIKELY CAREER FIT / INTELLECTUAL ECOSYSTEM: What intellectual ecosystem or career would this speaker thrive in? Where would their cognitive style be rewarded vs. a liability?
+
+6️⃣ MOST REVEALING QUOTATION: Select the single most diagnostically revealing quotation from the text. Explain why this quotation reveals the core of their cognitive strengths/weaknesses.
+
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
 
@@ -306,6 +321,12 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
     "refutationOfDissent": "SPECIFIC point-by-point response to the Dissenting Analysis. Show where the critique fails, where it succeeds, and how this strengthens rather than weakens your assessment. Be intellectually honest.",
     "reinforcedConclusions": "FINAL, more nuanced and defensible conclusions about the cognitive profile. This should be your strongest, most refined assessment that can withstand intelligent criticism."
   },
+  "typeOfIntelligence": "FORMAL identification of intelligence type(s): abstract, practical, verbal, social, conceptual, analytic, synthetic, philosophical, emotional, manipulative, pseudo-intellectual, etc. State in formal terms.",
+  "comparisonToParadigms": "DETAILED comparison to paradigm examples of this intelligence type. Are they weak/strong/mixed? What is distinctive about their style relative to typical strong examples?",
+  "uniqueStrengths": "LIST of unique cognitive strengths evident in this text. Focus on real evidence of unusual competence, not generic praise.",
+  "uniqueWeaknesses": "LIST of unique cognitive weaknesses evident in this text. Specify what kind of weaknesses, in what way. Distinguish from typical weaknesses in their intelligence type.",
+  "careerFitEcosystem": "ANALYSIS of what intellectual ecosystem or career would this speaker thrive in. Where would their cognitive style be rewarded vs. a liability?",
+  "mostRevealingQuotation": "The single most diagnostically revealing quotation from the text with explanation of why this quotation reveals the core of their cognitive strengths/weaknesses.",
   "intellectualApproach": "Content from superThesis.strengthenedAssessment focusing on intellectual approach",
   "reasoningStyle": "Content from superThesis.strengthenedAssessment focusing on reasoning style", 
   "problemSolvingPattern": "Content from superThesis.strengthenedAssessment focusing on problem solving pattern",

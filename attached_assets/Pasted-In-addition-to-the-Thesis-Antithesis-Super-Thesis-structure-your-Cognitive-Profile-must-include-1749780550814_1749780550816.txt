@@ -1,0 +1,62 @@
+In addition to the Thesis / Antithesis / Super-Thesis structure, your Cognitive Profile must include the following formal diagnostic components — these must appear explicitly in each profile:
+
+1️⃣ Type of Intelligence
+
+Identify what type(s) of intelligence the speaker exhibits (e.g. abstract, practical, verbal, social, conceptual, analytic, synthetic, philosophical, emotional, manipulative, pseudo-intellectual, etc.).
+
+You must clearly state this in formal terms.
+
+2️⃣ Comparison to Paradigm Examples
+
+State how this person’s cognitive style compares to paradigm examples of this intelligence type.
+
+Are they a weak/strong/mixed example of this type?
+
+What is distinctive about their style relative to typical strong examples?
+
+3️⃣ Unique Strengths
+
+Clearly list unique cognitive strengths evident in this text — do not repeat generic praise.
+
+Focus on real evidence of unusual competence.
+
+4️⃣ Unique Weaknesses
+
+Clearly list unique cognitive weaknesses evident in this text — not "weak reasoning" but what kind, in what way.
+
+Distinguish this speaker’s weaknesses from typical ones in their intelligence type.
+
+5️⃣ Likely Career Fit / Intellectual Ecosystem
+
+Based on this text, what kind of intellectual ecosystem or career would this speaker likely thrive in?
+
+Where would their cognitive style be rewarded, where would it be a liability?
+
+6️⃣ Most Revealing Quotation and Why
+
+Select the single most diagnostically revealing quotation from the text.
+
+Explain why this quotation reveals the core of the speaker’s cognitive strengths and/or weaknesses.
+
+This forces you to justify your read.
+
+IMPORTANT:
+
+You must include these sections formally labeled in every Cognitive Profile.
+
+You must not skip any section.
+
+You must answer each section with concrete, specific reasoning, not vague generalities.
+
+Purpose:
+
+To force deep, discriminative modeling of cognitive style.
+
+To make profiles informative to highly intelligent readers.
+
+To prevent generic "smart/dumb" informal reads.
+
+Summary:
+✅ This block forces the agent to produce formal, discriminative, structured cognitive profiles.
+✅ It will massively raise the bar — no more "he’s kinda smart" fluff.
+✅ It forces modeling of what kind of intelligence, how strong, relative to what, revealing quotation, career fit, etc.

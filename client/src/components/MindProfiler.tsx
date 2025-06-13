@@ -23,7 +23,14 @@ import {
   Loader2,
   CheckCircle,
   Lightbulb,
-  Target
+  Target,
+  Award,
+  Users,
+  TrendingUp,
+  AlertTriangle,
+  Briefcase,
+  Quote,
+  Shield
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -109,6 +116,14 @@ interface ProfileResults {
   optimalEnvironments?: string[];
   collaborationStyle?: string;
   
+  // Formal diagnostic components
+  typeOfIntelligence?: string;
+  comparisonToParadigms?: string;
+  uniqueStrengths?: string;
+  uniqueWeaknesses?: string;
+  careerFitEcosystem?: string;
+  mostRevealingQuotation?: string;
+
   // General fields
   detailedAnalysis?: string;
   supportingEvidence?: {
@@ -1000,6 +1015,95 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                             </div>
                           )}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Formal Diagnostic Components */}
+                    {(results.typeOfIntelligence || results.comparisonToParadigms || results.uniqueStrengths || 
+                      results.uniqueWeaknesses || results.careerFitEcosystem || results.mostRevealingQuotation) && (
+                      <div className="mt-8 space-y-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 border-b-2 border-gray-300 pb-2">
+                          <Award className="h-6 w-6 text-purple-600" />
+                          Formal Diagnostic Components
+                        </h3>
+
+                        {/* Type of Intelligence */}
+                        {results.typeOfIntelligence && (
+                          <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                            <h4 className="font-bold text-purple-900 mb-3 text-lg flex items-center gap-2">
+                              <Brain className="h-5 w-5" />
+                              1️⃣ Type of Intelligence
+                            </h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.typeOfIntelligence}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Comparison to Paradigm Examples */}
+                        {results.comparisonToParadigms && (
+                          <div className="p-6 bg-indigo-50 rounded-lg border-2 border-indigo-200">
+                            <h4 className="font-bold text-indigo-900 mb-3 text-lg flex items-center gap-2">
+                              <Users className="h-5 w-5" />
+                              2️⃣ Comparison to Paradigm Examples
+                            </h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.comparisonToParadigms}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Unique Strengths */}
+                        {results.uniqueStrengths && (
+                          <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
+                            <h4 className="font-bold text-green-900 mb-3 text-lg flex items-center gap-2">
+                              <TrendingUp className="h-5 w-5" />
+                              3️⃣ Unique Strengths
+                            </h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.uniqueStrengths}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Unique Weaknesses */}
+                        {results.uniqueWeaknesses && (
+                          <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
+                            <h4 className="font-bold text-red-900 mb-3 text-lg flex items-center gap-2">
+                              <AlertTriangle className="h-5 w-5" />
+                              4️⃣ Unique Weaknesses
+                            </h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.uniqueWeaknesses}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Career Fit / Intellectual Ecosystem */}
+                        {results.careerFitEcosystem && (
+                          <div className="p-6 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+                            <h4 className="font-bold text-yellow-900 mb-3 text-lg flex items-center gap-2">
+                              <Briefcase className="h-5 w-5" />
+                              5️⃣ Likely Career Fit / Intellectual Ecosystem
+                            </h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.careerFitEcosystem}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Most Revealing Quotation */}
+                        {results.mostRevealingQuotation && (
+                          <div className="p-6 bg-cyan-50 rounded-lg border-2 border-cyan-200">
+                            <h4 className="font-bold text-cyan-900 mb-3 text-lg flex items-center gap-2">
+                              <Quote className="h-5 w-5" />
+                              6️⃣ Most Revealing Quotation
+                            </h4>
+                            <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.mostRevealingQuotation}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
