@@ -27,6 +27,7 @@ import {
   Award,
   Users,
   TrendingUp,
+  TrendingDown,
   AlertTriangle,
   Briefcase,
   Quote,
@@ -120,12 +121,40 @@ interface ProfileResults {
   collaborationStyle?: string;
   
   // Formal diagnostic components
-  typeOfIntelligence?: string;
-  comparisonToParadigms?: string;
-  uniqueStrengths?: string;
-  uniqueWeaknesses?: string;
-  careerFitEcosystem?: string;
-  mostRevealingQuotation?: string;
+  formalDiagnostics?: {
+    typeOfIntelligence?: {
+      primaryTypes?: string[];
+      analysis?: string;
+      supportingEvidence?: SupportingEvidence[];
+    };
+    paradigmComparison?: {
+      strength?: string;
+      distinguishingFeatures?: string;
+      analysis?: string;
+      supportingEvidence?: SupportingEvidence[];
+    };
+    uniqueCognitiveStrengths?: {
+      strengths?: string[];
+      analysis?: string;
+      supportingEvidence?: SupportingEvidence[];
+    };
+    uniqueCognitiveWeaknesses?: {
+      weaknesses?: string[];
+      analysis?: string;
+      supportingEvidence?: SupportingEvidence[];
+    };
+    careerEcosystemFit?: {
+      thriveEnvironments?: string[];
+      challengeEnvironments?: string[];
+      analysis?: string;
+      supportingEvidence?: SupportingEvidence[];
+    };
+    mostRevealingQuotation?: {
+      quote?: string;
+      analysis?: string;
+      cognitiveSignificance?: string;
+    };
+  };
 
   // General fields
   detailedAnalysis?: string;
@@ -142,6 +171,18 @@ interface ProfileResults {
     emotionalReasoning?: SupportingEvidence[];
   };
   
+  // Metacognitive fields
+  intellectualMaturity?: number;
+  selfAwarenessLevel?: number;
+  epistemicHumility?: number;
+  reflectiveDepth?: number;
+  overallMetacognitiveProfile?: string;
+
+  // Dialectical structure fields
+  thesis?: any;
+  antithesis?: any;
+  superThesis?: any;
+
   // Legacy nested structures (for backwards compatibility)
   cognitiveProfile?: any;
   psychologicalProfile?: any;
