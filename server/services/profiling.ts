@@ -305,7 +305,7 @@ Format as JSON with this structure:
   "strengths": ["SPECIFIC cognitive strengths with detailed textual evidence", "PRECISE reasoning capabilities demonstrated with examples"],
   "growthAreas": ["SPECIFIC cognitive limitations with detailed evidence", "PRECISE epistemic blind spots identified with textual support"],
   "cognitiveSignature": "DETAILED intellectual fingerprint that could only apply to this specific reasoning pattern, citing specific cognitive operations and inferential strategies",
-  "detailedAnalysis": "COMPREHENSIVE 4-5 paragraph analysis modeling the specific cognitive architecture revealed: detailed reasoning structure analysis, specific epistemic control evidence, precise conceptual targeting assessment, and concrete cognitive integrity evaluation",
+  "detailedAnalysis": "COMPREHENSIVE 8-10 paragraph analysis modeling the specific cognitive architecture revealed: 1) Detailed reasoning structure analysis with specific examples, 2) Epistemic control evidence with precise textual support, 3) Conceptual targeting assessment with concrete demonstrations, 4) Cognitive integrity evaluation with specific evidence, 5) Meta-cognitive awareness assessment, 6) Inferential discipline analysis, 7) Intellectual authenticity vs posturing evaluation, 8) Systematic thinking pattern identification, 9) Cognitive strengths and limitations integration, 10) Overall cognitive signature synthesis",
   "supportingEvidence": {
     "intellectualApproach": [
       {"quote": "exact quote from text", "explanation": "DETAILED analysis of the specific cognitive operation performed here, how epistemic control is demonstrated, and what this reveals about reasoning discipline"},
@@ -328,7 +328,7 @@ Format as JSON with this structure:
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 4000,
+      max_tokens: 8000,
     });
 
     return JSON.parse(response.choices[0].message.content || "{}");

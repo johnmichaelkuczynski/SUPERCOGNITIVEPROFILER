@@ -1214,7 +1214,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
       {/* Results Dialog */}
       <Dialog open={showResultsDialog} onOpenChange={setShowResultsDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-6" aria-describedby="results-description">
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0" aria-describedby="results-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {profileType === 'cognitive' && <Brain className="h-5 w-5 text-blue-600" />}
