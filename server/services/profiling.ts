@@ -648,7 +648,7 @@ Format as JSON with this structure:
 }
 
 // Generate metacognitive profile from text analysis
-async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false): Promise<MetacognitiveProfile> {
+export async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false): Promise<MetacognitiveProfile> {
   const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
   
   const prompt = `You are a metacognitive analysis expert specializing in intellectual configuration assessment using dialectical analysis.
@@ -846,7 +846,7 @@ export async function generateInstantProfile(
 
 // Generate comprehensive profile from all user activity
 export async function generateComprehensiveProfile(
-  profileType: 'cognitive' | 'psychological' | 'synthesis',
+  profileType: 'cognitive' | 'psychological' | 'synthesis' | 'metacognitive',
   userId: number
 ): Promise<any> {
   // Gather all user content
@@ -887,6 +887,8 @@ export async function generateComprehensiveProfile(
     profile = await generateCognitiveProfile(combinedText, true);
   } else if (profileType === 'psychological') {
     profile = await generatePsychologicalProfile(combinedText, true);
+  } else if (profileType === 'metacognitive') {
+    profile = await generateMetacognitiveProfile(combinedText, true);
   } else {
     profile = await generateSynthesisProfile(combinedText, true);
   }

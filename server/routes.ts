@@ -19,7 +19,7 @@ import { sendEmail } from './services/email';
 import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
-import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile } from "./services/profiling";
+import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -2429,7 +2429,6 @@ Return only the new content without any additional comments, explanations, or he
         return res.status(400).json({ error: 'Text sample too short. Minimum 100 characters required.' });
       }
       
-      const { generateMetacognitiveProfile } = await import('./services/profiling');
       const metacognitiveProfile = await generateMetacognitiveProfile(inputText, false);
       res.json(metacognitiveProfile);
     } catch (error) {
@@ -2449,8 +2448,6 @@ Return only the new content without any additional comments, explanations, or he
       if (!userId) {
         return res.status(400).json({ error: 'Missing required parameters' });
       }
-      
-      const { generateMetacognitiveProfile } = await import('./services/profiling');
       
       // Get comprehensive text data for user
       const documents = await storage.getDocumentsByUserId(userId);
