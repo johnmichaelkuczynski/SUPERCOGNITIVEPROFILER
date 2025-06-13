@@ -3484,8 +3484,358 @@ Return only the new content without any additional comments, explanations, or he
           new Paragraph({ children: [new TextRun("")] }) // Empty line
         );
 
-        // Analysis sections based on new flat structure
-        if (results.emotionalPattern) {
+        // Handle dialectical structure for psychological and synthesis analysis
+        if (results.thesis && (profileType === 'psychological' || profileType === 'synthesis')) {
+          // THESIS SECTION
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: profileType === 'psychological' ? "1. THESIS: PRIMARY PSYCHOLOGICAL ANALYSIS" : "1. THESIS: PRIMARY SYNTHESIS ANALYSIS",
+                  bold: true,
+                  size: 32,
+                }),
+              ],
+            }),
+            new Paragraph({ children: [new TextRun("")] })
+          );
+
+          if (results.thesis.title) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: results.thesis.title,
+                    bold: true,
+                    size: 28,
+                  }),
+                ],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+          }
+
+          if (profileType === 'psychological') {
+            // Psychological fields
+            if (results.thesis.emotionalPattern) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Emotional Pattern:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.emotionalPattern)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.motivationalStructure) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Motivational Structure:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.motivationalStructure)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.interpersonalDynamics) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Interpersonal Dynamics:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.interpersonalDynamics)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.stressResponsePattern) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Stress Response Pattern:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.stressResponsePattern)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+          } else if (profileType === 'synthesis') {
+            // Synthesis fields
+            if (results.thesis.intellectualEmotionalIntegration) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Intellectual-Emotional Integration:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.intellectualEmotionalIntegration)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.decisionMakingSynthesis) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Decision-Making Synthesis:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.decisionMakingSynthesis)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.authenticityAssessment) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Authenticity Assessment:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.authenticityAssessment)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.stressClarityDynamics) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Stress-Clarity Dynamics:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.stressClarityDynamics)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.empathyAuthenticity) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Empathy Authenticity:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.empathyAuthenticity)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.thesis.cognitiveEmotionalArchitecture) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Cognitive-Emotional Architecture:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.thesis.cognitiveEmotionalArchitecture)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+          }
+
+          // ANTITHESIS SECTION
+          if (results.antithesis) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: profileType === 'psychological' ? "2. ANTITHESIS: DISSENTING PSYCHOLOGICAL ANALYSIS" : "2. ANTITHESIS: DISSENTING SYNTHESIS ANALYSIS",
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+
+            if (results.antithesis.title) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: results.antithesis.title,
+                      bold: true,
+                      size: 28,
+                    }),
+                  ],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.antithesis.counterArgument) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Counter-Argument:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.antithesis.counterArgument)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.antithesis.alternativeInterpretation) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Alternative Interpretation:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.antithesis.alternativeInterpretation)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.antithesis.challengingEvidence) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Challenging Evidence:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.antithesis.challengingEvidence)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+          }
+
+          // SUPER-THESIS SECTION
+          if (results.superThesis) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: profileType === 'psychological' ? "3. SUPER-THESIS: REFINED PSYCHOLOGICAL SYNTHESIS" : "3. SUPER-THESIS: REFINED SYNTHESIS ANALYSIS",
+                    bold: true,
+                    size: 32,
+                  }),
+                ],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+
+            if (results.superThesis.title) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: results.superThesis.title,
+                      bold: true,
+                      size: 28,
+                    }),
+                  ],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+
+            if (results.superThesis.refinedConclusion) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "Final Refined Assessment:",
+                      bold: true,
+                      size: 24,
+                    }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [new TextRun(results.superThesis.refinedConclusion)],
+                }),
+                new Paragraph({ children: [new TextRun("")] })
+              );
+            }
+          }
+        }
+        
+        // Fallback to flat structure for non-dialectical analyses
+        else if (results.emotionalPattern) {
           paragraphs.push(
             new Paragraph({
               children: [
