@@ -836,6 +836,12 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       Structured Cognitive Analysis
                     </h3>
 
+                    {/* Debug - show what data is available */}
+                    {console.log('Results object:', results)}
+                    {console.log('Has primaryAnalysis:', !!results.primaryAnalysis)}
+                    {console.log('Has dissentingAnalysis:', !!results.dissentingAnalysis)}
+                    {console.log('Has superThesis:', !!results.superThesis)}
+
                     {/* Primary Analysis Section */}
                     {results.primaryAnalysis && (
                       <div className="space-y-4">
