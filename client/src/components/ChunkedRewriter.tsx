@@ -396,16 +396,7 @@ export default function ChunkedRewriter({
             } : item
           ));
 
-          // Add completed chunk to chat dialogue
-          onAddToChat(
-            `**${processingMode === 'homework' ? 'Homework' : 'Rewrite'} Chunk ${i + 1}/${selectedChunks.length} Complete:**\n\n${content}`,
-            { 
-              type: 'rewrite_chunk',
-              chunkIndex: i,
-              totalChunks: selectedChunks.length,
-              originalContent: chunk.content 
-            }
-          );
+          // Store completed chunk (don't automatically add to chat)
 
           processedChunks++;
           setProgress((processedChunks / totalOperations) * 100);
@@ -491,9 +482,7 @@ export default function ChunkedRewriter({
         description: `Successfully processed content with ${metadata.chunksProcessed} rewritten chunks${metadata.newChunksAdded ? ` and ${metadata.newChunksAdded} new chunks` : ''}.`,
       });
 
-      // Force the rewrite to appear in chat immediately
-      console.log("FORCING REWRITE TO CHAT:", finalContent.substring(0, 100));
-      onAddToChat(`**Rewritten Document:**\n\n${finalContent}`, metadata);
+      // Don't automatically add rewrite results to chat
       
       onRewriteComplete(finalContent, metadata);
 

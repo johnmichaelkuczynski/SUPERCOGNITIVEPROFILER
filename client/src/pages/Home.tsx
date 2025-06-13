@@ -742,28 +742,7 @@ Document text: ${extractedText}`;
     console.log("handleChunkedRewriteComplete called with:", rewrittenText.length, "characters");
     console.log("Current messages length:", messages.length);
     
-    // FIRST: Add to chat BEFORE closing modal
-    const userMessage: Message = {
-      id: Date.now(),
-      content: `I've completed a chunked rewrite of "${rewriterTitle}" using ${metadata.model}.`,
-      role: 'user',
-      timestamp: new Date()
-    };
-    
-    const aiMessage: Message = {
-      id: Date.now() + 1,
-      content: `**Rewritten Document:**\n\n${rewrittenText}`,
-      role: 'assistant',
-      timestamp: new Date()
-    };
-    
-    console.log("Adding messages to chat:", userMessage, aiMessage);
-    setMessages(prev => {
-      console.log("Previous messages:", prev.length);
-      const newMessages = [...prev, userMessage, aiMessage];
-      console.log("New messages:", newMessages.length);
-      return newMessages;
-    });
+    // Don't automatically add rewrite results to chat - user should manually add if needed
     
     // SECOND: Store the rewritten document in the documents section
     try {
