@@ -3699,6 +3699,61 @@ Return only the new content without any additional comments, explanations, or he
             }
           }
 
+          // Supporting Evidence for Thesis
+          if (results.thesis.supportingEvidence) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "Supporting Evidence:",
+                    bold: true,
+                    size: 24,
+                  }),
+                ],
+              }),
+              new Paragraph({ children: [new TextRun("")] })
+            );
+
+            // Evidence for each component based on profile type
+            const evidenceComponents = profileType === 'psychological' 
+              ? ['emotionalPattern', 'motivationalStructure', 'interpersonalDynamics', 'stressResponsePattern']
+              : ['intellectualEmotionalIntegration', 'decisionMakingSynthesis', 'authenticityAssessment'];
+            
+            evidenceComponents.forEach(component => {
+              if (results.thesis.supportingEvidence[component]) {
+                const componentTitle = component.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: `${componentTitle}:`,
+                        bold: true,
+                        size: 20,
+                      }),
+                    ],
+                  })
+                );
+
+                results.thesis.supportingEvidence[component].forEach((evidence: any, index: number) => {
+                  paragraphs.push(
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: `Quote ${index + 1}: "${evidence.quote}"`,
+                          italics: true,
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      children: [new TextRun(`Analysis: ${evidence.explanation}`)],
+                    }),
+                    new Paragraph({ children: [new TextRun("")] })
+                  );
+                });
+              }
+            });
+          }
+
           // ANTITHESIS SECTION
           if (results.antithesis) {
             paragraphs.push(
@@ -3782,6 +3837,117 @@ Return only the new content without any additional comments, explanations, or he
                 new Paragraph({ children: [new TextRun("")] })
               );
             }
+
+            // Synthesis-specific antithesis fields
+            if (profileType === 'synthesis') {
+              if (results.antithesis.intellectualEmotionalIntegration) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Alternative Integration Assessment:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.antithesis.intellectualEmotionalIntegration)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.antithesis.decisionMakingSynthesis) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Contrarian Decision Analysis:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.antithesis.decisionMakingSynthesis)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.antithesis.authenticityAssessment) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Skeptical Authenticity Assessment:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.antithesis.authenticityAssessment)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.antithesis.stressClarityDynamics) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Critical Stress Reinterpretation:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.antithesis.stressClarityDynamics)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.antithesis.empathyAuthenticity) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Alternative Empathy View:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.antithesis.empathyAuthenticity)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.antithesis.cognitiveEmotionalArchitecture) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Dissenting Architecture View:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.antithesis.cognitiveEmotionalArchitecture)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+            }
           }
 
           // SUPER-THESIS SECTION
@@ -3830,6 +3996,150 @@ Return only the new content without any additional comments, explanations, or he
                 }),
                 new Paragraph({ children: [new TextRun("")] })
               );
+            }
+
+            // Synthesis-specific super-thesis fields
+            if (profileType === 'synthesis') {
+              if (results.superThesis.intellectualEmotionalIntegration) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Refined Integration Assessment:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.superThesis.intellectualEmotionalIntegration)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.superThesis.decisionMakingSynthesis) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Synthesized Decision Analysis:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.superThesis.decisionMakingSynthesis)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.superThesis.authenticityAssessment) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Balanced Authenticity Assessment:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.superThesis.authenticityAssessment)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.superThesis.stressClarityDynamics) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Refined Stress-Clarity Understanding:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.superThesis.stressClarityDynamics)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.superThesis.empathyAuthenticity) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Nuanced Empathy Assessment:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.superThesis.empathyAuthenticity)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              if (results.superThesis.cognitiveEmotionalArchitecture) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Final Integration Architecture:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [new TextRun(results.superThesis.cognitiveEmotionalArchitecture)],
+                  }),
+                  new Paragraph({ children: [new TextRun("")] })
+                );
+              }
+
+              // Integration metrics for synthesis
+              if (results.superThesis.integrationMaturity || results.superThesis.finalAuthenticity) {
+                paragraphs.push(
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "Integration Metrics:",
+                        bold: true,
+                        size: 24,
+                      }),
+                    ],
+                  })
+                );
+
+                if (results.superThesis.integrationMaturity) {
+                  paragraphs.push(
+                    new Paragraph({
+                      children: [new TextRun(`Integration Maturity: ${results.superThesis.integrationMaturity}/10`)],
+                    })
+                  );
+                }
+
+                if (results.superThesis.finalAuthenticity) {
+                  paragraphs.push(
+                    new Paragraph({
+                      children: [new TextRun(`Final Authenticity Score: ${results.superThesis.finalAuthenticity}/10`)],
+                    })
+                  );
+                }
+
+                paragraphs.push(new Paragraph({ children: [new TextRun("")] }));
+              }
             }
           }
         }
