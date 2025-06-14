@@ -1213,3 +1213,188 @@ export async function generateFullProfile(
     comprehensiveInsights
   };
 }
+
+// Generate metapsychological profile with dialectical structure and formal diagnostics
+export async function generateMetapsychologicalProfile(text: string, isComprehensive: boolean = false): Promise<any> {
+  const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
+  
+  const prompt = `You are a metapsychological analysis expert specializing in complete psychological profiling using dialectical analysis (Thesis → Antithesis → Super-Thesis) with formal diagnostic components. This is ${analysisDepth} analysis mode.
+
+CRITICAL INSTRUCTION: You MUST generate a response that contains BOTH the dialectical structure (thesis, antithesis, superThesis) AND the six mandatory formal diagnostic components. Do not omit any required sections.
+
+Required Structure:
+1. Complete dialectical analysis (thesis, antithesis, superThesis)
+2. Six mandatory formal diagnostic components
+3. All existing psychological profiler fields
+
+Analyze this text for complete metapsychological profiling:
+
+"${text}"
+
+You must generate a JSON response with this EXACT structure containing ALL of these mandatory sections:
+
+{
+  "thesis": {
+    "title": "🎭 THESIS: PRIMARY PSYCHOLOGICAL ANALYSIS",
+    "emotionalPattern": "Primary emotional configuration and patterns",
+    "motivationalStructure": "Core motivational architecture and drives",
+    "interpersonalDynamics": "Primary interpersonal style and social patterns",
+    "stressResponsePattern": "Main stress response and coping mechanisms",
+    "communicationStyle": "Primary communication patterns and style",
+    "personalityTraits": ["trait1", "trait2", "trait3"],
+    "emotionalIntelligence": 7,
+    "adaptability": 6,
+    "socialOrientation": 8,
+    "psychologicalSignature": "Core psychological identity and essence",
+    "detailedAnalysis": "Deep psychological analysis with evidence",
+    "supportingEvidence": {
+      "emotionalPattern": [
+        {"quote": "exact quote", "explanation": "emotional evidence"},
+        {"quote": "exact quote", "explanation": "emotional evidence"}
+      ],
+      "motivationalStructure": [
+        {"quote": "exact quote", "explanation": "motivational evidence"},
+        {"quote": "exact quote", "explanation": "motivational evidence"}
+      ],
+      "interpersonalDynamics": [
+        {"quote": "exact quote", "explanation": "interpersonal evidence"},
+        {"quote": "exact quote", "explanation": "interpersonal evidence"}
+      ],
+      "stressResponsePattern": [
+        {"quote": "exact quote", "explanation": "stress response evidence"},
+        {"quote": "exact quote", "explanation": "stress response evidence"}
+      ]
+    }
+  },
+  "antithesis": {
+    "title": "🔄 ANTITHESIS: DISSENTING PSYCHOLOGICAL ANALYSIS",
+    "alternativeEmotionalPattern": "Alternative interpretation of emotional patterns",
+    "counterMotivationalStructure": "Alternative motivational interpretation",
+    "alternativeInterpersonalStyle": "Different interpersonal pattern interpretation",
+    "alternativeStressResponse": "Different stress response interpretation",
+    "alternativeCommunicationStyle": "Different communication style interpretation",
+    "alternativeTraits": ["alt_trait1", "alt_trait2", "alt_trait3"],
+    "methodologicalConcerns": "Concerns about analysis methodology",
+    "potentialBiases": "Potential analytical biases and overinterpretations",
+    "supportingEvidence": {
+      "alternativeEmotionalPattern": [
+        {"quote": "exact quote", "explanation": "alternative emotional evidence"},
+        {"quote": "exact quote", "explanation": "alternative emotional evidence"}
+      ],
+      "counterMotivationalStructure": [
+        {"quote": "exact quote", "explanation": "alternative motivational evidence"},
+        {"quote": "exact quote", "explanation": "alternative motivational evidence"}
+      ],
+      "alternativeInterpersonalStyle": [
+        {"quote": "exact quote", "explanation": "alternative interpersonal evidence"},
+        {"quote": "exact quote", "explanation": "alternative interpersonal evidence"}
+      ],
+      "alternativeStressResponse": [
+        {"quote": "exact quote", "explanation": "alternative stress evidence"},
+        {"quote": "exact quote", "explanation": "alternative stress evidence"}
+      ]
+    }
+  },
+  "superThesis": {
+    "title": "⚡ SUPER-THESIS: DEFENDED PSYCHOLOGICAL ASSESSMENT",
+    "strengthenedEmotionalAssessment": "Defended emotional pattern assessment",
+    "reinforcedMotivationalAnalysis": "Reinforced motivational structure analysis",
+    "validatedInterpersonalDynamics": "Validated interpersonal dynamics assessment",
+    "confirmedStressPatterns": "Confirmed stress response patterns",
+    "authenticCommunicationStyle": "Defended communication style assessment",
+    "refutationOfDissent": "Point-by-point refutation of antithesis arguments",
+    "reinforcedConclusions": "Strengthened psychological conclusions",
+    "supportingEvidence": {
+      "strengthenedEmotionalAssessment": [
+        {"quote": "exact quote", "explanation": "defensive emotional reinforcement"},
+        {"quote": "exact quote", "explanation": "defensive emotional reinforcement"}
+      ],
+      "reinforcedMotivationalAnalysis": [
+        {"quote": "exact quote", "explanation": "motivational defense"},
+        {"quote": "exact quote", "explanation": "motivational defense"}
+      ],
+      "validatedInterpersonalDynamics": [
+        {"quote": "exact quote", "explanation": "interpersonal validation"},
+        {"quote": "exact quote", "explanation": "interpersonal validation"}
+      ],
+      "confirmedStressPatterns": [
+        {"quote": "exact quote", "explanation": "stress pattern confirmation"},
+        {"quote": "exact quote", "explanation": "stress pattern confirmation"}
+      ]
+    }
+  },
+  "formalDiagnostics": {
+    "emotionalConfiguration": {
+      "dominantStyle": ["primary_emotional_style", "secondary_style"],
+      "analysis": "Deep analysis of emotional configuration patterns",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "emotional configuration evidence"},
+        {"quote": "exact quote", "explanation": "emotional configuration evidence"}
+      ]
+    },
+    "paradigmComparison": {
+      "strength": "Comparison to established psychological paradigms/types",
+      "distinguishingFeatures": "What makes this profile unique vs standard types",
+      "analysis": "Detailed paradigm comparison analysis",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "paradigm comparison evidence"},
+        {"quote": "exact quote", "explanation": "paradigm comparison evidence"}
+      ]
+    },
+    "uniquePsychologicalStrengths": {
+      "strengths": ["strength1", "strength2", "strength3"],
+      "analysis": "Analysis of distinctive psychological strengths",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "strength evidence"},
+        {"quote": "exact quote", "explanation": "strength evidence"}
+      ]
+    },
+    "uniquePsychologicalWeaknesses": {
+      "weaknesses": ["weakness1", "weakness2", "weakness3"],
+      "analysis": "Analysis of distinctive psychological vulnerabilities",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "weakness evidence"},
+        {"quote": "exact quote", "explanation": "weakness evidence"}
+      ]
+    },
+    "interpersonalSocialFit": {
+      "thriveEnvironments": ["environment1", "environment2", "environment3"],
+      "liabilityEnvironments": ["liability1", "liability2", "liability3"],
+      "analysis": "Analysis of optimal and challenging social environments",
+      "supportingEvidence": [
+        {"quote": "exact quote", "explanation": "social fit evidence"},
+        {"quote": "exact quote", "explanation": "social fit evidence"}
+      ]
+    },
+    "mostRevealingQuotation": {
+      "quote": "The single most psychologically revealing quotation from the text",
+      "analysis": "Why this quote is most revealing of psychological patterns",
+      "psychologicalSignificance": "What this reveals about core psychological architecture"
+    }
+  },
+  "emotionalPattern": "Summary emotional pattern assessment",
+  "motivationalStructure": "Summary motivational structure assessment",
+  "interpersonalDynamics": "Summary interpersonal dynamics assessment",
+  "stressResponsePattern": "Summary stress response pattern assessment",
+  "communicationStyle": "Summary communication style assessment",
+  "personalityTraits": ["overall_trait1", "overall_trait2", "overall_trait3"],
+  "emotionalIntelligence": 7,
+  "adaptability": 6,
+  "socialOrientation": 8,
+  "psychologicalSignature": "Overall psychological signature and essence"
+}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 8000,
+    });
+
+    return JSON.parse(response.choices[0].message.content || "{}");
+  } catch (error) {
+    throw new Error("Failed to generate metapsychological profile: " + (error as Error).message);
+  }
+}

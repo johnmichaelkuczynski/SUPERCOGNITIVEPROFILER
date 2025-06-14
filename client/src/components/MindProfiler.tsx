@@ -916,11 +916,21 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
           <CardContent>
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="cognitive">Cognitive</TabsTrigger>
-                <TabsTrigger value="psychological">Psychological</TabsTrigger>
-                <TabsTrigger value="insights">Insights</TabsTrigger>
+              <TabsList className={`grid w-full ${profileType === 'metapsychological' ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                {profileType !== 'metapsychological' && <TabsTrigger value="overview">Overview</TabsTrigger>}
+                {profileType === 'metapsychological' ? (
+                  <>
+                    <TabsTrigger value="dialectical">Dialectical Analysis</TabsTrigger>
+                    <TabsTrigger value="diagnostics">Formal Diagnostics</TabsTrigger>
+                    <TabsTrigger value="summary">Summary</TabsTrigger>
+                  </>
+                ) : (
+                  <>
+                    <TabsTrigger value="cognitive">Cognitive</TabsTrigger>
+                    <TabsTrigger value="psychological">Psychological</TabsTrigger>
+                    <TabsTrigger value="insights">Insights</TabsTrigger>
+                  </>
+                )}
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
@@ -3468,7 +3478,350 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
             )}
 
+              {/* Metapsychological Dialectical Analysis Tab */}
+              <TabsContent value="dialectical" className="space-y-6">
+                {profileType === 'metapsychological' && results && (
+                  <div className="space-y-8">
+                    {/* Thesis Section */}
+                    {results.thesis && (
+                      <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-blue-800 flex items-center gap-2">
+                          <Brain className="h-6 w-6" />
+                          {results.thesis.title}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 className="font-semibold text-blue-700 mb-2">Emotional Pattern</h4>
+                            <p className="text-gray-800">{results.thesis.emotionalPattern}</p>
+                          </div>
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 className="font-semibold text-blue-700 mb-2">Motivational Structure</h4>
+                            <p className="text-gray-800">{results.thesis.motivationalStructure}</p>
+                          </div>
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 className="font-semibold text-blue-700 mb-2">Interpersonal Dynamics</h4>
+                            <p className="text-gray-800">{results.thesis.interpersonalDynamics}</p>
+                          </div>
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 className="font-semibold text-blue-700 mb-2">Stress Response Pattern</h4>
+                            <p className="text-gray-800">{results.thesis.stressResponsePattern}</p>
+                          </div>
+                        </div>
 
+                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <h4 className="font-semibold text-blue-700 mb-2">Psychological Signature</h4>
+                          <p className="text-gray-800">{results.thesis.psychologicalSignature}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Antithesis Section */}
+                    {results.antithesis && (
+                      <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-orange-800 flex items-center gap-2">
+                          <AlertTriangle className="h-6 w-6" />
+                          {results.antithesis.title}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <h4 className="font-semibold text-orange-700 mb-2">Alternative Emotional Pattern</h4>
+                            <p className="text-gray-800">{results.antithesis.alternativeEmotionalPattern}</p>
+                          </div>
+                          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <h4 className="font-semibold text-orange-700 mb-2">Counter Motivational Structure</h4>
+                            <p className="text-gray-800">{results.antithesis.counterMotivationalStructure}</p>
+                          </div>
+                          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <h4 className="font-semibold text-orange-700 mb-2">Methodological Concerns</h4>
+                            <p className="text-gray-800">{results.antithesis.methodologicalConcerns}</p>
+                          </div>
+                          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <h4 className="font-semibold text-orange-700 mb-2">Potential Biases</h4>
+                            <p className="text-gray-800">{results.antithesis.potentialBiases}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Super-Thesis Section */}
+                    {results.superThesis && (
+                      <div className="space-y-4">
+                        <h3 className="text-2xl font-bold text-green-800 flex items-center gap-2">
+                          <CheckCircle className="h-6 w-6" />
+                          {results.superThesis.title}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h4 className="font-semibold text-green-700 mb-2">Strengthened Emotional Assessment</h4>
+                            <p className="text-gray-800">{results.superThesis.strengthenedEmotionalAssessment}</p>
+                          </div>
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h4 className="font-semibold text-green-700 mb-2">Reinforced Motivational Analysis</h4>
+                            <p className="text-gray-800">{results.superThesis.reinforcedMotivationalAnalysis}</p>
+                          </div>
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h4 className="font-semibold text-green-700 mb-2">Refutation of Dissent</h4>
+                            <p className="text-gray-800">{results.superThesis.refutationOfDissent}</p>
+                          </div>
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h4 className="font-semibold text-green-700 mb-2">Reinforced Conclusions</h4>
+                            <p className="text-gray-800">{results.superThesis.reinforcedConclusions}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Metapsychological Formal Diagnostics Tab */}
+              <TabsContent value="diagnostics" className="space-y-6">
+                {profileType === 'metapsychological' && results?.formalDiagnostics && (
+                  <div className="space-y-8">
+                    <h3 className="text-2xl font-bold text-purple-800 flex items-center gap-2">
+                      <Microscope className="h-6 w-6" />
+                      Formal Psychological Diagnostics
+                    </h3>
+
+                    {/* Emotional Configuration */}
+                    {results.formalDiagnostics.emotionalConfiguration && (
+                      <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                        <h4 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                          <Heart className="h-5 w-5" />
+                          1. Emotional Configuration
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="font-semibold text-purple-700 mb-2">Dominant Styles:</h5>
+                            <div className="flex flex-wrap gap-2">
+                              {results.formalDiagnostics.emotionalConfiguration.dominantStyle?.map((style: string, index: number) => (
+                                <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                                  {style}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-purple-700 mb-2">Analysis:</h5>
+                            <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.emotionalConfiguration.analysis}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Paradigm Comparison */}
+                    {results.formalDiagnostics.paradigmComparison && (
+                      <div className="p-6 bg-indigo-50 rounded-lg border-2 border-indigo-200">
+                        <h4 className="text-xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
+                          <Scale className="h-5 w-5" />
+                          2. Paradigm Comparison
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="font-semibold text-indigo-700 mb-2">Strength Comparison:</h5>
+                            <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.paradigmComparison.strength}</p>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-indigo-700 mb-2">Distinguishing Features:</h5>
+                            <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.paradigmComparison.distinguishingFeatures}</p>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-indigo-700 mb-2">Analysis:</h5>
+                            <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.paradigmComparison.analysis}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Unique Strengths */}
+                    {results.formalDiagnostics.uniquePsychologicalStrengths && (
+                      <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
+                        <h4 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5" />
+                          3. Unique Psychological Strengths
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-2">Key Strengths:</h5>
+                            <ul className="space-y-1">
+                              {results.formalDiagnostics.uniquePsychologicalStrengths.strengths?.map((strength: string, index: number) => (
+                                <li key={index} className="text-green-700 flex items-start">
+                                  <span className="text-green-600 mr-2">•</span>
+                                  {strength}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-green-700 mb-2">Analysis:</h5>
+                            <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.uniquePsychologicalStrengths.analysis}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Unique Weaknesses */}
+                    {results.formalDiagnostics.uniquePsychologicalWeaknesses && (
+                      <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
+                        <h4 className="text-xl font-bold text-red-800 mb-4 flex items-center gap-2">
+                          <TrendingDown className="h-5 w-5" />
+                          4. Unique Psychological Weaknesses
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="font-semibold text-red-700 mb-2">Key Weaknesses:</h5>
+                            <ul className="space-y-1">
+                              {results.formalDiagnostics.uniquePsychologicalWeaknesses.weaknesses?.map((weakness: string, index: number) => (
+                                <li key={index} className="text-red-700 flex items-start">
+                                  <span className="text-red-600 mr-2">•</span>
+                                  {weakness}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-red-700 mb-2">Analysis:</h5>
+                            <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.uniquePsychologicalWeaknesses.analysis}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Social Fit */}
+                    {results.formalDiagnostics.interpersonalSocialFit && (
+                      <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                        <h4 className="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          5. Interpersonal/Social Fit
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <h5 className="font-semibold text-blue-700 mb-2">Thrive Environments:</h5>
+                            <ul className="space-y-1">
+                              {results.formalDiagnostics.interpersonalSocialFit.thriveEnvironments?.map((env: string, index: number) => (
+                                <li key={index} className="text-blue-700 flex items-start">
+                                  <span className="text-blue-600 mr-2">✓</span>
+                                  {env}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-blue-700 mb-2">Liability Environments:</h5>
+                            <ul className="space-y-1">
+                              {results.formalDiagnostics.interpersonalSocialFit.liabilityEnvironments?.map((env: string, index: number) => (
+                                <li key={index} className="text-blue-700 flex items-start">
+                                  <span className="text-blue-600 mr-2">⚠</span>
+                                  {env}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="mt-4">
+                          <h5 className="font-semibold text-blue-700 mb-2">Analysis:</h5>
+                          <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.interpersonalSocialFit.analysis}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Most Revealing Quotation */}
+                    {results.formalDiagnostics.mostRevealingQuotation && (
+                      <div className="p-6 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+                        <h4 className="text-xl font-bold text-yellow-800 mb-4 flex items-center gap-2">
+                          <Quote className="h-5 w-5" />
+                          6. Most Revealing Quotation
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="p-4 bg-white rounded-lg border-2 border-yellow-300 shadow-sm">
+                            <Quote className="h-6 w-6 text-yellow-600 mb-2" />
+                            <blockquote className="text-lg text-gray-800 italic leading-relaxed">
+                              "{results.formalDiagnostics.mostRevealingQuotation.quote}"
+                            </blockquote>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="p-3 bg-yellow-100 rounded-lg border border-yellow-200">
+                              <h5 className="font-semibold text-yellow-700 mb-2">Analysis:</h5>
+                              <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.mostRevealingQuotation.analysis}</p>
+                            </div>
+                            <div className="p-3 bg-orange-100 rounded-lg border border-orange-200">
+                              <h5 className="font-semibold text-orange-700 mb-2">Psychological Significance:</h5>
+                              <p className="text-gray-800 leading-relaxed">{results.formalDiagnostics.mostRevealingQuotation.psychologicalSignificance}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Metapsychological Summary Tab */}
+              <TabsContent value="summary" className="space-y-6">
+                {profileType === 'metapsychological' && results && (
+                  <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                      <FileText className="h-6 w-6" />
+                      Metapsychological Profile Summary
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-700 mb-2">Emotional Pattern</h4>
+                        <p className="text-gray-800">{results.emotionalPattern}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-700 mb-2">Communication Style</h4>
+                        <p className="text-gray-800">{results.communicationStyle}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-700 mb-2">Motivational Structure</h4>
+                        <p className="text-gray-800">{results.motivationalStructure}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-700 mb-2">Stress Response</h4>
+                        <p className="text-gray-800">{results.stressResponsePattern}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <h4 className="font-semibold text-blue-700 mb-2">Psychological Signature</h4>
+                      <p className="text-gray-800 leading-relaxed">{results.psychologicalSignature}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 text-center">
+                        <h4 className="font-semibold text-indigo-700 mb-2">Emotional Intelligence</h4>
+                        <div className="text-2xl font-bold text-indigo-800">{results.emotionalIntelligence}/10</div>
+                      </div>
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 text-center">
+                        <h4 className="font-semibold text-purple-700 mb-2">Adaptability</h4>
+                        <div className="text-2xl font-bold text-purple-800">{results.adaptability}/10</div>
+                      </div>
+                      <div className="p-4 bg-pink-50 rounded-lg border border-pink-200 text-center">
+                        <h4 className="font-semibold text-pink-700 mb-2">Social Orientation</h4>
+                        <div className="text-2xl font-bold text-pink-800">{results.socialOrientation}/10</div>
+                      </div>
+                    </div>
+
+                    {results.personalityTraits && (
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h4 className="font-semibold text-green-700 mb-2">Key Personality Traits</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {results.personalityTraits.map((trait: string, index: number) => (
+                            <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                              {trait}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
 
             </div>
           </div>
