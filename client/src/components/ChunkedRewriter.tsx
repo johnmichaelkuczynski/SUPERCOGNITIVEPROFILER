@@ -173,6 +173,40 @@ export default function ChunkedRewriter({
     return processed;
   };
 
+  // COMPREHENSIVE mathematical notation processing for streaming content
+  const processStreamingMath = (text: string): string => {
+    let processed = text;
+    
+    // Handle display math environments $$...$$
+    processed = processed.replace(/\$\$([^$]+)\$\$/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+    
+    // Handle inline math $...$
+    processed = processed.replace(/\$([^$]+)\$/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+    
+    // Handle LaTeX display math \[...\]
+    processed = processed.replace(/\\\[([^\]]+)\\\]/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+    
+    // Handle LaTeX inline math \(...\)
+    processed = processed.replace(/\\\(([^)]+)\\\)/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+
+    // CRITICAL: Also process raw LaTeX commands in text
+    processed = processRawLatexCommands(processed);
+
+    return processed;
+  };
+
   // COMPREHENSIVE LaTeX expression renderer
   const renderLatexExpression = (latex: string): string => {
     let rendered = latex;
