@@ -93,6 +93,7 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 
 ```
 Changelog:
+- June 14, 2025. MATH VIEW FEATURE IMPLEMENTED - Added KaTeX-powered Math View toggle across all components (RewriteViewer, ChunkedRewriter, ChatWindow). Users can now switch between regular text and perfect mathematical rendering with publication-quality LaTeX display. Calculator button enables flawless rendering of fractions, limits, symbols, and complex mathematical expressions.
 - June 14, 2025. MATHEMATICAL NOTATION CORRUPTION FIXED - Disabled problematic text-to-symbol conversions that were corrupting normal English words like "in" → "∈". System now ONLY converts actual LaTeX commands (with backslashes) like \alpha → α while preserving normal text integrity. English readability completely restored.
 - June 14, 2025. REPLACED ALL MathJax implementations with unified MathRenderer component for consistent mathematical display
 - June 14, 2025. PDF export system completely rebuilt to remove ALL markup and render clean documents with proper Unicode symbols

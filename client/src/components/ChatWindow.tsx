@@ -161,6 +161,15 @@ export default function ChatWindow({
         </div>
         
         <div className="flex items-center space-x-2">
+          <Button 
+            size="sm" 
+            variant={isMathView ? "default" : "outline"} 
+            onClick={() => setIsMathView(!isMathView)}
+            title="Toggle Math View"
+          >
+            <Calculator className="h-4 w-4" />
+          </Button>
+          
           {wsStatus === 'connecting' && (
             <div className="text-sm text-yellow-500 flex items-center">
               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
