@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import PDFDocument from 'pdfkit';
+import { Readable } from 'stream';
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 
@@ -49,19 +50,16 @@ class GoogleDriveService {
       // Create PDF buffer from HTML content
       const pdfBuffer = await this.createPDFFromContent(content);
       
-      const fileMetadata = {
-        name: `${filename}.pdf`,
-        parents: [] // Save to root directory, can be modified to save to specific folder
-      };
-
-      const media = {
-        mimeType: 'application/pdf',
-        body: pdfBuffer
-      };
-
+      // Use simple upload for PDF files
       const response = await this.drive.files.create({
-        resource: fileMetadata,
-        media: media,
+        requestBody: {
+          name: `${filename}.pdf`,
+          parents: [] // Save to root directory
+        },
+        media: {
+          mimeType: 'application/pdf',
+          body: pdfBuffer
+        },
         fields: 'id,webViewLink'
       });
 
