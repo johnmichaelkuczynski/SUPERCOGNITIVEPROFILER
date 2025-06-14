@@ -388,9 +388,38 @@ export default function ChunkedRewriter({
           const result = await response.json();
 
           // Store the content immediately (homework returns 'response', text-to-math returns 'mathContent', rewrite returns 'rewrittenContent')
-          const content = processingMode === 'homework' ? result.response : 
-                         processingMode === 'text-to-math' ? result.mathContent : 
-                         result.rewrittenContent;
+          let content = processingMode === 'homework' ? result.response : 
+                       processingMode === 'text-to-math' ? result.mathContent : 
+                       result.rewrittenContent;
+
+          // AUTO-APPLY TEXT TO MATH: For rewrite and homework modes, automatically run through math formatting
+          if (processingMode === 'rewrite' || processingMode === 'homework') {
+            try {
+              const mathResponse = await fetch('/api/text-to-math', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  content: content,
+                  instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                  model: selectedModel,
+                  chunkIndex: i,
+                  totalChunks: selectedChunks.length
+                }),
+              });
+
+              if (mathResponse.ok) {
+                const mathResult = await mathResponse.json();
+                content = mathResult.mathContent; // Use the math-formatted version
+                console.log(`[auto-math] Chunk ${i + 1} automatically formatted for math`);
+              }
+            } catch (error) {
+              console.warn(`[auto-math] Failed to format chunk ${i + 1} for math:`, error);
+              // Continue with original content if math formatting fails
+            }
+          }
+
           rewrittenChunks.push(content);
 
           // Update chunk with rewritten content

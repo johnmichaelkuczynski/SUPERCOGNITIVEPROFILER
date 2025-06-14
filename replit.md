@@ -94,6 +94,7 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 ```
 Changelog:
 - June 14, 2025. Initial setup
+- June 14, 2025. Added "Text to Math" processing mode with proper LaTeX/MathJax rendering
 ```
 
 ## User Preferences
