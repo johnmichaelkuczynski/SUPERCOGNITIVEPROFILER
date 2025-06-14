@@ -187,20 +187,48 @@ export default function ChunkedRewriter({
 
       const result = await response.json();
       
+      setProgress(75);
+
+      // AUTO-APPLY TEXT TO MATH: Automatically run homework results through math formatting
+      let finalContent = result.response;
+      try {
+        const mathResponse = await fetch('/api/text-to-math', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: finalContent,
+            instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+            model: selectedModel
+          }),
+        });
+
+        if (mathResponse.ok) {
+          const mathResult = await mathResponse.json();
+          finalContent = mathResult.mathContent;
+          console.log('[auto-math] Homework result automatically formatted for math');
+        }
+      } catch (error) {
+        console.warn('[auto-math] Failed to format homework result for math:', error);
+        // Continue with original content if math formatting fails
+      }
+
       setProgress(100);
 
       // Prepare metadata
       const metadata = {
         originalLength: originalText.length,
-        rewrittenLength: result.response.length,
+        rewrittenLength: finalContent.length,
         mode: 'homework',
         model: selectedModel,
         instructions: instructions,
-        includedChatContext: includeChatContext
+        includedChatContext: includeChatContext,
+        mathFormatted: true
       };
 
       // Store results for popup display
-      setFinalRewrittenContent(result.response);
+      setFinalRewrittenContent(finalContent);
       setRewriteMetadata(metadata);
       setShowResultsPopup(true);
 
@@ -211,16 +239,17 @@ export default function ChunkedRewriter({
 
       // Add to chat immediately
       onAddToChat(
-        `**Homework Assignment Completed:**\n\n${result.response}`,
+        `**Homework Assignment Completed:**\n\n${finalContent}`,
         { 
           type: 'homework_completion',
           originalInstructions: originalText,
-          userGuidance: instructions
+          userGuidance: instructions,
+          mathFormatted: true
         }
       );
 
       // Save as document
-      onRewriteComplete(result.response, metadata);
+      onRewriteComplete(finalContent, metadata);
 
     } catch (error) {
       console.error('Homework processing error:', error);
@@ -485,8 +514,34 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
           
+          // AUTO-APPLY TEXT TO MATH: Format new chunks for math too
+          let newChunkContent = result.newChunkContent;
+          try {
+            const mathResponse = await fetch('/api/text-to-math', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                content: newChunkContent,
+                instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                model: selectedModel,
+                chunkIndex: i,
+                totalChunks: maxNewChunks
+              }),
+            });
+
+            if (mathResponse.ok) {
+              const mathResult = await mathResponse.json();
+              newChunkContent = mathResult.mathContent;
+              console.log(`[auto-math] New chunk ${i + 1} automatically formatted for math`);
+            }
+          } catch (error) {
+            console.warn(`[auto-math] Failed to format new chunk ${i + 1} for math:`, error);
+          }
+          
           // Add new chunk to final content
-          finalContent += '\n\n' + result.newChunkContent;
+          finalContent += '\n\n' + newChunkContent;
 
           // Update live progress with new chunk
           const selectedCount = chunks.filter(chunk => chunk.selected).length;
