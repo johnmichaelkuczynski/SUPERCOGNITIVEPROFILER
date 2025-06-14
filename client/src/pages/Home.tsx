@@ -703,9 +703,7 @@ Document text: ${extractedText}`;
 
     return (
       <div className="whitespace-pre-wrap">
-        <MathJax>
-          {cleanContent}
-        </MathJax>
+        <MathRenderer content={cleanContent} />
       </div>
     );
   };
