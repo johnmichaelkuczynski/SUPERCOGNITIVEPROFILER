@@ -1836,36 +1836,91 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
       results.forEach((result, index) => {
         let content = result.rewrittenContent || '';
         
-        // DIRECT LATEX TO UNICODE CONVERSION
-        const latexToUnicode = {
-          '\\neg': '¬', '\\lnot': '¬', '\\land': '∧', '\\wedge': '∧', '\\lor': '∨', '\\vee': '∨',
-          '\\rightarrow': '→', '\\to': '→', '\\leftarrow': '←', '\\leftrightarrow': '↔', '\\iff': '↔',
-          '\\Rightarrow': '⇒', '\\Leftarrow': '⇐', '\\Leftrightarrow': '⇔', '\\implies': '⇒',
-          '\\sum': '∑', '\\prod': '∏', '\\int': '∫', '\\infty': '∞', '\\partial': '∂', '\\nabla': '∇',
-          '\\Delta': 'Δ', '\\delta': 'δ', '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\Gamma': 'Γ',
-          '\\theta': 'θ', '\\Theta': 'Θ', '\\lambda': 'λ', '\\Lambda': 'Λ', '\\mu': 'μ',
-          '\\pi': 'π', '\\Pi': 'Π', '\\sigma': 'σ', '\\Sigma': 'Σ', '\\phi': 'φ', '\\Phi': 'Φ',
-          '\\psi': 'ψ', '\\Psi': 'Ψ', '\\omega': 'ω', '\\Omega': 'Ω',
-          '\\leq': '≤', '\\geq': '≥', '\\neq': '≠', '\\approx': '≈', '\\equiv': '≡',
-          '\\subset': '⊂', '\\supset': '⊃', '\\subseteq': '⊆', '\\supseteq': '⊇',
-          '\\in': '∈', '\\notin': '∉', '\\cup': '∪', '\\cap': '∩', '\\emptyset': '∅',
-          '\\exists': '∃', '\\forall': '∀', '\\therefore': '∴', '\\because': '∵',
-          '\\mathbb{R}': 'ℝ', '\\mathbb{N}': 'ℕ', '\\mathbb{Z}': 'ℤ', '\\mathbb{Q}': 'ℚ', '\\mathbb{C}': 'ℂ',
-          '\\times': '×', '\\div': '÷', '\\pm': '±', '\\cdot': '⋅'
+        // DIRECT SYMBOL REPLACEMENTS - IDENTICAL TO FRONTEND
+        const symbolMap: Record<string, string> = {
+          // Basic logic symbols
+          '\\neg': '¬', '\\lnot': '¬',
+          '\\land': '∧', '\\wedge': '∧', 
+          '\\lor': '∨', '\\vee': '∨',
+          '\\rightarrow': '→', '\\to': '→',
+          '\\leftarrow': '←',
+          '\\leftrightarrow': '↔', '\\iff': '↔',
+          '\\Rightarrow': '⇒', '\\implies': '⇒',
+          '\\Leftarrow': '⇐',
+          '\\Leftrightarrow': '⇔',
+          
+          // Mathematical symbols
+          '\\times': '×', '\\cdot': '⋅',
+          '\\div': '÷', '\\pm': '±',
+          '\\leq': '≤', '\\geq': '≥',
+          '\\neq': '≠', '\\approx': '≈',
+          '\\equiv': '≡',
+          
+          // Set theory
+          '\\in': '∈', '\\notin': '∉',
+          '\\subset': '⊂', '\\supset': '⊃',
+          '\\subseteq': '⊆', '\\supseteq': '⊇',
+          '\\cup': '∪', '\\cap': '∩',
+          '\\emptyset': '∅',
+          
+          // Greek letters
+          '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\delta': 'δ',
+          '\\epsilon': 'ε', '\\zeta': 'ζ', '\\eta': 'η', '\\theta': 'θ',
+          '\\iota': 'ι', '\\kappa': 'κ', '\\lambda': 'λ', '\\mu': 'μ',
+          '\\nu': 'ν', '\\xi': 'ξ', '\\omicron': 'ο', '\\pi': 'π',
+          '\\rho': 'ρ', '\\sigma': 'σ', '\\tau': 'τ', '\\upsilon': 'υ',
+          '\\phi': 'φ', '\\chi': 'χ', '\\psi': 'ψ', '\\omega': 'ω',
+          
+          // Capital Greek
+          '\\Gamma': 'Γ', '\\Delta': 'Δ', '\\Theta': 'Θ', '\\Lambda': 'Λ',
+          '\\Xi': 'Ξ', '\\Pi': 'Π', '\\Sigma': 'Σ', '\\Upsilon': 'Υ',
+          '\\Phi': 'Φ', '\\Chi': 'Χ', '\\Psi': 'Ψ', '\\Omega': 'Ω',
+          
+          // Number sets
+          '\\mathbb{N}': 'ℕ', '\\mathbb{Z}': 'ℤ', '\\mathbb{Q}': 'ℚ',
+          '\\mathbb{R}': 'ℝ', '\\mathbb{C}': 'ℂ',
+          
+          // Calculus
+          '\\sum': '∑', '\\prod': '∏', '\\int': '∫',
+          '\\partial': '∂', '\\nabla': '∇', '\\infty': '∞',
+          
+          // Logic
+          '\\forall': '∀', '\\exists': '∃',
+          '\\therefore': '∴', '\\because': '∵'
         };
         
-        Object.entries(latexToUnicode).forEach(([latex, unicode]) => {
-          content = content.split(latex).join(unicode);
+        // Handle common fractions FIRST (before symbol replacements)
+        const fractionReplacements: Record<string, string> = {
+          '\\frac{1}{2}': '½', '\\frac{1}{3}': '⅓', '\\frac{2}{3}': '⅔',
+          '\\frac{1}{4}': '¼', '\\frac{3}{4}': '¾', '\\frac{1}{5}': '⅕',
+          '\\frac{2}{5}': '⅖', '\\frac{3}{5}': '⅗', '\\frac{4}{5}': '⅘',
+          '\\frac{1}{6}': '⅙', '\\frac{5}{6}': '⅚', '\\frac{1}{8}': '⅛',
+          '\\frac{3}{8}': '⅜', '\\frac{5}{8}': '⅝', '\\frac{7}{8}': '⅞'
+        };
+        
+        Object.entries(fractionReplacements).forEach(([latex, symbol]) => {
+          content = content.split(latex).join(symbol);
         });
         
-        // Handle basic fractions
+        // Handle remaining fractions
         content = content.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
         
-        // Clean up LaTeX artifacts
-        content = content.replace(/\$\$?([^$]+)\$\$?/g, '$1');
-        content = content.replace(/\\\[([^\]]+)\\\]/g, '$1');
-        content = content.replace(/\\\(([^)]+)\\\)/g, '$1');
-        content = content.replace(/\{([^}]+)\}/g, '$1');
+        // Apply other symbol replacements
+        Object.entries(symbolMap).forEach(([latex, symbol]) => {
+          content = content.split(latex).join(symbol);
+        });
+        
+        // Remove all math delimiters
+        content = content.replace(/\$\$?([^$]*)\$\$?/g, '$1');
+        content = content.replace(/\\\[([^\]]*)\\\]/g, '$1');
+        content = content.replace(/\\\(([^)]*)\\\)/g, '$1');
+        
+        // Clean up remaining LaTeX artifacts
+        content = content.replace(/\{([^}]*)\}/g, '$1');
+        content = content.replace(/\\left\(/g, '(');
+        content = content.replace(/\\right\)/g, ')');
+        content = content.replace(/\\left\[/g, '[');
+        content = content.replace(/\\right\]/g, ']');
         
         // AGGRESSIVELY remove ALL markup
         content = content

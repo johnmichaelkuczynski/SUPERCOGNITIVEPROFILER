@@ -5,164 +5,103 @@ interface MathRendererProps {
   className?: string;
 }
 
-// LaTeX to Unicode symbol mapping
-const latexToUnicode: Record<string, string> = {
-  // Logic symbols
-  '\\neg': '¬',
-  '\\lnot': '¬',
-  '\\land': '∧',
-  '\\wedge': '∧',
-  '\\lor': '∨',
-  '\\vee': '∨',
-  '\\rightarrow': '→',
-  '\\to': '→',
-  '\\leftarrow': '←',
-  '\\leftrightarrow': '↔',
-  '\\iff': '↔',
-  '\\Rightarrow': '⇒',
-  '\\Leftarrow': '⇐',
-  '\\Leftrightarrow': '⇔',
-  '\\implies': '⇒',
-  
-  // Math symbols
-  '\\sum': '∑',
-  '\\prod': '∏',
-  '\\int': '∫',
-  '\\infty': '∞',
-  '\\partial': '∂',
-  '\\nabla': '∇',
-  '\\Delta': 'Δ',
-  '\\delta': 'δ',
-  '\\alpha': 'α',
-  '\\beta': 'β',
-  '\\gamma': 'γ',
-  '\\Gamma': 'Γ',
-  '\\theta': 'θ',
-  '\\Theta': 'Θ',
-  '\\lambda': 'λ',
-  '\\Lambda': 'Λ',
-  '\\mu': 'μ',
-  '\\pi': 'π',
-  '\\Pi': 'Π',
-  '\\sigma': 'σ',
-  '\\Sigma': 'Σ',
-  '\\phi': 'φ',
-  '\\Phi': 'Φ',
-  '\\psi': 'ψ',
-  '\\Psi': 'Ψ',
-  '\\omega': 'ω',
-  '\\Omega': 'Ω',
-  
-  // Relations
-  '\\leq': '≤',
-  '\\geq': '≥',
-  '\\neq': '≠',
-  '\\approx': '≈',
-  '\\equiv': '≡',
-  '\\subset': '⊂',
-  '\\supset': '⊃',
-  '\\subseteq': '⊆',
-  '\\supseteq': '⊇',
-  '\\in': '∈',
-  '\\notin': '∉',
-  '\\cup': '∪',
-  '\\cap': '∩',
-  '\\emptyset': '∅',
-  '\\exists': '∃',
-  '\\forall': '∀',
-  '\\therefore': '∴',
-  '\\because': '∵',
-  
-  // Number sets
-  '\\mathbb{R}': 'ℝ',
-  '\\mathbb{N}': 'ℕ',
-  '\\mathbb{Z}': 'ℤ',
-  '\\mathbb{Q}': 'ℚ',
-  '\\mathbb{C}': 'ℂ',
-  '\\R': 'ℝ',
-  '\\N': 'ℕ',
-  '\\Z': 'ℤ',
-  '\\Q': 'ℚ',
-  '\\C': 'ℂ',
-  
-  // Operations
-  '\\times': '×',
-  '\\div': '÷',
-  '\\pm': '±',
-  '\\mp': '∓',
-  '\\cdot': '⋅',
-  '\\bullet': '•',
-  '\\circ': '∘',
-  '\\oplus': '⊕',
-  '\\ominus': '⊖',
-  '\\otimes': '⊗',
-  '\\oslash': '⊘'
-};
-
 function renderMathContent(content: string): string {
   let processed = content;
   
-  // DIRECT LATEX TO UNICODE REPLACEMENT - NO PROCESSING
-  Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-    processed = processed.split(latexSymbol).join(unicode);
+  // DIRECT SYMBOL REPLACEMENTS - NO LATEX PROCESSING
+  const symbolMap: Record<string, string> = {
+    // Basic logic symbols
+    '\\neg': '¬', '\\lnot': '¬',
+    '\\land': '∧', '\\wedge': '∧', 
+    '\\lor': '∨', '\\vee': '∨',
+    '\\rightarrow': '→', '\\to': '→',
+    '\\leftarrow': '←',
+    '\\leftrightarrow': '↔', '\\iff': '↔',
+    '\\Rightarrow': '⇒', '\\implies': '⇒',
+    '\\Leftarrow': '⇐',
+    '\\Leftrightarrow': '⇔',
+    
+    // Mathematical symbols
+    '\\times': '×', '\\cdot': '⋅',
+    '\\div': '÷', '\\pm': '±',
+    '\\leq': '≤', '\\geq': '≥',
+    '\\neq': '≠', '\\approx': '≈',
+    '\\equiv': '≡',
+    
+    // Set theory
+    '\\in': '∈', '\\notin': '∉',
+    '\\subset': '⊂', '\\supset': '⊃',
+    '\\subseteq': '⊆', '\\supseteq': '⊇',
+    '\\cup': '∪', '\\cap': '∩',
+    '\\emptyset': '∅',
+    
+    // Greek letters
+    '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\delta': 'δ',
+    '\\epsilon': 'ε', '\\zeta': 'ζ', '\\eta': 'η', '\\theta': 'θ',
+    '\\iota': 'ι', '\\kappa': 'κ', '\\lambda': 'λ', '\\mu': 'μ',
+    '\\nu': 'ν', '\\xi': 'ξ', '\\omicron': 'ο', '\\pi': 'π',
+    '\\rho': 'ρ', '\\sigma': 'σ', '\\tau': 'τ', '\\upsilon': 'υ',
+    '\\phi': 'φ', '\\chi': 'χ', '\\psi': 'ψ', '\\omega': 'ω',
+    
+    // Capital Greek
+    '\\Gamma': 'Γ', '\\Delta': 'Δ', '\\Theta': 'Θ', '\\Lambda': 'Λ',
+    '\\Xi': 'Ξ', '\\Pi': 'Π', '\\Sigma': 'Σ', '\\Upsilon': 'Υ',
+    '\\Phi': 'Φ', '\\Chi': 'Χ', '\\Psi': 'Ψ', '\\Omega': 'Ω',
+    
+    // Number sets
+    '\\mathbb{N}': 'ℕ', '\\mathbb{Z}': 'ℤ', '\\mathbb{Q}': 'ℚ',
+    '\\mathbb{R}': 'ℝ', '\\mathbb{C}': 'ℂ',
+    
+    // Calculus
+    '\\sum': '∑', '\\prod': '∏', '\\int': '∫',
+    '\\partial': '∂', '\\nabla': '∇', '\\infty': '∞',
+    
+    // Logic
+    '\\forall': '∀', '\\exists': '∃',
+    '\\therefore': '∴', '\\because': '∵'
+  };
+  
+  // Handle common fractions FIRST (before other symbol replacements)
+  const fractionReplacements: Record<string, string> = {
+    '\\frac{1}{2}': '½', '\\frac{1}{3}': '⅓', '\\frac{2}{3}': '⅔',
+    '\\frac{1}{4}': '¼', '\\frac{3}{4}': '¾', '\\frac{1}{5}': '⅕',
+    '\\frac{2}{5}': '⅖', '\\frac{3}{5}': '⅗', '\\frac{4}{5}': '⅘',
+    '\\frac{1}{6}': '⅙', '\\frac{5}{6}': '⅚', '\\frac{1}{8}': '⅛',
+    '\\frac{3}{8}': '⅜', '\\frac{5}{8}': '⅝', '\\frac{7}{8}': '⅞'
+  };
+  
+  Object.entries(fractionReplacements).forEach(([latex, symbol]) => {
+    processed = processed.split(latex).join(symbol);
   });
   
-  // Handle basic fractions
+  // Handle remaining fractions
   processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
   
-  // Clean up any LaTeX artifacts
-  processed = processed.replace(/\$\$?([^$]+)\$\$?/g, '$1'); // Remove $ delimiters
-  processed = processed.replace(/\\\[([^\]]+)\\\]/g, '$1');   // Remove \[...\]
-  processed = processed.replace(/\\\(([^)]+)\\\)/g, '$1');    // Remove \(...\)
-  processed = processed.replace(/\{([^}]+)\}/g, '$1');        // Remove braces
-  processed = processed.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')');
-  processed = processed.replace(/\\left\[/g, '[').replace(/\\right\]/g, ']');
-  
-  // COMPLETELY REMOVE ALL MARKDOWN FORMATTING
-  processed = processed
-    .replace(/^#{1,6}\s*/gm, '')              // Remove # headers
-    .replace(/\*\*([^*]+)\*\*/g, '$1')       // Remove **bold**
-    .replace(/\*([^*]+)\*/g, '$1')           // Remove *italic*
-    .replace(/__([^_]+)__/g, '$1')           // Remove __text__
-    .replace(/_([^_]+)_/g, '$1')             // Remove _text_
-    .replace(/`([^`]+)`/g, '$1')             // Remove `code`
-    .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
-    .replace(/^\s*[-*+]\s*/gm, '')           // Remove bullets
-    .replace(/^\s*\d+\.\s*/gm, '')           // Remove numbers
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
-    .replace(/<[^>]+>/g, '')                 // Remove HTML
-    .replace(/&[^;]+;/g, '');                // Remove entities
-  
-  // Convert line breaks to HTML
-  processed = processed.replace(/\n/g, '<br/>');
-  
-  // Handle paragraphs
-  const lines = processed.split('<br/>');
-  const paragraphs: string[] = [];
-  let currentParagraph: string[] = [];
-  
-  lines.forEach(line => {
-    const trimmed = line.trim();
-    if (trimmed === '') {
-      if (currentParagraph.length > 0) {
-        paragraphs.push(currentParagraph.join(' '));
-        currentParagraph = [];
-      }
-    } else {
-      currentParagraph.push(trimmed);
-    }
+  // Apply other symbol replacements
+  Object.entries(symbolMap).forEach(([latex, symbol]) => {
+    processed = processed.split(latex).join(symbol);
   });
   
-  if (currentParagraph.length > 0) {
-    paragraphs.push(currentParagraph.join(' '));
-  }
+  // Remove all math delimiters
+  processed = processed.replace(/\$\$?([^$]*)\$\$?/g, '$1');
+  processed = processed.replace(/\\\[([^\]]*)\\\]/g, '$1');
+  processed = processed.replace(/\\\(([^)]*)\\\)/g, '$1');
   
-  return paragraphs.map(p => {
-    if (p.startsWith('<h') || p.startsWith('<div class="math-display"')) {
-      return p;
-    }
-    return `<p style="margin: 1em 0; line-height: 1.6; font-size: 1.1em;">${p}</p>`;
-  }).join('');
+  // Clean up remaining LaTeX artifacts
+  processed = processed.replace(/\{([^}]*)\}/g, '$1');
+  processed = processed.replace(/\\left\(/g, '(');
+  processed = processed.replace(/\\right\)/g, ')');
+  processed = processed.replace(/\\left\[/g, '[');
+  processed = processed.replace(/\\right\]/g, ']');
+  
+  // Remove all markdown formatting aggressively
+  processed = processed.replace(/^#{1,6}\s*/gm, '');
+  processed = processed.replace(/\*\*(.*?)\*\*/g, '$1');
+  processed = processed.replace(/\*(.*?)\*/g, '$1');
+  processed = processed.replace(/^[-*+]\s/gm, '');
+  processed = processed.replace(/^\d+\.\s/gm, '');
+  
+  return processed;
 }
 
 export default function MathRenderer({ content, className = "" }: MathRendererProps) {
@@ -170,12 +109,11 @@ export default function MathRenderer({ content, className = "" }: MathRendererPr
   
   return (
     <div 
-      className={className}
+      className={`math-content ${className}`}
       dangerouslySetInnerHTML={{ __html: processedContent }}
       style={{ 
-        fontFamily: 'Georgia, "Times New Roman", serif',
-        lineHeight: '1.6',
-        color: '#333'
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        lineHeight: '1.6'
       }}
     />
   );
