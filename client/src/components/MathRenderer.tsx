@@ -61,20 +61,24 @@ function renderMathContent(content: string): string {
     '\\therefore': '∴', '\\because': '∵'
   };
   
-  // Handle common fractions FIRST (before other symbol replacements)
-  const fractionReplacements: Record<string, string> = {
-    '\\frac{1}{2}': '½', '\\frac{1}{3}': '⅓', '\\frac{2}{3}': '⅔',
-    '\\frac{1}{4}': '¼', '\\frac{3}{4}': '¾', '\\frac{1}{5}': '⅕',
-    '\\frac{2}{5}': '⅖', '\\frac{3}{5}': '⅗', '\\frac{4}{5}': '⅘',
-    '\\frac{1}{6}': '⅙', '\\frac{5}{6}': '⅚', '\\frac{1}{8}': '⅛',
-    '\\frac{3}{8}': '⅜', '\\frac{5}{8}': '⅝', '\\frac{7}{8}': '⅞'
-  };
+  // DIRECT STRING REPLACEMENTS FOR FRACTIONS - EXACT MATCHES
+  processed = processed.split('\\frac{1}{2}').join('½');
+  processed = processed.split('\\frac{1}{3}').join('⅓');
+  processed = processed.split('\\frac{2}{3}').join('⅔');
+  processed = processed.split('\\frac{1}{4}').join('¼');
+  processed = processed.split('\\frac{3}{4}').join('¾');
+  processed = processed.split('\\frac{1}{5}').join('⅕');
+  processed = processed.split('\\frac{2}{5}').join('⅖');
+  processed = processed.split('\\frac{3}{5}').join('⅗');
+  processed = processed.split('\\frac{4}{5}').join('⅘');
+  processed = processed.split('\\frac{1}{6}').join('⅙');
+  processed = processed.split('\\frac{5}{6}').join('⅚');
+  processed = processed.split('\\frac{1}{8}').join('⅛');
+  processed = processed.split('\\frac{3}{8}').join('⅜');
+  processed = processed.split('\\frac{5}{8}').join('⅝');
+  processed = processed.split('\\frac{7}{8}').join('⅞');
   
-  Object.entries(fractionReplacements).forEach(([latex, symbol]) => {
-    processed = processed.split(latex).join(symbol);
-  });
-  
-  // Handle remaining fractions
+  // Handle any remaining fractions with simple format
   processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
   
   // Apply other symbol replacements

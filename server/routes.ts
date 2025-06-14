@@ -1889,20 +1889,24 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
           '\\therefore': '∴', '\\because': '∵'
         };
         
-        // Handle common fractions FIRST (before symbol replacements)
-        const fractionReplacements: Record<string, string> = {
-          '\\frac{1}{2}': '½', '\\frac{1}{3}': '⅓', '\\frac{2}{3}': '⅔',
-          '\\frac{1}{4}': '¼', '\\frac{3}{4}': '¾', '\\frac{1}{5}': '⅕',
-          '\\frac{2}{5}': '⅖', '\\frac{3}{5}': '⅗', '\\frac{4}{5}': '⅘',
-          '\\frac{1}{6}': '⅙', '\\frac{5}{6}': '⅚', '\\frac{1}{8}': '⅛',
-          '\\frac{3}{8}': '⅜', '\\frac{5}{8}': '⅝', '\\frac{7}{8}': '⅞'
-        };
+        // DIRECT STRING REPLACEMENTS FOR FRACTIONS - EXACT MATCHES
+        content = content.split('\\frac{1}{2}').join('½');
+        content = content.split('\\frac{1}{3}').join('⅓');
+        content = content.split('\\frac{2}{3}').join('⅔');
+        content = content.split('\\frac{1}{4}').join('¼');
+        content = content.split('\\frac{3}{4}').join('¾');
+        content = content.split('\\frac{1}{5}').join('⅕');
+        content = content.split('\\frac{2}{5}').join('⅖');
+        content = content.split('\\frac{3}{5}').join('⅗');
+        content = content.split('\\frac{4}{5}').join('⅘');
+        content = content.split('\\frac{1}{6}').join('⅙');
+        content = content.split('\\frac{5}{6}').join('⅚');
+        content = content.split('\\frac{1}{8}').join('⅛');
+        content = content.split('\\frac{3}{8}').join('⅜');
+        content = content.split('\\frac{5}{8}').join('⅝');
+        content = content.split('\\frac{7}{8}').join('⅞');
         
-        Object.entries(fractionReplacements).forEach(([latex, symbol]) => {
-          content = content.split(latex).join(symbol);
-        });
-        
-        // Handle remaining fractions
+        // Handle any remaining fractions with simple format
         content = content.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
         
         // Apply other symbol replacements
