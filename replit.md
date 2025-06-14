@@ -93,6 +93,7 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 
 ```
 Changelog:
+- June 14, 2025. Mathematical notation system fixed - replaced MathJax with KaTeX for PDF export and Unicode conversion for frontend display
 - June 14, 2025. Initial setup
 ```
 
