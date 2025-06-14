@@ -1710,35 +1710,31 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           doc.font('Helvetica');
           doc.fontSize(12);
           
-          // COMPREHENSIVE cleanup for PDF - remove ALL markup and formatting
+          // ABSOLUTE cleanup for PDF - REMOVE ALL MARKUP COMPLETELY
           let sanitizedContent = processedContent
-            // Remove markdown headers - convert to clean text
-            .replace(/^#{1,6}\s+(.+)$/gm, '$1')        // # Header -> Header
-            .replace(/^\*{1,3}\s*(.+?)\s*\*{1,3}$/gm, '$1')  // *text* -> text
-            .replace(/\*\*(.+?)\*\*/g, '$1')          // **bold** -> bold
-            .replace(/\*(.+?)\*/g, '$1')              // *italic* -> italic
-            .replace(/__(.+?)__/g, '$1')              // __underline__ -> underline
-            .replace(/_(.+?)_/g, '$1')                // _italic_ -> italic
-            .replace(/`(.+?)`/g, '$1')                // `code` -> code
-            .replace(/```[\s\S]*?```/g, '')           // Remove code blocks
-            .replace(/^\s*[-*+]\s+/gm, '• ')          // List bullets to •
-            .replace(/^\s*\d+\.\s+/gm, '')            // Remove numbered list numbers
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // [text](link) -> text
-            .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // ![alt](img) -> alt
-            .replace(/<[^>]+>/g, '')                  // Remove HTML tags
-            .replace(/&[a-z]+;/gi, '')                // Remove HTML entities
-            .replace(/^\s*>\s+/gm, '')                // Remove blockquotes
-            .replace(/\|\s*([^|]+)\s*\|/g, '$1 ')     // Remove table formatting
-            .replace(/[-=]{3,}/g, '')                 // Remove horizontal rules
-            .replace(/\n{3,}/g, '\n\n')               // Multiple newlines to double
-            .replace(/^\s+/gm, '')                    // Remove leading whitespace
+            // AGGRESSIVELY remove ALL markdown formatting
+            .replace(/^#{1,6}\s*/gm, '')              // Remove # ## ### completely
+            .replace(/\*\*([^*]+)\*\*/g, '$1')        // **bold** -> plain text
+            .replace(/\*([^*]+)\*/g, '$1')            // *italic* -> plain text  
+            .replace(/__([^_]+)__/g, '$1')            // __text__ -> plain text
+            .replace(/_([^_]+)_/g, '$1')              // _text_ -> plain text
+            .replace(/`([^`]+)`/g, '$1')              // `code` -> plain text
+            .replace(/```[\s\S]*?```/g, '')           // Remove code blocks entirely
+            .replace(/^\s*[-*+]\s*/gm, '')            // Remove bullet points
+            .replace(/^\s*\d+\.\s*/gm, '')            // Remove numbered lists
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // [text](url) -> text only
+            .replace(/!\[([^\]]*)\]\([^)]+\)/g, '')   // Remove images completely
+            .replace(/<[^>]+>/g, '')                  // Remove ALL HTML tags
+            .replace(/&[#a-zA-Z0-9]+;/g, '')          // Remove HTML entities
+            .replace(/^\s*>\s*/gm, '')                // Remove blockquote markers
+            .replace(/\|[^|\n]*\|/g, '')              // Remove table rows
+            .replace(/[-=_]{2,}/g, '')                // Remove horizontal rules
+            .replace(/\n{2,}/g, '\n\n')               // Normalize line breaks
+            .replace(/^\s+|\s+$/gm, '')               // Remove all leading/trailing spaces
             .trim();
 
-          // Keep essential mathematical symbols and clean text
-          sanitizedContent = sanitizedContent.replace(/[^\x00-\x7F]/g, (char) => {
-            const mathSymbols = '¬∧∨→←↔⇒⇐⇔∑∏∫√±×÷≤≥≠≈∞∂∇∈∉⊂⊃⊆⊇∪∩∅∀∃∴∵ℝℕℤℚℂαβγδεζηθικλμνξπρστυφχψω';
-            return mathSymbols.includes(char) ? char : '';
-          });
+          // Clean ASCII conversion - keep only letters, numbers, punctuation, math symbols
+          sanitizedContent = sanitizedContent.replace(/[^\x20-\x7E¬∧∨→←↔⇒⇐⇔∑∏∫√±×÷≤≥≠≈∞∂∇∈∉⊂⊃⊆⊇∪∩∅∀∃∴∵ℝℕℤℚℂαβγδεζηθικλμνξπρστυφχψω]/g, '');
           
           // Add content to PDF with proper line breaks
           const paragraphs = sanitizedContent.split('\n\n');
@@ -1809,7 +1805,6 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
     }
   });
 
-  // BRAND NEW Print-Save-As-PDF function 
   app.post('/api/print-pdf', async (req: Request, res: Response) => {
     try {
       const { results, documentName } = req.body;
@@ -1818,156 +1813,87 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
         return res.status(400).json({ error: 'Results required' });
       }
 
-      // Create perfectly formatted HTML for browser printing/PDF saving
-      let htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>${documentName || 'Document'}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-    <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: 'Times New Roman', serif; 
-            font-size: 12pt; 
-            line-height: 1.5; 
-            margin: 0;
-            padding: 20px;
-            color: #000;
-            background: white;
-        }
-        .document-title { 
-            text-align: center; 
-            font-size: 18pt; 
-            font-weight: bold;
-            margin-bottom: 30px;
-            page-break-after: avoid;
-        }
-        .section { 
-            margin-bottom: 25px; 
-            page-break-inside: avoid;
-        }
-        .section-title { 
-            font-size: 14pt; 
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-            page-break-after: avoid;
-        }
-        .content { 
-            text-align: justify; 
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-        /* KaTeX math styling for proper PDF display */
-        .katex { 
-            font-size: 1em !important; 
-            color: black !important;
-        }
-        .katex-display { 
-            margin: 1em 0 !important; 
-            text-align: center !important;
-        }
-        .katex .base { 
-            color: black !important; 
-        }
-        .math-error {
-            color: red;
-            background: #fff3cd;
-            padding: 2px 4px;
-            border: 1px solid #ffeaa7;
-            border-radius: 3px;
-            font-size: 0.9em;
-        }
-        @media print {
-            body { margin: 0; padding: 15mm; }
-            .section { break-inside: avoid; }
-            @page { margin: 15mm; }
-        }
-    </style>
-</head>
-<body>
-    <div class="document-title">${documentName || 'Rewritten Document'}</div>`;
-
-      // Process each section with KaTeX server-side math rendering for PDF
+      // Process content to remove ALL markup and convert LaTeX to Unicode
+      let cleanContent = '';
       
-      results.forEach((result: any, index: number) => {
+      results.forEach((result, index) => {
         let content = result.rewrittenContent || '';
         
-        // Render LaTeX math using KaTeX for proper PDF display
-        try {
-          // Process display math $$...$$
-          content = content.replace(/\$\$([^$]+)\$\$/g, (match: string, latex: string) => {
-            try {
-              return katex.renderToString(latex, {
-                displayMode: true,
-                throwOnError: false,
-                output: 'html'
-              });
-            } catch (e) {
-              return `<div class="math-error">$$${latex}$$</div>`;
-            }
-          });
-          
-          // Process inline math $...$
-          content = content.replace(/\$([^$]+)\$/g, (match: string, latex: string) => {
-            try {
-              return katex.renderToString(latex, {
-                displayMode: false,
-                throwOnError: false,
-                output: 'html'
-              });
-            } catch (e) {
-              return `<span class="math-error">$${latex}$</span>`;
-            }
-          });
-          
-          // Process \\(...\\) inline math
-          content = content.replace(/\\\(([^)]+)\\\)/g, (match: string, latex: string) => {
-            try {
-              return katex.renderToString(latex, {
-                displayMode: false,
-                throwOnError: false,
-                output: 'html'
-              });
-            } catch (e) {
-              return `<span class="math-error">\\(${latex}\\)</span>`;
-            }
-          });
-          
-          // Process \\[...\\] display math
-          content = content.replace(/\\\[([^\]]+)\\\]/g, (match: string, latex: string) => {
-            try {
-              return katex.renderToString(latex, {
-                displayMode: true,
-                throwOnError: false,
-                output: 'html'
-              });
-            } catch (e) {
-              return `<div class="math-error">\\[${latex}\\]</div>`;
-            }
-          });
-        } catch (error) {
-          console.error('KaTeX rendering error:', error);
-        }
+        // Convert LaTeX symbols to Unicode FIRST
+        const latexToUnicode = {
+          '\\neg': '¬', '\\lnot': '¬', '\\land': '∧', '\\wedge': '∧', '\\lor': '∨', '\\vee': '∨',
+          '\\rightarrow': '→', '\\to': '→', '\\leftarrow': '←', '\\leftrightarrow': '↔', '\\iff': '↔',
+          '\\Rightarrow': '⇒', '\\Leftarrow': '⇐', '\\Leftrightarrow': '⇔', '\\implies': '⇒',
+          '\\sum': '∑', '\\prod': '∏', '\\int': '∫', '\\infty': '∞', '\\partial': '∂', '\\nabla': '∇',
+          '\\Delta': 'Δ', '\\delta': 'δ', '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\Gamma': 'Γ',
+          '\\theta': 'θ', '\\Theta': 'Θ', '\\lambda': 'λ', '\\Lambda': 'Λ', '\\mu': 'μ',
+          '\\pi': 'π', '\\Pi': 'Π', '\\sigma': 'σ', '\\Sigma': 'Σ', '\\phi': 'φ', '\\Phi': 'Φ',
+          '\\psi': 'ψ', '\\Psi': 'Ψ', '\\omega': 'ω', '\\Omega': 'Ω',
+          '\\leq': '≤', '\\geq': '≥', '\\neq': '≠', '\\approx': '≈', '\\equiv': '≡',
+          '\\subset': '⊂', '\\supset': '⊃', '\\subseteq': '⊆', '\\supseteq': '⊇',
+          '\\in': '∈', '\\notin': '∉', '\\cup': '∪', '\\cap': '∩', '\\emptyset': '∅',
+          '\\exists': '∃', '\\forall': '∀', '\\therefore': '∴', '\\because': '∵',
+          '\\mathbb{R}': 'ℝ', '\\mathbb{N}': 'ℕ', '\\mathbb{Z}': 'ℤ', '\\mathbb{Q}': 'ℚ', '\\mathbb{C}': 'ℂ',
+          '\\times': '×', '\\div': '÷', '\\pm': '±', '\\cdot': '⋅'
+        };
         
-        // Basic formatting
+        Object.entries(latexToUnicode).forEach(([latex, unicode]) => {
+          content = content.split(latex).join(unicode);
+        });
+        
+        // AGGRESSIVELY remove ALL markup
         content = content
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n\n+/g, '</p><p class="content">')
-          .replace(/\n/g, '<br>');
+          .replace(/^#{1,6}\s*/gm, '')              // Remove # headers
+          .replace(/\*\*([^*]+)\*\*/g, '$1')       // Remove **bold**
+          .replace(/\*([^*]+)\*/g, '$1')           // Remove *italic*
+          .replace(/__([^_]+)__/g, '$1')           // Remove __text__
+          .replace(/_([^_]+)_/g, '$1')             // Remove _text_
+          .replace(/`([^`]+)`/g, '$1')             // Remove `code`
+          .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
+          .replace(/^\s*[-*+]\s*/gm, '')           // Remove bullets
+          .replace(/^\s*\d+\.\s*/gm, '')           // Remove numbers
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+          .replace(/<[^>]+>/g, '')                 // Remove HTML
+          .replace(/&[^;]+;/g, '')                 // Remove entities
+          .replace(/\$\$?([^$]+)\$\$?/g, '$1')     // Remove math delimiters
+          .replace(/\\\[([^\]]+)\\\]/g, '$1')      // Remove \[...\]
+          .replace(/\\\(([^)]+)\\\)/g, '$1')       // Remove \(...\)
+          .replace(/\n{2,}/g, '\n\n')              // Normalize breaks
+          .trim();
 
-        htmlContent += `
-    <div class="section">
-        <div class="section-title">Section ${index + 1}: ${result.originalChunk.title}</div>
-        <p class="content">${content}</p>
-    </div>`;
+        cleanContent += `Section ${index + 1}: ${result.originalChunk.title || `Part ${index + 1}`}\n\n${content}\n\n`;
       });
 
-      htmlContent += `
-</body>
-</html>`;
+      // Create simple HTML for PDF conversion
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>${documentName || 'Document'}</title>
+            <style>
+                body { 
+                    font-family: Times, serif; 
+                    font-size: 12pt; 
+                    line-height: 1.6; 
+                    margin: 1in;
+                    color: black;
+                }
+                .title { 
+                    text-align: center; 
+                    font-size: 18pt; 
+                    font-weight: bold; 
+                    margin-bottom: 30px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="title">${documentName || 'Rewritten Document'}</div>
+            <div>${cleanContent.replace(/\n/g, '<br>')}</div>
+        </body>
+        </html>
+      `;
 
-      // Return HTML for browser's native print/save as PDF
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.send(htmlContent);
 
