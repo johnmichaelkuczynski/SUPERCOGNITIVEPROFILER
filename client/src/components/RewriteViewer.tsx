@@ -4,13 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check } from 'lucide-react';
+import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
-import 'katex/dist/katex.min.css';
 
 interface RewriteResult {
   originalChunk: {
@@ -44,16 +42,32 @@ export default function RewriteViewer({
 
   if (!result) return null;
 
-  // Configure MathJax for proper rendering
+  // Configure MathJax for proper mathematical notation
   const mathJaxConfig = {
     tex: {
       inlineMath: [['$', '$'], ['\\(', '\\)']],
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
       processEscapes: true,
-      processEnvironments: true
+      processEnvironments: true,
+      packages: ['base', 'ams', 'newcommand', 'mathtools'],
+      macros: {
+        "\\R": "\\mathbb{R}",
+        "\\N": "\\mathbb{N}",
+        "\\Z": "\\mathbb{Z}",
+        "\\Q": "\\mathbb{Q}",
+        "\\C": "\\mathbb{C}",
+        "\\implies": "\\Rightarrow",
+        "\\iff": "\\Leftrightarrow",
+        "\\neg": "\\lnot",
+        "\\vee": "\\lor",
+        "\\wedge": "\\land"
+      }
+    },
+    svg: {
+      fontCache: 'global'
     },
     options: {
-      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
       ignoreHtmlClass: 'tex2jax_ignore',
       processHtmlClass: 'tex2jax_process'
     }
@@ -328,7 +342,6 @@ export default function RewriteViewer({
               <MathJax>
                 <ReactMarkdown
                   remarkPlugins={[remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
                   components={{
                     h1: ({children}) => (
                       <h1 className="text-5xl font-bold mb-8 text-gray-900 border-b-2 border-gray-200 pb-4">
