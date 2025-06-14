@@ -114,21 +114,7 @@ export default function OutputContainer({
           </div>
         ) : content ? (
           <div className="text-sm text-slate-800 prose prose-slate prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-li:my-0 prose-code:text-primary-700 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none">
-            <ReactMarkdown 
-              remarkPlugins={[remarkMath]} 
-              rehypePlugins={[rehypeKatex]}
-              components={{
-                // Improve formatting and styling of markdown elements
-                h1: ({node, ...props}) => <h1 className="text-2xl font-bold mt-6 mb-4" {...props} />,
-                h2: ({node, ...props}) => <h2 className="text-xl font-bold mt-5 mb-3" {...props} />,
-                h3: ({node, ...props}) => <h3 className="text-lg font-bold mt-4 mb-2" {...props} />,
-                p: ({node, ...props}) => <p className="my-2" {...props} />,
-                ul: ({node, ...props}) => <ul className="list-disc pl-5 my-2" {...props} />,
-                ol: ({node, ...props}) => <ol className="list-decimal pl-5 my-2" {...props} />,
-                li: ({node, ...props}) => <li className="my-1" {...props} />,
-                blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-slate-300 pl-4 italic my-3" {...props} />,
-                code: ({node, className, ...props}: any) => {
-                  const match = /language-(\w+)/.exec(className || '');
+            <div className="whitespace-pre-wrap">{content}</div>
                   const isInline = !match && props.children?.length === 1 && typeof props.children[0] === 'string';
                   return isInline ? 
                     <code className="bg-slate-100 text-primary-700 px-1 py-0.5 rounded" {...props} /> : 

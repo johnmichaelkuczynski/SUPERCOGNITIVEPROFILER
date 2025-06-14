@@ -5,11 +5,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Edit3, X, FileText, Download } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { ChevronLeft, ChevronRight, Edit3, X, FileText, Download, Loader2, Share2 } from 'lucide-react';
 import { MathJax } from 'better-react-mathjax';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { useToast } from "@/hooks/use-toast";
 
 interface DocumentChunk {
   id: number;
@@ -38,8 +41,13 @@ export default function ChunkedDocumentViewer({
   onRewriteChunk
 }: ChunkedDocumentViewerProps) {
   const [chunks, setChunks] = useState<DocumentChunk[]>([]);
+  const [selectedChunks, setSelectedChunks] = useState<Set<number>>(new Set());
+  const [customInstructions, setCustomInstructions] = useState('');
+  const [isRewriting, setIsRewriting] = useState(false);
+  const [rewriteResults, setRewriteResults] = useState<any[]>([]);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   // Split document into logical chunks
   useEffect(() => {

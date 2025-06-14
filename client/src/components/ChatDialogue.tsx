@@ -134,34 +134,9 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
 
   const formatMessage = (content: string) => {
     return (
-      <MathJax>
-        <ReactMarkdown
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-          components={{
-            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-            h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-lg font-semibold mb-2">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-md font-medium mb-2">{children}</h3>,
-            ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-            li: ({ children }) => <li className="mb-1">{children}</li>,
-            blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 pl-4 italic my-2">{children}</blockquote>,
-            code: ({ children, className }) => {
-              const isInline = !className;
-              return isInline ? (
-                <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">{children}</code>
-              ) : (
-                <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto mb-2">
-                  <code>{children}</code>
-                </pre>
-              );
-            }
-          }}
-        >
-          {content}
-        </ReactMarkdown>
-      </MathJax>
+      <div className="whitespace-pre-wrap">
+        {content}
+      </div>
     );
   };
 
