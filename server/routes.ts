@@ -2627,16 +2627,25 @@ Return only the new content without any additional comments, explanations, or he
     try {
       console.log('NUKE: Clearing all application data...');
       
-      // Clear all data from storage
-      // Since we're using memory storage, we can clear by creating new instances
-      if (storage.constructor.name === 'DatabaseStorage') {
-        // For database storage, we'd need to implement clear methods
-        // For now, this will work with memory storage fallback
-        console.log('NUKE: Database storage detected, clearing via memory fallback');
-      }
+      // Import all tables from schema
+      const { documents, analytics, conversations, messages, users } = await import("@shared/schema");
       
-      // The storage will automatically fall back to memory storage
-      // and creating a new instance effectively clears everything
+      // Clear all database tables
+      await db.delete(messages);
+      console.log('NUKE: Messages table cleared');
+      
+      await db.delete(conversations);
+      console.log('NUKE: Conversations table cleared');
+      
+      await db.delete(analytics);
+      console.log('NUKE: Analytics table cleared');
+      
+      await db.delete(documents);
+      console.log('NUKE: Documents table cleared');
+      
+      await db.delete(users);
+      console.log('NUKE: Users table cleared');
+      
       console.log('NUKE: All data cleared successfully');
       
       res.json({ success: true, message: 'All data cleared' });

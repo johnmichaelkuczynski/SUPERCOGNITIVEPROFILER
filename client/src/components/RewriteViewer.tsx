@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import 'katex/dist/katex.min.css';
 
 interface RewriteResult {
@@ -213,12 +214,16 @@ export default function RewriteViewer({
               </CardHeader>
               <CardContent className="flex-1 overflow-auto space-y-4">
                 <div className="text-sm whitespace-pre-wrap prose max-w-none">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                  >
-                    {result.rewrittenContent}
-                  </ReactMarkdown>
+                  <MathJaxContext>
+                    <MathJax>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {result.rewrittenContent}
+                      </ReactMarkdown>
+                    </MathJax>
+                  </MathJaxContext>
                 </div>
 
                 {result.explanation && (
