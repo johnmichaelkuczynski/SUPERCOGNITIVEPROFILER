@@ -407,6 +407,8 @@ export default function SimpleRewriter({
     const currentResult = rewriteResults[resultIndex];
     if (!currentResult) return;
 
+    setRewritingIndex(resultIndex);
+
     try {
       // Call the rewrite API with the current rewritten content as input
       const response = await fetch('/api/rewrite-chunk', {
@@ -453,6 +455,8 @@ export default function SimpleRewriter({
         description: error instanceof Error ? error.message : "Failed to rewrite content",
         variant: "destructive"
       });
+    } finally {
+      setRewritingIndex(null);
     }
   };
 
@@ -707,9 +711,19 @@ export default function SimpleRewriter({
                                     size="sm" 
                                     className="text-xs px-3 py-1"
                                     onClick={() => rewriteTheRewrite(index)}
+                                    disabled={rewritingIndex === index}
                                   >
-                                    <RefreshCw className="h-3 w-3 mr-1" />
-                                    Start Re-rewrite
+                                    {rewritingIndex === index ? (
+                                      <>
+                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                        Re-rewriting...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <RefreshCw className="h-3 w-3 mr-1" />
+                                        Start Re-rewrite
+                                      </>
+                                    )}
                                   </Button>
                                 </div>
                               </div>
