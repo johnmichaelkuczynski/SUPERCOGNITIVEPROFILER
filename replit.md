@@ -93,6 +93,9 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 
 ```
 Changelog:
+- June 14, 2025. MATHEMATICAL NOTATION CORRUPTION FIXED - Disabled problematic text-to-symbol conversions that were corrupting normal English words like "in" → "∈". System now ONLY converts actual LaTeX commands (with backslashes) like \alpha → α while preserving normal text integrity. English readability completely restored.
+- June 14, 2025. REPLACED ALL MathJax implementations with unified MathRenderer component for consistent mathematical display
+- June 14, 2025. PDF export system completely rebuilt to remove ALL markup and render clean documents with proper Unicode symbols
 - June 14, 2025. MARKDOWN FORMATTING COMPLETELY ELIMINATED - Server-side aggressive stripping removes all # * formatting from AI responses, ensuring clean output everywhere
 - June 14, 2025. MATHEMATICAL NOTATION CONVERSION SYSTEM FULLY OPERATIONAL - Fixed critical brace pattern handling in mathRenderer.ts that was causing \{α\} to display as \α\ instead of α. All mathematical symbols now convert properly: escaped braces (\{α\} → α), operators (\oplus → ⊕), logic symbols, set theory, and Greek letters. Both in-app display and PDF export now show correct Unicode symbols instead of raw LaTeX markup.
 - June 14, 2025. CHUNKED PDF PROCESSING SYSTEM OPERATIONAL - Complete LaTeX validation system processes documents in small chunks (250-300 words) with full error visibility. Validates mathematical notation syntax, fixes common errors (missing ^{} arguments, invalid commands), provides 3-retry backup strategy, and logs detailed chunk processing results. ChunkedRewriter component now exports validated HTML for Print to PDF with comprehensive error detection and recovery.
