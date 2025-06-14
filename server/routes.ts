@@ -22,6 +22,7 @@ import { sendEmail } from './services/email';
 import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
+import katex from 'katex';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 
 // Function to ensure perfect text formatting
@@ -1869,7 +1870,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
     <div class="document-title">${documentName || 'Rewritten Document'}</div>`;
 
       // Process each section with KaTeX server-side math rendering for PDF
-      const katex = require('katex');
+      const katex = await import('katex');
       
       results.forEach((result: any, index: number) => {
         let content = result.rewrittenContent || '';
@@ -1877,9 +1878,9 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
         // Render LaTeX math using KaTeX for proper PDF display
         try {
           // Process display math $$...$$
-          content = content.replace(/\$\$([^$]+)\$\$/g, (match, latex) => {
+          content = content.replace(/\$\$([^$]+)\$\$/g, (match: string, latex: string) => {
             try {
-              return katex.renderToString(latex, {
+              return katex.default.renderToString(latex, {
                 displayMode: true,
                 throwOnError: false,
                 output: 'html'
@@ -1890,9 +1891,9 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           });
           
           // Process inline math $...$
-          content = content.replace(/\$([^$]+)\$/g, (match, latex) => {
+          content = content.replace(/\$([^$]+)\$/g, (match: string, latex: string) => {
             try {
-              return katex.renderToString(latex, {
+              return katex.default.renderToString(latex, {
                 displayMode: false,
                 throwOnError: false,
                 output: 'html'
@@ -1903,9 +1904,9 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           });
           
           // Process \\(...\\) inline math
-          content = content.replace(/\\\(([^)]+)\\\)/g, (match, latex) => {
+          content = content.replace(/\\\(([^)]+)\\\)/g, (match: string, latex: string) => {
             try {
-              return katex.renderToString(latex, {
+              return katex.default.renderToString(latex, {
                 displayMode: false,
                 throwOnError: false,
                 output: 'html'
@@ -1916,9 +1917,9 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           });
           
           // Process \\[...\\] display math
-          content = content.replace(/\\\[([^\]]+)\\\]/g, (match, latex) => {
+          content = content.replace(/\\\[([^\]]+)\\\]/g, (match: string, latex: string) => {
             try {
-              return katex.renderToString(latex, {
+              return katex.default.renderToString(latex, {
                 displayMode: true,
                 throwOnError: false,
                 output: 'html'
