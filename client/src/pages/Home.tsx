@@ -81,7 +81,7 @@ export default function Home() {
   const [isChunkedRewriterOpen, setIsChunkedRewriterOpen] = useState(false);
   const [rewriterText, setRewriterText] = useState<string>('');
   const [rewriterTitle, setRewriterTitle] = useState<string>('');
-  const [rewriterProcessingMode, setRewriterProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
+  const [rewriterProcessingMode, setRewriterProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>('rewrite');
   
   // Chunked document viewer state
   const [isChunkedViewerOpen, setIsChunkedViewerOpen] = useState(false);
@@ -92,7 +92,7 @@ export default function Home() {
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
   
   // Direct text processor state
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>('rewrite');
   const [directInputText, setDirectInputText] = useState<string>('');
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
