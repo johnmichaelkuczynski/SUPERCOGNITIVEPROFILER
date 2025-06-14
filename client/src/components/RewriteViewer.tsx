@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText, Globe } from 'lucide-react';
+import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText, Globe, Calculator } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import MathRenderer from './MathRenderer';
+import KaTeXRenderer from './KaTeXRenderer';
 import { GoogleDriveIntegration } from './GoogleDriveIntegration';
 
 interface RewriteResult {
@@ -35,6 +36,7 @@ export default function RewriteViewer({
   const [isRewriting, setIsRewriting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isMathView, setIsMathView] = useState(false);
   const { toast } = useToast();
 
   if (!result) return null;
@@ -253,6 +255,14 @@ export default function RewriteViewer({
           </h1>
         </div>
         <div className="flex gap-2">
+          <Button 
+            size="sm" 
+            variant={isMathView ? "default" : "outline"} 
+            onClick={() => setIsMathView(!isMathView)}
+            title="Toggle Math View"
+          >
+            <Calculator className="h-4 w-4" />
+          </Button>
           <Button size="sm" variant="outline" onClick={handleCopy}>
             {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </Button>
@@ -283,10 +293,17 @@ export default function RewriteViewer({
       <div className="h-[calc(100vh-60px)] bg-white">
         <div className="max-w-4xl mx-auto h-full p-8 overflow-auto">
           <div className="bg-white">
-            <MathRenderer 
-              content={result.rewrittenContent}
-              className="prose prose-xl max-w-none leading-relaxed text-gray-800"
-            />
+            {isMathView ? (
+              <KaTeXRenderer 
+                content={result.rewrittenContent}
+                className="prose prose-xl max-w-none leading-relaxed text-gray-800"
+              />
+            ) : (
+              <MathRenderer 
+                content={result.rewrittenContent}
+                className="prose prose-xl max-w-none leading-relaxed text-gray-800"
+              />
+            )}
           </div>
         </div>
 
