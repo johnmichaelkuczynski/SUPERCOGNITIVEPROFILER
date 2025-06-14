@@ -152,7 +152,7 @@ interface MindProfilerProps {
 }
 
 export default function MindProfiler({ userId }: MindProfilerProps) {
-  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis' | 'metacognitive'>('cognitive');
+  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis' | 'metacognitive' | 'metapsychological'>('cognitive');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
@@ -578,21 +578,12 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               Metacognitive
             </Button>
             <Button
-              onClick={handleMetapsychologicalAnalyze}
-              disabled={analyzeMetapsychological.isPending || (analysisMode === 'instant' && inputText.length < 100)}
-              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+              variant={profileType === 'metapsychological' ? 'default' : 'outline'}
+              onClick={() => setProfileType('metapsychological')}
+              className="flex items-center gap-2 px-4 py-3"
             >
-              {analyzeMetapsychological.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Crown className="h-5 w-5" />
-                  Metapsychological
-                </>
-              )}
+              <Crown className="h-5 w-5" />
+              Metapsychological
             </Button>
           </div>
 
@@ -625,6 +616,16 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <h3 className="font-semibold text-gray-800 mb-1">Metacognitive Analysis</h3>
                   <p className="text-sm text-gray-600">
                     Analyzes your intellectual configuration from every possible angle using dialectical analysis (Thesis-Antithesis-Super-Thesis).
+                  </p>
+                </div>
+              </div>
+            ) : profileType === 'metapsychological' ? (
+              <div className="flex items-start gap-3">
+                <Crown className="h-6 w-6 text-purple-600 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-1">Metapsychological Analysis</h3>
+                  <p className="text-sm text-gray-600">
+                    Advanced psychological profiling with six diagnostic components, each supported by quotes and explanations in dialectical structure.
                   </p>
                 </div>
               </div>
@@ -2344,10 +2345,10 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-green-100">
                         <h5 className="font-semibold text-green-700 mb-3 text-lg">Emotional Configuration</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>{results.thesis.emotionalConfiguration.analysis}</ReactMarkdown>
+                          <ReactMarkdown>{typeof results.thesis.emotionalConfiguration === 'string' ? results.thesis.emotionalConfiguration : results.thesis.emotionalConfiguration.analysis}</ReactMarkdown>
                         </div>
                         
-                        {results.thesis.emotionalConfiguration.supportingQuotes && results.thesis.emotionalConfiguration.supportingQuotes.length > 0 && (
+                        {typeof results.thesis.emotionalConfiguration === 'object' && results.thesis.emotionalConfiguration.supportingQuotes && results.thesis.emotionalConfiguration.supportingQuotes.length > 0 && (
                           <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
                             <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
                             {results.thesis.emotionalConfiguration.supportingQuotes.map((quote, index) => (
@@ -2358,7 +2359,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           </div>
                         )}
                         
-                        {results.thesis.emotionalConfiguration.explanation && (
+                        {typeof results.thesis.emotionalConfiguration === 'object' && results.thesis.emotionalConfiguration.explanation && (
                           <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                             <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
                             <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
