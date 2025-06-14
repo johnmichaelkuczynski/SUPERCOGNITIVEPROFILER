@@ -2742,7 +2742,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           Quotation Significance
                         </h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.quotationSignificance}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.quotationSignificance === 'string' 
+                              ? results.superThesis.quotationSignificance 
+                              : (typeof results.superThesis.quotationSignificance === 'object' && results.superThesis.quotationSignificance?.analysis 
+                                ? results.superThesis.quotationSignificance.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2754,7 +2760,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           Refutation of Antithesis
                         </h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.refutationOfAntithesis}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.refutationOfAntithesis === 'string' 
+                              ? results.superThesis.refutationOfAntithesis 
+                              : (typeof results.superThesis.refutationOfAntithesis === 'object' && results.superThesis.refutationOfAntithesis?.analysis 
+                                ? results.superThesis.refutationOfAntithesis.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2763,7 +2775,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-blue-100">
                         <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Psychological Assessment</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.finalPsychologicalAssessment}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.finalPsychologicalAssessment === 'string' 
+                              ? results.superThesis.finalPsychologicalAssessment 
+                              : (typeof results.superThesis.finalPsychologicalAssessment === 'object' && results.superThesis.finalPsychologicalAssessment?.analysis 
+                                ? results.superThesis.finalPsychologicalAssessment.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2774,7 +2792,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
                     <h4 className="font-bold text-purple-900 mb-4 text-lg">Overall Metapsychological Profile</h4>
                     <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown>{results.overallMetapsychologicalProfile}</ReactMarkdown>
+                      <ReactMarkdown>
+                        {typeof results.overallMetapsychologicalProfile === 'string' 
+                          ? results.overallMetapsychologicalProfile 
+                          : (typeof results.overallMetapsychologicalProfile === 'object' && results.overallMetapsychologicalProfile?.analysis 
+                            ? results.overallMetapsychologicalProfile.analysis
+                            : 'No analysis available')}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 )}
