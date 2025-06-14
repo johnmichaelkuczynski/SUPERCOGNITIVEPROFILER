@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Edit3, X, FileText, Download, Loader2, Share2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 interface DocumentChunk {
   id: number;
@@ -161,12 +164,18 @@ export default function SimpleRewriter({
     if (rewriteResults.length === 0) return;
 
     try {
+      // Combine all rewritten content
+      const combinedContent = rewriteResults.map(result => 
+        `## ${result.originalChunk.title}\n\n${result.rewrittenContent}\n\n`
+      ).join('');
+
       const response = await fetch('/api/download-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          results: rewriteResults,
-          documentName: documentName
+          content: combinedContent,
+          format: 'docx',
+          title: `${documentName}_rewritten`
         })
       });
 
@@ -180,6 +189,11 @@ export default function SimpleRewriter({
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        
+        toast({
+          title: "Download Complete",
+          description: "Rewritten document downloaded successfully"
+        });
       } else {
         throw new Error('Failed to download rewrite');
       }
@@ -230,15 +244,15 @@ export default function SimpleRewriter({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl h-[90vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-7xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Edit3 className="h-5 w-5" />
             Rewrite Document: {documentName}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col h-full space-y-4">
+        <div className="flex flex-col flex-1 space-y-4 overflow-hidden">
           {/* Instructions Section */}
           <Card>
             <CardHeader>
@@ -343,7 +357,7 @@ export default function SimpleRewriter({
 
             {/* Results Panel */}
             <Card className="flex flex-col">
-              <CardHeader>
+              <CardHeader className="flex-shrink-0">
                 <CardTitle className="text-sm flex items-center justify-between">
                   Rewrite Results
                   {rewriteResults.length > 0 && (
@@ -360,8 +374,8 @@ export default function SimpleRewriter({
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
+              <CardContent className="flex-1 overflow-hidden p-0">
+                <ScrollArea className="h-full p-6">
                   {rewriteResults.length === 0 ? (
                     <div className="flex items-center justify-center h-32 text-gray-500">
                       <div className="text-center">
@@ -392,8 +406,13 @@ export default function SimpleRewriter({
                               <h5 className="text-xs font-medium text-green-600 mb-1">
                                 Rewritten:
                               </h5>
-                              <div className="text-xs whitespace-pre-wrap">
-                                {result.rewrittenContent}
+                              <div className="text-xs whitespace-pre-wrap prose max-w-none">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkMath]}
+                                  rehypePlugins={[rehypeKatex]}
+                                >
+                                  {result.rewrittenContent}
+                                </ReactMarkdown>
                               </div>
                             </div>
                             {result.explanation && (
