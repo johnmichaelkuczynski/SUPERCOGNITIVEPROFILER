@@ -238,7 +238,7 @@ interface MindProfilerProps {
 }
 
 export default function MindProfiler({ userId }: MindProfilerProps) {
-  const [profileType, setProfileType] = useState<'psychological' | 'synthesis' | 'metacognitive'>('metacognitive');
+  const [profileType, setProfileType] = useState<'psychological' | 'synthesis' | 'metacognitive' | 'metapsychological'>('metacognitive');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
@@ -284,6 +284,10 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         endpoint = data.analysisMode === 'instant' 
           ? '/api/profile/metacognitive-instant'
           : '/api/profile/metacognitive-comprehensive';
+      } else if (data.profileType === 'metapsychological') {
+        endpoint = data.analysisMode === 'instant' 
+          ? '/api/profile/metapsychological-instant'
+          : '/api/profile/metapsychological-comprehensive';
       } else {
         endpoint = data.analysisMode === 'instant' 
           ? '/api/profile/instant'
@@ -606,6 +610,14 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               <Shield className="h-5 w-5" />
               Metacognitive
             </Button>
+            <Button
+              variant={profileType === 'metapsychological' ? 'default' : 'outline'}
+              onClick={() => setProfileType('metapsychological')}
+              className="flex items-center gap-2 px-6 py-3"
+            >
+              <Brain className="h-5 w-5" />
+              Metapsychological
+            </Button>
           </div>
 
           {/* Profile Description */}
@@ -627,6 +639,16 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <h3 className="font-semibold text-gray-800 mb-1">Metacognitive Analysis</h3>
                   <p className="text-sm text-gray-600">
                     Analyzes your intellectual configuration from every possible angle using dialectical analysis (Thesis-Antithesis-Super-Thesis).
+                  </p>
+                </div>
+              </div>
+            ) : profileType === 'metapsychological' ? (
+              <div className="flex items-start gap-3">
+                <Brain className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-1">Metapsychological Analysis</h3>
+                  <p className="text-sm text-gray-600">
+                    Complete psychological profiling with dialectical structure (Thesis-Antithesis-Super-Thesis) plus six formal diagnostic components: Emotional Configuration, Paradigm Comparison, Unique Strengths/Weaknesses, Social Fit, and Most Revealing Quotation.
                   </p>
                 </div>
               </div>
