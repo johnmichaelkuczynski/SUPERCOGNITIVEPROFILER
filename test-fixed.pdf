@@ -1,23 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Test Document</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            line-height: 1.6; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            color: #333;
-        }
-        @media print {
-            body { margin: 0; padding: 15px; }
-        }
-    </style>
-</head>
-<body>
-    <div>Math Solutions<br><br>Problem 1: ∫(3x²-5x+2) dx<br><br>Solution: x³ - 5x²/2 + 2x + C<br><br>Problem 2: Find derivative of sin(x)/(x²+1)<br><br>Solution: Using quotient rule...</div>
-</body>
-</html>
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Clean Math Test</title>
+            <style>
+                body { 
+                    font-family: Times, serif; 
+                    font-size: 12pt; 
+                    line-height: 1.6; 
+                    margin: 1in;
+                    color: black;
+                }
+                .title { 
+                    text-align: center; 
+                    font-size: 18pt; 
+                    font-weight: bold; 
+                    margin-bottom: 30px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="title">Clean Math Test</div>
+            <div>Section 1: Mathematical Logic Test<br><br>The negation ¬ P and conjunction ∧ are fundamental operators. We also have disjunction ∨ and implication →. The biconditional ↔ connects equivalent statements.<br><br></div>
+        </body>
+        </html>
+      
