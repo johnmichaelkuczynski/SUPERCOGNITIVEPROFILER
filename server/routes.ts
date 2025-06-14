@@ -28,6 +28,7 @@ import PDFDocument from 'pdfkit';
 import katex from 'katex';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 import { generateMathHTML } from './services/htmlExport';
+import { renderDocumentInChunks } from './services/chunkedPdfRenderer';
 
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
@@ -1983,6 +1984,101 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
     } catch (error) {
       console.error('HTML export error:', error);
       res.status(500).json({ error: 'Failed to generate HTML export' });
+    }
+  });
+
+  // Chunked PDF processing endpoint with full error visibility and validation
+  app.post('/api/export-pdf-chunked', async (req: Request, res: Response) => {
+    try {
+      const { content, filename = 'document', options = {} } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      console.log(`=== CHUNKED PDF PROCESSING START ===`);
+      console.log(`Document: "${filename}" (${content.length} characters)`);
+
+      const chunkOptions = {
+        wordsPerChunk: options.wordsPerChunk || 300,
+        maxRetries: options.maxRetries || 3,
+        validateMath: options.validateMath !== false,
+        strictMode: options.strictMode || false,
+        logProgress: true
+      };
+
+      console.log(`Chunk options:`, chunkOptions);
+
+      const result = await renderDocumentInChunks(content, filename, chunkOptions);
+
+      // Detailed logging for complete visibility
+      console.log(`=== CHUNKED PROCESSING RESULTS ===`);
+      console.log(`Success rate: ${result.validation.successRate.toFixed(1)}%`);
+      console.log(`Total errors: ${result.validation.totalErrors}`);
+      console.log(`Total warnings: ${result.validation.totalWarnings}`);
+      console.log(`Chunks processed: ${result.validation.chunks.length}`);
+
+      // Log each chunk's status with full details
+      result.validation.chunks.forEach((chunk, index) => {
+        if (!chunk.success || chunk.errors.length > 0) {
+          console.log(`\n--- CHUNK ${index + 1} ISSUES ---`);
+          console.log(`Success: ${chunk.success}`);
+          console.log(`Attempts: ${chunk.renderAttempts}`);
+          console.log(`Errors: ${chunk.errors.length > 0 ? chunk.errors.join('; ') : 'none'}`);
+          console.log(`Warnings: ${chunk.warnings.length > 0 ? chunk.warnings.join('; ') : 'none'}`);
+          console.log(`Original length: ${chunk.originalContent.length} chars`);
+          console.log(`Processed length: ${chunk.processedContent.length} chars`);
+          console.log(`Content preview: "${chunk.originalContent.substring(0, 100)}..."`);
+        }
+      });
+
+      // Return detailed response with both HTML and validation data
+      res.json({
+        success: true,
+        html: result.html,
+        validation: {
+          successRate: result.validation.successRate,
+          totalErrors: result.validation.totalErrors,
+          totalWarnings: result.validation.totalWarnings,
+          chunksProcessed: result.validation.chunks.length,
+          successfulChunks: result.validation.chunks.filter(c => c.success).length,
+          failedChunks: result.validation.chunks
+            .filter(c => !c.success)
+            .map(c => ({
+              index: c.chunkIndex,
+              errors: c.errors,
+              warnings: c.warnings,
+              attempts: c.renderAttempts,
+              originalLength: c.originalContent.length,
+              processedLength: c.processedContent.length,
+              contentPreview: c.originalContent.substring(0, 100)
+            })),
+          allChunks: result.validation.chunks.map(c => ({
+            index: c.chunkIndex,
+            success: c.success,
+            attempts: c.renderAttempts,
+            errorCount: c.errors.length,
+            warningCount: c.warnings.length,
+            originalLength: c.originalContent.length,
+            processedLength: c.processedContent.length
+          }))
+        }
+      });
+
+      console.log(`=== CHUNKED PDF PROCESSING COMPLETE ===\n`);
+
+    } catch (error) {
+      console.error('=== CHUNKED PDF PROCESSING FATAL ERROR ===');
+      console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
+      
+      res.status(500).json({ 
+        success: false,
+        error: 'Chunked PDF processing failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        errorType: error instanceof Error ? error.constructor.name : typeof error
+      });
     }
   });
 
