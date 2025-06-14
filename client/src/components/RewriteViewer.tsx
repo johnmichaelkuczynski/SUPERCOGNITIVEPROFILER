@@ -259,6 +259,9 @@ export default function RewriteViewer({
           <Button size="sm" variant="outline" onClick={handleDownload}>
             <Download className="h-4 w-4" />
           </Button>
+          <Button size="sm" variant="outline" onClick={handleViewHTML} title="View Perfect Math (Print to PDF)">
+            <Globe className="h-4 w-4" />
+          </Button>
           <Button size="sm" variant="outline" onClick={handlePrintToPdf}>
             <FileText className="h-4 w-4" />
           </Button>
