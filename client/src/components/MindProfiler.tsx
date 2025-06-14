@@ -32,7 +32,8 @@ import {
   Quote,
   Shield,
   XCircle,
-  Crown
+  Crown,
+  Cpu
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -152,7 +153,7 @@ interface MindProfilerProps {
 }
 
 export default function MindProfiler({ userId }: MindProfilerProps) {
-  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis' | 'metacognitive'>('cognitive');
+  const [profileType, setProfileType] = useState<'psychological' | 'synthesis' | 'metacognitive'>('metacognitive');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
@@ -497,14 +498,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
           {/* Profile Type Selection */}
           <div className="flex justify-center space-x-4">
             <Button
-              variant={profileType === 'cognitive' ? 'default' : 'outline'}
-              onClick={() => setProfileType('cognitive')}
-              className="flex items-center gap-2 px-6 py-3"
-            >
-              <Brain className="h-5 w-5" />
-              Cognitive
-            </Button>
-            <Button
               variant={profileType === 'psychological' ? 'default' : 'outline'}
               onClick={() => setProfileType('psychological')}
               className="flex items-center gap-2 px-6 py-3"
@@ -532,17 +525,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
           {/* Profile Description */}
           <div className="p-4 bg-white rounded-lg border border-gray-200">
-            {profileType === 'cognitive' ? (
-              <div className="flex items-start gap-3">
-                <Brain className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Cognitive Analysis</h3>
-                  <p className="text-sm text-gray-600">
-                    Analyzes your writing to profile your cognitive patterns, reasoning style, and intellectual characteristics.
-                  </p>
-                </div>
-              </div>
-            ) : profileType === 'psychological' ? (
+            {profileType === 'psychological' ? (
               <div className="flex items-start gap-3">
                 <Heart className="h-6 w-6 text-pink-600 mt-1 flex-shrink-0" />
                 <div>
@@ -684,7 +667,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               ) : (
                 <>
                   <Zap className="h-4 w-4" />
-                  Analyze {profileType === 'cognitive' ? 'Cognition' : 'Psychology'}
+                  Analyze {profileType === 'metacognitive' ? 'Metacognition' : 'Psychology'}
                 </>
               )}
             </Button>
@@ -1763,126 +1746,647 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
             )}
             
-            {/* Show Psychological Profile First */}
-            {false && results?.psychologicalProfile && (
-              <div className="space-y-4">
-                <h3 className="text-2xl font-bold text-red-800 flex items-center gap-2">
-                  <Heart className="h-6 w-6" />
+            {/* Show Psychological Profile with Dialectical Structure */}
+            {profileType === 'psychological' && results?.thesis && (
+              <div className="space-y-8">
+                <h2 className="text-3xl font-bold text-red-800 flex items-center gap-3">
+                  <Heart className="h-8 w-8" />
                   Psychological Analysis
-                </h3>
+                </h2>
                 
-                <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
-                  <h4 className="font-bold text-red-900 mb-4 text-lg">Emotional Pattern</h4>
-                  <div className="text-gray-800 leading-relaxed">
-                    {results.psychologicalProfile.emotionalPattern}
+                {/* THESIS */}
+                <div className="p-8 bg-gradient-to-br from-red-50 to-pink-50 rounded-xl border-2 border-red-200 shadow-lg">
+                  <h3 className="text-2xl font-bold text-red-800 mb-6 flex items-center gap-3">
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-full text-lg">1</span>
+                    {results.thesis.title}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div className="p-5 bg-white rounded-lg border border-red-100">
+                      <h4 className="font-bold text-red-700 mb-3 flex items-center gap-2">
+                        <Heart className="h-5 w-5" />
+                        Emotional Pattern
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.emotionalPattern}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-red-100">
+                      <h4 className="font-bold text-red-700 mb-3 flex items-center gap-2">
+                        <Zap className="h-5 w-5" />
+                        Motivational Structure
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.motivationalStructure}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-red-100">
+                      <h4 className="font-bold text-red-700 mb-3 flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Interpersonal Dynamics
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.interpersonalDynamics}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-red-100">
+                      <h4 className="font-bold text-red-700 mb-3 flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5" />
+                        Stress Response Pattern
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.stressResponsePattern}</p>
+                    </div>
                   </div>
+                  
+                  {/* Psychological Scores */}
+                  {(results.thesis.emotionalIntelligence || results.thesis.adaptability || results.thesis.socialOrientation) && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      {results.thesis.emotionalIntelligence && (
+                        <div className="p-4 bg-red-50 rounded-lg">
+                          <h4 className="font-semibold text-red-800 mb-2">Emotional Intelligence</h4>
+                          <div className="flex items-center gap-2">
+                            <Progress value={results.thesis.emotionalIntelligence * 10} className="flex-1" />
+                            <span className="text-sm font-medium">{results.thesis.emotionalIntelligence}/10</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.thesis.adaptability && (
+                        <div className="p-4 bg-orange-50 rounded-lg">
+                          <h4 className="font-semibold text-orange-800 mb-2">Adaptability</h4>
+                          <div className="flex items-center gap-2">
+                            <Progress value={results.thesis.adaptability * 10} className="flex-1" />
+                            <span className="text-sm font-medium">{results.thesis.adaptability}/10</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.thesis.socialOrientation && (
+                        <div className="p-4 bg-blue-50 rounded-lg">
+                          <h4 className="font-semibold text-blue-800 mb-2">Social Orientation</h4>
+                          <div className="flex items-center gap-2">
+                            <Progress value={results.thesis.socialOrientation * 10} className="flex-1" />
+                            <span className="text-sm font-medium">{results.thesis.socialOrientation}/10</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Supporting Evidence for Thesis */}
+                  {results.thesis.supportingEvidence && (
+                    <div className="space-y-4">
+                      <h4 className="font-bold text-red-700 text-lg">Supporting Evidence</h4>
+                      
+                      {/* Emotional Pattern Evidence */}
+                      {results.thesis.supportingEvidence.emotionalPattern && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-red-600">Emotional Pattern Evidence</h5>
+                          {results.thesis.supportingEvidence.emotionalPattern.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-red-25 rounded-lg border-l-4 border-red-300">
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Quote {index + 1}</span>
+                                <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-red-200">"{evidence.quote}"</blockquote>
+                              </div>
+                              <div>
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Motivational Structure Evidence */}
+                      {results.thesis.supportingEvidence.motivationalStructure && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-red-600">Motivational Structure Evidence</h5>
+                          {results.thesis.supportingEvidence.motivationalStructure.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-red-25 rounded-lg border-l-4 border-red-300">
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Quote {index + 1}</span>
+                                <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-red-200">"{evidence.quote}"</blockquote>
+                              </div>
+                              <div>
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Interpersonal Dynamics Evidence */}
+                      {results.thesis.supportingEvidence.interpersonalDynamics && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-red-600">Interpersonal Dynamics Evidence</h5>
+                          {results.thesis.supportingEvidence.interpersonalDynamics.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-red-25 rounded-lg border-l-4 border-red-300">
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Quote {index + 1}</span>
+                                <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-red-200">"{evidence.quote}"</blockquote>
+                              </div>
+                              <div>
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Stress Response Evidence */}
+                      {results.thesis.supportingEvidence.stressResponsePattern && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-red-600">Stress Response Evidence</h5>
+                          {results.thesis.supportingEvidence.stressResponsePattern.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-red-25 rounded-lg border-l-4 border-red-300">
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Quote {index + 1}</span>
+                                <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-red-200">"{evidence.quote}"</blockquote>
+                              </div>
+                              <div>
+                                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-4 bg-white rounded-lg border-2 border-red-200">
-                    <h4 className="font-bold text-red-800 mb-3">Motivational Structure</h4>
-                    <p className="text-gray-700 leading-relaxed">{results.psychologicalProfile.motivationalStructure}</p>
+                {/* ANTITHESIS */}
+                {results.antithesis && (
+                  <div className="p-8 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-300 shadow-lg">
+                    <h3 className="text-2xl font-bold text-yellow-800 mb-6 flex items-center gap-3">
+                      <span className="bg-yellow-600 text-white px-3 py-1 rounded-full text-lg">2</span>
+                      {results.antithesis.title}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Alternative Emotional Pattern</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.emotionalPattern}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Contrarian Motivation Assessment</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.motivationalStructure}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Skeptical Interpersonal View</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.interpersonalDynamics}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Critical Stress Reinterpretation</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.stressResponsePattern}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Supporting Evidence for Antithesis */}
+                    {results.antithesis.supportingEvidence && (
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-yellow-700 text-lg">Counter-Evidence</h4>
+                        
+                        {/* Show evidence sections similar to thesis but with contrarian styling */}
+                        {results.antithesis.supportingEvidence.emotionalPattern && (
+                          <div className="space-y-3">
+                            <h5 className="font-semibold text-yellow-600">Emotional Pattern Counter-Evidence</h5>
+                            {results.antithesis.supportingEvidence.emotionalPattern.map((evidence: any, index: number) => (
+                              <div key={index} className="p-4 bg-yellow-25 rounded-lg border-l-4 border-yellow-400">
+                                <div className="mb-2">
+                                  <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded">Counter-Quote {index + 1}</span>
+                                  <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-yellow-300">"{evidence.quote}"</blockquote>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded">Critical Analysis</span>
+                                  <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="p-4 bg-white rounded-lg border-2 border-red-200">
-                    <h4 className="font-bold text-red-800 mb-3">Interpersonal Dynamics</h4>
-                    <p className="text-gray-700 leading-relaxed">{results.psychologicalProfile.interpersonalDynamics}</p>
+                )}
+                
+                {/* SUPER-THESIS */}
+                {results.superThesis && (
+                  <div className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-300 shadow-lg">
+                    <h3 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                      <span className="bg-green-600 text-white px-3 py-1 rounded-full text-lg">3</span>
+                      {results.superThesis.title}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Defended Emotional Analysis</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.emotionalPattern}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Reinforced Motivation Assessment</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.motivationalStructure}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Strengthened Interpersonal Evaluation</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.interpersonalDynamics}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Validated Stress Response</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.stressResponsePattern}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Refined Conclusion */}
+                    {results.superThesis.refinedConclusion && (
+                      <div className="p-6 bg-green-100 rounded-lg border-2 border-green-300 mb-6">
+                        <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                          <Crown className="h-5 w-5" />
+                          Final Psychological Assessment
+                        </h4>
+                        <p className="text-gray-800 leading-relaxed font-medium">{results.superThesis.refinedConclusion}</p>
+                      </div>
+                    )}
+                    
+                    {/* Supporting Evidence for Super-Thesis */}
+                    {results.superThesis.supportingEvidence && (
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-green-700 text-lg">Reinforcing Evidence</h4>
+                        
+                        {results.superThesis.supportingEvidence.emotionalPattern && (
+                          <div className="space-y-3">
+                            <h5 className="font-semibold text-green-600">Emotional Pattern Reinforcement</h5>
+                            {results.superThesis.supportingEvidence.emotionalPattern.map((evidence: any, index: number) => (
+                              <div key={index} className="p-4 bg-green-25 rounded-lg border-l-4 border-green-400">
+                                <div className="mb-2">
+                                  <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">Reinforcing Quote {index + 1}</span>
+                                  <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-green-300">"{evidence.quote}"</blockquote>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">Defensive Analysis</span>
+                                  <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             )}
 
-            {/* Show Synthesis Profile */}
-            {profileType === 'synthesis' && results && (
-              <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-purple-800 flex items-center gap-2">
-                  <Zap className="h-6 w-6" />
+            {/* Show Synthesis Profile with Dialectical Structure */}
+            {profileType === 'synthesis' && results && (results.thesis || results.intellectEmotionBalance || results.synthesisStrengths) && (
+              <div className="space-y-8">
+                <h2 className="text-3xl font-bold text-purple-800 flex items-center gap-3">
+                  <Zap className="h-8 w-8" />
                   Synthesis Analysis
-                </h3>
+                </h2>
                 
-                {/* Intellect-Emotion Balance */}
-                {results.intellectEmotionBalance && (
-                  <div className="p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
-                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Intellect-Emotion Balance</h4>
-                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown>
-                        {results.intellectEmotionBalance}
-                      </ReactMarkdown>
+                {/* THESIS */}
+                <div className="p-8 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200 shadow-lg">
+                  <h3 className="text-2xl font-bold text-purple-800 mb-6 flex items-center gap-3">
+                    <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-lg">1</span>
+                    {results.thesis.title}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div className="p-5 bg-white rounded-lg border border-purple-100">
+                      <h4 className="font-bold text-purple-700 mb-3 flex items-center gap-2">
+                        <Brain className="h-5 w-5" />
+                        Intellectual-Emotional Integration
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.intellectualEmotionalIntegration}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-purple-100">
+                      <h4 className="font-bold text-purple-700 mb-3 flex items-center gap-2">
+                        <Target className="h-5 w-5" />
+                        Decision-Making Synthesis
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.decisionMakingSynthesis}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-purple-100">
+                      <h4 className="font-bold text-purple-700 mb-3 flex items-center gap-2">
+                        <Shield className="h-5 w-5" />
+                        Authenticity Assessment
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.authenticityAssessment}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-purple-100">
+                      <h4 className="font-bold text-purple-700 mb-3 flex items-center gap-2">
+                        <Zap className="h-5 w-5" />
+                        Stress-Clarity Dynamics
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.stressClarityDynamics}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-purple-100">
+                      <h4 className="font-bold text-purple-700 mb-3 flex items-center gap-2">
+                        <Heart className="h-5 w-5" />
+                        Empathy Authenticity
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.empathyAuthenticity}</p>
+                    </div>
+                    
+                    <div className="p-5 bg-white rounded-lg border border-purple-100">
+                      <h4 className="font-bold text-purple-700 mb-3 flex items-center gap-2">
+                        <Cpu className="h-5 w-5" />
+                        Cognitive-Emotional Architecture
+                      </h4>
+                      <p className="text-gray-800 leading-relaxed">{results.thesis.cognitiveEmotionalArchitecture}</p>
                     </div>
                   </div>
-                )}
-                
-                {/* Decision Making & Emotional Reasoning */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {results.decisionMakingStyle && (
-                    <div className="p-4 bg-white rounded-lg border-2 border-purple-200">
-                      <h4 className="font-bold text-purple-800 mb-3">Decision Making Style</h4>
-                      <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
-                        <ReactMarkdown>{results.decisionMakingStyle}</ReactMarkdown>
-                      </div>
+                  
+                  {/* Synthesis Scores */}
+                  {(results.thesis.rationalEmotionalIntegration || results.thesis.intellectualEmpathy || results.thesis.authenticityScore) && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      {results.thesis.rationalEmotionalIntegration && (
+                        <div className="p-4 bg-purple-50 rounded-lg">
+                          <h4 className="font-semibold text-purple-800 mb-2">Integration Score</h4>
+                          <div className="flex items-center gap-2">
+                            <Progress value={results.thesis.rationalEmotionalIntegration * 10} className="flex-1" />
+                            <span className="text-sm font-medium">{results.thesis.rationalEmotionalIntegration}/10</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.thesis.intellectualEmpathy && (
+                        <div className="p-4 bg-pink-50 rounded-lg">
+                          <h4 className="font-semibold text-pink-800 mb-2">Intellectual Empathy</h4>
+                          <div className="flex items-center gap-2">
+                            <Progress value={results.thesis.intellectualEmpathy * 10} className="flex-1" />
+                            <span className="text-sm font-medium">{results.thesis.intellectualEmpathy}/10</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {results.thesis.authenticityScore && (
+                        <div className="p-4 bg-orange-50 rounded-lg">
+                          <h4 className="font-semibold text-orange-800 mb-2">Authenticity Score</h4>
+                          <div className="flex items-center gap-2">
+                            <Progress value={results.thesis.authenticityScore * 10} className="flex-1" />
+                            <span className="text-sm font-medium">{results.thesis.authenticityScore}/10</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                  {results.emotionalReasoningPattern && (
-                    <div className="p-4 bg-white rounded-lg border-2 border-purple-200">
-                      <h4 className="font-bold text-purple-800 mb-3">Emotional Reasoning Pattern</h4>
-                      <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
-                        <ReactMarkdown>{results.emotionalReasoningPattern}</ReactMarkdown>
-                      </div>
+                  
+                  {/* Supporting Evidence for Thesis */}
+                  {results.thesis.supportingEvidence && (
+                    <div className="space-y-4">
+                      <h4 className="font-bold text-purple-700 text-lg">Supporting Evidence</h4>
+                      
+                      {/* Integration Evidence */}
+                      {results.thesis.supportingEvidence.intellectualEmotionalIntegration && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-purple-600">Integration Evidence</h5>
+                          {results.thesis.supportingEvidence.intellectualEmotionalIntegration.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-purple-25 rounded-lg border-l-4 border-purple-300">
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Quote {index + 1}</span>
+                                <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-purple-200">"{evidence.quote}"</blockquote>
+                              </div>
+                              <div>
+                                <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Decision-Making Evidence */}
+                      {results.thesis.supportingEvidence.decisionMakingSynthesis && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-purple-600">Decision-Making Evidence</h5>
+                          {results.thesis.supportingEvidence.decisionMakingSynthesis.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-purple-25 rounded-lg border-l-4 border-purple-300">
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Quote {index + 1}</span>
+                                <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-purple-200">"{evidence.quote}"</blockquote>
+                              </div>
+                              <div>
+                                <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Authenticity Evidence */}
+                      {results.thesis.supportingEvidence.authenticityAssessment && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-purple-600">Authenticity Evidence</h5>
+                          {results.thesis.supportingEvidence.authenticityAssessment.map((evidence: any, index: number) => (
+                            <div key={index} className="p-4 bg-purple-25 rounded-lg border-l-4 border-purple-300">
+                              <div className="mb-2">
+                                <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Quote {index + 1}</span>
+                                <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-purple-200">"{evidence.quote}"</blockquote>
+                              </div>
+                              <div>
+                                <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-1 rounded">Analysis</span>
+                                <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-
-                {/* Cognitive-Emotional Architecture */}
-                {results.cognitiveEmotionalArchitecture && (
-                  <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
-                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Cognitive-Emotional Architecture</h4>
-                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown>{results.cognitiveEmotionalArchitecture}</ReactMarkdown>
+                
+                {/* ANTITHESIS */}
+                {results.antithesis && (
+                  <div className="p-8 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-300 shadow-lg">
+                    <h3 className="text-2xl font-bold text-yellow-800 mb-6 flex items-center gap-3">
+                      <span className="bg-yellow-600 text-white px-3 py-1 rounded-full text-lg">2</span>
+                      {results.antithesis.title}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Alternative Integration View</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.intellectualEmotionalIntegration}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Contrarian Decision Assessment</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.decisionMakingSynthesis}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Skeptical Authenticity View</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.authenticityAssessment}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Critical Stress Reinterpretation</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.stressClarityDynamics}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Alternative Empathy Assessment</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.empathyAuthenticity}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-yellow-200">
+                        <h4 className="font-bold text-yellow-700 mb-3">Dissenting Architecture View</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.antithesis.cognitiveEmotionalArchitecture}</p>
+                      </div>
                     </div>
+                    
+                    {/* Supporting Evidence for Antithesis */}
+                    {results.antithesis.supportingEvidence && (
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-yellow-700 text-lg">Counter-Evidence</h4>
+                        
+                        {results.antithesis.supportingEvidence.intellectualEmotionalIntegration && (
+                          <div className="space-y-3">
+                            <h5 className="font-semibold text-yellow-600">Integration Counter-Evidence</h5>
+                            {results.antithesis.supportingEvidence.intellectualEmotionalIntegration.map((evidence: any, index: number) => (
+                              <div key={index} className="p-4 bg-yellow-25 rounded-lg border-l-4 border-yellow-400">
+                                <div className="mb-2">
+                                  <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded">Counter-Quote {index + 1}</span>
+                                  <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-yellow-300">"{evidence.quote}"</blockquote>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded">Critical Analysis</span>
+                                  <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
-
-                {/* Authenticity vs Performance */}
-                {results.authenticityVsPerformance && (
-                  <div className="p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border-2 border-orange-200">
-                    <h4 className="font-bold text-orange-900 mb-4 text-lg">Authenticity vs Performance</h4>
-                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown>{results.authenticityVsPerformance}</ReactMarkdown>
+                
+                {/* SUPER-THESIS */}
+                {results.superThesis && (
+                  <div className="p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-300 shadow-lg">
+                    <h3 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                      <span className="bg-green-600 text-white px-3 py-1 rounded-full text-lg">3</span>
+                      {results.superThesis.title}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Refined Integration Understanding</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.intellectualEmotionalIntegration}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Synthesized Decision Assessment</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.decisionMakingSynthesis}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Balanced Authenticity Evaluation</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.authenticityAssessment}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Refined Stress Understanding</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.stressClarityDynamics}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Nuanced Empathy View</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.empathyAuthenticity}</p>
+                      </div>
+                      
+                      <div className="p-5 bg-white rounded-lg border border-green-200">
+                        <h4 className="font-bold text-green-700 mb-3">Final Architecture Understanding</h4>
+                        <p className="text-gray-800 leading-relaxed">{results.superThesis.cognitiveEmotionalArchitecture}</p>
+                      </div>
                     </div>
+                    
+                    {/* Refined Conclusion */}
+                    {results.superThesis.refinedConclusion && (
+                      <div className="p-6 bg-green-100 rounded-lg border-2 border-green-300 mb-6">
+                        <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                          <Crown className="h-5 w-5" />
+                          Final Synthesis Assessment
+                        </h4>
+                        <p className="text-gray-800 leading-relaxed font-medium">{results.superThesis.refinedConclusion}</p>
+                      </div>
+                    )}
+                    
+                    {/* Final Synthesis Scores */}
+                    {(results.superThesis.integrationMaturity || results.superThesis.finalAuthenticityScore) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {results.superThesis.integrationMaturity && (
+                          <div className="p-4 bg-green-50 rounded-lg">
+                            <h4 className="font-semibold text-green-800 mb-2">Integration Maturity</h4>
+                            <div className="flex items-center gap-2">
+                              <Progress value={results.superThesis.integrationMaturity * 10} className="flex-1" />
+                              <span className="text-sm font-medium">{results.superThesis.integrationMaturity}/10</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {results.superThesis.finalAuthenticityScore && (
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <h4 className="font-semibold text-blue-800 mb-2">Final Authenticity Score</h4>
+                            <div className="flex items-center gap-2">
+                              <Progress value={results.superThesis.finalAuthenticityScore * 10} className="flex-1" />
+                              <span className="text-sm font-medium">{results.superThesis.finalAuthenticityScore}/10</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Supporting Evidence for Super-Thesis */}
+                    {results.superThesis.supportingEvidence && (
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-green-700 text-lg">Reinforcing Evidence</h4>
+                        
+                        {results.superThesis.supportingEvidence.intellectualEmotionalIntegration && (
+                          <div className="space-y-3">
+                            <h5 className="font-semibold text-green-600">Integration Reinforcement</h5>
+                            {results.superThesis.supportingEvidence.intellectualEmotionalIntegration.map((evidence: any, index: number) => (
+                              <div key={index} className="p-4 bg-green-25 rounded-lg border-l-4 border-green-400">
+                                <div className="mb-2">
+                                  <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">Reinforcing Quote {index + 1}</span>
+                                  <blockquote className="mt-2 text-gray-700 italic pl-4 border-l-2 border-green-300">"{evidence.quote}"</blockquote>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded">Defensive Analysis</span>
+                                  <p className="mt-2 text-gray-800 text-sm leading-relaxed">{evidence.explanation}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
-
-                {/* Synthesis Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {results.rationalEmotionalIntegration && (
-                    <div className="p-4 bg-purple-50 rounded-lg text-center">
-                      <h4 className="font-bold text-purple-800 mb-2">Integration Score</h4>
-                      <div className="text-3xl font-bold text-purple-600">{results.rationalEmotionalIntegration}/10</div>
-                    </div>
-                  )}
-                  {results.intellectualEmpathy && (
-                    <div className="p-4 bg-pink-50 rounded-lg text-center">
-                      <h4 className="font-bold text-pink-800 mb-2">Intellectual Empathy</h4>
-                      <div className="text-3xl font-bold text-pink-600">{results.intellectualEmpathy}/10</div>
-                    </div>
-                  )}
-                  {results.authenticityScore && (
-                    <div className="p-4 bg-orange-50 rounded-lg text-center">
-                      <h4 className="font-bold text-orange-800 mb-2">Authenticity Score</h4>
-                      <div className="text-3xl font-bold text-orange-600">{results.authenticityScore}/10</div>
-                    </div>
-                  )}
-                </div>
-
+                
                 {/* Strengths and Challenges */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {results.synthesisStrengths && (
-                    <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                      <h4 className="font-bold text-green-800 mb-3">Synthesis Strengths</h4>
-                      <ul className="space-y-2">
+                    <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
+                      <h4 className="font-bold text-green-800 mb-4 text-lg">Synthesis Strengths</h4>
+                      <ul className="space-y-3">
                         {results.synthesisStrengths.map((strength: string, index: number) => (
                           <li key={index} className="text-green-700 flex items-start">
-                            <span className="text-green-600 mr-2 font-bold">•</span>
-                            {strength}
+                            <span className="text-green-600 mr-3 font-bold text-lg">•</span>
+                            <span className="leading-relaxed">{strength}</span>
                           </li>
                         ))}
                       </ul>
@@ -1890,75 +2394,19 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   )}
                   
                   {results.integrationChallenges && (
-                    <div className="p-4 bg-red-50 rounded-lg border-2 border-red-200">
-                      <h4 className="font-bold text-red-800 mb-3">Integration Challenges</h4>
-                      <ul className="space-y-2">
+                    <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
+                      <h4 className="font-bold text-red-800 mb-4 text-lg">Integration Challenges</h4>
+                      <ul className="space-y-3">
                         {results.integrationChallenges.map((challenge: string, index: number) => (
                           <li key={index} className="text-red-700 flex items-start">
-                            <span className="text-red-600 mr-2 font-bold">•</span>
-                            {challenge}
+                            <span className="text-red-600 mr-3 font-bold text-lg">•</span>
+                            <span className="leading-relaxed">{challenge}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
                 </div>
-
-                {/* Development Pathways */}
-                {results.developmentPathways && (
-                  <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                    <h4 className="font-bold text-blue-800 mb-3">Development Pathways</h4>
-                    <ul className="space-y-2">
-                      {results.developmentPathways.map((pathway: string, index: number) => (
-                        <li key={index} className="text-blue-700 flex items-start">
-                          <span className="text-blue-600 mr-2 font-bold">•</span>
-                          {pathway}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Supporting Evidence */}
-                {results.supportingEvidence && (
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-gray-800 mb-3">Supporting Evidence</h4>
-                    
-                    {results.supportingEvidence.intellectEmotionBalance && (
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h5 className="font-medium text-gray-700 mb-3">Intellect-Emotion Balance Evidence</h5>
-                        {results.supportingEvidence.intellectEmotionBalance.map((evidence: any, index: number) => (
-                          <div key={index} className="border-l-4 border-purple-300 pl-4 py-2 mb-3 bg-white rounded-r">
-                            <blockquote className="text-sm italic text-gray-600 mb-2">
-                              "{evidence.quote}"
-                            </blockquote>
-                            <p className="text-sm text-gray-700">{evidence.explanation}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Holistic Signature */}
-                {results.holisticSignature && (
-                  <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-300">
-                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Holistic Signature</h4>
-                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown>{results.holisticSignature}</ReactMarkdown>
-                    </div>
-                  </div>
-                )}
-
-                {/* Detailed Analysis */}
-                {results.detailedAnalysis && (
-                  <div className="p-6 bg-gray-50 rounded-lg border-2 border-gray-200">
-                    <h4 className="font-bold text-gray-900 mb-4 text-lg">Detailed Analysis</h4>
-                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown>{results.detailedAnalysis}</ReactMarkdown>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -1985,6 +2433,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.thesis.intellectualConfiguration}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.thesis.supportingEvidence?.intellectualConfiguration && (
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                              <h6 className="font-semibold text-green-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.thesis.supportingEvidence.intellectualConfiguration.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-green-25 rounded-md border-l-4 border-green-300">
+                                    <div className="text-sm font-medium text-green-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -1994,6 +2461,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.thesis.cognitiveArchitecture}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.thesis.supportingEvidence?.cognitiveArchitecture && (
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                              <h6 className="font-semibold text-green-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.thesis.supportingEvidence.cognitiveArchitecture.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-green-25 rounded-md border-l-4 border-green-300">
+                                    <div className="text-sm font-medium text-green-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2003,6 +2489,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.thesis.metacognitiveAwareness}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.thesis.supportingEvidence?.metacognitiveAwareness && (
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                              <h6 className="font-semibold text-green-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.thesis.supportingEvidence.metacognitiveAwareness.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-green-25 rounded-md border-l-4 border-green-300">
+                                    <div className="text-sm font-medium text-green-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2060,6 +2565,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.antithesis.counterConfiguration}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.antithesis.supportingEvidence?.counterConfiguration && (
+                            <div className="mt-4 pt-4 border-t border-red-200">
+                              <h6 className="font-semibold text-red-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.antithesis.supportingEvidence.counterConfiguration.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-red-25 rounded-md border-l-4 border-red-300">
+                                    <div className="text-sm font-medium text-red-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2069,6 +2593,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.antithesis.alternativeArchitecture}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.antithesis.supportingEvidence?.alternativeArchitecture && (
+                            <div className="mt-4 pt-4 border-t border-red-200">
+                              <h6 className="font-semibold text-red-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.antithesis.supportingEvidence.alternativeArchitecture.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-red-25 rounded-md border-l-4 border-red-300">
+                                    <div className="text-sm font-medium text-red-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2135,6 +2678,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.superThesis.reinforcedConfiguration}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.superThesis.supportingEvidence?.reinforcedConfiguration && (
+                            <div className="mt-4 pt-4 border-t border-blue-200">
+                              <h6 className="font-semibold text-blue-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.superThesis.supportingEvidence.reinforcedConfiguration.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-blue-25 rounded-md border-l-4 border-blue-300">
+                                    <div className="text-sm font-medium text-blue-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -2207,6 +2769,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
                             <ReactMarkdown>{results.superThesis.finalAssessment}</ReactMarkdown>
                           </div>
+                          
+                          {/* Supporting Evidence */}
+                          {results.superThesis.supportingEvidence?.authenticSelfKnowledge && (
+                            <div className="mt-4 pt-4 border-t border-blue-200">
+                              <h6 className="font-semibold text-blue-600 mb-3 text-sm">Supporting Evidence:</h6>
+                              <div className="space-y-3">
+                                {results.superThesis.supportingEvidence.authenticSelfKnowledge.map((evidence: any, index: number) => (
+                                  <div key={index} className="p-3 bg-blue-25 rounded-md border-l-4 border-blue-300">
+                                    <div className="text-sm font-medium text-blue-800 mb-1">
+                                      Quote {index + 1}: "{evidence.quote}"
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                      {evidence.explanation}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
