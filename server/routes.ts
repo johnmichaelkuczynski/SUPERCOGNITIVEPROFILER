@@ -1870,7 +1870,6 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
     <div class="document-title">${documentName || 'Rewritten Document'}</div>`;
 
       // Process each section with KaTeX server-side math rendering for PDF
-      const katex = await import('katex');
       
       results.forEach((result: any, index: number) => {
         let content = result.rewrittenContent || '';
@@ -1880,7 +1879,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           // Process display math $$...$$
           content = content.replace(/\$\$([^$]+)\$\$/g, (match: string, latex: string) => {
             try {
-              return katex.default.renderToString(latex, {
+              return katex.renderToString(latex, {
                 displayMode: true,
                 throwOnError: false,
                 output: 'html'
@@ -1893,7 +1892,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           // Process inline math $...$
           content = content.replace(/\$([^$]+)\$/g, (match: string, latex: string) => {
             try {
-              return katex.default.renderToString(latex, {
+              return katex.renderToString(latex, {
                 displayMode: false,
                 throwOnError: false,
                 output: 'html'
@@ -1906,7 +1905,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           // Process \\(...\\) inline math
           content = content.replace(/\\\(([^)]+)\\\)/g, (match: string, latex: string) => {
             try {
-              return katex.default.renderToString(latex, {
+              return katex.renderToString(latex, {
                 displayMode: false,
                 throwOnError: false,
                 output: 'html'
@@ -1919,7 +1918,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           // Process \\[...\\] display math
           content = content.replace(/\\\[([^\]]+)\\\]/g, (match: string, latex: string) => {
             try {
-              return katex.default.renderToString(latex, {
+              return katex.renderToString(latex, {
                 displayMode: true,
                 throwOnError: false,
                 output: 'html'
