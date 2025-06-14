@@ -113,17 +113,8 @@ export default function OutputContainer({
             <span className="ml-3 text-sm text-slate-600">Processing your request...</span>
           </div>
         ) : content ? (
-          <div className="text-sm text-slate-800 prose prose-slate prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-li:my-0 prose-code:text-primary-700 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none">
-            <div className="whitespace-pre-wrap">{content}</div>
-                  const isInline = !match && props.children?.length === 1 && typeof props.children[0] === 'string';
-                  return isInline ? 
-                    <code className="bg-slate-100 text-primary-700 px-1 py-0.5 rounded" {...props} /> : 
-                    <code className="block bg-slate-100 p-2 rounded overflow-x-auto my-3" {...props} />;
-                }
-              }}
-            >
-              {content}
-            </ReactMarkdown>
+          <div className="text-sm text-slate-800 whitespace-pre-wrap">
+            {content}
           </div>
         ) : (
           <div className="text-center py-16">

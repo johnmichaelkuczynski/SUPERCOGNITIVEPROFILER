@@ -7,11 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, ChevronRight, Edit3, X, FileText, Download, Loader2, Share2 } from 'lucide-react';
-import { MathJax } from 'better-react-mathjax';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
+import { Edit3, X, FileText, Download, Loader2, Share2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface DocumentChunk {

@@ -20,7 +20,7 @@ import ChunkedRewriter from '@/components/ChunkedRewriter';
 import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import MindProfiler from '@/components/MindProfiler';
-import ChunkedDocumentViewer from '@/components/ChunkedDocumentViewer';
+import SimpleRewriter from '@/components/SimpleRewriter';
 
 interface Message {
   id: number;
@@ -841,44 +841,16 @@ Document text: ${extractedText}`;
             onDragLeave={handleDragLeave}
             onDrop={handleDirectDrop}
           >
-            {directInputText.includes('\\') || directInputText.includes('$') ? (
-              // Render with LaTeX support when mathematical notation is detected
-              <div className="w-full h-40 p-4 border rounded-lg overflow-y-auto bg-white">
-                <div className="whitespace-pre-wrap">
-                  <MathJax>
-                    <ReactMarkdown
-                      remarkPlugins={[remarkMath]}
-                      rehypePlugins={[rehypeKatex]}
-                    >
-                      {directInputText}
-                    </ReactMarkdown>
-                  </MathJax>
-                </div>
-                {/* Hidden textarea for editing */}
-                <textarea 
-                  className="absolute inset-0 w-full h-full p-4 bg-transparent text-transparent resize-none border-none outline-none"
-                  value={directInputText}
-                  onChange={(e) => setDirectInputText(e.target.value)}
-                  placeholder={isDragging ? "Drop files here to upload..." : 
-                    (processingMode === 'homework' 
-                      ? "Paste exam questions, homework assignments, or instructions here..." 
-                      : "Paste your text to rewrite, improve, or transform here...")
-                  }
-                />
-              </div>
-            ) : (
-              // Regular textarea when no LaTeX is detected
-              <textarea 
-                placeholder={isDragging ? "Drop files here to upload..." : 
-                  (processingMode === 'homework' 
-                    ? "Paste exam questions, homework assignments, or instructions here..." 
-                    : "Paste your text to rewrite, improve, or transform here...")
-                }
-                className="w-full h-40 p-4 border rounded-lg resize-none"
-                value={directInputText}
-                onChange={(e) => setDirectInputText(e.target.value)}
-              />
-            )}
+            <textarea 
+              placeholder={isDragging ? "Drop files here to upload..." : 
+                (processingMode === 'homework' 
+                  ? "Paste exam questions, homework assignments, or instructions here..." 
+                  : "Paste your text to rewrite, improve, or transform here...")
+              }
+              className="w-full h-40 p-4 border rounded-lg resize-none"
+              value={directInputText}
+              onChange={(e) => setDirectInputText(e.target.value)}
+            />
             <div className="flex justify-between items-center">
               <input 
                 type="file" 
@@ -1807,25 +1779,12 @@ Document text: ${extractedText}`;
         </DialogContent>
       </Dialog>
 
-      {/* Chunked Document Viewer - For Large Documents */}
-      <ChunkedDocumentViewer
+      {/* Simple Rewriter - For Documents */}
+      <SimpleRewriter
         isOpen={isChunkedViewerOpen}
         onClose={() => setIsChunkedViewerOpen(false)}
+        documentId={chunkedViewerDocument}
         documentName={chunkedViewerName}
-        documentContent={chunkedViewerDocument}
-        onEditChunk={(chunkId, title, content) => {
-          // Put chunk content in direct input for editing
-          setDirectInputText(content);
-          setIsChunkedViewerOpen(false);
-        }}
-        onRewriteChunk={(chunkId, title, content) => {
-          // Open chunk in rewriter
-          setRewriterText(content);
-          setRewriterTitle(`${title} - Chunk ${chunkId + 1}`);
-          setRewriterProcessingMode('rewrite');
-          setIsChunkedRewriterOpen(true);
-          setIsChunkedViewerOpen(false);
-        }}
       />
     </main>
   );
