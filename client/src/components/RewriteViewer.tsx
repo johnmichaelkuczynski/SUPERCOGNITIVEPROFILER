@@ -44,6 +44,21 @@ export default function RewriteViewer({
 
   if (!result) return null;
 
+  // Configure MathJax for proper rendering
+  const mathJaxConfig = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      processEnvironments: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+      ignoreHtmlClass: 'tex2jax_ignore',
+      processHtmlClass: 'tex2jax_process'
+    }
+  };
+
   const rewriteTheRewrite = async () => {
     if (!customInstructions.trim()) {
       toast({
@@ -161,133 +176,151 @@ export default function RewriteViewer({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center justify-between">
-            <span>{result.originalChunk.title} - Rewrite Result</span>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleCopy}>
-                {isCopied ? (
-                  <>
-                    <Check className="h-4 w-4 mr-1" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-1" />
-                    Copy
-                  </>
-                )}
-              </Button>
+    <div className="fixed inset-0 z-50 bg-white overflow-hidden">
+      {/* Header Bar */}
+      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+        <div className="flex items-center gap-4">
+          <Button size="sm" variant="outline" onClick={onClose}>
+            <X className="h-4 w-4 mr-1" />
+            Close
+          </Button>
+          <h1 className="text-xl font-bold text-gray-800">
+            {result.originalChunk.title} - Professional Rewrite
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={handleDownload}>
+            <Download className="h-4 w-4 mr-1" />
+            Download
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleCopy}>
+            {isCopied ? (
+              <>
+                <Check className="h-4 w-4 mr-1" />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 mr-1" />
+                Copy
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content - Full Screen */}
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Rewritten Content - Takes Most Space */}
+        <div className="flex-1 flex flex-col bg-white">
+          <div className="p-6 border-b">
+            <h2 className="text-2xl font-bold text-green-700 mb-2">
+              Professional Rewrite
+            </h2>
+            <p className="text-gray-600">Enhanced content with proper formatting and mathematical notation</p>
+          </div>
+          <div className="flex-1 overflow-auto p-6">
+            <div className="prose prose-lg max-w-none">
+              <MathJaxContext config={mathJaxConfig}>
+                <MathJax>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={{
+                      // Enhanced rendering for better formatting
+                      h1: ({children}) => <h1 className="text-3xl font-bold mb-6 text-gray-900">{children}</h1>,
+                      h2: ({children}) => <h2 className="text-2xl font-bold mb-4 text-gray-800">{children}</h2>,
+                      h3: ({children}) => <h3 className="text-xl font-bold mb-3 text-gray-700">{children}</h3>,
+                      p: ({children}) => <p className="mb-4 text-gray-800 leading-relaxed">{children}</p>,
+                      ul: ({children}) => <ul className="mb-4 ml-6 list-disc">{children}</ul>,
+                      ol: ({children}) => <ol className="mb-4 ml-6 list-decimal">{children}</ol>,
+                      li: ({children}) => <li className="mb-2 text-gray-800">{children}</li>,
+                      blockquote: ({children}) => <blockquote className="border-l-4 border-blue-500 pl-4 my-4 italic text-gray-700">{children}</blockquote>,
+                      code: ({children, className}) => {
+                        if (className?.includes('language-')) {
+                          return <code className="block bg-gray-100 p-4 rounded text-sm font-mono">{children}</code>;
+                        }
+                        return <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">{children}</code>;
+                      }
+                    }}
+                  >
+                    {result.rewrittenContent}
+                  </ReactMarkdown>
+                </MathJax>
+              </MathJaxContext>
             </div>
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-            {/* Original Content */}
-            <Card className="flex flex-col h-full">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="text-sm text-gray-600">
-                  Original ({result.originalChunk.wordCount} words)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-auto">
-                <div className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {result.originalChunk.content}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Rewritten Content */}
-            <Card className="flex flex-col h-full">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle className="text-sm text-green-600">
-                  Rewritten Content
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-auto space-y-4">
-                <div className="text-sm whitespace-pre-wrap prose max-w-none">
-                  <MathJaxContext>
-                    <MathJax>
-                      <ReactMarkdown
-                        remarkPlugins={[remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
-                      >
-                        {result.rewrittenContent}
-                      </ReactMarkdown>
-                    </MathJax>
-                  </MathJaxContext>
-                </div>
-
-                {result.explanation && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h5 className="text-sm font-medium text-blue-600 mb-2">
-                        Explanation:
-                      </h5>
-                      <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded">
-                        {result.explanation}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Rewrite the Rewrite Section */}
-                <Separator />
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h5 className="text-sm font-medium text-blue-800 mb-3">
-                    🔄 Rewrite the Rewrite
-                  </h5>
-                  <div className="space-y-3">
-                    <Textarea
-                      placeholder="Provide specific instructions for how you want to rewrite this content..."
-                      value={customInstructions}
-                      onChange={(e) => setCustomInstructions(e.target.value)}
-                      rows={3}
-                      className="text-sm"
-                    />
-                    <div className="flex items-center justify-between">
-                      <select 
-                        className="text-sm border rounded px-3 py-2"
-                        value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
-                      >
-                        <option value="claude">Claude</option>
-                        <option value="gpt4">GPT-4</option>
-                      </select>
-                      <Button 
-                        onClick={rewriteTheRewrite}
-                        disabled={isRewriting || !customInstructions.trim()}
-                        className="px-4 py-2"
-                      >
-                        {isRewriting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Re-rewriting...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Start Re-rewrite
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Side Panel - Original Content & Controls */}
+        <div className="w-96 bg-gray-50 border-l flex flex-col">
+          {/* Original Content */}
+          <div className="border-b p-4">
+            <h3 className="font-semibold text-gray-700 mb-3">
+              Original ({result.originalChunk.wordCount} words)
+            </h3>
+            <div className="text-sm text-gray-600 bg-white p-3 rounded border max-h-40 overflow-auto">
+              {result.originalChunk.content}
+            </div>
+          </div>
+
+          {/* Explanation */}
+          {result.explanation && (
+            <div className="border-b p-4">
+              <h3 className="font-semibold text-blue-700 mb-3">Explanation</h3>
+              <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded">
+                {result.explanation}
+              </div>
+            </div>
+          )}
+
+          {/* Rewrite Controls */}
+          <div className="flex-1 p-4">
+            <h3 className="font-semibold text-gray-800 mb-3">
+              Refine This Rewrite
+            </h3>
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Provide specific instructions for refinement..."
+                value={customInstructions}
+                onChange={(e) => setCustomInstructions(e.target.value)}
+                rows={4}
+                className="text-sm"
+              />
+              <div className="flex items-center justify-between">
+                <select 
+                  className="border rounded px-3 py-2 text-sm"
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                >
+                  <option value="claude">Claude (Recommended)</option>
+                  <option value="gpt4">GPT-4</option>
+                </select>
+                <Button 
+                  onClick={rewriteTheRewrite}
+                  disabled={isRewriting || !customInstructions.trim()}
+                  size="sm"
+                >
+                  {isRewriting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Refining...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refine
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
