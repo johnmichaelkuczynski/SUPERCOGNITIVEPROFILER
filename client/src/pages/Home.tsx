@@ -93,37 +93,7 @@ export default function Home() {
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
 
-  // NUKE function to clear all data - no confirmation popup
-  const handleNuke = async () => {
-    try {
-      const response = await fetch('/api/nuke', { method: 'POST' });
-      if (response.ok) {
-        // Clear all local state
-        setMessages([]);
-        setFiles([]);
-        setPrompt('');
-        setDirectInputText('');
-        setUploadedDocuments({});
-        setAllDocuments([]);
-        setDocumentContent('');
-        setDocumentName('');
-        setSelectedChunks([]);
-        setSelectedChunk(null);
-        setDocumentChunks([]);
-        
-        // Reset all modals
-        setIsRewriterOpen(false);
-        setIsDocumentViewerOpen(false);
-        setIsChunkSelectorOpen(false);
-        setIsChunkedRewriterOpen(false);
-        
-        // Force page reload to completely reset
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Error nuking data:', error);
-    }
-  };
+
 
   // Handle file upload for main interface
   const processUploadedFile = async (file: File) => {
@@ -781,18 +751,7 @@ Document text: ${extractedText}`;
 
   return (
     <main className="container mx-auto px-4 py-6">
-      {/* NUKE Button - Prominent at top */}
-      <div className="mb-6 flex justify-center">
-        <Button 
-          variant="destructive" 
-          size="lg"
-          onClick={handleNuke}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 text-lg"
-        >
-          <Trash2 className="h-6 w-6 mr-2" />
-          NUKE - CLEAR ALL DATA
-        </Button>
-      </div>
+
 
       {/* Mind Profiler - Heart of the App */}
       <MindProfiler userId={1} />
@@ -1560,38 +1519,7 @@ Document text: ${extractedText}`;
                     Clear Chat
                   </Button>
                   
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={async () => {
-                      if (confirm('NUKE: This will clear ALL data - chat, documents, conversations. Are you sure?')) {
-                        // Clear all local state
-                        setMessages([]);
-                        setUploadedDocuments({});
-                        setDocumentContent('');
-                        setDocumentName('');
-                        setViewingDocumentContent('');
-                        setViewingDocumentName('');
-                        setIsRewriterOpen(false);
-                        setIsDocumentViewerOpen(false);
-                        setIsChunkSelectorOpen(false);
-                        
-                        // Clear all server data
-                        try {
-                          await fetch('/api/nuke', { method: 'POST' });
-                          console.log('Server data cleared');
-                        } catch (error) {
-                          console.error('Error clearing server data:', error);
-                        }
-                        
-                        // Force page reload to completely reset
-                        window.location.reload();
-                      }
-                    }}
-                  >
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    NUKE
-                  </Button>
+
                 </div>
                 
                 {/* Document Actions */}

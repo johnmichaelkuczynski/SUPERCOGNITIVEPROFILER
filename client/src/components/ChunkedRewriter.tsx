@@ -426,42 +426,7 @@ export default function ChunkedRewriter({
     });
   };
 
-  const nukeEverything = () => {
-    // Reset absolutely everything
-    setIsProcessing(false);
-    setIsCancelled(false);
-    setCurrentChunkIndex(0);
-    setProgress(0);
-    setShowLiveProgress(false);
-    setShowResultsPopup(false);
-    setShowRerewriteForm(false);
-    setIsRerewriting(false);
-    setPreviewChunk(null);
-    setRerewriteInstructions('');
-    setRewriteChunks([]);
-    setLiveProgressChunks([]);
-    setFinalRewrittenContent('');
-    setRewriteMetadata(null);
-    
-    // Clear any cached document content to force fresh processing
-    localStorage.removeItem('cachedDocumentContent');
-    localStorage.removeItem('lastProcessedDocument');
-    
-    // Reset all chunks and force regeneration from original text
-    setChunks(prev => prev.map(chunk => ({
-      ...chunk,
-      rewritten: undefined,
-      isProcessing: false,
-      isComplete: false,
-      selected: false
-    })));
-    
-    toast({
-      title: "NUKED!",
-      description: "Everything has been reset. Fresh start!",
-      variant: "destructive"
-    });
-  };
+
 
   // Split text into chunks of approximately 500 words
   useEffect(() => {

@@ -3083,38 +3083,7 @@ Return only the new content without any additional comments, explanations, or he
     }
   });
 
-  // NUKE endpoint - clears all data
-  app.post('/api/nuke', async (req: Request, res: Response) => {
-    try {
-      console.log('NUKE: Clearing all application data...');
-      
-      // Import all tables from schema
-      const { documents, analytics, conversations, messages, users } = await import("@shared/schema");
-      
-      // Clear all database tables
-      await db.delete(messages);
-      console.log('NUKE: Messages table cleared');
-      
-      await db.delete(conversations);
-      console.log('NUKE: Conversations table cleared');
-      
-      await db.delete(analytics);
-      console.log('NUKE: Analytics table cleared');
-      
-      await db.delete(documents);
-      console.log('NUKE: Documents table cleared');
-      
-      await db.delete(users);
-      console.log('NUKE: Users table cleared');
-      
-      console.log('NUKE: All data cleared successfully');
-      
-      res.json({ success: true, message: 'All data cleared' });
-    } catch (error) {
-      console.error('NUKE error:', error);
-      res.status(500).json({ error: 'Failed to clear data' });
-    }
-  });
+
 
   // Google Drive Integration Routes
   
