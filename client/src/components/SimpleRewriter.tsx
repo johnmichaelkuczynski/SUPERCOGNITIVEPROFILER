@@ -243,7 +243,9 @@ export default function SimpleRewriter({
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>')
         
-        // Math delimiters for KaTeX
+        // Math delimiters for KaTeX - preserve existing LaTeX format
+        .replace(/\\\[([^\\]+)\\\]/g, '\\[$1\\]')
+        .replace(/\\\(([^\\]+)\\\)/g, '\\($1\\)')
         .replace(/\$\$([^$]+)\$\$/g, '\\[$1\\]')
         .replace(/\$([^$]+)\$/g, '\\($1\\)')
         
@@ -386,16 +388,38 @@ export default function SimpleRewriter({
           <h1>${documentName} - Rewritten</h1>
           ${combinedContent}
           <script>
+            function waitForKaTeX() {
+              if (typeof katex !== 'undefined' && typeof renderMathInElement !== 'undefined') {
+                try {
+                  renderMathInElement(document.body, {
+                    delimiters: [
+                      {left: "\\\\[", right: "\\\\]", display: true},
+                      {left: "\\\\(", right: "\\\\)", display: false},
+                      {left: "$$", right: "$$", display: true},
+                      {left: "$", right: "$", display: false}
+                    ],
+                    throwOnError: false,
+                    errorColor: '#cc0000',
+                    strict: false
+                  });
+                  console.log('KaTeX rendering completed');
+                  setTimeout(() => {
+                    console.log('Opening print dialog');
+                    window.print();
+                  }, 2000);
+                } catch (error) {
+                  console.error('KaTeX rendering error:', error);
+                  setTimeout(() => window.print(), 1000);
+                }
+              } else {
+                console.log('Waiting for KaTeX to load...');
+                setTimeout(waitForKaTeX, 100);
+              }
+            }
+            
             document.addEventListener("DOMContentLoaded", function() {
-              renderMathInElement(document.body, {
-                delimiters: [
-                  {left: "$$", right: "$$", display: true},
-                  {left: "$", right: "$", display: false},
-                  {left: "\\(", right: "\\)", display: false},
-                  {left: "\\[", right: "\\]", display: true}
-                ]
-              });
-              setTimeout(() => window.print(), 1000);
+              console.log('DOM loaded, starting KaTeX check');
+              waitForKaTeX();
             });
           </script>
         </body>
