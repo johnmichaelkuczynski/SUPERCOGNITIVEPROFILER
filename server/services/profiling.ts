@@ -644,64 +644,69 @@ Format as JSON with this EXACT structure:
   },
   "formalDiagnostics": {
     "emotionalConfiguration": {
-      "dominantStyle": ["specific emotional style demonstrated"],
-      "analysis": "Formal identification of emotional configuration with precise terminology",
+      "dominantStyle": ["MUST ANALYZE: What is the person's actual emotional style from the text?"],
+      "analysis": "MUST ANALYZE: Formal identification of their actual emotional configuration using precise psychological terminology",
       "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "evidence for emotional style"},
-        {"quote": "exact quote", "explanation": "additional emotional evidence"}
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: how this quote demonstrates emotional style"},
+        {"quote": "MUST INCLUDE: another exact quote from text", "explanation": "MUST EXPLAIN: additional emotional evidence from text"}
       ]
     },
     "paradigmComparison": {
-      "strength": "weak/average/strong/unusual example of this emotional style",
-      "distinguishingFeatures": "What distinguishes their style from paradigm examples",
-      "analysis": "Detailed comparison to typical examples of this emotional style",
+      "strength": "MUST ASSESS: Is this person a weak/average/strong/unusual example of their emotional type?",
+      "distinguishingFeatures": "MUST IDENTIFY: What makes their emotional style unique compared to others?",
+      "analysis": "MUST COMPARE: How does their style compare to typical examples of this emotional configuration?",
       "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "comparison evidence"},
-        {"quote": "exact quote", "explanation": "distinguishing feature evidence"}
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: comparison evidence"},
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: distinguishing feature evidence"}
       ]
     },
     "uniquePsychologicalStrengths": {
-      "strengths": ["precise, discriminative strength 1", "precise, discriminative strength 2", "precise, discriminative strength 3"],
-      "analysis": "Detailed analysis of unique psychological strengths revealed in text",
+      "strengths": ["MUST IDENTIFY: What are their specific psychological strengths based on the text?"],
+      "analysis": "MUST ANALYZE: Detailed analysis of unique psychological strengths revealed in the actual text",
       "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "strength demonstration"},
-        {"quote": "exact quote", "explanation": "additional strength evidence"}
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: how this demonstrates strength"},
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: additional strength evidence"}
       ]
     },
     "uniquePsychologicalWeaknesses": {
-      "weaknesses": ["specific psychological weakness 1", "specific psychological weakness 2", "specific psychological weakness 3"],
-      "analysis": "Precise identification of how emotional/psychological style may distort reasoning or engagement",
+      "weaknesses": ["MUST IDENTIFY: What are their specific psychological weaknesses based on the text?"],
+      "analysis": "MUST ANALYZE: How does their emotional/psychological style potentially distort reasoning or engagement?",
       "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "weakness demonstration"},
-        {"quote": "exact quote", "explanation": "additional weakness evidence"}
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: how this demonstrates weakness"},
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: additional weakness evidence"}
       ]
     },
     "interpersonalSocialFit": {
-      "thriveEnvironments": ["specific interpersonal/social ecosystem 1", "specific interpersonal/social ecosystem 2"],
-      "liabilityEnvironments": ["environment where emotional style would be liability 1", "environment where emotional style would be liability 2"],
-      "analysis": "Detailed assessment of where emotional/psychological style would be strength vs liability",
+      "thriveEnvironments": ["MUST IDENTIFY: Where would this person's style be an asset?"],
+      "liabilityEnvironments": ["MUST IDENTIFY: Where would this person's style be a liability?"],
+      "analysis": "MUST ASSESS: Where would their emotional/psychological style be strength vs liability?",
       "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "interpersonal fit evidence"},
-        {"quote": "exact quote", "explanation": "social compatibility evidence"}
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: interpersonal fit evidence"},
+        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: social compatibility evidence"}
       ]
     },
     "mostRevealingQuotation": {
-      "quote": "Single most diagnostically revealing quotation from the text",
-      "analysis": "Why this quotation best reveals core psychological strengths and/or weaknesses",
-      "psychologicalSignificance": "What this quote tells us about their fundamental emotional/psychological configuration"
+      "quote": "MUST SELECT: The single most diagnostically revealing quotation from the actual text",
+      "analysis": "MUST EXPLAIN: Why this specific quotation best reveals their core psychological configuration",
+      "psychologicalSignificance": "MUST INTERPRET: What this quote tells us about their fundamental emotional/psychological nature"
     }
   }
 }
 
-CRITICAL: The formalDiagnostics section is MANDATORY. You must include ALL SIX components:
-1️⃣ emotionalConfiguration
-2️⃣ paradigmComparison  
-3️⃣ uniquePsychologicalStrengths
-4️⃣ uniquePsychologicalWeaknesses
-5️⃣ interpersonalSocialFit
-6️⃣ mostRevealingQuotation
+🚨 CRITICAL ENFORCEMENT: The formalDiagnostics section is MANDATORY and MUST BE POPULATED WITH ACTUAL ANALYSIS. 🚨
 
-If you do not include the complete formalDiagnostics section with all six components, the response will be rejected.`;
+You MUST include ALL SIX components with REAL CONTENT:
+1️⃣ emotionalConfiguration - MUST analyze emotional style (warm/cold, strategic/authentic, etc)
+2️⃣ paradigmComparison - MUST compare to paradigm examples of this emotional type
+3️⃣ uniquePsychologicalStrengths - MUST identify specific psychological strengths
+4️⃣ uniquePsychologicalWeaknesses - MUST identify specific psychological weaknesses  
+5️⃣ interpersonalSocialFit - MUST assess where this style thrives vs struggles
+6️⃣ mostRevealingQuotation - MUST select actual quote and explain its significance
+
+⚠️ REPLACE ALL "REQUIRED:" TEXT WITH ACTUAL ANALYSIS - NO PLACEHOLDERS ALLOWED
+⚠️ The formalDiagnostics section must contain substantive analysis based on the text
+
+If you do not include the complete formalDiagnostics section with all six components populated with real analysis, the response will be rejected.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -710,7 +715,33 @@ If you do not include the complete formalDiagnostics section with all six compon
       response_format: { type: "json_object" },
     });
 
-    return JSON.parse(response.choices[0].message.content || "{}");
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    
+    // Validate that formalDiagnostics section exists and is properly populated
+    if (!result.formalDiagnostics) {
+      throw new Error("AI failed to include required formalDiagnostics section");
+    }
+    
+    const required = ['emotionalConfiguration', 'paradigmComparison', 'uniquePsychologicalStrengths', 
+                     'uniquePsychologicalWeaknesses', 'interpersonalSocialFit', 'mostRevealingQuotation'];
+    
+    for (const component of required) {
+      if (!result.formalDiagnostics[component]) {
+        throw new Error(`AI failed to populate required component: ${component}`);
+      }
+      
+      // Check if it still contains placeholder text
+      const componentData = JSON.stringify(result.formalDiagnostics[component]);
+      if (componentData.includes('MUST ANALYZE:') || componentData.includes('MUST ASSESS:') || 
+          componentData.includes('MUST IDENTIFY:') || componentData.includes('MUST COMPARE:') ||
+          componentData.includes('MUST INCLUDE:') || componentData.includes('MUST EXPLAIN:') ||
+          componentData.includes('MUST SELECT:') || componentData.includes('MUST INTERPRET:')) {
+        console.log(`Placeholder content detected in ${component}:`, componentData);
+        throw new Error(`AI failed to replace placeholder instructions with actual analysis in component: ${component}`);
+      }
+    }
+    
+    return result;
   } catch (error) {
     throw new Error("Failed to generate psychological profile: " + (error instanceof Error ? error.message : 'Unknown error'));
   }
