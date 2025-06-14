@@ -398,12 +398,23 @@ export default function ChunkedRewriter({
                       // Real-time update: show streaming content in the output box
                       streamingContent += data.content;
                       
+                      // Update chunk with streaming content immediately
+                      setChunks(prev => prev.map(c => 
+                        c.id === chunk.id 
+                          ? { 
+                              ...c, 
+                              rewritten: streamingContent,
+                              isProcessing: true // Keep processing state during streaming
+                            }
+                          : c
+                      ));
+
                       // Update live progress with streaming content
                       setLiveProgressChunks(prev => prev.map((item, idx) => 
                         idx === i ? {
                           ...item,
                           content: streamingContent,
-                          completed: false
+                          completed: false // Still streaming
                         } : item
                       ));
                       
