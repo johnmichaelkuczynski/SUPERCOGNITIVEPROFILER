@@ -1,42 +1,68 @@
 // Mathematical notation utility for converting LaTeX to Unicode
 export function renderMathematicalNotation(text: string): string {
+  if (!text) return text;
+  
+  console.log(`INPUT TO MATH CONVERTER: "${text}"`);
   let processed = text;
   
-  // STEP 1: EXACT PATTERN FIXES from logs - target literal strings
-  // Fix \{α\} → α (exact pattern from logs)
-  processed = processed.split('\\{α\\}').join('α');
-  processed = processed.split('\\{β\\}').join('β');
-  processed = processed.split('\\{γ\\}').join('γ');
-  processed = processed.split('\\{δ\\}').join('δ');
-  processed = processed.split('\\{ε\\}').join('ε');
-  processed = processed.split('\\{φ\\}').join('φ');
-  processed = processed.split('\\{ψ\\}').join('ψ');
-  processed = processed.split('\\{ω\\}').join('ω');
-  processed = processed.split('\\{λ\\}').join('λ');
-  processed = processed.split('\\{μ\\}').join('μ');
-  processed = processed.split('\\{σ\\}').join('σ');
-  processed = processed.split('\\{π\\}').join('π');
-  processed = processed.split('\\{θ\\}').join('θ');
+  // COMPREHENSIVE PATTERN REPLACEMENT - Handle ALL variations
+  const patterns = [
+    // Exact patterns from failing logs
+    ['\\{α\\}', 'α'], ['\\{β\\}', 'β'], ['\\{γ\\}', 'γ'], ['\\{δ\\}', 'δ'], ['\\{ε\\}', 'ε'],
+    ['\\{φ\\}', 'φ'], ['\\{ψ\\}', 'ψ'], ['\\{ω\\}', 'ω'], ['\\{λ\\}', 'λ'], ['\\{μ\\}', 'μ'],
+    ['\\{σ\\}', 'σ'], ['\\{π\\}', 'π'], ['\\{θ\\}', 'θ'], ['\\{ξ\\}', 'ξ'], ['\\{ρ\\}', 'ρ'],
+    
+    // Partial brace patterns
+    ['\\{α}', 'α'], ['\\{β}', 'β'], ['\\{γ}', 'γ'], ['\\{δ}', 'δ'], ['\\{ε}', 'ε'],
+    ['{α\\}', 'α'], ['{β\\}', 'β'], ['{γ\\}', 'γ'], ['{δ\\}', 'δ'], ['{ε\\}', 'ε'],
+    ['{α}', 'α'], ['{β}', 'β'], ['{γ}', 'γ'], ['{δ}', 'δ'], ['{ε}', 'ε'],
+    
+    // Stray backslash patterns from logs
+    ['\\α\\', 'α'], ['\\β\\', 'β'], ['\\γ\\', 'γ'], ['\\δ\\', 'δ'], ['\\ε\\', 'ε'],
+    ['\\φ\\', 'φ'], ['\\ψ\\', 'ψ'], ['\\ω\\', 'ω'], ['\\λ\\', 'λ'], ['\\μ\\', 'μ'],
+    
+    // Mathematical operators - PRIORITY
+    ['\\oplus', '⊕'], ['\\ominus', '⊖'], ['\\otimes', '⊗'], ['\\odot', '⊙'],
+    ['\\cup', '∪'], ['\\cap', '∩'], ['\\subset', '⊂'], ['\\supset', '⊃'],
+    ['\\subseteq', '⊆'], ['\\supseteq', '⊇'], ['\\in', '∈'], ['\\notin', '∉'],
+    ['\\emptyset', '∅'], ['\\varnothing', '∅'],
+    
+    // Logic operators
+    ['\\neg', '¬'], ['\\lnot', '¬'], ['\\wedge', '∧'], ['\\land', '∧'], 
+    ['\\vee', '∨'], ['\\lor', '∨'], ['\\rightarrow', '→'], ['\\to', '→'],
+    ['\\leftarrow', '←'], ['\\leftrightarrow', '↔'], ['\\iff', '↔'],
+    ['\\forall', '∀'], ['\\exists', '∃'],
+    
+    // Comparison operators
+    ['\\leq', '≤'], ['\\geq', '≥'], ['\\neq', '≠'], ['\\approx', '≈'], ['\\equiv', '≡'],
+    
+    // Mathematical symbols
+    ['\\infty', '∞'], ['\\sum', '∑'], ['\\prod', '∏'], ['\\int', '∫'],
+    ['\\partial', '∂'], ['\\nabla', '∇'], ['\\pm', '±'], ['\\mp', '∓'],
+    ['\\times', '×'], ['\\cdot', '⋅'], ['\\div', '÷'],
+    
+    // Greek letters (full names)
+    ['\\alpha', 'α'], ['\\beta', 'β'], ['\\gamma', 'γ'], ['\\delta', 'δ'],
+    ['\\epsilon', 'ε'], ['\\zeta', 'ζ'], ['\\eta', 'η'], ['\\theta', 'θ'],
+    ['\\iota', 'ι'], ['\\kappa', 'κ'], ['\\lambda', 'λ'], ['\\mu', 'μ'],
+    ['\\nu', 'ν'], ['\\xi', 'ξ'], ['\\omicron', 'ο'], ['\\pi', 'π'],
+    ['\\rho', 'ρ'], ['\\sigma', 'σ'], ['\\tau', 'τ'], ['\\upsilon', 'υ'],
+    ['\\phi', 'φ'], ['\\chi', 'χ'], ['\\psi', 'ψ'], ['\\omega', 'ω'],
+    
+    // Capital Greek letters
+    ['\\Gamma', 'Γ'], ['\\Delta', 'Δ'], ['\\Theta', 'Θ'], ['\\Lambda', 'Λ'],
+    ['\\Xi', 'Ξ'], ['\\Pi', 'Π'], ['\\Sigma', 'Σ'], ['\\Upsilon', 'Υ'],
+    ['\\Phi', 'Φ'], ['\\Chi', 'Χ'], ['\\Psi', 'Ψ'], ['\\Omega', 'Ω']
+  ];
   
-  // Fix partial patterns too
-  processed = processed.split('\\{α}').join('α');
-  processed = processed.split('{α\\}').join('α');
-  processed = processed.split('{α}').join('α');
-  
-  // Fix patterns that appear as \α\ (from logs)
-  processed = processed.split('\\α\\').join('α');
-  processed = processed.split('\\β\\').join('β');
-  processed = processed.split('\\γ\\').join('γ');
-  processed = processed.split('\\δ\\').join('δ');
-  processed = processed.split('\\ε\\').join('ε');
-  processed = processed.split('\\φ\\').join('φ');
-  processed = processed.split('\\ψ\\').join('ψ');
-  processed = processed.split('\\ω\\').join('ω');
-  processed = processed.split('\\λ\\').join('λ');
-  processed = processed.split('\\μ\\').join('μ');
-  processed = processed.split('\\σ\\').join('σ');
-  processed = processed.split('\\π\\').join('π');
-  processed = processed.split('\\θ\\').join('θ');
+  // Apply all patterns using split/join for exact matching
+  for (const [search, replace] of patterns) {
+    const before = processed;
+    processed = processed.split(search).join(replace);
+    if (before !== processed) {
+      console.log(`CONVERTED: "${search}" → "${replace}"`);
+    }
+  }
   
   // STEP 2: Direct string replacements for problematic LaTeX commands
   const directReplacements = [

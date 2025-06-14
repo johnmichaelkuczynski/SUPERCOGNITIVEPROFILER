@@ -32,6 +32,39 @@ export function renderMathematicalNotation(content: string): string {
 function processLaTeXMath(latex: string): string {
   let processed = latex;
   
+  console.log(`MATH RENDERER INPUT: "${latex}"`);
+  
+  // CRITICAL FIX: Handle escaped braces FIRST - this is the exact failing pattern
+  // Fix \{α\} → α (exact pattern from logs)
+  const bracePatterns = [
+    ['\\{α\\}', 'α'], ['\\{β\\}', 'β'], ['\\{γ\\}', 'γ'], ['\\{δ\\}', 'δ'], ['\\{ε\\}', 'ε'],
+    ['\\{ζ\\}', 'ζ'], ['\\{η\\}', 'η'], ['\\{θ\\}', 'θ'], ['\\{ι\\}', 'ι'], ['\\{κ\\}', 'κ'],
+    ['\\{λ\\}', 'λ'], ['\\{μ\\}', 'μ'], ['\\{ν\\}', 'ν'], ['\\{ξ\\}', 'ξ'], ['\\{ο\\}', 'ο'],
+    ['\\{π\\}', 'π'], ['\\{ρ\\}', 'ρ'], ['\\{σ\\}', 'σ'], ['\\{τ\\}', 'τ'], ['\\{υ\\}', 'υ'],
+    ['\\{φ\\}', 'φ'], ['\\{χ\\}', 'χ'], ['\\{ψ\\}', 'ψ'], ['\\{ω\\}', 'ω'],
+    
+    // Partial patterns from logs
+    ['\\{α}', 'α'], ['\\{β}', 'β'], ['\\{γ}', 'γ'], ['\\{δ}', 'δ'], ['\\{ε}', 'ε'],
+    ['{α\\}', 'α'], ['{β\\}', 'β'], ['{γ\\}', 'γ'], ['{δ\\}', 'δ'], ['{ε\\}', 'ε'],
+    ['{α}', 'α'], ['{β}', 'β'], ['{γ}', 'γ'], ['{δ}', 'δ'], ['{ε}', 'ε'],
+    
+    // Fix stray backslash patterns that appear in logs as \α\
+    ['\\α\\', 'α'], ['\\β\\', 'β'], ['\\γ\\', 'γ'], ['\\δ\\', 'δ'], ['\\ε\\', 'ε'],
+    ['\\ζ\\', 'ζ'], ['\\η\\', 'η'], ['\\θ\\', 'θ'], ['\\ι\\', 'ι'], ['\\κ\\', 'κ'],
+    ['\\λ\\', 'λ'], ['\\μ\\', 'μ'], ['\\ν\\', 'ν'], ['\\ξ\\', 'ξ'], ['\\ο\\', 'ο'],
+    ['\\π\\', 'π'], ['\\ρ\\', 'ρ'], ['\\σ\\', 'σ'], ['\\τ\\', 'τ'], ['\\υ\\', 'υ'],
+    ['\\φ\\', 'φ'], ['\\χ\\', 'χ'], ['\\ψ\\', 'ψ'], ['\\ω\\', 'ω']
+  ];
+  
+  // Apply brace pattern fixes using split/join for exact matching
+  for (const [search, replace] of bracePatterns) {
+    const before = processed;
+    processed = processed.split(search).join(replace);
+    if (before !== processed) {
+      console.log(`BRACE FIX: "${search}" → "${replace}"`);
+    }
+  }
+  
   // Handle matrices with proper Unicode brackets
   processed = processed.replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g, (match, content) => {
     const rows = content.split('\\\\').map((row: string) => {
@@ -182,6 +215,7 @@ function processLaTeXMath(latex: string): string {
     '\\in': '∈', '\\notin': '∉', '\\subset': '⊂', '\\supset': '⊃',
     '\\subseteq': '⊆', '\\supseteq': '⊇', '\\cup': '∪', '\\cap': '∩',
     '\\emptyset': '∅', '\\varnothing': '∅', '\\setminus': '∖',
+    '\\oplus': '⊕', '\\ominus': '⊖', '\\otimes': '⊗', '\\odot': '⊙',
     
     // Relations and operators
     '\\leq': '≤', '\\le': '≤', '\\geq': '≥', '\\ge': '≥',
