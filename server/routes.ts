@@ -1418,10 +1418,10 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
   
-  // Chunked rewriter API endpoints
+  // Chunked rewriter API endpoints with streaming support
   app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
     try {
-      const { content, instructions, model, chatContext, chunkIndex, totalChunks } = req.body;
+      const { content, instructions, model, chatContext, chunkIndex, totalChunks, stream = false } = req.body;
       
       if (!content || !instructions) {
         return res.status(400).json({ error: 'Content and instructions are required' });
@@ -1465,6 +1465,119 @@ CRITICAL REQUIREMENTS:
 
 OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING MARKUP. NO META-COMMENTARY.`;
 
+      // Handle streaming response
+      if (stream) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        
+        let fullResult = '';
+        
+        try {
+          if (model === 'claude') {
+            const result = await processClaude(prompt, {
+              temperature: 0.7,
+              maxTokens: 4000,
+              stream: true,
+              onChunk: (chunk: string) => {
+                fullResult += chunk;
+                // Send incremental content to client
+                res.write(`data: ${JSON.stringify({ 
+                  type: 'chunk', 
+                  content: chunk,
+                  fullContent: fullResult,
+                  chunkIndex: chunkIndex 
+                })}\n\n`);
+              }
+            });
+            
+            // Apply mathematical notation processing
+            fullResult = renderMathematicalNotation(fullResult);
+            
+            // Send final processed result
+            res.write(`data: ${JSON.stringify({ 
+              type: 'complete', 
+              rewrittenContent: fullResult,
+              chunkIndex: chunkIndex 
+            })}\n\n`);
+            
+          } else if (model === 'gpt4') {
+            const { default: OpenAI } = await import('openai');
+            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            
+            const stream = await openai.chat.completions.create({
+              model: "gpt-4o",
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.7,
+              max_tokens: 4000,
+              stream: true
+            });
+            
+            for await (const chunk of stream) {
+              const content = chunk.choices[0]?.delta?.content || '';
+              if (content) {
+                fullResult += content;
+                res.write(`data: ${JSON.stringify({ 
+                  type: 'chunk', 
+                  content: content,
+                  fullContent: fullResult,
+                  chunkIndex: chunkIndex 
+                })}\n\n`);
+              }
+            }
+            
+            // Apply mathematical notation processing
+            fullResult = renderMathematicalNotation(fullResult);
+            
+            // Send final processed result
+            res.write(`data: ${JSON.stringify({ 
+              type: 'complete', 
+              rewrittenContent: fullResult,
+              chunkIndex: chunkIndex 
+            })}\n\n`);
+            
+          } else {
+            // Fallback to Claude with streaming
+            const result = await processClaude(prompt, {
+              temperature: 0.7,
+              maxTokens: 4000,
+              stream: true,
+              onChunk: (chunk: string) => {
+                fullResult += chunk;
+                res.write(`data: ${JSON.stringify({ 
+                  type: 'chunk', 
+                  content: chunk,
+                  fullContent: fullResult,
+                  chunkIndex: chunkIndex 
+                })}\n\n`);
+              }
+            });
+            
+            // Apply mathematical notation processing
+            fullResult = renderMathematicalNotation(fullResult);
+            
+            // Send final processed result
+            res.write(`data: ${JSON.stringify({ 
+              type: 'complete', 
+              rewrittenContent: fullResult,
+              chunkIndex: chunkIndex 
+            })}\n\n`);
+          }
+          
+        } catch (streamError) {
+          res.write(`data: ${JSON.stringify({ 
+            type: 'error', 
+            error: streamError instanceof Error ? streamError.message : 'Streaming failed',
+            chunkIndex: chunkIndex 
+          })}\n\n`);
+        }
+        
+        res.end();
+        return;
+      }
+
+      // Non-streaming response (original behavior)
       let result: string;
       
       if (model === 'claude') {

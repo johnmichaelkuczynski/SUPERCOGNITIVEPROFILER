@@ -344,7 +344,7 @@ export default function ChunkedRewriter({
               }),
             });
           } else {
-            // Use rewrite endpoint
+            // Use rewrite endpoint with streaming for real-time updates
             response = await fetch('/api/rewrite-chunk', {
               method: 'POST',
               headers: {
@@ -357,7 +357,8 @@ export default function ChunkedRewriter({
                 chatContext: includeChatContext ? chatContext : undefined,
                 chunkIndex: i,
                 totalChunks: selectedChunks.length,
-                mode: rewriteMode
+                mode: rewriteMode,
+                stream: true
               }),
             });
           }
@@ -366,7 +367,73 @@ export default function ChunkedRewriter({
             throw new Error(`Failed to rewrite chunk ${i + 1}`);
           }
 
-          const result = await response.json();
+          let result: any = null;
+          let streamingContent = '';
+
+          if (processingMode === 'homework') {
+            // Non-streaming for homework mode
+            result = await response.json();
+          } else {
+            // Handle streaming response for rewrite mode
+            const reader = response.body?.getReader();
+            if (!reader) {
+              throw new Error('Streaming not supported');
+            }
+
+            const decoder = new TextDecoder();
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value);
+              const lines = chunk.split('\n');
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.slice(6));
+                    
+                    if (data.type === 'chunk') {
+                      // Real-time update: show streaming content in the output box
+                      streamingContent += data.content;
+                      
+                      // Update live progress with streaming content
+                      setLiveProgressChunks(prev => prev.map((item, idx) => 
+                        idx === i ? {
+                          ...item,
+                          content: streamingContent,
+                          completed: false
+                        } : item
+                      ));
+                      
+                    } else if (data.type === 'complete') {
+                      // Final result with mathematical notation processed
+                      result = { rewrittenContent: data.rewrittenContent };
+                      
+                      // Mark as completed in live progress
+                      setLiveProgressChunks(prev => prev.map((item, idx) => 
+                        idx === i ? {
+                          ...item,
+                          content: data.rewrittenContent,
+                          completed: true
+                        } : item
+                      ));
+                      
+                    } else if (data.type === 'error') {
+                      throw new Error(data.error);
+                    }
+                  } catch (parseError) {
+                    console.warn('Failed to parse streaming data:', line);
+                  }
+                }
+              }
+            }
+
+            if (!result) {
+              throw new Error('No final result received from streaming');
+            }
+          }
 
           // Store the content immediately (homework returns 'response', rewrite returns 'rewrittenContent')
           const content = processingMode === 'homework' ? result.response : result.rewrittenContent;
@@ -384,7 +451,7 @@ export default function ChunkedRewriter({
               : c
           ));
 
-          // Update live progress with completed chunk
+          // Ensure live progress shows final completed state
           setLiveProgressChunks(prev => prev.map((item, idx) => 
             idx === i ? {
               ...item,
