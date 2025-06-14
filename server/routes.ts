@@ -19,6 +19,7 @@ import { elevenLabsService } from "./services/elevenlabs";
 import { speechToTextService } from "./services/speechToText";
 import { WebSocketServer } from 'ws';
 import { renderMathematicalNotation } from './mathRenderer';
+import GoogleDriveService from './services/googleDrive';
 import { sendEmail } from './services/email';
 import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
@@ -5455,4 +5456,15 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
   console.log('Chunk word counts:', chunkStats.map(s => `${s.title}: ${s.words} words`).join(', '));
   
   return balancedChunks;
+}
+
+// Initialize Google Drive service at module level
+let googleDriveService: GoogleDriveService | null = null;
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  googleDriveService = new GoogleDriveService({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5000/auth/google/callback'
+  });
 }
