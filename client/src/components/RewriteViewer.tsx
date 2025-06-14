@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText } from 'lucide-react';
+import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText, Globe } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import MathRenderer from './MathRenderer';
 import { GoogleDriveIntegration } from './GoogleDriveIntegration';
@@ -152,6 +152,49 @@ export default function RewriteViewer({
       });
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleViewHTML = async () => {
+    if (!result) return;
+    
+    try {
+      const response = await fetch('/api/export-html', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          results: [result],
+          documentName: result.originalChunk.title
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate HTML view');
+      }
+
+      const htmlContent = await response.text();
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(htmlContent);
+        newWindow.document.close();
+        
+        toast({
+          title: "HTML View Opened",
+          description: "Perfect mathematical notation view opened in new tab. Use browser print to save as PDF."
+        });
+      } else {
+        throw new Error('Failed to open new window');
+      }
+
+    } catch (error) {
+      console.error('HTML view error:', error);
+      toast({
+        title: "HTML View Failed",
+        description: error instanceof Error ? error.message : "Failed to open HTML view",
+        variant: "destructive"
+      });
     }
   };
 

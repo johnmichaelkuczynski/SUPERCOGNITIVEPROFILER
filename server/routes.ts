@@ -27,6 +27,7 @@ import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
 import katex from 'katex';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
+import { generateMathHTML } from './services/htmlExport';
 
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
@@ -1961,6 +1962,27 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
     } catch (error) {
       console.error('Share rewrite error:', error);
       res.status(500).json({ error: 'Failed to share document' });
+    }
+  });
+
+  // HTML Export endpoint for perfect mathematical notation viewing and printing
+  app.post('/api/export-html', async (req: Request, res: Response) => {
+    try {
+      const { results, documentName } = req.body;
+      
+      if (!results || !Array.isArray(results)) {
+        return res.status(400).json({ error: 'Results array is required' });
+      }
+      
+      const htmlContent = generateMathHTML(results, documentName || 'Mathematical Document');
+      
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', `inline; filename="${documentName || 'document'}.html"`);
+      res.send(htmlContent);
+      
+    } catch (error) {
+      console.error('HTML export error:', error);
+      res.status(500).json({ error: 'Failed to generate HTML export' });
     }
   });
 
