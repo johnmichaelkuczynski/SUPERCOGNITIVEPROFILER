@@ -270,6 +270,39 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     },
   });
 
+  // Metapsychological profile analysis mutation
+  const analyzeMetapsychological = useMutation({
+    mutationFn: async (data: {
+      analysisMode: string;
+      inputText?: string;
+    }) => {
+      const endpoint = data.analysisMode === 'instant' 
+        ? '/api/profile/metapsychological-instant'
+        : '/api/profile/metapsychological-comprehensive';
+      
+      const response = await apiRequest('POST', endpoint, {
+        inputText: data.inputText,
+        userId
+      });
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      setResults(data);
+      setShowResultsDialog(true);
+      toast({
+        title: "Metapsychological Profile Generated",
+        description: "Your comprehensive metapsychological analysis with six diagnostic components is ready.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Analysis Failed",
+        description: error.message || "Failed to generate metapsychological profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Export profile mutation
   const exportProfile = useMutation({
     mutationFn: async (format: 'pdf' | 'docx') => {
@@ -411,6 +444,22 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     }
 
     analyzeFullProfile.mutate({
+      analysisMode,
+      inputText: analysisMode === 'instant' ? inputText : undefined
+    });
+  };
+
+  const handleMetapsychologicalAnalyze = () => {
+    if (analysisMode === 'instant' && inputText.trim().length < 100) {
+      toast({
+        title: "Insufficient Text",
+        description: "Please provide at least 100 characters for analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    analyzeMetapsychological.mutate({
       analysisMode,
       inputText: analysisMode === 'instant' ? inputText : undefined
     });
@@ -704,6 +753,25 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 <>
                   <BarChart3 className="h-4 w-4" />
                   Full Mind Profile
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={handleMetapsychologicalAnalyze}
+              disabled={analyzeMetapsychological.isPending || (analysisMode === 'instant' && inputText.length < 100)}
+              variant="outline"
+              className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+            >
+              {analyzeMetapsychological.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Crown className="h-4 w-4" />
+                  Metapsychological Profiling
                 </>
               )}
             </Button>
@@ -2254,6 +2322,246 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Metapsychological Profile Section */}
+            {results?.thesis && results?.antithesis && results?.superThesis && (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">
+                  Metapsychological Profile Analysis
+                </h3>
+                
+                {/* Thesis Section */}
+                <div className="p-8 bg-green-50 rounded-xl border-2 border-green-200 shadow-sm">
+                  <h4 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
+                    <Lightbulb className="h-7 w-7" />
+                    Thesis: Primary Psychological Analysis
+                  </h4>
+                  
+                  <div className="space-y-6">
+                    {results.thesis.emotionalConfiguration && (
+                      <div className="p-5 bg-white rounded-lg border border-green-100">
+                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Emotional Configuration</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.thesis.emotionalConfiguration}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.thesis.comparisonToParadigms && (
+                      <div className="p-5 bg-white rounded-lg border border-green-100">
+                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Comparison to Paradigm Examples</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.thesis.comparisonToParadigms}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.thesis.uniqueStrengths && (
+                      <div className="p-5 bg-white rounded-lg border border-green-100">
+                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Unique Strengths</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.thesis.uniqueStrengths}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.thesis.uniqueWeaknesses && (
+                      <div className="p-5 bg-white rounded-lg border border-green-100">
+                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Unique Weaknesses</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.thesis.uniqueWeaknesses}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.thesis.interpersonalSocialFit && (
+                      <div className="p-5 bg-white rounded-lg border border-green-100">
+                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Interpersonal/Social Fit</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.thesis.interpersonalSocialFit}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.thesis.mostRevealingQuotation && (
+                      <div className="p-5 bg-white rounded-lg border border-green-100">
+                        <h5 className="font-semibold text-green-700 mb-3 text-lg flex items-center gap-2">
+                          <Quote className="h-5 w-5" />
+                          Most Revealing Quotation
+                        </h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.thesis.mostRevealingQuotation}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Antithesis Section */}
+                <div className="p-8 bg-red-50 rounded-xl border-2 border-red-200 shadow-sm">
+                  <h4 className="text-2xl font-bold text-red-800 mb-6 flex items-center gap-3">
+                    <XCircle className="h-7 w-7" />
+                    Antithesis: Dissenting Analysis
+                  </h4>
+                  
+                  <div className="space-y-6">
+                    {results.antithesis.alternativeEmotionalConfiguration && (
+                      <div className="p-5 bg-white rounded-lg border border-red-100">
+                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Emotional Configuration</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.antithesis.alternativeEmotionalConfiguration}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.antithesis.counterParadigmComparison && (
+                      <div className="p-5 bg-white rounded-lg border border-red-100">
+                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Counter-Paradigm Comparison</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.antithesis.counterParadigmComparison}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.antithesis.hiddenStrengths && (
+                      <div className="p-5 bg-white rounded-lg border border-red-100">
+                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Hidden Strengths</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.antithesis.hiddenStrengths}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.antithesis.overlookedWeaknesses && (
+                      <div className="p-5 bg-white rounded-lg border border-red-100">
+                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Overlooked Weaknesses</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.antithesis.overlookedWeaknesses}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.antithesis.alternativeInterpersonalFit && (
+                      <div className="p-5 bg-white rounded-lg border border-red-100">
+                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Interpersonal Fit</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.antithesis.alternativeInterpersonalFit}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.antithesis.alternativeQuotationInterpretation && (
+                      <div className="p-5 bg-white rounded-lg border border-red-100">
+                        <h5 className="font-semibold text-red-700 mb-3 text-lg flex items-center gap-2">
+                          <Quote className="h-5 w-5" />
+                          Alternative Quotation Interpretation
+                        </h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.antithesis.alternativeQuotationInterpretation}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Super-Thesis Section */}
+                <div className="p-8 bg-blue-50 rounded-xl border-2 border-blue-200 shadow-sm">
+                  <h4 className="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-3">
+                    <Crown className="h-7 w-7" />
+                    Super-Thesis: Reinforced Analysis
+                  </h4>
+                  
+                  <div className="space-y-6">
+                    {results.superThesis.reinforcedEmotionalConfiguration && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Reinforced Emotional Configuration</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.reinforcedEmotionalConfiguration}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.superThesis.definitiveParadigmComparison && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Definitive Paradigm Comparison</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.definitiveParadigmComparison}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.superThesis.confirmedStrengths && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Strengths</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.confirmedStrengths}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.superThesis.confirmedWeaknesses && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Weaknesses</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.confirmedWeaknesses}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.superThesis.finalInterpersonalAssessment && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Interpersonal Assessment</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.finalInterpersonalAssessment}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.superThesis.quotationSignificance && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg flex items-center gap-2">
+                          <Quote className="h-5 w-5" />
+                          Quotation Significance
+                        </h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.quotationSignificance}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.superThesis.refutationOfAntithesis && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg flex items-center gap-2">
+                          <Shield className="h-5 w-5" />
+                          Refutation of Antithesis
+                        </h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.refutationOfAntithesis}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {results.superThesis.finalPsychologicalAssessment && (
+                      <div className="p-5 bg-white rounded-lg border border-blue-100">
+                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Psychological Assessment</h5>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.superThesis.finalPsychologicalAssessment}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {results.overallMetapsychologicalProfile && (
+                  <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
+                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Overall Metapsychological Profile</h4>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>{results.overallMetapsychologicalProfile}</ReactMarkdown>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
