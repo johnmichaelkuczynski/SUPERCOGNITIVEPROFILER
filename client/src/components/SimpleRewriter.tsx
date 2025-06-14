@@ -55,6 +55,9 @@ export default function SimpleRewriter({
 
   useEffect(() => {
     if (selectedDocumentId && selectedDocumentId !== documentId) {
+      // Clear previous results when switching documents
+      setRewriteResults([]);
+      setSelectedChunks(new Set());
       loadChunksForDocument(selectedDocumentId);
     }
   }, [selectedDocumentId]);
@@ -373,6 +376,15 @@ export default function SimpleRewriter({
     }
   };
 
+  const clearResults = () => {
+    setRewriteResults([]);
+    setSelectedChunks(new Set());
+    toast({
+      title: "Results Cleared",
+      description: "Previous rewrite results have been cleared"
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -527,6 +539,10 @@ export default function SimpleRewriter({
                       <Button size="sm" variant="outline" onClick={emailRewrite}>
                         <Share2 className="h-4 w-4 mr-1" />
                         Email Document
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={clearResults}>
+                        <X className="h-4 w-4 mr-1" />
+                        Clear Results
                       </Button>
                     </div>
                   )}
