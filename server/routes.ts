@@ -1661,6 +1661,74 @@ Return only the rewritten text without any additional comments, explanations, or
     }
   });
 
+  // PDF Generation route with proper math notation support
+  app.post('/api/generate-pdf', async (req: Request, res: Response) => {
+    try {
+      const { results, documentName } = req.body;
+      
+      if (!results || !Array.isArray(results)) {
+        return res.status(400).json({ error: 'Invalid results data' });
+      }
+
+      const PDFDocument = require('pdfkit');
+      const doc = new PDFDocument();
+      
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${documentName || 'rewritten'}-document.pdf"`);
+      
+      // Pipe the PDF to the response
+      doc.pipe(res);
+      
+      // Add title
+      doc.fontSize(20).text(`Rewritten Document: ${documentName || 'Untitled'}`, {
+        align: 'center'
+      });
+      
+      doc.moveDown(2);
+      
+      // Process each result
+      results.forEach((result: any, index: number) => {
+        if (index > 0) {
+          doc.addPage();
+        }
+        
+        // Add chunk title
+        doc.fontSize(16).text(`Section ${index + 1}: ${result.originalChunk.title}`, {
+          underline: true
+        });
+        
+        doc.moveDown();
+        
+        // Add rewritten content with basic math notation handling
+        let content = result.rewrittenContent;
+        
+        // Simple LaTeX to text conversion for PDF
+        content = content
+          .replace(/\$\$([^$]+)\$\$/g, '[EQUATION: $1]')
+          .replace(/\$([^$]+)\$/g, '[MATH: $1]')
+          .replace(/\\([a-zA-Z]+)/g, '$1')
+          .replace(/\{([^}]+)\}/g, '$1')
+          .replace(/\^([0-9]+)/g, '^$1')
+          .replace(/_([0-9]+)/g, '_$1');
+        
+        doc.fontSize(12).text(content, {
+          align: 'justify',
+          lineGap: 5
+        });
+        
+        doc.moveDown(2);
+      });
+      
+      // Finalize the PDF
+      doc.end();
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      res.status(500).json({ error: 'Failed to generate PDF' });
+    }
+  });
+
   app.post('/api/generate-new-chunk', async (req: Request, res: Response) => {
     try {
       const { originalContent, newChunkInstructions, existingContent, model, chatContext, chunkNumber, totalNewChunks } = req.body;
