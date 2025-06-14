@@ -24,6 +24,9 @@ export function renderMathematicalNotation(content: string): string {
     return processLaTeXMath(mathContent.trim());
   });
   
+  // CRITICAL: Process entire content for text-based mathematical notation
+  processed = processLaTeXMath(processed);
+  
   return processed;
 }
 
@@ -284,8 +287,51 @@ function processLaTeXMath(latex: string): string {
   // Apply text-to-symbol conversions with word boundaries
   Object.entries(textToSymbolMap).forEach(([text, symbol]) => {
     const regex = new RegExp(`\\b${text}\\b`, 'g');
+    const beforeReplace = processed;
     processed = processed.replace(regex, symbol);
+    if (beforeReplace !== processed) {
+      console.log(`Replaced "${text}" with "${symbol}"`);
+    }
   });
+  
+  // Additional direct string replacements for common problematic cases
+  processed = processed.replace(/\bwedge\b/g, '∧');
+  processed = processed.replace(/\bvee\b/g, '∨');
+  processed = processed.replace(/\bforall\b/g, '∀');
+  processed = processed.replace(/\bexists\b/g, '∃');
+  processed = processed.replace(/\bleftrightarrow\b/g, '↔');
+  processed = processed.replace(/\brightarrow\b/g, '→');
+  processed = processed.replace(/\bleftarrow\b/g, '←');
+  processed = processed.replace(/\bleq\b/g, '≤');
+  processed = processed.replace(/\bgeq\b/g, '≥');
+  processed = processed.replace(/\bneq\b/g, '≠');
+  processed = processed.replace(/\bin\b(?!\s+the\b)/g, '∈');
+  processed = processed.replace(/\bsubset\b/g, '⊂');
+  processed = processed.replace(/\bsupset\b/g, '⊃');
+  processed = processed.replace(/\bcup\b/g, '∪');
+  processed = processed.replace(/\bcap\b/g, '∩');
+  processed = processed.replace(/\bsum\b/g, '∑');
+  processed = processed.replace(/\bprod\b/g, '∏');
+  processed = processed.replace(/\bint\b(?!\s+the\b)/g, '∫');
+  processed = processed.replace(/\binfty\b/g, '∞');
+  processed = processed.replace(/\bpi\b/g, 'π');
+  processed = processed.replace(/\balpha\b/g, 'α');
+  processed = processed.replace(/\bbeta\b/g, 'β');
+  processed = processed.replace(/\bgamma\b/g, 'γ');
+  processed = processed.replace(/\bdelta\b/g, 'δ');
+  processed = processed.replace(/\bepsilon\b/g, 'ε');
+  processed = processed.replace(/\btheta\b/g, 'θ');
+  processed = processed.replace(/\blambda\b/g, 'λ');
+  processed = processed.replace(/\bmu\b/g, 'μ');
+  processed = processed.replace(/\bnu\b/g, 'ν');
+  processed = processed.replace(/\bxi\b/g, 'ξ');
+  processed = processed.replace(/\brho\b/g, 'ρ');
+  processed = processed.replace(/\bsigma\b/g, 'σ');
+  processed = processed.replace(/\btau\b/g, 'τ');
+  processed = processed.replace(/\bphi\b/g, 'φ');
+  processed = processed.replace(/\bchi\b/g, 'χ');
+  processed = processed.replace(/\bpsi\b/g, 'ψ');
+  processed = processed.replace(/\bomega\b/g, 'ω');
   
   // Clean up remaining LaTeX artifacts
   processed = processed.replace(/\{([^}]*)\}/g, '$1');
@@ -294,6 +340,7 @@ function processLaTeXMath(latex: string): string {
   processed = processed.replace(/\\left\|/g, '|').replace(/\\right\|/g, '|');
   processed = processed.replace(/\\;/g, ' ').replace(/\\,/g, ' ').replace(/\\!/g, '');
   
+  console.log('Math renderer output:', processed.substring(0, 200) + '...');
   return processed;
 }
 

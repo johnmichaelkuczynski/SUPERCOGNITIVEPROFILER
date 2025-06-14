@@ -1837,10 +1837,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
       results.forEach((result, index) => {
         let content = result.rewrittenContent || '';
         
-        // APPLY COMPREHENSIVE MATHEMATICAL NOTATION RENDERING
-        content = renderMathematicalNotation(content);
-        
-        // AGGRESSIVELY remove ALL markup
+        // First remove markdown and other markup before math processing
         content = content
           .replace(/^#{1,6}\s*/gm, '')              // Remove # headers
           .replace(/\*\*([^*]+)\*\*/g, '$1')       // Remove **bold**
@@ -1854,10 +1851,17 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
           .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
           .replace(/<[^>]+>/g, '')                 // Remove HTML
           .replace(/&[^;]+;/g, '')                 // Remove entities
+          .replace(/\n{2,}/g, '\n\n')              // Normalize breaks
+          .trim();
+        
+        // THEN apply mathematical notation rendering to clean text
+        content = renderMathematicalNotation(content);
+        
+        // Final cleanup of any remaining math delimiters
+        content = content
           .replace(/\$\$?([^$]+)\$\$?/g, '$1')     // Remove math delimiters
           .replace(/\\\[([^\]]+)\\\]/g, '$1')      // Remove \[...\]
           .replace(/\\\(([^)]+)\\\)/g, '$1')       // Remove \(...\)
-          .replace(/\n{2,}/g, '\n\n')              // Normalize breaks
           .trim();
 
         cleanContent += `Section ${index + 1}: ${result.originalChunk.title || `Part ${index + 1}`}\n\n${content}\n\n`;
