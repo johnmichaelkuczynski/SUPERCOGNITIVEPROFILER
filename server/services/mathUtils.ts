@@ -2,6 +2,20 @@
 export function renderMathematicalNotation(text: string): string {
   let processed = text;
   
+  // AGGRESSIVE PATTERN-BASED FIXES FOR EXACT PATTERNS SEEN IN LOGS
+  
+  // Fix the exact patterns from logs: \{α\} → α
+  processed = processed.replace(/\\{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])\\}/g, '$1');
+  processed = processed.replace(/\\{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])}/g, '$1');
+  processed = processed.replace(/{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])\\}/g, '$1');
+  processed = processed.replace(/{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])}/g, '$1');
+  
+  // Direct replacements for common mathematical operators
+  processed = processed.replace(/\\oplus/g, '⊕');
+  processed = processed.replace(/\\ominus/g, '⊖');
+  processed = processed.replace(/\\otimes/g, '⊗');
+  processed = processed.replace(/\\odot/g, '⊙');
+  
   // CRITICAL FIX: Handle malformed superscripts and subscripts BEFORE processing valid ones
   // Fix invalid patterns like A_ or B^ that don't have arguments
   processed = processed.replace(/([A-Za-z0-9])_(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
@@ -74,16 +88,25 @@ export function renderMathematicalNotation(text: string): string {
     '\\diamond': '◊', '\\star': '⋆', '\\dagger': '†', '\\ddagger': '‡'
   };
   
-  // Apply symbol replacements
+  // COMPREHENSIVE LATEX CLEANUP - Handle braces FIRST before symbol conversion
+  
+  // Step 1: Handle ALL brace patterns - these are the main issue
+  processed = processed.replace(/\\{([^}]+)\\}/g, '$1');  // \{content\} → content
+  processed = processed.replace(/\\{([^}]+)}/g, '$1');    // \{content} → content  
+  processed = processed.replace(/{([^}]+)\\}/g, '$1');    // {content\} → content
+  processed = processed.replace(/\\{/g, '{').replace(/\\}/g, '}'); // Clean remaining escaped braces
+  
+  // Step 2: Apply symbol replacements AFTER cleaning braces
   Object.entries(symbolMap).forEach(([latex, symbol]) => {
-    processed = processed.split(latex).join(symbol);
+    const regex = new RegExp(latex.replace(/\\/g, '\\\\'), 'g');
+    processed = processed.replace(regex, symbol);
   });
   
-  // Handle escaped braces around single characters \{α\} → α
-  processed = processed.replace(/\\?\{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])\}\\?/g, '$1');
+  // Step 3: Clean up any remaining simple braces around single characters
+  processed = processed.replace(/{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-9])}/g, '$1');
   
-  // Handle general escaped braces \{content\} → content  
-  processed = processed.replace(/\\?\{([^}]+)\}\\?/g, '$1');
+  // Step 4: Remove any stray backslashes before Greek letters or symbols
+  processed = processed.replace(/\\([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ⊕⊖⊗⊙∈∉⊂⊃⊆⊇∪∩∅∀∃¬∧∨→←↔≤≥≠≈∞∑∏∫])/g, '$1');
   
   // Handle fractions with Unicode fractions where possible
   processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, (match, num, den) => {
