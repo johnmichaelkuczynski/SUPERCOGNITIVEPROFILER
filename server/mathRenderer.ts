@@ -238,7 +238,11 @@ function processLaTeXMath(latex: string): string {
   
   // Apply symbol replacements
   Object.entries(symbolMap).forEach(([latex, symbol]) => {
+    const before = processed;
     processed = processed.split(latex).join(symbol);
+    if (before !== processed) {
+      console.log(`SYMBOL REPLACEMENT: "${latex}" → "${symbol}"`);
+    }
   });
   
   // Handle text-based mathematical notation (for when AI generates words instead of LaTeX)
