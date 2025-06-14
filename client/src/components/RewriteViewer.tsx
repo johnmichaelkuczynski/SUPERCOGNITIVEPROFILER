@@ -162,9 +162,8 @@ export default function RewriteViewer({
           .print-content h2 { font-size: 16pt; margin-bottom: 12pt; }
           .print-content h3 { font-size: 14pt; margin-bottom: 10pt; }
           .print-content p { margin-bottom: 12pt; text-align: justify; }
-          .MathJax { font-size: inherit !important; color: black !important; }
-          .MathJax_Display { margin: 12pt auto !important; text-align: center !important; }
-          .MathJax span { color: black !important; }
+          .math-display { font-size: inherit !important; color: black !important; }
+          .math-inline { color: black !important; }
         }
       `;
       document.head.appendChild(printStyles);
