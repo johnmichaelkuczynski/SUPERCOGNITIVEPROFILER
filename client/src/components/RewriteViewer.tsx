@@ -110,40 +110,48 @@ export default function RewriteViewer({
 
   const handleDownload = async () => {
     try {
-      const response = await fetch('/api/download', {
+      setIsDownloading(true);
+      
+      const response = await fetch('/api/export/pdf', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           content: result.rewrittenContent,
-          format: 'docx',
-          filename: `${result.originalChunk.title}_rewritten`
+          filename: result.originalChunk.title.replace(/[^a-zA-Z0-9]/g, '_') + '_rewritten'
         })
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${result.originalChunk.title}_rewritten.docx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        toast({
-          title: "Download Complete",
-          description: "Document downloaded successfully"
-        });
-      } else {
-        throw new Error('Failed to download');
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
       }
-    } catch (error) {
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${result.originalChunk.title.replace(/[^a-zA-Z0-9]/g, '_')}_rewritten.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
       toast({
-        title: "Download Failed",
-        description: "Failed to download document",
+        title: "PDF downloaded successfully",
+        description: "Rewritten content with mathematical notation saved"
+      });
+
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error instanceof Error ? error.message : "Failed to download PDF",
         variant: "destructive"
       });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
