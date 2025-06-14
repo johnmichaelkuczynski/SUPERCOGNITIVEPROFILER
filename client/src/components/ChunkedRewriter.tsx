@@ -936,12 +936,6 @@ export default function ChunkedRewriter({
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Smart Document Rewriter
-            <div className="flex space-x-2">
-              <Button onClick={nukeEverything} variant="destructive" size="sm">
-                <Bomb className="h-4 w-4 mr-1" />
-                NUKE
-              </Button>
-            </div>
           </CardTitle>
           <CardDescription>
             Rewrite your document with AI assistance. Select chunks to process individually for precise control.
