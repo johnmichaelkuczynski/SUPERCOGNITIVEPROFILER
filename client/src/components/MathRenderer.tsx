@@ -165,9 +165,8 @@ function renderMathContent(content: string): string {
   // CRITICAL FIX: Handle raw LaTeX symbols in text (not wrapped in math delimiters)
   // This is needed for documents that contain raw LaTeX like your mathematical logic text
   Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-    // Create a regex that matches the LaTeX symbol when it's not inside math delimiters
-    const regex = new RegExp(latexSymbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-    processed = processed.replace(regex, unicode);
+    // Simple string replacement for LaTeX commands
+    processed = processed.split(latexSymbol).join(unicode);
   });
   
   // Convert line breaks to HTML
