@@ -1,232 +1,299 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  Settings as SettingsIcon, 
+  Cloud, 
+  Key, 
+  CheckCircle, 
+  AlertTriangle, 
+  Save,
+  TestTube,
+  ExternalLink
+} from 'lucide-react';
 
 export default function Settings() {
+  const [googleClientId, setGoogleClientId] = useState('');
+  const [googleClientSecret, setGoogleClientSecret] = useState('');
+  const [googleRedirectUri, setGoogleRedirectUri] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const { toast } = useToast();
-  const [name, setName] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        return JSON.parse(savedUser).name || '';
-      } catch (e) {
-        return '';
-      }
+
+  useEffect(() => {
+    // Load saved settings from localStorage
+    const savedSettings = localStorage.getItem('google-drive-settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      setGoogleClientId(settings.clientId || '');
+      setGoogleClientSecret(settings.clientSecret || '');
+      setGoogleRedirectUri(settings.redirectUri || 'http://localhost:5000/auth/google/callback');
+    } else {
+      setGoogleRedirectUri('http://localhost:5000/auth/google/callback');
     }
-    return '';
-  });  
-  const [email, setEmail] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      try {
-        return JSON.parse(savedUser).email || '';
-      } catch (e) {
-        return '';
-      }
-    }
-    return '';
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const handleSaveUserProfile = async () => {
-    if (!name || !email) {
-      toast({
-        title: "Invalid input",
-        description: "Please enter both name and email",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
+
+    // Check connection status
+    checkConnectionStatus();
+  }, []);
+
+  const checkConnectionStatus = async () => {
     try {
-      // Extract initials from name (first letter of first name and first letter of last name)
-      const nameParts = name.split(' ');
-      const initials = nameParts.length > 1 
-        ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-        : name[0].toUpperCase();
+      const response = await fetch('/api/google-drive/auth-url');
+      setIsConnected(response.ok);
+    } catch {
+      setIsConnected(false);
+    }
+  };
+
+  const handleSaveSettings = () => {
+    const settings = {
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+      redirectUri: googleRedirectUri
+    };
+    
+    localStorage.setItem('google-drive-settings', JSON.stringify(settings));
+    
+    toast({
+      title: "Settings saved",
+      description: "Google Drive API settings have been saved locally. Restart the application to apply changes."
+    });
+  };
+
+  const testConnection = async () => {
+    setIsTesting(true);
+    try {
+      const response = await fetch('/api/google-drive/auth-url');
+      const data = await response.json();
       
-      // Save user data to localStorage
-      const userData = {
-        name,
-        email,
-        initials
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Dispatch event to notify other components
-      window.dispatchEvent(new Event('user-updated'));
-      
-      // In a real app, this would save to a database as well
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-      
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated"
-      });
+      if (response.ok && data.authUrl) {
+        setIsConnected(true);
+        toast({
+          title: "Connection successful",
+          description: "Google Drive API is properly configured"
+        });
+      } else {
+        throw new Error(data.error || 'Connection failed');
+      }
     } catch (error) {
+      setIsConnected(false);
       toast({
-        title: "Failed to update profile",
-        description: "There was an error updating your profile",
+        title: "Connection failed",
+        description: error instanceof Error ? error.message : "Failed to connect to Google Drive API",
         variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setIsTesting(false);
     }
   };
-  
-  return (
-    <main className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Settings</h1>
-        <p className="text-slate-600">Configure your TextMind experience</p>
-      </div>
-      
-      <Tabs defaultValue="general" className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <TabsList>
-          <TabsTrigger value="general">Profile</TabsTrigger>
-          <TabsTrigger value="privacy">Privacy</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="general" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Profile</CardTitle>
-              <CardDescription>Update your profile information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  placeholder="Enter your full name" 
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  placeholder="Enter your email address"
-                />
-                <p className="text-xs text-slate-500">Your email is used for account identification and notifications</p>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-slate-500">Enable dark theme for the interface</p>
-                </div>
-                <Switch id="dark-mode" />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                className="w-full"
-                onClick={handleSaveUserProfile}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Saving...' : 'Save Profile'}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
 
-        
-        <TabsContent value="privacy" className="mt-6">
+  return (
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="flex items-center gap-3 mb-6">
+        <SettingsIcon className="h-6 w-6" />
+        <h1 className="text-2xl font-bold">Application Settings</h1>
+      </div>
+
+      <Tabs defaultValue="google-drive" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="google-drive" className="flex items-center gap-2">
+            <Cloud className="h-4 w-4" />
+            Google Drive
+          </TabsTrigger>
+          <TabsTrigger value="advanced" className="flex items-center gap-2">
+            <Key className="h-4 w-4" />
+            Advanced
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="google-drive" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Privacy Settings</CardTitle>
-              <CardDescription>Control your data and privacy preferences</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Cloud className="h-5 w-5" />
+                    Google Drive Integration
+                  </CardTitle>
+                  <CardDescription>
+                    Configure Google Drive API to enable PDF backup with mathematical notation
+                  </CardDescription>
+                </div>
+                <Badge variant={isConnected ? "default" : "secondary"}>
+                  {isConnected ? (
+                    <>
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Connected
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Not Connected
+                    </>
+                  )}
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="analytics-opt-in">Self-Analysis Opt-In</Label>
-                  <p className="text-sm text-slate-500">Allow the system to analyze your writing patterns</p>
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  To enable Google Drive backup, you need to create a Google Cloud Console project and configure OAuth 2.0 credentials.
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto ml-1"
+                    onClick={() => window.open('https://console.cloud.google.com/apis/credentials', '_blank')}
+                  >
+                    Open Google Cloud Console
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </Button>
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="client-id">Client ID</Label>
+                  <Input
+                    id="client-id"
+                    value={googleClientId}
+                    onChange={(e) => setGoogleClientId(e.target.value)}
+                    placeholder="Enter your Google OAuth 2.0 Client ID"
+                  />
                 </div>
-                <Switch id="analytics-opt-in" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="history-tracking">History Tracking</Label>
-                  <p className="text-sm text-slate-500">Save your interactions for future reference</p>
+
+                <div className="space-y-2">
+                  <Label htmlFor="client-secret">Client Secret</Label>
+                  <Input
+                    id="client-secret"
+                    type="password"
+                    value={googleClientSecret}
+                    onChange={(e) => setGoogleClientSecret(e.target.value)}
+                    placeholder="Enter your Google OAuth 2.0 Client Secret"
+                  />
                 </div>
-                <Switch id="history-tracking" defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="anonymous-data">Anonymous Usage Data</Label>
-                  <p className="text-sm text-slate-500">Share anonymous usage data to improve the service</p>
+
+                <div className="space-y-2">
+                  <Label htmlFor="redirect-uri">Redirect URI</Label>
+                  <Input
+                    id="redirect-uri"
+                    value={googleRedirectUri}
+                    onChange={(e) => setGoogleRedirectUri(e.target.value)}
+                    placeholder="http://localhost:5000/auth/google/callback"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This URI must be configured in your Google Cloud Console OAuth settings
+                  </p>
                 </div>
-                <Switch id="anonymous-data" />
               </div>
-              
-              <Button variant="outline" className="mt-4">Download My Data</Button>
-              <Button variant="destructive">Delete Account</Button>
+
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  onClick={handleSaveSettings}
+                  disabled={!googleClientId || !googleClientSecret}
+                  className="gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  Save Settings
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={testConnection}
+                  disabled={isTesting || !googleClientId || !googleClientSecret}
+                  className="gap-2"
+                >
+                  {isTesting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <TestTube className="h-4 w-4" />
+                      Test Connection
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Features Enabled</CardTitle>
+              <CardDescription>
+                Available features with Google Drive integration
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>PDF export with mathematical notation (∀∃∧∨→↔≤≥≠∈⊂∪∩)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Automatic document backup during rewrites</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Chat conversation PDF export</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Cognitive profile report backup</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="advanced" className="mt-6">
+
+        <TabsContent value="advanced" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Advanced Settings</CardTitle>
-              <CardDescription>Configure technical aspects of the application</CardDescription>
+              <CardTitle>Environment Variables</CardTitle>
+              <CardDescription>
+                These environment variables need to be set on the server for full functionality
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="default-model">Default Language Model</Label>
-                <select id="default-model" className="w-full p-2 border border-slate-300 rounded-md">
-                  <option value="claude">Claude</option>
-                  <option value="gpt4">GPT-4</option>
-                  <option value="perplexity">Perplexity</option>
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="max-token-limit">Maximum Token Limit</Label>
-                <Input id="max-token-limit" type="number" defaultValue="8000" />
-                <p className="text-xs text-slate-500">Set the maximum token limit for requests</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="chunk-strategy">Chunking Strategy</Label>
-                <select id="chunk-strategy" className="w-full p-2 border border-slate-300 rounded-md">
-                  <option value="auto">Automatic (Default)</option>
-                  <option value="paragraph">Paragraph-based</option>
-                  <option value="sentence">Sentence-based</option>
-                  <option value="fixed">Fixed-size</option>
-                </select>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="developer-mode">Developer Mode</Label>
-                  <p className="text-sm text-slate-500">Enable advanced debugging options</p>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium">GOOGLE_CLIENT_ID</Label>
+                  <code className="text-xs bg-muted p-2 rounded">
+                    Your Google OAuth 2.0 Client ID
+                  </code>
                 </div>
-                <Switch id="developer-mode" />
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium">GOOGLE_CLIENT_SECRET</Label>
+                  <code className="text-xs bg-muted p-2 rounded">
+                    Your Google OAuth 2.0 Client Secret
+                  </code>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-sm font-medium">GOOGLE_REDIRECT_URI</Label>
+                  <code className="text-xs bg-muted p-2 rounded">
+                    http://localhost:5000/auth/google/callback
+                  </code>
+                </div>
               </div>
+              
+              <Alert className="mt-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Environment variables must be configured on the server and the application restarted for changes to take effect.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-    </main>
+    </div>
   );
 }

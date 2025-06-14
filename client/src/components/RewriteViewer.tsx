@@ -210,6 +210,17 @@ export default function RewriteViewer({
           <Button size="sm" variant="outline" onClick={handlePrintToPdf}>
             <FileText className="h-4 w-4" />
           </Button>
+          <GoogleDriveIntegration 
+            content={result.rewrittenContent}
+            defaultFilename={`rewrite-${result.originalChunk.title.toLowerCase().replace(/\s+/g, '-')}`}
+            format="pdf"
+            onSuccess={(driveLink) => {
+              toast({
+                title: "Backup successful",
+                description: "Document with mathematical notation saved to Google Drive"
+              });
+            }}
+          />
         </div>
       </div>
 
