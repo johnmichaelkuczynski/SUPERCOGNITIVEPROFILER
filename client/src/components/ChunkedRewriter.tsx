@@ -1598,7 +1598,7 @@ export default function ChunkedRewriter({
           {/* Content Display */}
           <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white">
             <div id="rewrite-content" className="prose max-w-none">
-              {formatContent(finalRewrittenContent)}
+              <MathRenderer content={finalRewrittenContent} />
             </div>
           </div>
         </div>
