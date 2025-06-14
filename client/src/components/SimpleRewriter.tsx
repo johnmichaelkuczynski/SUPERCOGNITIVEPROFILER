@@ -404,7 +404,14 @@ export default function SimpleRewriter({
               </label>
               <select
                 value={selectedDocumentId}
-                onChange={(e) => setSelectedDocumentId(e.target.value)}
+                onChange={(e) => {
+                  const newDocId = e.target.value;
+                  setSelectedDocumentId(newDocId);
+                  // Clear all previous results when switching documents
+                  setRewriteResults([]);
+                  setSelectedChunks(new Set());
+                  setCustomInstructions('');
+                }}
                 className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
               >
                 <option value="">Choose a document...</option>
