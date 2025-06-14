@@ -1952,6 +1952,50 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   Metacognitive Analysis
                 </h3>
 
+                {/* Handle new dialecticalStructure format */}
+                {results.dialecticalStructure && (
+                  <div className="space-y-6">
+                    {/* Thesis Section */}
+                    {results.dialecticalStructure.thesis && (
+                      <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
+                        <h4 className="font-bold text-green-900 mb-4 text-lg flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5" />
+                          THESIS
+                        </h4>
+                        <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.dialecticalStructure.thesis.analysis}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Antithesis Section */}
+                    {results.dialecticalStructure.antithesis && (
+                      <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
+                        <h4 className="font-bold text-red-900 mb-4 text-lg flex items-center gap-2">
+                          <XCircle className="h-5 w-5" />
+                          ANTITHESIS
+                        </h4>
+                        <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.dialecticalStructure.antithesis.analysis}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Super-Thesis Section */}
+                    {results.dialecticalStructure.superThesis && (
+                      <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
+                        <h4 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5" />
+                          SUPER-THESIS
+                        </h4>
+                        <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
+                          <ReactMarkdown>{results.dialecticalStructure.superThesis.analysis}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Thesis Section */}
                 {results.thesis && (
                   <div className="p-8 bg-green-50 rounded-xl border-2 border-green-200 shadow-sm">
