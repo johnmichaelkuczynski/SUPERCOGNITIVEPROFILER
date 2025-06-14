@@ -1,5 +1,5 @@
 import { extractMathWithMathpix, isMathematicalContent } from './mathpix';
-import { PdfReader } from 'pdfreader';
+import { PDFExtract } from 'pdf.js-extract';
 import mammoth from 'mammoth';
 import { detectAIContent, type AIDetectionResult } from './gptZero';
 import { log } from '../vite';
@@ -123,126 +123,67 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF with position-aware text reconstruction
+// Extract text from PDF using simple sequential method
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    console.log("Extracting text from PDF with position-aware reconstruction...");
+    console.log("Extracting text from PDF using simple sequential method...");
     
     return new Promise((resolve, reject) => {
       const reader = new PdfReader();
-      const textItems: Array<{page: number, x: number, y: number, text: string}> = [];
+      const textChunks: string[] = [];
       let currentPage = 0;
+      let pageText = '';
       
       const timeout = setTimeout(() => {
-        if (textItems.length > 0) {
-          const reconstructedText = reconstructTextFromPositions(textItems);
-          console.log(`PDF extraction completed: ${reconstructedText.length} characters with position-aware reconstruction`);
-          resolve(reconstructedText);
-        } else {
-          resolve("PDF extraction failed - no text items found.");
-        }
-      }, 30000); // 30 second timeout for complex PDFs
+        const finalText = textChunks.join('\n\n').trim();
+        console.log(`PDF extraction completed: ${finalText.length} characters from ${currentPage} pages`);
+        resolve(finalText || "PDF extraction failed - no readable text found.");
+      }, 15000);
       
       reader.parseBuffer(buffer, (err, item) => {
         if (err) {
           console.error("PDF parsing error:", err);
+          clearTimeout(timeout);
+          resolve("PDF parsing failed due to errors.");
           return;
         }
         
         if (!item) {
           // End of file
           clearTimeout(timeout);
-          if (textItems.length > 0) {
-            const reconstructedText = reconstructTextFromPositions(textItems);
-            console.log(`PDF extraction completed: ${reconstructedText.length} characters from ${currentPage} pages`);
-            resolve(reconstructedText);
-          } else {
-            resolve("PDF extraction failed - no text content found.");
+          if (pageText.trim()) {
+            textChunks.push(pageText.trim());
           }
+          const finalText = textChunks.join('\n\n').trim();
+          console.log(`PDF extraction completed: ${finalText.length} characters from ${currentPage} pages`);
+          resolve(finalText || "PDF extraction failed - no readable text found.");
           return;
         }
         
         if (item.page) {
+          // New page - save previous page text
+          if (currentPage > 0 && pageText.trim()) {
+            textChunks.push(pageText.trim());
+          }
           currentPage = item.page;
-        } else if (item.text && item.text.trim()) {
-          // Store text with approximate position (pdfreader provides limited position info)
-          textItems.push({
-            page: currentPage,
-            x: item.x || 0,
-            y: item.y || 0,
-            text: item.text.trim()
-          });
+          pageText = '';
+        } else if (item.text && typeof item.text === 'string') {
+          // Simple sequential text extraction - just join text as it appears
+          const cleanText = item.text.trim();
+          if (cleanText) {
+            pageText += cleanText + ' ';
+          }
         }
       });
     });
     
   } catch (error) {
-    console.error("Position-aware PDF extraction failed:", error);
-    return await extractTextWithFallbackMethod(buffer);
+    console.error("PDF extraction failed:", error);
+    return "PDF extraction failed due to processing errors.";
   }
 }
 
-// Reconstruct text from positioned text items with intelligent formatting
-function reconstructTextFromPositions(textItems: Array<{page: number, x: number, y: number, text: string}>): string {
-  if (!textItems.length) return '';
-  
-  // Group by page
-  const pageGroups: { [page: number]: Array<{x: number, y: number, text: string}> } = {};
-  
-  textItems.forEach(item => {
-    if (!pageGroups[item.page]) {
-      pageGroups[item.page] = [];
-    }
-    pageGroups[item.page].push({x: item.x, y: item.y, text: item.text});
-  });
-  
-  let fullText = '';
-  
-  // Process each page
-  Object.keys(pageGroups).sort((a, b) => parseInt(a) - parseInt(b)).forEach(pageNum => {
-    const pageItems = pageGroups[parseInt(pageNum)];
-    
-    // Sort items by Y position (reading order), then by X position
-    pageItems.sort((a, b) => {
-      const yDiff = Math.abs(a.y - b.y);
-      if (yDiff < 10) { // Same line threshold
-        return a.x - b.x;
-      }
-      return a.y - b.y;
-    });
-    
-    // Reconstruct page text with intelligent spacing
-    let pageText = '';
-    let lastY = -1;
-    let lastX = -1;
-    
-    for (const item of pageItems) {
-      const text = item.text;
-      
-      // Determine if this is a new line
-      if (lastY !== -1 && Math.abs(item.y - lastY) > 10) {
-        pageText += '\n';
-      } else if (lastX !== -1 && item.x - lastX > 50) {
-        // Large horizontal gap - add space
-        pageText += ' ';
-      } else if (pageText && !pageText.endsWith(' ') && !text.startsWith(' ')) {
-        // Ensure word separation
-        pageText += ' ';
-      }
-      
-      pageText += text;
-      lastY = item.y;
-      lastX = item.x;
-    }
-    
-    if (pageText.trim()) {
-      fullText += pageText.trim() + '\n\n';
-    }
-  });
-  
-  // Apply intelligent text reconstruction to fix any remaining issues
-  return applyIntelligentReconstruction(fullText.trim());
-}
+// Remove this function completely - it's causing the gibberish text
 
 // Apply intelligent reconstruction to fix common PDF extraction issues
 function applyIntelligentReconstruction(text: string): string {
