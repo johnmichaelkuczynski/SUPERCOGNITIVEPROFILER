@@ -158,105 +158,101 @@ interface MetacognitiveProfile {
   reflectiveDepth: number;
 }
 
-// Generate synthesis profile analyzing intellect/emotion interactions using dialectical structure
-async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<any> {
+// Generate synthesis profile analyzing intellect/emotion interactions
+async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<SynthesisProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `You are a SYNTHESIS PROFILER using DIALECTICAL ANALYSIS to examine intellectual-emotional integration patterns.
+  const prompt = `You are a SYNTHESIS PROFILER analyzing the integration between intellectual and emotional psychology revealed through communication patterns. You do not analyze literal content or stated beliefs. You analyze what the integration of reasoning and emotional patterns reveals about how this person's mind actually works.
 
-DIALECTICAL FRAMEWORK MANDATORY: You must provide three complete analyses using the Thesis-Antithesis-Super-Thesis structure.
+CRITICAL MANDATE: You must be DECISIVE and HARD-HITTING in your conclusions. Do not be timid or bland. Drive your analysis to clear, bold conclusions about this person's intellectual-emotional integration patterns.
 
-CRITICAL INSTRUCTION: Analyze intellectual-emotional integration through communication patterns, not stated beliefs. Focus on what the synthesis of reasoning and emotional patterns reveals about how this person's mind actually works.
+You must ask: "What does this communication reveal about how this person actually integrates intellectual and emotional processing?"
 
 TEXT TO ANALYZE:
 ${text.slice(0, 8000)}
 
-DIALECTICAL SYNTHESIS METHODOLOGY:
+SYNTHESIS PROFILING METHODOLOGY:
 
-**THESIS (Primary Synthesis Analysis)**: Initial comprehensive assessment of intellectual-emotional integration patterns
-**ANTITHESIS (Dissenting Synthesis Analysis)**: Critical counter-interpretation that challenges the primary analysis
-**SUPER-THESIS (Refined Synthesis Assessment)**: Final synthesis that addresses the dissenting view and provides the most accurate understanding
+1. INTELLECTUAL-EMOTIONAL INTEGRATION ANALYSIS: Examine how cognitive and emotional patterns interact in their communication choices, not their stated integration.
 
-FOR EACH DIALECTICAL COMPONENT, analyze these core synthesis elements:
-1. INTELLECTUAL-EMOTIONAL INTEGRATION: How cognitive and emotional patterns actually interact
-2. DECISION-MAKING SYNTHESIS: Real integration vs. performed balance in decision processes
-3. AUTHENTICITY VS. PERFORMANCE: Genuine integration vs. strategic emotional positioning
-4. STRESS-CLARITY DYNAMICS: How integration holds under pressure
-5. EMPATHY VS. MANIPULATION: Authentic emotional intelligence vs. strategic positioning
-6. COGNITIVE-EMOTIONAL ARCHITECTURE: The actual interface between thinking and feeling systems
+2. AUTHENTIC VS. PERFORMED BALANCE: Distinguish between:
+   - Genuine intellectual-emotional integration
+   - Strategic emotional manipulation disguised as balance
+   - Performed rationality masking emotional dysfunction
+   - Authentic emotional intelligence vs. emotional manipulation
 
-SUPPORTING EVIDENCE REQUIREMENTS:
-- Provide 2-3 specific quotes for each synthesis component
-- Explain how each quote demonstrates the integration pattern
-- Show evidence for claims about authentic vs. performed integration
+3. DECISION-MAKING PSYCHOLOGY: Analyze what their communication reveals about:
+   - How they actually process decisions (not how they claim to)
+   - Whether emotional and rational elements truly integrate or conflict
+   - Their actual stress responses vs. claimed resilience
+   - Real vs. performed emotional regulation
+
+4. COMMUNICATION SYNTHESIS PATTERNS: Identify:
+   - Whether logical and emotional appeals are strategically deployed or naturally integrated
+   - Signs of authentic vs. manipulative emotional reasoning
+   - Genuine empathy vs. strategic emotional positioning
 
 CRITICAL HEURISTICS:
 - Over-emphasis on "balance" often indicates imbalance
 - Claims of emotional intelligence may mask emotional manipulation
 - True synthesis shows natural integration, not forced balance
 - Authentic emotional reasoning doesn't need to announce itself
+- Genuine intellectual empathy shows through natural understanding, not performed concern
 
-Provide a ${analysisDepth} dialectical analysis with this JSON structure:
+SYNTHESIS ANALYSIS REQUIREMENTS:
+- Make BOLD, DECISIVE conclusions about their integration patterns
+- Identify specific cognitive weaknesses driven by emotional patterns
+- Call out emotional strategies that undermine epistemic control
+- Provide an overall profile that is direct and uncompromising
+- Don't be timid - drive the analysis to clear, hard conclusions
+
+Examples of the kind of decisive conclusions you should make:
+- "This pattern shows cognitive weakness driven by emotional self-promotion"
+- "The emotional strategy undermines epistemic control"
+- "Overall profile: self-referential moral narcissism with shallow cognitive architecture"
+- "Emotional reasoning dominates intellectual processing"
+- "Poor intellectual-emotional integration masked by performative balance"
+
+Analyze the actual synthesis psychology behind their communication choices with DECISIVE, HARD-HITTING conclusions.
+
+Provide a ${analysisDepth} analysis with this JSON structure:
 {
-  "thesis": {
-    "title": "🔮 THESIS: PRIMARY SYNTHESIS ANALYSIS",
-    "intellectualEmotionalIntegration": "detailed analysis of primary integration pattern",
-    "decisionMakingSynthesis": "comprehensive analysis of decision-making integration",
-    "authenticityAssessment": "primary assessment of genuine vs. performed integration",
-    "stressClarityDynamics": "analysis of how integration functions under pressure",
-    "empathyAuthenticity": "assessment of genuine empathy vs. strategic positioning",
-    "cognitiveEmotionalArchitecture": "primary understanding of mind's integration structure",
-    "rationalEmotionalIntegration": 7,
-    "intellectualEmpathy": 8,
-    "authenticityScore": 7,
-    "supportingEvidence": {
-      "intellectualEmotionalIntegration": [{"quote": "specific quote", "explanation": "why this demonstrates integration pattern"}],
-      "decisionMakingSynthesis": [{"quote": "specific quote", "explanation": "what this reveals about decision psychology"}],
-      "authenticityAssessment": [{"quote": "specific quote", "explanation": "how this shows authentic vs. performed integration"}]
-    }
+  "intellectEmotionBalance": "detailed analysis of actual intellectual-emotional integration revealed by communication patterns, not claimed balance",
+  "rationalEmotionalIntegration": 7,
+  "decisionMakingStyle": "comprehensive analysis of actual decision-making psychology revealed by communication choices",
+  "stressVsClarity": "detailed analysis of how stress actually affects their communication patterns and thinking clarity",
+  "creativeRationalFusion": "analysis of actual creative-rational integration revealed by communication patterns",
+  "emotionalReasoningPattern": "comprehensive analysis of how emotions actually influence their reasoning based on communication choices",
+  "intellectualEmpathy": 8,
+  "synthesisStrengths": ["detailed strengths in intellectual-emotional integration with specific examples", "authentic abilities demonstrated through communication"],
+  "integrationChallenges": ["specific integration problems revealed through communication analysis", "actual challenges not self-reported ones"],
+  "holisticSignature": "comprehensive signature of intellectual-emotional integration based on communication psychology",
+  "cognitiveEmotionalArchitecture": "detailed analysis of how cognitive and emotional systems actually interface in this person's mind",
+  "authenticityVsPerformance": "analysis of whether intellectual-emotional integration is genuine or strategically performed",
+  "stressIntegrationPattern": "how intellectual and emotional processing changes under pressure based on communication evidence",
+  "empathyVsManipulation": "analysis distinguishing genuine empathy from strategic emotional positioning",
+  "balanceVsCompensation": "whether apparent balance represents genuine integration or compensatory mechanisms",
+  "synthesisEvolution": "how their intellectual-emotional integration appears to develop over time",
+  "contextualFlexibility": "how their synthesis adapts to different contexts and audiences",
+  "integrationMaturity": 8,
+  "authenticityScore": 7,
+  "supportingEvidence": {
+    "intellectEmotionBalance": [{"quote": "specific quote demonstrating balance or imbalance", "explanation": "why this shows their integration pattern"}],
+    "decisionMakingStyle": [{"quote": "quote showing decision process", "explanation": "what this reveals about their decision psychology"}],
+    "emotionalReasoning": [{"quote": "quote showing emotional reasoning", "explanation": "how emotions influence their logic"}]
   },
-  "antithesis": {
-    "title": "⚖️ ANTITHESIS: DISSENTING SYNTHESIS ANALYSIS",
-    "intellectualEmotionalIntegration": "alternative interpretation challenging the primary analysis",
-    "decisionMakingSynthesis": "contrarian view of decision-making integration",
-    "authenticityAssessment": "skeptical assessment questioning apparent integration",
-    "stressClarityDynamics": "critical reinterpretation of stress responses",
-    "empathyAuthenticity": "alternative view of empathy vs. manipulation",
-    "cognitiveEmotionalArchitecture": "dissenting view of integration structure",
-    "supportingEvidence": {
-      "intellectualEmotionalIntegration": [{"quote": "specific quote", "explanation": "why this challenges the primary interpretation"}],
-      "decisionMakingSynthesis": [{"quote": "specific quote", "explanation": "how this suggests different decision patterns"}],
-      "authenticityAssessment": [{"quote": "specific quote", "explanation": "evidence for performed rather than authentic integration"}]
-    }
-  },
-  "superThesis": {
-    "title": "💎 SUPER-THESIS: REFINED SYNTHESIS ASSESSMENT",
-    "intellectualEmotionalIntegration": "final refined understanding addressing both thesis and antithesis",
-    "decisionMakingSynthesis": "synthesized view of decision-making integration",
-    "authenticityAssessment": "balanced assessment of authentic vs. performed elements",
-    "stressClarityDynamics": "refined understanding of integration under pressure",
-    "empathyAuthenticity": "nuanced view of empathy authenticity",
-    "cognitiveEmotionalArchitecture": "final understanding of integration structure",
-    "refinedConclusion": "definitive synthesis assessment integrating all evidence",
-    "integrationMaturity": 8,
-    "finalAuthenticityScore": 7,
-    "supportingEvidence": {
-      "intellectualEmotionalIntegration": [{"quote": "specific quote", "explanation": "how this supports the refined understanding"}],
-      "decisionMakingSynthesis": [{"quote": "specific quote", "explanation": "evidence for the final decision-making assessment"}],
-      "authenticityAssessment": [{"quote": "specific quote", "explanation": "support for the balanced authenticity conclusion"}]
-    }
-  },
-  "synthesisStrengths": ["specific strengths in intellectual-emotional integration", "authentic abilities demonstrated"],
-  "integrationChallenges": ["specific integration problems revealed", "actual challenges not self-reported ones"],
-  "developmentPathways": ["specific pathways for improving integration", "targeted growth areas"],
-  "optimalEnvironments": ["contexts where synthesis works best", "situations supporting integration style"]
+  "developmentPathways": ["specific pathways for improving intellectual-emotional integration", "targeted growth areas"],
+  "potentialPitfalls": ["specific risks in their current integration pattern", "areas where synthesis might break down"],
+  "optimalEnvironments": ["contexts where their synthesis works best", "situations that support their integration style"],
+  "collaborationStyle": "how their intellectual-emotional integration affects their ability to work with others",
+  "detailedAnalysis": "comprehensive multi-paragraph analysis focusing on synthesis psychology behind communication choices, including specific examples and evidence"
 }
 
-Make BOLD, DECISIVE conclusions about integration patterns. Don't be timid - drive the analysis to clear, hard conclusions about authentic vs. performed synthesis.`;
+Focus on the dynamic interplay between rational and emotional processing, decision-making patterns, and how this person integrates head and heart in their thinking and expression.`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       temperature: 0.7,
@@ -264,7 +260,7 @@ Make BOLD, DECISIVE conclusions about integration patterns. Don't be timid - dri
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
-    return result;
+    return result as SynthesisProfile;
   } catch (error) {
     console.error('Error generating synthesis profile:', error);
     throw new Error(`Failed to generate synthesis profile: ${(error as Error).message}`);
@@ -477,7 +473,7 @@ CRITICAL: ONLY return the JSON structure above. Do not include any other fields 
   }
 }
 
-// Generate psychological profile with dialectical structure
+// Generate psychological profile from text analysis
 async function generatePsychologicalProfile(text: string, isComprehensive: boolean = false): Promise<PsychologicalProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
@@ -522,191 +518,69 @@ You are not a belief extractor. You are a profiler of speaker psychology based o
 You must model speech acts first, then profile.
 You must explicitly distinguish between what the person says and what kind of person says it.
 
-CRITICAL REQUIREMENTS:
-1. Generate THREE distinct analytical perspectives in dialectical sequence
-2. Support each contention with specific quotes and arguments
-3. Antithesis must present the most opposed view that aligns with the data
-4. Super-Thesis must defend original position and refute antithesis
-5. MANDATORY: You must explicitly generate and label all six sections of the Formal Diagnostic Extension in every Psychological Profile. Do not skip or merge them. They must be clearly visible to the user.
-6. Be precise and discriminative - avoid generic terms
-7. Target analysis for highly intelligent readers (top 1% intelligence)
+Provide a ${analysisDepth} psychological profile with supporting evidence showing your reasoning process.
 
-FORMAL DIAGNOSTIC REQUIREMENTS - MUST BE EXPLICITLY LABELED:
-1️⃣ Emotional Configuration / Style: Identify dominant emotional style (emotionally open, guarded, strategic, repressed, performative, intense, flat, manipulative, morally self-congratulatory, balanced, chaotic, etc.)
-2️⃣ Comparison to Paradigm Examples: Compare to paradigm examples - weak/average/strong/unusual example
-3️⃣ Unique Psychological Strengths: List precise, discriminative strengths (emotional resilience, empathic discipline, strategic self-regulation, moral clarity, etc.)
-4️⃣ Unique Psychological Weaknesses: Specify how emotional/psychological style may distort reasoning, social engagement, or self-understanding
-5️⃣ Interpersonal / Social Dynamics Fit: Where would this emotional/psychological style thrive vs be a liability
-6️⃣ Most Revealing Quotation and Why: Single most diagnostically significant quote with analysis
-
-MANDATORY: You MUST include the complete formalDiagnostics section with all six labeled components. This is NOT optional.
-
-Provide a ${analysisDepth} psychological profile using the DIALECTICAL STRUCTURE below:
+Rate the following on a 1-10 scale:
+- Emotional Intelligence: Based on manipulation sophistication and social awareness
+- Adaptability: Based on strategic flexibility in communication
+- Social Orientation: Based on actual social manipulation vs genuine connection patterns
 
 Format as JSON with this EXACT structure:
 {
-  "thesis": {
-    "title": "🧠 THESIS: PRIMARY PSYCHOLOGICAL ANALYSIS",
-    "emotionalPattern": "Primary analysis of actual emotional patterns behind speech choices, not content",
-    "motivationalStructure": "Primary analysis of what actually drives this person based on speech psychology",
-    "interpersonalDynamics": "Primary analysis of how they actually relate to others based on communication strategy",
-    "stressResponsePattern": "Primary analysis of actual stress patterns evident in speech choices",
-    "communicationStyle": "Primary analysis of actual communication psychology, not surface content",
-    "personalityTraits": ["primary traits based on speech psychology", "authentic vs manipulative tendencies"],
-    "emotionalIntelligence": number,
-    "adaptability": number,
-    "socialOrientation": number,
-    "psychologicalSignature": "Primary psychological fingerprint based on speech patterns",
-    "detailedAnalysis": "Comprehensive primary narrative focusing on psychology behind speech choices",
-    "supportingEvidence": {
-      "emotionalPattern": [
-        {"quote": "exact quote from text", "explanation": "why this speech choice reveals this emotional pattern"},
-        {"quote": "another exact quote from text", "explanation": "psychological analysis of word choice reveals"}
-      ],
-      "motivationalStructure": [
-        {"quote": "exact quote from text", "explanation": "what this reveals about actual motivations"},
-        {"quote": "another exact quote from text", "explanation": "detailed motivation analysis"}
-      ],
-      "interpersonalDynamics": [
-        {"quote": "exact quote from text", "explanation": "detailed interpersonal pattern explanation"},
-        {"quote": "another exact quote from text", "explanation": "relationship approach analysis"}
-      ],
-      "stressResponsePattern": [
-        {"quote": "exact quote from text", "explanation": "stress response indicator analysis"},
-        {"quote": "another exact quote from text", "explanation": "coping mechanism explanation"}
-      ]
-    }
-  },
-  "antithesis": {
-    "title": "🤔 ANTITHESIS: DISSENTING PSYCHOLOGICAL ANALYSIS",
-    "emotionalPattern": "ALTERNATIVE interpretation of emotional patterns - challenge the primary analysis with contrarian evidence",
-    "motivationalStructure": "CONTRARIAN assessment of motivational drivers - question the primary interpretation",
-    "interpersonalDynamics": "SKEPTICAL view of interpersonal patterns - alternative explanation for relationship behaviors",
-    "stressResponsePattern": "CRITICAL reinterpretation of stress responses - challenge the primary stress assessment",
-    "communicationStyle": "OPPOSING view of communication psychology - question the primary communication analysis",
-    "personalityTraits": ["contrarian traits assessment", "challenge to authenticity claims"],
-    "emotionalIntelligence": number,
-    "adaptability": number,
-    "socialOrientation": number,
-    "psychologicalSignature": "Alternative psychological interpretation",
-    "detailedAnalysis": "Counter-narrative challenging primary psychological conclusions",
-    "supportingEvidence": {
-      "emotionalPattern": [
-        {"quote": "exact quote from text", "explanation": "critical reinterpretation of emotional evidence"},
-        {"quote": "exact quote from text", "explanation": "skeptical analysis of emotional claims"}
-      ],
-      "motivationalStructure": [
-        {"quote": "exact quote from text", "explanation": "contrarian motivation assessment"},
-        {"quote": "exact quote from text", "explanation": "challenge to motivation interpretation"}
-      ],
-      "interpersonalDynamics": [
-        {"quote": "exact quote from text", "explanation": "alternative interpersonal interpretation"},
-        {"quote": "exact quote from text", "explanation": "skeptical relationship analysis"}
-      ],
-      "stressResponsePattern": [
-        {"quote": "exact quote from text", "explanation": "contrarian stress pattern assessment"},
-        {"quote": "exact quote from text", "explanation": "challenge to stress response claims"}
-      ]
-    }
-  },
-  "superThesis": {
-    "title": "3️⃣ SUPER-THESIS: REFINED PSYCHOLOGICAL JUDGMENT",
-    "emotionalPattern": "DEFEND and REFINE the primary emotional analysis by systematically REFUTING the dissenting analysis",
-    "motivationalStructure": "REINFORCED motivational assessment that addresses dissenting concerns while maintaining validity",
-    "interpersonalDynamics": "STRENGTHENED interpersonal evaluation that counters dissenting interpretations",
-    "stressResponsePattern": "VALIDATED stress response analysis that withstands critical examination",
-    "communicationStyle": "DEFINITIVE communication psychology assessment defending primary conclusions",
-    "personalityTraits": ["confirmed traits with reinforced evidence", "validated authenticity assessment"],
-    "emotionalIntelligence": number,
-    "adaptability": number,
-    "socialOrientation": number,
-    "psychologicalSignature": "Definitive psychological assessment defending primary conclusions",
-    "detailedAnalysis": "Authoritative psychological profile that withstands critical examination",
-    "refinedConclusion": "FINAL authoritative statement defending the primary analysis against all dissenting interpretations",
-    "supportingEvidence": {
-      "emotionalPattern": [
-        {"quote": "exact quote from text", "explanation": "defensive reinforcement of emotional assessment"},
-        {"quote": "exact quote from text", "explanation": "additional evidence supporting primary analysis"}
-      ],
-      "motivationalStructure": [
-        {"quote": "exact quote from text", "explanation": "strengthened motivation assessment"},
-        {"quote": "exact quote from text", "explanation": "refutation of dissenting concerns"}
-      ],
-      "interpersonalDynamics": [
-        {"quote": "exact quote from text", "explanation": "refined interpersonal evaluation"},
-        {"quote": "exact quote from text", "explanation": "conclusive relationship pattern evidence"}
-      ],
-      "stressResponsePattern": [
-        {"quote": "exact quote from text", "explanation": "validated stress response assessment"},
-        {"quote": "exact quote from text", "explanation": "definitive coping mechanism analysis"}
-      ]
-    }
-  },
-  "formalDiagnostics": {
-    "emotionalConfiguration": {
-      "dominantStyle": ["MUST ANALYZE: What is the person's actual emotional style from the text?"],
-      "analysis": "MUST ANALYZE: Formal identification of their actual emotional configuration using precise psychological terminology",
-      "supportingEvidence": [
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: how this quote demonstrates emotional style"},
-        {"quote": "MUST INCLUDE: another exact quote from text", "explanation": "MUST EXPLAIN: additional emotional evidence from text"}
-      ]
-    },
-    "paradigmComparison": {
-      "strength": "MUST ASSESS: Is this person a weak/average/strong/unusual example of their emotional type?",
-      "distinguishingFeatures": "MUST IDENTIFY: What makes their emotional style unique compared to others?",
-      "analysis": "MUST COMPARE: How does their style compare to typical examples of this emotional configuration?",
-      "supportingEvidence": [
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: comparison evidence"},
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: distinguishing feature evidence"}
-      ]
-    },
-    "uniquePsychologicalStrengths": {
-      "strengths": ["MUST IDENTIFY: What are their specific psychological strengths based on the text?"],
-      "analysis": "MUST ANALYZE: Detailed analysis of unique psychological strengths revealed in the actual text",
-      "supportingEvidence": [
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: how this demonstrates strength"},
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: additional strength evidence"}
-      ]
-    },
-    "uniquePsychologicalWeaknesses": {
-      "weaknesses": ["MUST IDENTIFY: What are their specific psychological weaknesses based on the text?"],
-      "analysis": "MUST ANALYZE: How does their emotional/psychological style potentially distort reasoning or engagement?",
-      "supportingEvidence": [
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: how this demonstrates weakness"},
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: additional weakness evidence"}
-      ]
-    },
-    "interpersonalSocialFit": {
-      "thriveEnvironments": ["MUST IDENTIFY: Where would this person's style be an asset?"],
-      "liabilityEnvironments": ["MUST IDENTIFY: Where would this person's style be a liability?"],
-      "analysis": "MUST ASSESS: Where would their emotional/psychological style be strength vs liability?",
-      "supportingEvidence": [
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: interpersonal fit evidence"},
-        {"quote": "MUST INCLUDE: exact quote from text", "explanation": "MUST EXPLAIN: social compatibility evidence"}
-      ]
-    },
-    "mostRevealingQuotation": {
-      "quote": "MUST SELECT: The single most diagnostically revealing quotation from the actual text",
-      "analysis": "MUST EXPLAIN: Why this specific quotation best reveals their core psychological configuration",
-      "psychologicalSignificance": "MUST INTERPRET: What this quote tells us about their fundamental emotional/psychological nature"
-    }
+  "emotionalPattern": "analysis of actual emotional patterns behind speech choices, not content",
+  "motivationalStructure": "analysis of what actually drives this person based on speech psychology",
+  "interpersonalDynamics": "analysis of how they actually relate to others based on communication strategy",
+  "stressResponsePattern": "analysis of actual stress patterns evident in speech choices",
+  "communicationStyle": "analysis of actual communication psychology, not surface content",
+  "personalityTraits": ["actual traits based on speech psychology", "not literal content", "focus on manipulation vs authenticity"],
+  "emotionalIntelligence": number,
+  "adaptability": number,
+  "socialOrientation": number,
+  "psychologicalSignature": "actual psychological fingerprint based on speech patterns",
+  "detailedAnalysis": "comprehensive narrative focusing on psychology behind speech choices",
+  "supportingEvidence": {
+    "emotionalPattern": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "why this speech choice reveals this actual emotional pattern, not what they claim"
+      },
+      {
+        "quote": "another exact quote from text",
+        "explanation": "psychological analysis of why they chose these words - what it reveals about them"
+      }
+    ],
+    "motivationalStructure": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "what this reveals about their actual motivations behind saying this"
+      },
+      {
+        "quote": "another exact quote from text", 
+        "explanation": "detailed explanation of what this reveals about motivation"
+      }
+    ],
+    "interpersonalDynamics": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "detailed explanation of interpersonal pattern"
+      },
+      {
+        "quote": "another exact quote from text",
+        "explanation": "detailed explanation of relationship approach"
+      }
+    ],
+    "stressResponsePattern": [
+      {
+        "quote": "exact quote from text",
+        "explanation": "detailed explanation of stress response indicator"
+      },
+      {
+        "quote": "another exact quote from text",
+        "explanation": "detailed explanation of coping mechanism"
+      }
+    ]
   }
-}
-
-🚨 CRITICAL ENFORCEMENT: The formalDiagnostics section is MANDATORY and MUST BE POPULATED WITH ACTUAL ANALYSIS. 🚨
-
-You MUST include ALL SIX components with REAL CONTENT:
-1️⃣ emotionalConfiguration - MUST analyze emotional style (warm/cold, strategic/authentic, etc)
-2️⃣ paradigmComparison - MUST compare to paradigm examples of this emotional type
-3️⃣ uniquePsychologicalStrengths - MUST identify specific psychological strengths
-4️⃣ uniquePsychologicalWeaknesses - MUST identify specific psychological weaknesses  
-5️⃣ interpersonalSocialFit - MUST assess where this style thrives vs struggles
-6️⃣ mostRevealingQuotation - MUST select actual quote and explain its significance
-
-⚠️ REPLACE ALL "REQUIRED:" TEXT WITH ACTUAL ANALYSIS - NO PLACEHOLDERS ALLOWED
-⚠️ The formalDiagnostics section must contain substantive analysis based on the text
-
-If you do not include the complete formalDiagnostics section with all six components populated with real analysis, the response will be rejected.`;
+}`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -715,33 +589,7 @@ If you do not include the complete formalDiagnostics section with all six compon
       response_format: { type: "json_object" },
     });
 
-    const result = JSON.parse(response.choices[0].message.content || "{}");
-    
-    // Validate that formalDiagnostics section exists and is properly populated
-    if (!result.formalDiagnostics) {
-      throw new Error("AI failed to include required formalDiagnostics section");
-    }
-    
-    const required = ['emotionalConfiguration', 'paradigmComparison', 'uniquePsychologicalStrengths', 
-                     'uniquePsychologicalWeaknesses', 'interpersonalSocialFit', 'mostRevealingQuotation'];
-    
-    for (const component of required) {
-      if (!result.formalDiagnostics[component]) {
-        throw new Error(`AI failed to populate required component: ${component}`);
-      }
-      
-      // Check if it still contains placeholder text
-      const componentData = JSON.stringify(result.formalDiagnostics[component]);
-      if (componentData.includes('MUST ANALYZE:') || componentData.includes('MUST ASSESS:') || 
-          componentData.includes('MUST IDENTIFY:') || componentData.includes('MUST COMPARE:') ||
-          componentData.includes('MUST INCLUDE:') || componentData.includes('MUST EXPLAIN:') ||
-          componentData.includes('MUST SELECT:') || componentData.includes('MUST INTERPRET:')) {
-        console.log(`Placeholder content detected in ${component}:`, componentData);
-        throw new Error(`AI failed to replace placeholder instructions with actual analysis in component: ${component}`);
-      }
-    }
-    
-    return result;
+    return JSON.parse(response.choices[0].message.content || "{}");
   } catch (error) {
     throw new Error("Failed to generate psychological profile: " + (error instanceof Error ? error.message : 'Unknown error'));
   }
@@ -815,17 +663,6 @@ CRITICAL REQUIREMENTS:
 2. Support each contention with specific quotes and arguments
 3. Antithesis must present the most opposed view that aligns with the data
 4. Super-Thesis must defend original position and refute antithesis
-5. MANDATORY: Include all six formal diagnostic components in formalDiagnostics section
-6. Be precise and discriminative - avoid generic terms
-7. Target analysis for highly intelligent readers (top 1% intelligence)
-
-FORMAL DIAGNOSTIC REQUIREMENTS:
-- Type of Intelligence: Identify specific intelligence types (abstract, practical, verbal, conceptual, synthetic, analytic, strategic, philosophical, emotional, manipulative, pseudo-intellectual, procedural, systemic, aesthetic, etc.)
-- Paradigm Comparison: Compare to paradigm examples - weak/average/strong/unusual example
-- Unique Cognitive Strengths: List precise, discriminative strengths (no generic terms)
-- Unique Cognitive Weaknesses: Specify how reasoning falls short or shows bias
-- Career/Ecosystem Fit: Where would this cognitive style thrive vs face challenges
-- Most Revealing Quotation: Single most diagnostically significant quote with analysis
 
 RETURN EXACTLY THIS JSON STRUCTURE:
 {
@@ -949,55 +786,6 @@ RETURN EXACTLY THIS JSON STRUCTURE:
         {"quote": "exact quote", "explanation": "authenticity defense"},
         {"quote": "exact quote", "explanation": "authenticity defense"}
       ]
-    }
-  },
-  "formalDiagnostics": {
-    "typeOfIntelligence": {
-      "primaryTypes": ["specific intelligence types demonstrated"],
-      "analysis": "Formal identification of intelligence type(s) with precise terminology",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "evidence for intelligence type"},
-        {"quote": "exact quote", "explanation": "additional intelligence evidence"}
-      ]
-    },
-    "paradigmComparison": {
-      "strength": "weak/average/strong/unusual example of this intelligence type",
-      "distinguishingFeatures": "What distinguishes their style from paradigm examples",
-      "analysis": "Detailed comparison to typical examples of this intelligence type",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "comparison evidence"},
-        {"quote": "exact quote", "explanation": "distinguishing feature evidence"}
-      ]
-    },
-    "uniqueCognitiveStrengths": {
-      "strengths": ["precise, discriminative strength 1", "precise, discriminative strength 2", "precise, discriminative strength 3"],
-      "analysis": "Detailed analysis of unique cognitive strengths revealed in text",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "strength demonstration"},
-        {"quote": "exact quote", "explanation": "additional strength evidence"}
-      ]
-    },
-    "uniqueCognitiveWeaknesses": {
-      "weaknesses": ["specific cognitive weakness 1", "specific cognitive weakness 2", "specific cognitive weakness 3"],
-      "analysis": "Precise identification of how reasoning falls short or shows bias",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "weakness demonstration"},
-        {"quote": "exact quote", "explanation": "additional weakness evidence"}
-      ]
-    },
-    "careerEcosystemFit": {
-      "thriveEnvironments": ["specific career/intellectual ecosystem 1", "specific career/intellectual ecosystem 2"],
-      "challengeEnvironments": ["environment where they'd face difficulties 1", "environment where they'd face difficulties 2"],
-      "analysis": "Detailed assessment of where cognitive style would be rewarded vs challenged",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "career fit evidence"},
-        {"quote": "exact quote", "explanation": "ecosystem compatibility evidence"}
-      ]
-    },
-    "mostRevealingQuotation": {
-      "quote": "Single most diagnostically revealing quotation from the text",
-      "analysis": "Why this quotation best reveals core cognitive strengths and/or weaknesses",
-      "cognitiveSignificance": "What this quote tells us about their fundamental cognitive architecture"
     }
   },
   "overallMetacognitiveProfile": "Comprehensive synthesis of intellectual configuration analysis",
@@ -1212,189 +1000,4 @@ export async function generateFullProfile(
     psychologicalProfile,
     comprehensiveInsights
   };
-}
-
-// Generate metapsychological profile with dialectical structure and formal diagnostics
-export async function generateMetapsychologicalProfile(text: string, isComprehensive: boolean = false): Promise<any> {
-  const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
-  
-  const prompt = `You are a metapsychological analysis expert specializing in complete psychological profiling using dialectical analysis (Thesis → Antithesis → Super-Thesis) with formal diagnostic components. This is ${analysisDepth} analysis mode.
-
-CRITICAL INSTRUCTION: You MUST generate a response that contains BOTH the dialectical structure (thesis, antithesis, superThesis) AND the six mandatory formal diagnostic components. Do not omit any required sections.
-
-Required Structure:
-1. Complete dialectical analysis (thesis, antithesis, superThesis)
-2. Six mandatory formal diagnostic components
-3. All existing psychological profiler fields
-
-Analyze this text for complete metapsychological profiling:
-
-"${text}"
-
-You must generate a JSON response with this EXACT structure containing ALL of these mandatory sections:
-
-{
-  "thesis": {
-    "title": "🎭 THESIS: PRIMARY PSYCHOLOGICAL ANALYSIS",
-    "emotionalPattern": "Primary emotional configuration and patterns",
-    "motivationalStructure": "Core motivational architecture and drives",
-    "interpersonalDynamics": "Primary interpersonal style and social patterns",
-    "stressResponsePattern": "Main stress response and coping mechanisms",
-    "communicationStyle": "Primary communication patterns and style",
-    "personalityTraits": ["trait1", "trait2", "trait3"],
-    "emotionalIntelligence": 7,
-    "adaptability": 6,
-    "socialOrientation": 8,
-    "psychologicalSignature": "Core psychological identity and essence",
-    "detailedAnalysis": "Deep psychological analysis with evidence",
-    "supportingEvidence": {
-      "emotionalPattern": [
-        {"quote": "exact quote", "explanation": "emotional evidence"},
-        {"quote": "exact quote", "explanation": "emotional evidence"}
-      ],
-      "motivationalStructure": [
-        {"quote": "exact quote", "explanation": "motivational evidence"},
-        {"quote": "exact quote", "explanation": "motivational evidence"}
-      ],
-      "interpersonalDynamics": [
-        {"quote": "exact quote", "explanation": "interpersonal evidence"},
-        {"quote": "exact quote", "explanation": "interpersonal evidence"}
-      ],
-      "stressResponsePattern": [
-        {"quote": "exact quote", "explanation": "stress response evidence"},
-        {"quote": "exact quote", "explanation": "stress response evidence"}
-      ]
-    }
-  },
-  "antithesis": {
-    "title": "🔄 ANTITHESIS: DISSENTING PSYCHOLOGICAL ANALYSIS",
-    "alternativeEmotionalPattern": "Alternative interpretation of emotional patterns",
-    "counterMotivationalStructure": "Alternative motivational interpretation",
-    "alternativeInterpersonalStyle": "Different interpersonal pattern interpretation",
-    "alternativeStressResponse": "Different stress response interpretation",
-    "alternativeCommunicationStyle": "Different communication style interpretation",
-    "alternativeTraits": ["alt_trait1", "alt_trait2", "alt_trait3"],
-    "methodologicalConcerns": "Concerns about analysis methodology",
-    "potentialBiases": "Potential analytical biases and overinterpretations",
-    "supportingEvidence": {
-      "alternativeEmotionalPattern": [
-        {"quote": "exact quote", "explanation": "alternative emotional evidence"},
-        {"quote": "exact quote", "explanation": "alternative emotional evidence"}
-      ],
-      "counterMotivationalStructure": [
-        {"quote": "exact quote", "explanation": "alternative motivational evidence"},
-        {"quote": "exact quote", "explanation": "alternative motivational evidence"}
-      ],
-      "alternativeInterpersonalStyle": [
-        {"quote": "exact quote", "explanation": "alternative interpersonal evidence"},
-        {"quote": "exact quote", "explanation": "alternative interpersonal evidence"}
-      ],
-      "alternativeStressResponse": [
-        {"quote": "exact quote", "explanation": "alternative stress evidence"},
-        {"quote": "exact quote", "explanation": "alternative stress evidence"}
-      ]
-    }
-  },
-  "superThesis": {
-    "title": "⚡ SUPER-THESIS: DEFENDED PSYCHOLOGICAL ASSESSMENT",
-    "strengthenedEmotionalAssessment": "Defended emotional pattern assessment",
-    "reinforcedMotivationalAnalysis": "Reinforced motivational structure analysis",
-    "validatedInterpersonalDynamics": "Validated interpersonal dynamics assessment",
-    "confirmedStressPatterns": "Confirmed stress response patterns",
-    "authenticCommunicationStyle": "Defended communication style assessment",
-    "refutationOfDissent": "Point-by-point refutation of antithesis arguments",
-    "reinforcedConclusions": "Strengthened psychological conclusions",
-    "supportingEvidence": {
-      "strengthenedEmotionalAssessment": [
-        {"quote": "exact quote", "explanation": "defensive emotional reinforcement"},
-        {"quote": "exact quote", "explanation": "defensive emotional reinforcement"}
-      ],
-      "reinforcedMotivationalAnalysis": [
-        {"quote": "exact quote", "explanation": "motivational defense"},
-        {"quote": "exact quote", "explanation": "motivational defense"}
-      ],
-      "validatedInterpersonalDynamics": [
-        {"quote": "exact quote", "explanation": "interpersonal validation"},
-        {"quote": "exact quote", "explanation": "interpersonal validation"}
-      ],
-      "confirmedStressPatterns": [
-        {"quote": "exact quote", "explanation": "stress pattern confirmation"},
-        {"quote": "exact quote", "explanation": "stress pattern confirmation"}
-      ]
-    }
-  },
-  "formalDiagnostics": {
-    "emotionalConfiguration": {
-      "dominantStyle": ["primary_emotional_style", "secondary_style"],
-      "analysis": "Deep analysis of emotional configuration patterns",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "emotional configuration evidence"},
-        {"quote": "exact quote", "explanation": "emotional configuration evidence"}
-      ]
-    },
-    "paradigmComparison": {
-      "strength": "Comparison to established psychological paradigms/types",
-      "distinguishingFeatures": "What makes this profile unique vs standard types",
-      "analysis": "Detailed paradigm comparison analysis",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "paradigm comparison evidence"},
-        {"quote": "exact quote", "explanation": "paradigm comparison evidence"}
-      ]
-    },
-    "uniquePsychologicalStrengths": {
-      "strengths": ["strength1", "strength2", "strength3"],
-      "analysis": "Analysis of distinctive psychological strengths",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "strength evidence"},
-        {"quote": "exact quote", "explanation": "strength evidence"}
-      ]
-    },
-    "uniquePsychologicalWeaknesses": {
-      "weaknesses": ["weakness1", "weakness2", "weakness3"],
-      "analysis": "Analysis of distinctive psychological vulnerabilities",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "weakness evidence"},
-        {"quote": "exact quote", "explanation": "weakness evidence"}
-      ]
-    },
-    "interpersonalSocialFit": {
-      "thriveEnvironments": ["environment1", "environment2", "environment3"],
-      "liabilityEnvironments": ["liability1", "liability2", "liability3"],
-      "analysis": "Analysis of optimal and challenging social environments",
-      "supportingEvidence": [
-        {"quote": "exact quote", "explanation": "social fit evidence"},
-        {"quote": "exact quote", "explanation": "social fit evidence"}
-      ]
-    },
-    "mostRevealingQuotation": {
-      "quote": "The single most psychologically revealing quotation from the text",
-      "analysis": "Why this quote is most revealing of psychological patterns",
-      "psychologicalSignificance": "What this reveals about core psychological architecture"
-    }
-  },
-  "emotionalPattern": "Summary emotional pattern assessment",
-  "motivationalStructure": "Summary motivational structure assessment",
-  "interpersonalDynamics": "Summary interpersonal dynamics assessment",
-  "stressResponsePattern": "Summary stress response pattern assessment",
-  "communicationStyle": "Summary communication style assessment",
-  "personalityTraits": ["overall_trait1", "overall_trait2", "overall_trait3"],
-  "emotionalIntelligence": 7,
-  "adaptability": 6,
-  "socialOrientation": 8,
-  "psychologicalSignature": "Overall psychological signature and essence"
-}`;
-
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-      max_tokens: 8000,
-    });
-
-    return JSON.parse(response.choices[0].message.content || "{}");
-  } catch (error) {
-    throw new Error("Failed to generate metapsychological profile: " + (error as Error).message);
-  }
 }
