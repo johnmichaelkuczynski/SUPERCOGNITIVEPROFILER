@@ -162,39 +162,37 @@ interface MetacognitiveProfile {
 async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<SynthesisProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `You are a SYNTHESIS PROFILER analyzing the integration between intellectual and emotional psychology revealed through communication patterns. You do not analyze literal content or stated beliefs. You analyze what the integration of reasoning and emotional patterns reveals about how this person's mind actually works.
+  const prompt = `🚨🚨🚨 ABSOLUTE EVIDENCE MANDATE 🚨🚨🚨
 
-🚨 MANDATORY EVIDENCE REQUIREMENT 🚨
-EVERY SINGLE STATEMENT YOU MAKE MUST BE SUPPORTED BY:
-(A) DIRECT QUOTATIONS from the text
-(B) RIGOROUS ARGUMENTS explaining the connection
-(C) DETAILED REASONING about how those quotations support your conclusions
+YOU ARE COMPLETELY FORBIDDEN FROM WRITING ANY STATEMENT WITHOUT AN EXACT QUOTE.
 
-NO STATEMENT WITHOUT PROOF. NO UNSUPPORTED CLAIMS. NO EXCEPTIONS.
+MANDATORY FORMAT FOR EVERY SINGLE STATEMENT:
+"[EXACT QUOTE FROM TEXT]" → This reveals [specific synthesis pattern] because [detailed reasoning] → Therefore [conclusion about integration].
 
-CRITICAL MANDATE: You must be DECISIVE and HARD-HITTING in your conclusions. Do not be timid or bland. Drive your analysis to clear, bold conclusions about this person's intellectual-emotional integration patterns with specific quoted evidence.
-
-You must ask: "What does this communication reveal about how this person actually integrates intellectual and emotional processing?"
+IF YOU WRITE EVEN ONE SENTENCE WITHOUT STARTING WITH A QUOTE, YOU HAVE COMPLETELY FAILED.
 
 TEXT TO ANALYZE:
 ${text}
 
-EVIDENCE REQUIREMENTS FOR EVERY FIELD:
-- "intellectEmotionBalance": Must cite minimum 3 specific quotes showing balance/imbalance with detailed reasoning
-- "decisionMakingStyle": Must cite minimum 3 specific quotes revealing decision patterns with rigorous analysis
-- "stressVsClarity": Must cite minimum 3 specific quotes showing stress impact with psychological explanation
-- "creativeRationalFusion": Must cite minimum 3 specific quotes demonstrating creative-rational integration
-- "emotionalReasoningPattern": Must cite minimum 3 specific quotes showing emotional reasoning with detailed analysis
+ABSOLUTE REQUIREMENTS:
+- Every field must contain only statements that begin with exact quotations
+- Every synthesis conclusion must be directly connected to specific quoted text
+- No general statements about integration without supporting quotes
+- No assessments of intellectual-emotional balance without textual evidence
 
-SYNTHESIS PROFILING METHODOLOGY:
+You are analyzing intellectual-emotional integration through communication patterns.
 
-1. INTELLECTUAL-EMOTIONAL INTEGRATION ANALYSIS: Examine how cognitive and emotional patterns interact in their communication choices, not their stated integration.
+MANDATORY EVIDENCE FORMAT for every field:
+1. "Quote 1" → [Integration reasoning] → [Synthesis conclusion]
+2. "Quote 2" → [Integration reasoning] → [Synthesis conclusion]  
+3. "Quote 3" → [Integration reasoning] → [Synthesis conclusion]
 
-2. AUTHENTIC VS. PERFORMED BALANCE: Distinguish between:
-   - Genuine intellectual-emotional integration
-   - Strategic emotional manipulation disguised as balance
-   - Performed rationality masking emotional dysfunction
-   - Authentic emotional intelligence vs. emotional manipulation
+For every synthesis assessment, you must:
+1. Start with exact quote
+2. Explain what this reveals about intellectual-emotional integration
+3. Connect it to broader synthesis pattern
+
+ABSOLUTE REQUIREMENT: Every statement about balance, decision-making, stress patterns, or emotional reasoning MUST begin with a direct quote from the text.
 
 3. DECISION-MAKING PSYCHOLOGY: Analyze what their communication reveals about:
    - How they actually process decisions (not how they claim to)
@@ -490,127 +488,42 @@ CRITICAL: ONLY return the JSON structure above. Do not include any other fields 
 
 // Generate psychological profile from text analysis
 async function generatePsychologicalProfile(text: string, isComprehensive: boolean = false): Promise<PsychologicalProfile> {
-  const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
-  
-  const prompt = `You are a psychological profiling agent. You do not perform sentiment analysis. You do not perform literal belief extraction. You do not assume that the author sincerely believes what they say.
+  const prompt = `🚨 ABSOLUTE EVIDENCE MANDATE 🚨
 
-🚨 MANDATORY EVIDENCE REQUIREMENT 🚨
-EVERY SINGLE STATEMENT YOU MAKE MUST BE SUPPORTED BY:
-(A) DIRECT QUOTATIONS from the text
-(B) RIGOROUS ARGUMENTS explaining the connection
-(C) DETAILED REASONING about how those quotations support your conclusions
+FAILURE TO FOLLOW THESE RULES = COMPLETE FAILURE:
 
-NO STATEMENT WITHOUT PROOF. NO UNSUPPORTED CLAIMS. NO EXCEPTIONS.
+1. EVERY STATEMENT MUST BEGIN WITH: "Quote: '[exact text from source]'"
+2. THEN ADD: "→ This demonstrates [pattern] because [reasoning]"
+3. THEN ADD: "→ Therefore [conclusion]"
 
-You must always ask: "What kind of person would choose to say this, in this way, in this context?"
-You must never assume that the content of an utterance reflects the author's sincere values or beliefs.
+NO EXCEPTIONS. NO GENERAL STATEMENTS. NO SUMMARIES WITHOUT QUOTES.
+
+If you write ANY sentence that doesn't start with "Quote: '[exact text]'", you have FAILED.
 
 TEXT TO ANALYZE:
 ${text}
 
-For every utterance, follow this process:
+You must analyze psychological patterns by starting EVERY analysis with direct quotes.
 
-1. SURFACE PARSING: Parse the literal meaning of the utterance.
+MANDATORY FORMAT - COPY EXACTLY:
 
-2. PLAUSIBILITY MODELING: Ask: Is this a plausible sincere expression of an ordinary person's inner state?
-   If NO → mark this utterance as performative/strategic/manipulative candidate.
-   If YES → proceed to step 3.
+emotionalPattern: "Quote: '[exact quote 1]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-3. SPEECH ACT MODELING: For each utterance, identify the most likely social function:
-   - Sincere self-report
-   - Virtue-signaling
-   - Reputation management
-   - Flattery/seduction
-   - Threat/dominance display
-   - Irony/satire
-   - Defensive posturing
-   - Identity signaling
-   - Other manipulation
+motivationalStructure: "Quote: '[exact quote 1]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-4. PROFILE INFERENCE: Only after identifying the speech function, infer personality traits.
-   CRITICALLY: if the utterance is marked performative/manipulative, then your inference should focus on the speaker's manipulativeness, social strategy, or likely psychopathic traits — not on the literal content.
+interpersonalDynamics: "Quote: '[exact quote 1]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-EVIDENCE REQUIREMENTS FOR EVERY FIELD:
-- "emotionalPattern": Must cite minimum 3 specific quotes showing emotional patterns with detailed psychological analysis
-- "motivationalStructure": Must cite minimum 3 specific quotes revealing motivations with rigorous reasoning
-- "interpersonalDynamics": Must cite minimum 3 specific quotes demonstrating relationship patterns with detailed analysis
-- "stressResponsePattern": Must cite minimum 3 specific quotes showing stress indicators with psychological explanation
-- "communicationStyle": Must cite minimum 3 specific quotes demonstrating style patterns with detailed reasoning
+stressResponsePattern: "Quote: '[exact quote 1]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-HEURISTICS TO APPLY:
-- Too good to be true → probably not true
-- Unusual moral heroism → probable signaling
-- Extreme flattening of complex values → probable signaling or manipulation
-- Statements designed to pre-empt social judgment → probable identity performance
-- Implausible flattery → probable seduction or manipulation
+communicationStyle: "Quote: '[exact quote 1]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-You are not a belief extractor. You are a profiler of speaker psychology based on how and why they speak as they do.
-You must model speech acts first, then profile.
-You must explicitly distinguish between what the person says and what kind of person says it.
+personalityTraits: ["Quote: '[exact quote]' supports trait [X] because [reasoning]", "Quote: '[exact quote]' supports trait [Y] because [reasoning]", "Quote: '[exact quote]' supports trait [Z] because [reasoning]"]
 
-Provide a ${analysisDepth} psychological profile with mandatory quotation-based evidence for every statement.
+psychologicalSignature: "Quote: '[exact quote 1]' → This demonstrates [pattern] because [reasoning] → Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore overall signature: [conclusion]"
 
-Rate the following on a 1-10 scale:
-- Emotional Intelligence: Based on manipulation sophistication and social awareness
-- Adaptability: Based on strategic flexibility in communication
-- Social Orientation: Based on actual social manipulation vs genuine connection patterns
+detailedAnalysis: "Quote: '[exact quote 1]' → This demonstrates [pattern] because [reasoning] → Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [comprehensive conclusion]"
 
-Format as JSON with this EXACT structure:
-{
-  "emotionalPattern": "analysis of actual emotional patterns behind speech choices, not content",
-  "motivationalStructure": "analysis of what actually drives this person based on speech psychology",
-  "interpersonalDynamics": "analysis of how they actually relate to others based on communication strategy",
-  "stressResponsePattern": "analysis of actual stress patterns evident in speech choices",
-  "communicationStyle": "analysis of actual communication psychology, not surface content",
-  "personalityTraits": ["actual traits based on speech psychology", "not literal content", "focus on manipulation vs authenticity"],
-  "emotionalIntelligence": number,
-  "adaptability": number,
-  "socialOrientation": number,
-  "psychologicalSignature": "actual psychological fingerprint based on speech patterns",
-  "detailedAnalysis": "comprehensive narrative focusing on psychology behind speech choices",
-  "supportingEvidence": {
-    "emotionalPattern": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "why this speech choice reveals this actual emotional pattern, not what they claim"
-      },
-      {
-        "quote": "another exact quote from text",
-        "explanation": "psychological analysis of why they chose these words - what it reveals about them"
-      }
-    ],
-    "motivationalStructure": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "what this reveals about their actual motivations behind saying this"
-      },
-      {
-        "quote": "another exact quote from text", 
-        "explanation": "detailed explanation of what this reveals about motivation"
-      }
-    ],
-    "interpersonalDynamics": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "detailed explanation of interpersonal pattern"
-      },
-      {
-        "quote": "another exact quote from text",
-        "explanation": "detailed explanation of relationship approach"
-      }
-    ],
-    "stressResponsePattern": [
-      {
-        "quote": "exact quote from text",
-        "explanation": "detailed explanation of stress response indicator"
-      },
-      {
-        "quote": "another exact quote from text",
-        "explanation": "detailed explanation of coping mechanism"
-      }
-    ]
-  }
-}`;
+Return JSON format with exact structure above.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -681,32 +594,34 @@ Format as JSON with this structure:
 export async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false): Promise<MetacognitiveProfile> {
   const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
   
-  const prompt = `You are a metacognitive analysis expert specializing in intellectual configuration assessment using dialectical analysis.
+  const prompt = `🚨🚨🚨 ABSOLUTE EVIDENCE MANDATE 🚨🚨🚨
 
-🚨 MANDATORY EVIDENCE REQUIREMENT 🚨
-EVERY SINGLE STATEMENT YOU MAKE MUST BE SUPPORTED BY:
-(A) DIRECT QUOTATIONS from the text
-(B) RIGOROUS ARGUMENTS explaining the connection
-(C) DETAILED REASONING about how those quotations support your conclusions
+YOU ARE FORBIDDEN FROM MAKING ANY STATEMENT WITHOUT:
+1. EXACT QUOTATION from the text in quotes
+2. DETAILED ARGUMENT explaining the connection  
+3. RIGOROUS REASONING chain from quote to conclusion
 
-NO STATEMENT WITHOUT PROOF. NO UNSUPPORTED CLAIMS. NO EXCEPTIONS.
+VIOLATION = IMMEDIATE FAILURE
 
-Analyze the following text with ${analysisDepth} depth to understand the author's intellectual configuration from every possible angle:
+EVERY SINGLE SENTENCE YOU WRITE MUST BEGIN WITH A QUOTE FROM THE TEXT.
+
+FORMAT: "Quote from text" → [Your argument explaining why this quote proves X] → [Further reasoning connecting quote to your conclusion]
+
+IF YOU WRITE EVEN ONE SENTENCE WITHOUT A SUPPORTING QUOTE, YOU HAVE FAILED COMPLETELY.
 
 TEXT TO ANALYZE:
 ${text}
 
-CRITICAL REQUIREMENTS:
-1. Generate THREE distinct analytical perspectives in dialectical sequence
-2. Support each contention with minimum 3 specific quotes and detailed arguments
-3. Antithesis must present the most opposed view that aligns with the data
-4. Super-Thesis must defend original position and refute antithesis with rigorous evidence
+MANDATORY FORMAT FOR EVERY FIELD:
+"Exact quote 1" → This quote demonstrates [specific reasoning] because [detailed argument] → Therefore [conclusion].
+"Exact quote 2" → This quote reveals [specific reasoning] because [detailed argument] → Therefore [conclusion].
+"Exact quote 3" → This quote shows [specific reasoning] because [detailed argument] → Therefore [conclusion].
 
-EVIDENCE REQUIREMENTS FOR EVERY FIELD:
-- Each analysis section must cite minimum 3 specific quotes with detailed reasoning
-- Supporting evidence arrays must contain minimum 3 quote-explanation pairs
-- Explanations must demonstrate clear reasoning chain from quote to conclusion
-- No general statements without specific textual support
+NO GENERAL STATEMENTS ALLOWED. NO SUMMARY STATEMENTS ALLOWED. NO CONCLUSIONS WITHOUT QUOTES.
+
+You must analyze this text using dialectical methodology with THREE perspectives, but EVERY STATEMENT in EVERY section must start with a direct quote.
+
+ABSOLUTE REQUIREMENT: Begin every analytical statement with "Quote:" followed by exact text, then "→ Analysis:" followed by your reasoning.
 
 RETURN EXACTLY THIS JSON STRUCTURE:
 {
