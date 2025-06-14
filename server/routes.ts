@@ -19,7 +19,7 @@ import { sendEmail } from './services/email';
 import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
-import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
+import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile, generateMetapsychologicalProfile } from "./services/profiling";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -2526,6 +2526,50 @@ Return only the new content without any additional comments, explanations, or he
       console.error('Error generating full comprehensive profile:', error);
       res.status(500).json({ 
         error: 'Failed to generate profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Metapsychological instant profile analysis
+  app.post('/api/profile/metapsychological-instant', async (req: Request, res: Response) => {
+    try {
+      const { inputText, userId } = req.body;
+      
+      if (!inputText || !userId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      if (inputText.length < 100) {
+        return res.status(400).json({ error: 'Text sample too short. Minimum 100 characters required.' });
+      }
+      
+      const metapsychologicalProfile = await generateMetapsychologicalProfile(inputText, userId, false);
+      res.json(metapsychologicalProfile);
+    } catch (error) {
+      console.error('Error generating instant metapsychological profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate metapsychological profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // Metapsychological comprehensive profile analysis
+  app.post('/api/profile/metapsychological-comprehensive', async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      const metapsychologicalProfile = await generateMetapsychologicalProfile('', userId, true);
+      res.json(metapsychologicalProfile);
+    } catch (error) {
+      console.error('Error generating comprehensive metapsychological profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate metapsychological profile', 
         details: error instanceof Error ? error.message : String(error) 
       });
     }

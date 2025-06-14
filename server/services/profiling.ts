@@ -46,6 +46,48 @@ interface PsychologicalProfile {
   };
 }
 
+interface MetapsychologicalProfile {
+  thesis: {
+    emotionalConfiguration: string;
+    comparisonToParadigms: string;
+    uniqueStrengths: string;
+    uniqueWeaknesses: string;
+    interpersonalSocialFit: string;
+    mostRevealingQuotation: string;
+    psychologicalPattern: string;
+    motivationalStructure: string;
+    interpersonalDynamics: string;
+    stressResponsePattern: string;
+    communicationStyle: string;
+  };
+  antithesis: {
+    alternativeEmotionalConfiguration: string;
+    counterParadigmComparison: string;
+    hiddenStrengths: string;
+    overlookedWeaknesses: string;
+    alternativeInterpersonalFit: string;
+    alternativeQuotationInterpretation: string;
+    alternativePsychologicalPattern: string;
+    alternativeMotivationalStructure: string;
+    alternativeInterpersonalDynamics: string;
+  };
+  superThesis: {
+    reinforcedEmotionalConfiguration: string;
+    definitiveParadigmComparison: string;
+    confirmedStrengths: string;
+    confirmedWeaknesses: string;
+    finalInterpersonalAssessment: string;
+    quotationSignificance: string;
+    refutationOfAntithesis: string;
+    finalPsychologicalAssessment: string;
+  };
+  overallMetapsychologicalProfile: string;
+  emotionalIntelligence: number;
+  adaptability: number;
+  socialOrientation: number;
+  personalityTraits: string[];
+}
+
 interface SynthesisProfile {
   intellectEmotionBalance: string;
   rationalEmotionalIntegration: number; // 1-10 scale
@@ -1000,4 +1042,153 @@ export async function generateFullProfile(
     psychologicalProfile,
     comprehensiveInsights
   };
+}
+
+async function getUserTextHistory(userId: number): Promise<string> {
+  const documents = await storage.getDocumentsByUserId(userId);
+  const conversations = await storage.getConversationsByUserId(userId);
+  const rewrites = await storage.getRewritesByUserId(userId);
+
+  let combinedText = '';
+  documents.forEach(doc => {
+    combinedText += `Document: ${doc.title}\n${doc.content}\n\n`;
+  });
+
+  for (const conversation of conversations) {
+    const messages = await storage.getMessagesByConversationId(conversation.id);
+    messages.forEach(msg => {
+      if (msg.role === 'user') {
+        combinedText += `User Message: ${msg.content}\n\n`;
+      }
+    });
+  }
+
+  rewrites.forEach(rewrite => {
+    combinedText += `Original: ${rewrite.originalContent}\nRewritten: ${rewrite.rewrittenContent}\n\n`;
+  });
+
+  return combinedText;
+}
+
+export async function generateMetapsychologicalProfile(
+  text: string,
+  userId?: number,
+  isComprehensive: boolean = false
+): Promise<MetapsychologicalProfile> {
+  const sourceText = isComprehensive 
+    ? await getUserTextHistory(userId || 1)
+    : text;
+
+  if (!sourceText || sourceText.trim().length < 50) {
+    throw new Error('Insufficient text for metapsychological analysis');
+  }
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: `You are an expert metapsychological profiler combining traditional psychological analysis with the six critical diagnostic components. You must provide both comprehensive psychological profiling AND the six specific diagnostic elements, all structured in Thesis/Antithesis/Super-Thesis format.
+
+CRITICAL: The Super-Thesis must REFUTE the Antithesis and DEFEND the Thesis - it does NOT synthesize them.
+
+You must analyze the text for deep psychological patterns AND provide these six diagnostic components:
+1. Emotional Configuration/Style
+2. Comparison to Paradigm Examples  
+3. Unique Strengths
+4. Unique Weaknesses
+5. Likely Interpersonal/Social Fit
+6. Most Revealing Quotation (with explanation of why it's revealing)
+
+Structure everything in the dialectical framework where:
+- THESIS presents the primary analysis
+- ANTITHESIS challenges with opposing interpretations
+- SUPER-THESIS defends the original analysis by refuting the antithesis`
+      },
+      {
+        role: "user",
+        content: `Perform complete metapsychological profiling on this text. Provide full psychological analysis PLUS the six diagnostic components in Thesis/Antithesis/Super-Thesis structure.
+
+TEXT TO ANALYZE:
+${sourceText.slice(0, 8000)}
+
+RETURN EXACTLY THIS JSON STRUCTURE:
+{
+  "thesis": {
+    "emotionalConfiguration": "Detailed analysis of emotional style, patterns, and configuration with evidence",
+    "comparisonToParadigms": "Comparison to established psychological paradigms or archetypal examples",
+    "uniqueStrengths": "Identification of distinctive psychological strengths with specific examples",
+    "uniqueWeaknesses": "Analysis of particular psychological vulnerabilities or limitations",
+    "interpersonalSocialFit": "Assessment of likely social contexts and interpersonal dynamics",
+    "mostRevealingQuotation": "Most psychologically revealing quote with detailed explanation of why",
+    "psychologicalPattern": "Overall emotional and behavioral patterns with evidence",
+    "motivationalStructure": "Core drivers, needs, and motivational framework",
+    "interpersonalDynamics": "How they relate to others, attachment style, social behavior",
+    "stressResponsePattern": "How they handle pressure, conflict, and challenging situations",
+    "communicationStyle": "Verbal and non-verbal communication patterns and preferences"
+  },
+  "antithesis": {
+    "alternativeEmotionalConfiguration": "Opposing view of their emotional setup that challenges the thesis",
+    "counterParadigmComparison": "Alternative paradigm comparisons that present different interpretation",
+    "hiddenStrengths": "Potential strengths that thesis may have overlooked or undervalued",
+    "overlookedWeaknesses": "Weaknesses that the thesis analysis may have missed",
+    "alternativeInterpersonalFit": "Different social contexts where they might struggle or thrive",
+    "alternativeQuotationInterpretation": "Different interpretation of the same quote or different revealing quote",
+    "alternativePsychologicalPattern": "Opposing interpretation of psychological patterns",
+    "alternativeMotivationalStructure": "Different view of core motivations and drivers",
+    "alternativeInterpersonalDynamics": "Alternative interpretation of relationship patterns"
+  },
+  "superThesis": {
+    "reinforcedEmotionalConfiguration": "Strengthened analysis defending original emotional assessment",
+    "definitiveParadigmComparison": "Reinforced paradigm comparison that refutes antithesis",
+    "confirmedStrengths": "Validated strengths analysis that addresses antithesis challenges",
+    "confirmedWeaknesses": "Confirmed weaknesses that refute alternative interpretations",
+    "finalInterpersonalAssessment": "Definitive interpersonal fit analysis defending original thesis",
+    "quotationSignificance": "Final defense of why the chosen quotation is most revealing",
+    "refutationOfAntithesis": "Point-by-point refutation of antithesis arguments with evidence",
+    "finalPsychologicalAssessment": "Comprehensive defense of psychological pattern analysis"
+  },
+  "overallMetapsychologicalProfile": "Comprehensive summary integrating all analyses",
+  "emotionalIntelligence": 7,
+  "adaptability": 6,
+  "socialOrientation": 5,
+  "personalityTraits": ["trait1", "trait2", "trait3"]
+}`
+      }
+    ],
+    temperature: 0.7,
+    max_tokens: 4000
+  });
+
+  const result = completion.choices[0].message?.content;
+  if (!result) {
+    throw new Error('Failed to generate metapsychological profile');
+  }
+
+  try {
+    const parsedResult = JSON.parse(result);
+    
+    // Save the profile
+    const analysisType = isComprehensive ? 'comprehensive' : 'instant';
+    const inputText = isComprehensive ? null : text;
+    
+    await storage.createProfile({
+      userId: userId || 1,
+      profileType: 'metapsychological',
+      analysisType,
+      inputText,
+      results: parsedResult as any,
+      metadata: JSON.stringify({ 
+        textLength: sourceText.length,
+        generatedAt: new Date().toISOString(),
+        includesSixComponents: true,
+        dialecticalStructure: true
+      })
+    });
+    
+    return parsedResult;
+  } catch (error) {
+    console.error('Error parsing metapsychological profile result:', error);
+    throw new Error('Failed to parse metapsychological profile response');
+  }
 }
