@@ -1704,71 +1704,144 @@ Return only the rewritten text without any additional comments, explanations, or
     }
   });
 
-  // PDF Generation route with proper math notation support
-  app.post('/api/generate-pdf', async (req: Request, res: Response) => {
+  // BRAND NEW Print-Save-As-PDF function 
+  app.post('/api/print-pdf', async (req: Request, res: Response) => {
     try {
       const { results, documentName } = req.body;
       
       if (!results || !Array.isArray(results)) {
-        return res.status(400).json({ error: 'Invalid results data' });
+        return res.status(400).json({ error: 'Results required' });
       }
 
-      const PDFDocument = require('pdfkit');
-      const doc = new PDFDocument();
-      
-      // Set response headers for PDF download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${documentName || 'rewritten'}-document.pdf"`);
-      
-      // Pipe the PDF to the response
-      doc.pipe(res);
-      
-      // Add title
-      doc.fontSize(20).text(`Rewritten Document: ${documentName || 'Untitled'}`, {
-        align: 'center'
-      });
-      
-      doc.moveDown(2);
-      
-      // Process each result
-      results.forEach((result: any, index: number) => {
-        if (index > 0) {
-          doc.addPage();
+      // Create perfectly formatted HTML for browser printing/PDF saving
+      let htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${documentName || 'Document'}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Times New Roman', serif; 
+            font-size: 12pt; 
+            line-height: 1.5; 
+            margin: 0;
+            padding: 20px;
+            color: #000;
+            background: white;
         }
+        .document-title { 
+            text-align: center; 
+            font-size: 18pt; 
+            font-weight: bold;
+            margin-bottom: 30px;
+            page-break-after: avoid;
+        }
+        .section { 
+            margin-bottom: 25px; 
+            page-break-inside: avoid;
+        }
+        .section-title { 
+            font-size: 14pt; 
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            page-break-after: avoid;
+        }
+        .content { 
+            text-align: justify; 
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .math-inline { 
+            font-style: italic; 
+            background: #f8f8f8; 
+            padding: 1px 3px;
+            border-radius: 2px;
+            border: 1px solid #e0e0e0;
+        }
+        .math-block { 
+            font-style: italic; 
+            background: #f5f5f5; 
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .section { break-inside: avoid; }
+            @page { margin: 15mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="document-title">${documentName || 'Rewritten Document'}</div>`;
+
+      // Process each section with proper math notation
+      results.forEach((result: any, index: number) => {
+        let content = result.rewrittenContent || '';
         
-        // Add chunk title
-        doc.fontSize(16).text(`Section ${index + 1}: ${result.originalChunk.title}`, {
-          underline: true
-        });
-        
-        doc.moveDown();
-        
-        // Add rewritten content with basic math notation handling
-        let content = result.rewrittenContent;
-        
-        // Simple LaTeX to text conversion for PDF
+        // Convert math notation to properly formatted HTML
         content = content
-          .replace(/\$\$([^$]+)\$\$/g, '[EQUATION: $1]')
-          .replace(/\$([^$]+)\$/g, '[MATH: $1]')
-          .replace(/\\([a-zA-Z]+)/g, '$1')
+          // LaTeX display equations
+          .replace(/\$\$([^$]+)\$\$/g, '<div class="math-block">$1</div>')
+          // LaTeX inline math
+          .replace(/\$([^$]+)\$/g, '<span class="math-inline">$1</span>')
+          // Common mathematical symbols and functions
+          .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-inline">($1)/($2)</span>')
+          .replace(/\\sqrt\{([^}]+)\}/g, '<span class="math-inline">√($1)</span>')
+          .replace(/\\sum_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">Σ<sub>$1</sub><sup>$2</sup></span>')
+          .replace(/\\sum/g, '<span class="math-inline">Σ</span>')
+          .replace(/\\int_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">∫<sub>$1</sub><sup>$2</sup></span>')
+          .replace(/\\int/g, '<span class="math-inline">∫</span>')
+          .replace(/\\infty/g, '<span class="math-inline">∞</span>')
+          .replace(/\\pi/g, '<span class="math-inline">π</span>')
+          .replace(/\\alpha/g, '<span class="math-inline">α</span>')
+          .replace(/\\beta/g, '<span class="math-inline">β</span>')
+          .replace(/\\gamma/g, '<span class="math-inline">γ</span>')
+          .replace(/\\delta/g, '<span class="math-inline">δ</span>')
+          .replace(/\\epsilon/g, '<span class="math-inline">ε</span>')
+          .replace(/\\theta/g, '<span class="math-inline">θ</span>')
+          .replace(/\\lambda/g, '<span class="math-inline">λ</span>')
+          .replace(/\\mu/g, '<span class="math-inline">μ</span>')
+          .replace(/\\sigma/g, '<span class="math-inline">σ</span>')
+          .replace(/\\omega/g, '<span class="math-inline">ω</span>')
+          .replace(/\\Omega/g, '<span class="math-inline">Ω</span>')
+          // Subscripts and superscripts
+          .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
+          .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
+          .replace(/_([0-9a-zA-Z])/g, '<sub>$1</sub>')
+          .replace(/\^([0-9a-zA-Z])/g, '<sup>$1</sup>')
+          // Clean up LaTeX commands
+          .replace(/\\text\{([^}]+)\}/g, '$1')
+          .replace(/\\\\/g, '<br>')
           .replace(/\{([^}]+)\}/g, '$1')
-          .replace(/\^([0-9]+)/g, '^$1')
-          .replace(/_([0-9]+)/g, '_$1');
-        
-        doc.fontSize(12).text(content, {
-          align: 'justify',
-          lineGap: 5
-        });
-        
-        doc.moveDown(2);
+          .replace(/\\\w+\s*/g, '')
+          // Convert markdown formatting
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/\n\n+/g, '</p><p class="content">')
+          .replace(/\n/g, '<br>');
+
+        htmlContent += `
+    <div class="section">
+        <div class="section-title">Section ${index + 1}: ${result.originalChunk.title}</div>
+        <p class="content">${content}</p>
+    </div>`;
       });
-      
-      // Finalize the PDF
-      doc.end();
-      
+
+      htmlContent += `
+</body>
+</html>`;
+
+      // Return HTML for browser's native print/save as PDF
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(htmlContent);
+
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      res.status(500).json({ error: 'Failed to generate PDF' });
+      console.error('Print PDF error:', error);
+      res.status(500).json({ error: 'Print function failed' });
     }
   });
 

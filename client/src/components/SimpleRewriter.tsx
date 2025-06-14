@@ -268,38 +268,46 @@ export default function SimpleRewriter({
     if (rewriteResults.length === 0) return;
 
     try {
-      const response = await fetch('/api/generate-pdf', {
+      const response = await fetch('/api/print-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           results: rewriteResults,
-          documentName: documentName
+          documentName: currentDocumentName
         })
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${documentName}-rewritten.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        const htmlContent = await response.text();
         
-        toast({
-          title: "PDF Generated",
-          description: "Your document has been saved as PDF with proper formatting"
-        });
+        // Open formatted HTML in new window for printing/saving as PDF
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(htmlContent);
+          printWindow.document.close();
+          
+          // Trigger print dialog after content loads
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.print();
+            }, 500);
+          };
+          
+          toast({
+            title: "Print Ready",
+            description: "Document opened in new window. Use Print > Save as PDF."
+          });
+        } else {
+          throw new Error('Could not open print window');
+        }
       } else {
-        throw new Error('Failed to generate PDF');
+        throw new Error('Failed to generate print format');
       }
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Print error:', error);
       toast({
-        title: "PDF Generation Failed",
-        description: "Could not generate PDF. Please try the Download DOCX option instead.",
+        title: "Print Failed",
+        description: "Please allow popups and try again.",
         variant: "destructive"
       });
     }
