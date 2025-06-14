@@ -1492,13 +1492,13 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
       }
       
       // AGGRESSIVELY STRIP ALL MARKDOWN FORMATTING FROM AI OUTPUT
+      console.log('Before markdown stripping:', result.substring(0, 200));
+      
       result = result
-        .replace(/^#{1,6}\s*/gm, '')              // Remove # headers
-        .replace(/\*\*([^*\n]+)\*\*/g, '$1')     // Remove **bold**
-        .replace(/\*([^*\n]+)\*/g, '$1')         // Remove *italic*
-        .replace(/__([^_\n]+)__/g, '$1')         // Remove __text__
-        .replace(/_([^_\n]+)_/g, '$1')           // Remove _text_
-        .replace(/`([^`\n]+)`/g, '$1')           // Remove `code`
+        .replace(/#{1,6}\s*/g, '')               // Remove ALL # headers
+        .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1') // Remove * and ** formatting
+        .replace(/_{1,2}([^_]+)_{1,2}/g, '$1')   // Remove _ and __ formatting
+        .replace(/`([^`]+)`/g, '$1')             // Remove `code`
         .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
         .replace(/^\s*[-*+]\s+/gm, '')           // Remove bullet points
         .replace(/^\s*\d+\.\s+/gm, '')           // Remove numbered lists
