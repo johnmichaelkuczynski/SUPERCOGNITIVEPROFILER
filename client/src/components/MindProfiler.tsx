@@ -2606,7 +2606,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-red-100">
                         <h5 className="font-semibold text-red-700 mb-3 text-lg">Overlooked Weaknesses</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.antithesis.overlookedWeaknesses}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.antithesis.overlookedWeaknesses === 'string' 
+                              ? results.antithesis.overlookedWeaknesses 
+                              : (typeof results.antithesis.overlookedWeaknesses === 'object' && results.antithesis.overlookedWeaknesses?.analysis 
+                                ? results.antithesis.overlookedWeaknesses.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2615,7 +2621,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-red-100">
                         <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Interpersonal Fit</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.antithesis.alternativeInterpersonalFit}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.antithesis.alternativeInterpersonalFit === 'string' 
+                              ? results.antithesis.alternativeInterpersonalFit 
+                              : (typeof results.antithesis.alternativeInterpersonalFit === 'object' && results.antithesis.alternativeInterpersonalFit?.analysis 
+                                ? results.antithesis.alternativeInterpersonalFit.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2627,7 +2639,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           Alternative Quotation Interpretation
                         </h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.antithesis.alternativeQuotationInterpretation}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.antithesis.alternativeQuotationInterpretation === 'string' 
+                              ? results.antithesis.alternativeQuotationInterpretation 
+                              : (typeof results.antithesis.alternativeQuotationInterpretation === 'object' && results.antithesis.alternativeQuotationInterpretation?.analysis 
+                                ? results.antithesis.alternativeQuotationInterpretation.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2646,7 +2664,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-blue-100">
                         <h5 className="font-semibold text-blue-700 mb-3 text-lg">Reinforced Emotional Configuration</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.reinforcedEmotionalConfiguration}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.reinforcedEmotionalConfiguration === 'string' 
+                              ? results.superThesis.reinforcedEmotionalConfiguration 
+                              : (typeof results.superThesis.reinforcedEmotionalConfiguration === 'object' && results.superThesis.reinforcedEmotionalConfiguration?.analysis 
+                                ? results.superThesis.reinforcedEmotionalConfiguration.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2655,7 +2679,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-blue-100">
                         <h5 className="font-semibold text-blue-700 mb-3 text-lg">Definitive Paradigm Comparison</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.definitiveParadigmComparison}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.definitiveParadigmComparison === 'string' 
+                              ? results.superThesis.definitiveParadigmComparison 
+                              : (typeof results.superThesis.definitiveParadigmComparison === 'object' && results.superThesis.definitiveParadigmComparison?.analysis 
+                                ? results.superThesis.definitiveParadigmComparison.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2664,7 +2694,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-blue-100">
                         <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Strengths</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.confirmedStrengths}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.confirmedStrengths === 'string' 
+                              ? results.superThesis.confirmedStrengths 
+                              : (typeof results.superThesis.confirmedStrengths === 'object' && results.superThesis.confirmedStrengths?.analysis 
+                                ? results.superThesis.confirmedStrengths.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2673,7 +2709,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-blue-100">
                         <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Weaknesses</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.confirmedWeaknesses}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.confirmedWeaknesses === 'string' 
+                              ? results.superThesis.confirmedWeaknesses 
+                              : (typeof results.superThesis.confirmedWeaknesses === 'object' && results.superThesis.confirmedWeaknesses?.analysis 
+                                ? results.superThesis.confirmedWeaknesses.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2682,7 +2724,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-blue-100">
                         <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Interpersonal Assessment</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.superThesis.finalInterpersonalAssessment}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.superThesis.finalInterpersonalAssessment === 'string' 
+                              ? results.superThesis.finalInterpersonalAssessment 
+                              : (typeof results.superThesis.finalInterpersonalAssessment === 'object' && results.superThesis.finalInterpersonalAssessment?.analysis 
+                                ? results.superThesis.finalInterpersonalAssessment.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
