@@ -1512,16 +1512,18 @@ Return only the rewritten text without any additional comments, explanations, or
         res.send(buffer);
       } else if (format === 'pdf') {
         try {
-          // Generate PDF using PDFKit with larger page size
+          // Generate PDF using PDFKit with larger page size and better formatting
           const PDFDocument = await import('pdfkit');
           const doc = new PDFDocument.default({
-            size: 'A4',
+            size: 'LETTER',
             margins: {
-              top: 50,
-              bottom: 50,
-              left: 50,
-              right: 50
-            }
+              top: 72,
+              bottom: 72,
+              left: 72,
+              right: 72
+            },
+            bufferPages: true,
+            font: 'Helvetica'
           });
           
           // Create a buffer to store PDF
@@ -1557,32 +1559,66 @@ Return only the rewritten text without any additional comments, explanations, or
             }
           });
           
-          // Add content to PDF with proper font settings
-          doc.font('Helvetica');
-          doc.fontSize(12);
+          // Add title page with large, readable text
+          doc.fontSize(28).font('Helvetica-Bold');
+          doc.text('Mind Profile Analysis', { align: 'center' });
+          doc.moveDown(1);
           
-          // Further sanitize content for PDF - remove all HTML/markdown formatting
-          const sanitizedContent = processedContent
-            .replace(/<[^>]+>/g, '')           // Remove HTML tags
-            .replace(/&[a-z]+;/gi, '')         // Remove HTML entities
-            .replace(/[^\x00-\x7F]/g, (char) => { // Handle non-ASCII safely
-              // Keep common math symbols, replace others
-              const safeChars = '∫∑∏√±×÷≤≥≠≈∞∂θπαβγδεζηκλμνξρστφχψω';
-              return safeChars.includes(char) ? char : '';
-            })
-            .trim();
+          doc.fontSize(16).font('Helvetica');
+          doc.text(`Profile Type: ${req.body.profileType || 'Cognitive'}`, { align: 'center' });
+          doc.text(`Generated: ${new Date().toLocaleDateString()}`, { align: 'center' });
+          doc.moveDown(3);
           
-          // Add content to PDF with proper line breaks
-          const paragraphs = sanitizedContent.split('\n\n');
-          for (let i = 0; i < paragraphs.length; i++) {
-            const paragraph = paragraphs[i] || ' ';
-            doc.text(paragraph, {
-              align: 'left',
-              continued: false
-            });
+          // Set up main content with large, readable formatting
+          doc.fontSize(14).font('Helvetica');
+          
+          // Process content with better formatting
+          const lines = processedContent.split('\n').filter(line => line.trim());
+          
+          for (const line of lines) {
+            const trimmedLine = line.trim();
             
-            if (i < paragraphs.length - 1) {
-              doc.moveDown();
+            if (!trimmedLine) {
+              doc.moveDown(0.5);
+              continue;
+            }
+            
+            // Check if we need a new page
+            if (doc.y > 700) {
+              doc.addPage();
+            }
+            
+            // Format different types of content
+            if (trimmedLine.includes('##') || trimmedLine.includes('#')) {
+              // Headers - make them big and bold
+              doc.fontSize(18).font('Helvetica-Bold');
+              const headerText = trimmedLine.replace(/#+\s*/, '');
+              doc.text(headerText, { width: 450, lineGap: 4 });
+              doc.moveDown(1);
+              doc.fontSize(14).font('Helvetica');
+            } else if (trimmedLine.includes('**')) {
+              // Bold sections
+              doc.fontSize(14).font('Helvetica-Bold');
+              const boldText = trimmedLine.replace(/\*\*/g, '');
+              doc.text(boldText, { width: 450, lineGap: 3 });
+              doc.moveDown(0.5);
+              doc.font('Helvetica');
+            } else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) {
+              // Bullet points
+              const bulletText = trimmedLine.replace(/^[-•]\s*/, '');
+              doc.text(`• ${bulletText}`, { width: 430, indent: 20, lineGap: 2 });
+              doc.moveDown(0.3);
+            } else if (trimmedLine.includes('Quote:') || trimmedLine.includes('"')) {
+              // Quotes - make them stand out
+              doc.fontSize(13).font('Helvetica-Oblique');
+              doc.text(trimmedLine, { width: 430, indent: 30, lineGap: 3 });
+              doc.moveDown(0.5);
+              doc.fontSize(14).font('Helvetica');
+            } else {
+              // Regular paragraphs with good spacing
+              doc.fontSize(14).font('Helvetica');
+              doc.text(trimmedLine, { width: 450, lineGap: 3 });
+              doc.moveDown(0.8);
             }
           }
           

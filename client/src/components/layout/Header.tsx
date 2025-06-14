@@ -21,7 +21,7 @@ export default function Header({ currentPath }: HeaderProps) {
   ];
 
   // Get user data from localStorage or use default
-  const [user, setUser] = React.useState(() => {
+  const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
@@ -37,7 +37,7 @@ export default function Header({ currentPath }: HeaderProps) {
   });
   
   // Update user data if it changes
-  React.useEffect(() => {
+  useEffect(() => {
     const handleUserUpdate = () => {
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
