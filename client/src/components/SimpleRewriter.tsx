@@ -207,227 +207,45 @@ export default function SimpleRewriter({
     }
   };
 
-  const printToPdf = () => {
+  const printToPdf = async () => {
     if (rewriteResults.length === 0) return;
 
-    // Create a new window with properly formatted content
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
+    try {
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          results: rewriteResults,
+          documentName: documentName
+        })
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${documentName}-rewritten.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: "PDF Generated",
+          description: "Your document has been saved as PDF with proper formatting"
+        });
+      } else {
+        throw new Error('Failed to generate PDF');
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
       toast({
-        title: "Print Failed",
-        description: "Please allow pop-ups to use the print function",
+        title: "PDF Generation Failed",
+        description: "Could not generate PDF. Please try the Download DOCX option instead.",
         variant: "destructive"
       });
-      return;
     }
-
-    // Process content through markdown and format properly
-    const processContent = (content: string) => {
-      // Clean and format the content
-      let processed = content
-        // Remove excessive whitespace and normalize line breaks
-        .replace(/\r\n/g, '\n')
-        .replace(/\r/g, '\n')
-        .trim()
-        
-        // Headers
-        .replace(/^#{6}\s+(.+)$/gm, '<h6>$1</h6>')
-        .replace(/^#{5}\s+(.+)$/gm, '<h5>$1</h5>')
-        .replace(/^#{4}\s+(.+)$/gm, '<h4>$1</h4>')
-        .replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>')
-        .replace(/^#{2}\s+(.+)$/gm, '<h2>$1</h2>')
-        .replace(/^#{1}\s+(.+)$/gm, '<h1>$1</h1>')
-        
-        // Bold and italic
-        .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>')
-        
-        // Math delimiters for KaTeX - preserve existing LaTeX format
-        .replace(/\\\[([^\\]+)\\\]/g, '\\[$1\\]')
-        .replace(/\\\(([^\\]+)\\\)/g, '\\($1\\)')
-        .replace(/\$\$([^$]+)\$\$/g, '\\[$1\\]')
-        .replace(/\$([^$]+)\$/g, '\\($1\\)')
-        
-        // Convert double line breaks to paragraph breaks
-        .replace(/\n\s*\n/g, '</p>\n\n<p>')
-        
-        // Convert single line breaks to space (for proper text flow)
-        .replace(/\n/g, ' ')
-        
-        // Clean up extra spaces
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      // Wrap in paragraph tags if not already wrapped
-      if (!processed.startsWith('<') && processed.length > 0) {
-        processed = `<p>${processed}</p>`;
-      } else if (processed.includes('</p>')) {
-        processed = `<p>${processed}</p>`;
-      }
-      
-      return processed;
-    };
-
-    // Combine all rewritten content with proper formatting
-    const combinedContent = rewriteResults.map(result => 
-      `<div class="section">
-        <h2>${result.originalChunk.title}</h2>
-        <div class="content">${processContent(result.rewrittenContent)}</div>
-      </div>`
-    ).join('');
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${documentName} - Rewritten</title>
-          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-          <style>
-            * {
-              box-sizing: border-box;
-            }
-            body {
-              font-family: 'Times New Roman', serif;
-              line-height: 1.6;
-              max-width: 210mm;
-              margin: 0 auto;
-              padding: 20mm;
-              color: #333;
-              word-wrap: break-word;
-              overflow-wrap: break-word;
-            }
-            h1 {
-              text-align: center;
-              border-bottom: 2px solid #333;
-              padding-bottom: 20px;
-              margin-bottom: 40px;
-              font-size: 24px;
-              font-weight: bold;
-            }
-            h2 {
-              color: #2563eb;
-              margin-top: 30px;
-              margin-bottom: 15px;
-              border-bottom: 1px solid #e5e7eb;
-              padding-bottom: 8px;
-              font-size: 20px;
-              font-weight: bold;
-            }
-            h3 {
-              color: #374151;
-              margin-top: 25px;
-              margin-bottom: 12px;
-              font-size: 18px;
-              font-weight: bold;
-            }
-            h4, h5, h6 {
-              color: #4b5563;
-              margin-top: 20px;
-              margin-bottom: 10px;
-              font-weight: bold;
-            }
-            p {
-              margin-bottom: 16px;
-              text-align: justify;
-              text-indent: 1.5em;
-              hyphens: auto;
-              word-break: break-word;
-            }
-            .section {
-              margin-bottom: 40px;
-              page-break-inside: avoid;
-            }
-            .content {
-              text-align: justify;
-            }
-            .content p:first-child {
-              text-indent: 0;
-            }
-            strong {
-              font-weight: bold;
-            }
-            em {
-              font-style: italic;
-            }
-            .katex {
-              font-size: 1.1em;
-            }
-            br {
-              line-height: 1.6;
-            }
-            @media print {
-              body { 
-                margin: 0; 
-                padding: 15mm; 
-                max-width: none;
-                width: 210mm;
-              }
-              .section { 
-                page-break-inside: avoid;
-                orphans: 3;
-                widows: 3;
-              }
-              h1, h2, h3, h4, h5, h6 {
-                page-break-after: avoid;
-              }
-              p {
-                orphans: 3;
-                widows: 3;
-              }
-            }
-            @page {
-              size: A4;
-              margin: 15mm;
-            }
-          </style>
-          <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-          <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
-        </head>
-        <body>
-          <h1>${documentName} - Rewritten</h1>
-          ${combinedContent}
-          <script>
-            function waitForKaTeX() {
-              if (typeof katex !== 'undefined' && typeof renderMathInElement !== 'undefined') {
-                try {
-                  renderMathInElement(document.body, {
-                    delimiters: [
-                      {left: "\\\\[", right: "\\\\]", display: true},
-                      {left: "\\\\(", right: "\\\\)", display: false},
-                      {left: "$$", right: "$$", display: true},
-                      {left: "$", right: "$", display: false}
-                    ],
-                    throwOnError: false,
-                    errorColor: '#cc0000',
-                    strict: false
-                  });
-                  console.log('KaTeX rendering completed');
-                  setTimeout(() => {
-                    console.log('Opening print dialog');
-                    window.print();
-                  }, 2000);
-                } catch (error) {
-                  console.error('KaTeX rendering error:', error);
-                  setTimeout(() => window.print(), 1000);
-                }
-              } else {
-                console.log('Waiting for KaTeX to load...');
-                setTimeout(waitForKaTeX, 100);
-              }
-            }
-            
-            document.addEventListener("DOMContentLoaded", function() {
-              console.log('DOM loaded, starting KaTeX check');
-              waitForKaTeX();
-            });
-          </script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
   };
 
   const shareRewrite = async () => {
