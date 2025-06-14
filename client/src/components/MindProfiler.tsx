@@ -1952,45 +1952,103 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   Metacognitive Analysis
                 </h3>
 
-                {/* Handle new dialecticalStructure format */}
-                {results.dialecticalStructure && (
+                {/* Handle current API format with thesis.claim and evidence */}
+                {results.thesis && (
                   <div className="space-y-6">
                     {/* Thesis Section */}
-                    {results.dialecticalStructure.thesis && (
-                      <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
-                        <h4 className="font-bold text-green-900 mb-4 text-lg flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5" />
-                          THESIS
-                        </h4>
-                        <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.dialecticalStructure.thesis.analysis}</ReactMarkdown>
+                    <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
+                      <h4 className="font-bold text-green-900 mb-4 text-lg flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5" />
+                        THESIS
+                      </h4>
+                      {results.thesis.claim && (
+                        <div className="mb-4 p-4 bg-white rounded-lg border border-green-100">
+                          <h5 className="font-semibold text-green-800 mb-2">Primary Claim</h5>
+                          <div className="text-gray-700 leading-relaxed">
+                            <ReactMarkdown>{results.thesis.claim}</ReactMarkdown>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {results.thesis.evidence && results.thesis.evidence.length > 0 && (
+                        <div className="space-y-3">
+                          <h5 className="font-semibold text-green-800 mb-2">Supporting Evidence</h5>
+                          {results.thesis.evidence.map((item: any, index: number) => (
+                            <div key={index} className="p-3 bg-white rounded-lg border border-green-100">
+                              <div className="mb-2 text-sm font-medium text-green-700">
+                                Quote: "{item.quote}"
+                              </div>
+                              <div className="text-gray-700 text-sm leading-relaxed">
+                                <ReactMarkdown>{item.analysis}</ReactMarkdown>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Antithesis Section */}
-                    {results.dialecticalStructure.antithesis && (
+                    {results.antithesis && (
                       <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
                         <h4 className="font-bold text-red-900 mb-4 text-lg flex items-center gap-2">
                           <XCircle className="h-5 w-5" />
                           ANTITHESIS
                         </h4>
-                        <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.dialecticalStructure.antithesis.analysis}</ReactMarkdown>
-                        </div>
+                        {results.antithesis.claim && (
+                          <div className="mb-4 p-4 bg-white rounded-lg border border-red-100">
+                            <h5 className="font-semibold text-red-800 mb-2">Counter Claim</h5>
+                            <div className="text-gray-700 leading-relaxed">
+                              <ReactMarkdown>{results.antithesis.claim}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+                        {results.antithesis.evidence && results.antithesis.evidence.length > 0 && (
+                          <div className="space-y-3">
+                            <h5 className="font-semibold text-red-800 mb-2">Supporting Evidence</h5>
+                            {results.antithesis.evidence.map((item: any, index: number) => (
+                              <div key={index} className="p-3 bg-white rounded-lg border border-red-100">
+                                <div className="mb-2 text-sm font-medium text-red-700">
+                                  Quote: "{item.quote}"
+                                </div>
+                                <div className="text-gray-700 text-sm leading-relaxed">
+                                  <ReactMarkdown>{item.analysis}</ReactMarkdown>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {/* Super-Thesis Section */}
-                    {results.dialecticalStructure.superThesis && (
+                    {results.superThesis && (
                       <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
                         <h4 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
                           <CheckCircle className="h-5 w-5" />
                           SUPER-THESIS
                         </h4>
-                        <div className="text-gray-700 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.dialecticalStructure.superThesis.analysis}</ReactMarkdown>
-                        </div>
+                        {results.superThesis.claim && (
+                          <div className="mb-4 p-4 bg-white rounded-lg border border-blue-100">
+                            <h5 className="font-semibold text-blue-800 mb-2">Synthesis Claim</h5>
+                            <div className="text-gray-700 leading-relaxed">
+                              <ReactMarkdown>{results.superThesis.claim}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+                        {results.superThesis.evidence && results.superThesis.evidence.length > 0 && (
+                          <div className="space-y-3">
+                            <h5 className="font-semibold text-blue-800 mb-2">Supporting Evidence</h5>
+                            {results.superThesis.evidence.map((item: any, index: number) => (
+                              <div key={index} className="p-3 bg-white rounded-lg border border-blue-100">
+                                <div className="mb-2 text-sm font-medium text-blue-700">
+                                  Quote: "{item.quote}"
+                                </div>
+                                <div className="text-gray-700 text-sm leading-relaxed">
+                                  <ReactMarkdown>{item.analysis}</ReactMarkdown>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
