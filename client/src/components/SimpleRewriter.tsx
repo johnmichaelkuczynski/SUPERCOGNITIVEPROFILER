@@ -39,13 +39,70 @@ export default function SimpleRewriter({
   const [isLoading, setIsLoading] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [rewriteResults, setRewriteResults] = useState<any[]>([]);
+  const [availableDocuments, setAvailableDocuments] = useState<any[]>([]);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string>(documentId || '');
+  const [currentDocumentName, setCurrentDocumentName] = useState<string>(documentName || '');
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen && documentId) {
-      loadChunks();
+    if (isOpen) {
+      loadAvailableDocuments();
+      if (documentId) {
+        loadChunks();
+      }
     }
   }, [isOpen, documentId]);
+
+  useEffect(() => {
+    if (selectedDocumentId && selectedDocumentId !== documentId) {
+      loadChunksForDocument(selectedDocumentId);
+    }
+  }, [selectedDocumentId]);
+
+  const loadAvailableDocuments = async () => {
+    try {
+      const response = await fetch('/api/documents');
+      if (response.ok) {
+        const documents = await response.json();
+        setAvailableDocuments(documents);
+      }
+    } catch (error) {
+      console.error('Error loading documents:', error);
+    }
+  };
+
+  const loadChunksForDocument = async (docId: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/documents/chunk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: docId })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setChunks(data);
+        setSelectedChunks(new Set());
+        setRewriteResults([]);
+        
+        // Get document name
+        const doc = availableDocuments.find(d => d.id === docId);
+        if (doc) {
+          setCurrentDocumentName(doc.title);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chunks:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load document chunks",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const loadChunks = async () => {
     setIsLoading(true);
