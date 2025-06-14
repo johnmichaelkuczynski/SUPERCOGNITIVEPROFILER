@@ -1112,41 +1112,108 @@ Structure everything in the dialectical framework where:
 TEXT TO ANALYZE:
 ${sourceText.slice(0, 8000)}
 
-RETURN EXACTLY THIS JSON STRUCTURE:
+RETURN EXACTLY THIS JSON STRUCTURE WITH SUPPORTING QUOTES AND EXPLANATIONS:
 {
   "thesis": {
-    "emotionalConfiguration": "Detailed analysis of emotional style, patterns, and configuration with evidence",
-    "comparisonToParadigms": "Comparison to established psychological paradigms or archetypal examples",
-    "uniqueStrengths": "Identification of distinctive psychological strengths with specific examples",
-    "uniqueWeaknesses": "Analysis of particular psychological vulnerabilities or limitations",
-    "interpersonalSocialFit": "Assessment of likely social contexts and interpersonal dynamics",
-    "mostRevealingQuotation": "Most psychologically revealing quote with detailed explanation of why",
-    "psychologicalPattern": "Overall emotional and behavioral patterns with evidence",
-    "motivationalStructure": "Core drivers, needs, and motivational framework",
-    "interpersonalDynamics": "How they relate to others, attachment style, social behavior",
-    "stressResponsePattern": "How they handle pressure, conflict, and challenging situations",
-    "communicationStyle": "Verbal and non-verbal communication patterns and preferences"
+    "emotionalConfiguration": {
+      "analysis": "Detailed analysis of emotional style, patterns, and configuration",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Detailed explanation of why these quotes support this emotional configuration analysis"
+    },
+    "comparisonToParadigms": {
+      "analysis": "Comparison to established psychological paradigms or archetypal examples",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Why these quotes demonstrate the paradigm comparison"
+    },
+    "uniqueStrengths": {
+      "analysis": "Identification of distinctive psychological strengths",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "How these quotes reveal the identified strengths"
+    },
+    "uniqueWeaknesses": {
+      "analysis": "Analysis of particular psychological vulnerabilities or limitations",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Why these quotes indicate the weaknesses"
+    },
+    "interpersonalSocialFit": {
+      "analysis": "Assessment of likely social contexts and interpersonal dynamics",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "How these quotes predict interpersonal behavior"
+    },
+    "mostRevealingQuotation": {
+      "analysis": "Most psychologically revealing quote with comprehensive interpretation",
+      "supportingQuotes": ["the single most revealing quote"],
+      "explanation": "Detailed psychological analysis of why this quote is most revealing"
+    }
   },
   "antithesis": {
-    "alternativeEmotionalConfiguration": "Opposing view of their emotional setup that challenges the thesis",
-    "counterParadigmComparison": "Alternative paradigm comparisons that present different interpretation",
-    "hiddenStrengths": "Potential strengths that thesis may have overlooked or undervalued",
-    "overlookedWeaknesses": "Weaknesses that the thesis analysis may have missed",
-    "alternativeInterpersonalFit": "Different social contexts where they might struggle or thrive",
-    "alternativeQuotationInterpretation": "Different interpretation of the same quote or different revealing quote",
-    "alternativePsychologicalPattern": "Opposing interpretation of psychological patterns",
-    "alternativeMotivationalStructure": "Different view of core motivations and drivers",
-    "alternativeInterpersonalDynamics": "Alternative interpretation of relationship patterns"
+    "alternativeEmotionalConfiguration": {
+      "analysis": "Opposing view of their emotional setup that challenges the thesis",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Why these quotes suggest an alternative emotional configuration"
+    },
+    "counterParadigmComparison": {
+      "analysis": "Alternative paradigm comparisons that present different interpretation",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "How these quotes support a different paradigm comparison"
+    },
+    "hiddenStrengths": {
+      "analysis": "Potential strengths that thesis may have overlooked or undervalued",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Evidence for these overlooked strengths"
+    },
+    "overlookedWeaknesses": {
+      "analysis": "Weaknesses that the thesis analysis may have missed",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "How these quotes reveal missed weaknesses"
+    },
+    "alternativeInterpersonalFit": {
+      "analysis": "Different social contexts where they might struggle or thrive",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Alternative interpretation of social fit based on these quotes"
+    },
+    "alternativeQuotationInterpretation": {
+      "analysis": "Different interpretation of the most revealing quote",
+      "supportingQuotes": ["the same quote interpreted differently"],
+      "explanation": "Alternative psychological significance of this quote"
+    }
   },
   "superThesis": {
-    "reinforcedEmotionalConfiguration": "Strengthened analysis defending original emotional assessment",
-    "definitiveParadigmComparison": "Reinforced paradigm comparison that refutes antithesis",
-    "confirmedStrengths": "Validated strengths analysis that addresses antithesis challenges",
-    "confirmedWeaknesses": "Confirmed weaknesses that refute alternative interpretations",
-    "finalInterpersonalAssessment": "Definitive interpersonal fit analysis defending original thesis",
-    "quotationSignificance": "Final defense of why the chosen quotation is most revealing",
-    "refutationOfAntithesis": "Point-by-point refutation of antithesis arguments with evidence",
-    "finalPsychologicalAssessment": "Comprehensive defense of psychological pattern analysis"
+    "reinforcedEmotionalConfiguration": {
+      "analysis": "Strengthened analysis defending original emotional assessment",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "How these quotes definitively support the original emotional configuration against antithesis challenges"
+    },
+    "definitiveParadigmComparison": {
+      "analysis": "Reinforced paradigm comparison that refutes antithesis",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Why these quotes conclusively establish the paradigm comparison"
+    },
+    "confirmedStrengths": {
+      "analysis": "Validated strengths analysis that addresses antithesis challenges",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Evidence that definitively confirms these strengths"
+    },
+    "confirmedWeaknesses": {
+      "analysis": "Confirmed weaknesses that refute alternative interpretations",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "How these quotes validate the weakness assessment"
+    },
+    "finalInterpersonalAssessment": {
+      "analysis": "Definitive interpersonal fit analysis defending original thesis",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Final evidence for interpersonal dynamics assessment"
+    },
+    "quotationSignificance": {
+      "analysis": "Final defense of why the chosen quotation is most revealing",
+      "supportingQuotes": ["the most revealing quote"],
+      "explanation": "Comprehensive refutation of alternative interpretations and defense of psychological significance"
+    },
+    "refutationOfAntithesis": {
+      "analysis": "Point-by-point refutation of antithesis arguments with evidence",
+      "supportingQuotes": ["exact quote from text", "another quote"],
+      "explanation": "Systematic dismantling of antithesis arguments using textual evidence"
+    }
   },
   "overallMetapsychologicalProfile": "Comprehensive summary integrating all analyses",
   "emotionalIntelligence": 7,
