@@ -2008,13 +2008,32 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
         cleanContent += `Section ${index + 1}: ${result.originalChunk.title || `Part ${index + 1}`}\n\n${content}\n\n`;
       });
 
-      // Create simple HTML for PDF conversion
+      // Create HTML with MathJax for proper mathematical notation rendering
       const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="utf-8">
             <title>${documentName || 'Document'}</title>
+            <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+            <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+            <script>
+                window.MathJax = {
+                    tex: {
+                        inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                        displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                        processEscapes: true,
+                        processEnvironments: true
+                    },
+                    startup: {
+                        ready: () => {
+                            MathJax.startup.defaultReady();
+                            // Signal that MathJax is ready for PDF capture
+                            window.mathJaxReady = true;
+                        }
+                    }
+                };
+            </script>
             <style>
                 body { 
                     font-family: Times, serif; 
@@ -2029,11 +2048,30 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
                     font-weight: bold; 
                     margin-bottom: 30px;
                 }
+                .math-display { text-align: center; margin: 1em 0; }
+                .math-inline { display: inline; }
             </style>
         </head>
         <body>
             <div class="title">${documentName || 'Rewritten Document'}</div>
             <div>${cleanContent.replace(/\n/g, '<br>')}</div>
+            <script>
+                // Wait for MathJax to complete rendering before PDF capture
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (window.MathJax) {
+                        MathJax.typesetPromise().then(() => {
+                            console.log('MathJax rendering complete - ready for PDF');
+                            window.mathJaxComplete = true;
+                        }).catch((err) => {
+                            console.error('MathJax rendering error:', err);
+                            window.mathJaxComplete = true; // Still proceed
+                        });
+                    } else {
+                        // No MathJax, ready immediately
+                        window.mathJaxComplete = true;
+                    }
+                });
+            </script>
         </body>
         </html>
       `;

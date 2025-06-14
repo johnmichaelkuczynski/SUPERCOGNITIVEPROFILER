@@ -293,11 +293,37 @@ export default function SimpleRewriter({
           printWindow.document.write(htmlContent);
           printWindow.document.close();
           
-          // Trigger print dialog after content loads
+          // Wait for MathJax to complete rendering before printing
           printWindow.onload = () => {
-            setTimeout(() => {
-              printWindow.print();
-            }, 500);
+            // Function to check if MathJax is ready
+            const waitForMathJax = () => {
+              if (printWindow.window.MathJax) {
+                // Wait for MathJax.typesetPromise() to complete
+                printWindow.window.MathJax.typesetPromise().then(() => {
+                  // Give extra time for rendering to complete
+                  setTimeout(() => {
+                    printWindow.print();
+                  }, 1000);
+                }).catch((err) => {
+                  console.error('MathJax error:', err);
+                  // Print anyway after delay
+                  setTimeout(() => {
+                    printWindow.print();
+                  }, 1000);
+                });
+              } else if (printWindow.window.mathJaxComplete) {
+                // MathJax finished from script
+                setTimeout(() => {
+                  printWindow.print();
+                }, 500);
+              } else {
+                // Check again in 100ms
+                setTimeout(waitForMathJax, 100);
+              }
+            };
+            
+            // Start checking for MathJax
+            setTimeout(waitForMathJax, 500);
           };
           
           toast({
