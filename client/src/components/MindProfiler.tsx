@@ -2561,7 +2561,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-red-100">
                         <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Emotional Configuration</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.antithesis.alternativeEmotionalConfiguration}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.antithesis.alternativeEmotionalConfiguration === 'string' 
+                              ? results.antithesis.alternativeEmotionalConfiguration 
+                              : (typeof results.antithesis.alternativeEmotionalConfiguration === 'object' && results.antithesis.alternativeEmotionalConfiguration?.analysis 
+                                ? results.antithesis.alternativeEmotionalConfiguration.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2570,7 +2576,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-red-100">
                         <h5 className="font-semibold text-red-700 mb-3 text-lg">Counter-Paradigm Comparison</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.antithesis.counterParadigmComparison}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.antithesis.counterParadigmComparison === 'string' 
+                              ? results.antithesis.counterParadigmComparison 
+                              : (typeof results.antithesis.counterParadigmComparison === 'object' && results.antithesis.counterParadigmComparison?.analysis 
+                                ? results.antithesis.counterParadigmComparison.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
@@ -2579,7 +2591,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-red-100">
                         <h5 className="font-semibold text-red-700 mb-3 text-lg">Hidden Strengths</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.antithesis.hiddenStrengths}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.antithesis.hiddenStrengths === 'string' 
+                              ? results.antithesis.hiddenStrengths 
+                              : (typeof results.antithesis.hiddenStrengths === 'object' && results.antithesis.hiddenStrengths?.analysis 
+                                ? results.antithesis.hiddenStrengths.analysis
+                                : 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                       </div>
                     )}
