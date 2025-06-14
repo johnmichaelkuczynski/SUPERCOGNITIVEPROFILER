@@ -1863,49 +1863,13 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
 <body>
     <div class="document-title">${documentName || 'Rewritten Document'}</div>`;
 
-      // Process each section with proper math notation
+      // Process each section - keep LaTeX math notation completely intact
       results.forEach((result: any, index: number) => {
         let content = result.rewrittenContent || '';
         
-        // Convert math notation to properly formatted HTML
+        // MINIMAL formatting - preserve all LaTeX math
         content = content
-          // LaTeX display equations
-          .replace(/\$\$([^$]+)\$\$/g, '<div class="math-block">$1</div>')
-          // LaTeX inline math
-          .replace(/\$([^$]+)\$/g, '<span class="math-inline">$1</span>')
-          // Common mathematical symbols and functions
-          .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-inline">($1)/($2)</span>')
-          .replace(/\\sqrt\{([^}]+)\}/g, '<span class="math-inline">√($1)</span>')
-          .replace(/\\sum_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">Σ<sub>$1</sub><sup>$2</sup></span>')
-          .replace(/\\sum/g, '<span class="math-inline">Σ</span>')
-          .replace(/\\int_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">∫<sub>$1</sub><sup>$2</sup></span>')
-          .replace(/\\int/g, '<span class="math-inline">∫</span>')
-          .replace(/\\infty/g, '<span class="math-inline">∞</span>')
-          .replace(/\\pi/g, '<span class="math-inline">π</span>')
-          .replace(/\\alpha/g, '<span class="math-inline">α</span>')
-          .replace(/\\beta/g, '<span class="math-inline">β</span>')
-          .replace(/\\gamma/g, '<span class="math-inline">γ</span>')
-          .replace(/\\delta/g, '<span class="math-inline">δ</span>')
-          .replace(/\\epsilon/g, '<span class="math-inline">ε</span>')
-          .replace(/\\theta/g, '<span class="math-inline">θ</span>')
-          .replace(/\\lambda/g, '<span class="math-inline">λ</span>')
-          .replace(/\\mu/g, '<span class="math-inline">μ</span>')
-          .replace(/\\sigma/g, '<span class="math-inline">σ</span>')
-          .replace(/\\omega/g, '<span class="math-inline">ω</span>')
-          .replace(/\\Omega/g, '<span class="math-inline">Ω</span>')
-          // Subscripts and superscripts
-          .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
-          .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
-          .replace(/_([0-9a-zA-Z])/g, '<sub>$1</sub>')
-          .replace(/\^([0-9a-zA-Z])/g, '<sup>$1</sup>')
-          // Clean up LaTeX commands
-          .replace(/\\text\{([^}]+)\}/g, '$1')
-          .replace(/\\\\/g, '<br>')
-          .replace(/\{([^}]+)\}/g, '$1')
-          .replace(/\\\w+\s*/g, '')
-          // Convert markdown formatting
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(/\n\n+/g, '</p><p class="content">')
           .replace(/\n/g, '<br>');
 

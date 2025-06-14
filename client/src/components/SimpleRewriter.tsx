@@ -11,7 +11,7 @@ import { Edit3, X, FileText, Download, Loader2, Share2, RefreshCw, Eye } from 'l
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
+import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import RewriteViewer from './RewriteViewer';
 
 interface DocumentChunk {
@@ -692,28 +692,39 @@ export default function SimpleRewriter({
                               Professional Rewrite:
                             </h4>
                             <div className="prose prose-sm max-w-none">
-                              <ReactMarkdown
-                                remarkPlugins={[remarkMath]}
-                                rehypePlugins={[rehypeKatex]}
-                                components={{
-                                  h1: ({children}) => <h1 className="text-xl font-bold mb-4 text-gray-900">{children}</h1>,
-                                  h2: ({children}) => <h2 className="text-lg font-bold mb-3 text-gray-800">{children}</h2>,
-                                  h3: ({children}) => <h3 className="text-base font-bold mb-2 text-gray-700">{children}</h3>,
-                                  p: ({children}) => <p className="mb-3 text-gray-800 leading-relaxed">{children}</p>,
-                                  ul: ({children}) => <ul className="mb-3 ml-4 list-disc">{children}</ul>,
-                                  ol: ({children}) => <ol className="mb-3 ml-4 list-decimal">{children}</ol>,
-                                  li: ({children}) => <li className="mb-1 text-gray-800">{children}</li>,
-                                  blockquote: ({children}) => <blockquote className="border-l-4 border-blue-500 pl-3 my-3 italic text-gray-700">{children}</blockquote>,
-                                  code: ({children, className}) => {
-                                    if (className?.includes('language-')) {
-                                      return <code className="block bg-gray-100 p-3 rounded text-sm font-mono">{children}</code>;
-                                    }
-                                    return <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>;
-                                  }
-                                }}
-                              >
-                                {result.rewrittenContent}
-                              </ReactMarkdown>
+                              <MathJaxContext config={{
+                                tex: {
+                                  inlineMath: [['$', '$'], ['\\(', '\\)']],
+                                  displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                                  processEscapes: true,
+                                  processEnvironments: true
+                                },
+                                svg: { fontCache: 'global' }
+                              }}>
+                                <MathJax>
+                                  <ReactMarkdown
+                                    remarkPlugins={[remarkMath]}
+                                    components={{
+                                      h1: ({children}) => <h1 className="text-xl font-bold mb-4 text-gray-900">{children}</h1>,
+                                      h2: ({children}) => <h2 className="text-lg font-bold mb-3 text-gray-800">{children}</h2>,
+                                      h3: ({children}) => <h3 className="text-base font-bold mb-2 text-gray-700">{children}</h3>,
+                                      p: ({children}) => <p className="mb-3 text-gray-800 leading-relaxed">{children}</p>,
+                                      ul: ({children}) => <ul className="mb-3 ml-4 list-disc">{children}</ul>,
+                                      ol: ({children}) => <ol className="mb-3 ml-4 list-decimal">{children}</ol>,
+                                      li: ({children}) => <li className="mb-1 text-gray-800">{children}</li>,
+                                      blockquote: ({children}) => <blockquote className="border-l-4 border-blue-500 pl-3 my-3 italic text-gray-700">{children}</blockquote>,
+                                      code: ({children, className}) => {
+                                        if (className?.includes('language-')) {
+                                          return <code className="block bg-gray-100 p-3 rounded text-sm font-mono">{children}</code>;
+                                        }
+                                        return <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>;
+                                      }
+                                    }}
+                                  >
+                                    {result.rewrittenContent}
+                                  </ReactMarkdown>
+                                </MathJax>
+                              </MathJaxContext>
                             </div>
 
                             {result.explanation && (
