@@ -60,6 +60,10 @@ interface ProfileResults {
     strengthenedAssessment?: string;
     refutationOfDissent?: string;
     reinforcedConclusions?: string;
+    reinforcedConfiguration?: string;
+    synthesizedFramework?: string;
+    strengthenedConclusions?: string;
+    finalAssessment?: string;
   };
 
   // Psychological fields
@@ -122,12 +126,6 @@ interface ProfileResults {
     alternativeFramework?: string;
     criticalChallenges?: string;
     limitationsAndBiases?: string;
-  };
-  superThesis?: {
-    reinforcedConfiguration?: string;
-    synthesizedFramework?: string;
-    strengthenedConclusions?: string;
-    finalAssessment?: string;
   };
   
   // General fields

@@ -1512,9 +1512,17 @@ Return only the rewritten text without any additional comments, explanations, or
         res.send(buffer);
       } else if (format === 'pdf') {
         try {
-          // Generate PDF using PDFKit
+          // Generate PDF using PDFKit with larger page size
           const PDFDocument = await import('pdfkit');
-          const doc = new PDFDocument.default();
+          const doc = new PDFDocument.default({
+            size: 'A4',
+            margins: {
+              top: 50,
+              bottom: 50,
+              left: 50,
+              right: 50
+            }
+          });
           
           // Create a buffer to store PDF
           const chunks: Buffer[] = [];
