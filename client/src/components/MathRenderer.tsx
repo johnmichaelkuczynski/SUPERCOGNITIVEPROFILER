@@ -102,12 +102,17 @@ const latexToUnicode: Record<string, string> = {
 function renderMathContent(content: string): string {
   let processed = content;
   
+  // FIRST: Convert ALL raw LaTeX symbols to Unicode (most important for your use case)
+  Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
+    processed = processed.split(latexSymbol).join(unicode);
+  });
+  
   // Handle display math blocks $$...$$
   processed = processed.replace(/\$\$([^$]+)\$\$/g, (match, latex) => {
     let rendered = latex;
-    // Apply symbol replacements
+    // Apply symbol replacements again inside math blocks
     Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.replace(new RegExp(latexSymbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), unicode);
+      rendered = rendered.split(latexSymbol).join(unicode);
     });
     
     // Handle fractions \frac{a}{b}
@@ -124,9 +129,9 @@ function renderMathContent(content: string): string {
   // Handle inline math $...$
   processed = processed.replace(/\$([^$]+)\$/g, (match, latex) => {
     let rendered = latex;
-    // Apply symbol replacements
+    // Apply symbol replacements again inside math blocks
     Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.replace(new RegExp(latexSymbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), unicode);
+      rendered = rendered.split(latexSymbol).join(unicode);
     });
     
     // Handle fractions \frac{a}{b}
@@ -144,7 +149,7 @@ function renderMathContent(content: string): string {
   processed = processed.replace(/\\\(([^)]+)\\\)/g, (match, latex) => {
     let rendered = latex;
     Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.replace(new RegExp(latexSymbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), unicode);
+      rendered = rendered.split(latexSymbol).join(unicode);
     });
     rendered = rendered.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
     rendered = rendered.replace(/\{([^}]+)\}/g, '$1');
@@ -155,18 +160,11 @@ function renderMathContent(content: string): string {
   processed = processed.replace(/\\\[([^\]]+)\\\]/g, (match, latex) => {
     let rendered = latex;
     Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.replace(new RegExp(latexSymbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), unicode);
+      rendered = rendered.split(latexSymbol).join(unicode);
     });
     rendered = rendered.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
     rendered = rendered.replace(/\{([^}]+)\}/g, '$1');
     return `<div class="math-display" style="text-align: center; margin: 1em 0; font-size: 1.2em; font-weight: 500;">${rendered}</div>`;
-  });
-
-  // CRITICAL FIX: Handle raw LaTeX symbols in text (not wrapped in math delimiters)
-  // This is needed for documents that contain raw LaTeX like your mathematical logic text
-  Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-    // Simple string replacement for LaTeX commands
-    processed = processed.split(latexSymbol).join(unicode);
   });
   
   // Convert line breaks to HTML
