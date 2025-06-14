@@ -539,6 +539,8 @@ FORMAL DIAGNOSTIC REQUIREMENTS - MUST BE EXPLICITLY LABELED:
 5️⃣ Interpersonal / Social Dynamics Fit: Where would this emotional/psychological style thrive vs be a liability
 6️⃣ Most Revealing Quotation and Why: Single most diagnostically significant quote with analysis
 
+MANDATORY: You MUST include the complete formalDiagnostics section with all six labeled components. This is NOT optional.
+
 Provide a ${analysisDepth} psychological profile using the DIALECTICAL STRUCTURE below:
 
 Format as JSON with this EXACT structure:
@@ -689,7 +691,17 @@ Format as JSON with this EXACT structure:
       "psychologicalSignificance": "What this quote tells us about their fundamental emotional/psychological configuration"
     }
   }
-}`;
+}
+
+CRITICAL: The formalDiagnostics section is MANDATORY. You must include ALL SIX components:
+1️⃣ emotionalConfiguration
+2️⃣ paradigmComparison  
+3️⃣ uniquePsychologicalStrengths
+4️⃣ uniquePsychologicalWeaknesses
+5️⃣ interpersonalSocialFit
+6️⃣ mostRevealingQuotation
+
+If you do not include the complete formalDiagnostics section with all six components, the response will be rejected.`;
 
   try {
     const response = await openai.chat.completions.create({
