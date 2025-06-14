@@ -805,8 +805,8 @@ export default function ChunkedRewriter({
   const downloadPDF = async () => {
     try {
       toast({
-        title: "Generating PDF...",
-        description: "Creating your document download.",
+        title: "Processing with chunked validation...",
+        description: "Checking each section for mathematical notation errors.",
       });
 
       const content = chunks.filter(chunk => chunk.selected && chunk.rewritten)
@@ -821,46 +821,93 @@ export default function ChunkedRewriter({
         return;
       }
 
-      const response = await fetch('/api/export-pdf', {
+      // Use chunked PDF processing for full error visibility
+      const response = await fetch('/api/export-pdf-chunked', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           content: content,
-          title: 'Rewritten Document',
-          metadata: {
-            model: selectedModel,
-            instructions: instructions,
-            chunksCount: chunks.filter(chunk => chunk.selected).length
+          filename: 'Rewritten_Document',
+          options: {
+            wordsPerChunk: 250,  // Small chunks for better error detection
+            maxRetries: 3,
+            validateMath: true,
+            strictMode: false,
+            logProgress: true
           }
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate PDF');
+        throw new Error('Failed to process document chunks');
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `rewritten-document-${Date.now()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const result = await response.json();
+
+      if (!result.success) {
+        toast({
+          title: "Chunk Processing Failed",
+          description: result.error || "Unknown error during processing",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Show detailed validation results to user
+      const validation = result.validation;
+      console.log('CHUNKED PDF VALIDATION RESULTS:', validation);
 
       toast({
-        title: "PDF Downloaded!",
-        description: "Your rewritten document has been saved.",
+        title: `Processing Complete: ${validation.successRate.toFixed(1)}% success`,
+        description: `${validation.successfulChunks}/${validation.chunksProcessed} chunks processed successfully. ${validation.totalErrors} errors, ${validation.totalWarnings} warnings.`,
       });
+
+      // If there are failed chunks, show details
+      if (validation.failedChunks.length > 0) {
+        console.log('FAILED CHUNKS:', validation.failedChunks);
+        toast({
+          title: "Some chunks had issues",
+          description: `${validation.failedChunks.length} chunks failed. Check console for LaTeX error details.`,
+          variant: "destructive"
+        });
+      }
+
+      // Open the validated HTML in a new window for user to print to PDF
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(result.html);
+        newWindow.document.close();
+        
+        toast({
+          title: "Validation Complete",
+          description: "Use Print to PDF in the new window. Mathematical notation is validated and ready.",
+        });
+      } else {
+        // Fallback: create a download link for the HTML
+        const blob = new Blob([result.html], { type: 'text/html' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `rewritten-document-validated-${Date.now()}.html`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: "HTML Downloaded",
+          description: "Open the file and use Print to PDF. All chunks validated.",
+        });
+      }
+
     } catch (error) {
-      console.error('PDF export error:', error);
+      console.error('Chunked PDF processing error:', error);
       toast({
-        title: "Export Failed",
-        description: error instanceof Error ? error.message : "Failed to create PDF",
+        title: "Processing Failed",
+        description: error instanceof Error ? error.message : "Failed to process chunks",
         variant: "destructive",
       });
     }
