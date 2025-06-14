@@ -30,6 +30,7 @@ import {
   TrendingDown,
   Microscope,
   AlertTriangle,
+  Scale,
   Briefcase,
   Quote,
   Shield,
