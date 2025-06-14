@@ -1435,35 +1435,34 @@ ${chatContext ? `CONTEXT:\n${chatContext}\n\n` : ''}
 ORIGINAL TEXT TO REWRITE (Chunk ${chunkIndex + 1} of ${totalChunks}):
 ${content}
 
-CRITICAL REQUIREMENTS FOR EXCEPTIONAL OUTPUT:
+CRITICAL REQUIREMENTS:
 
-1. MATHEMATICAL NOTATION - MANDATORY:
-   - Convert ALL mathematical expressions to proper LaTeX format
-   - Use $...$ for inline math: $\\forall x \\exists y (\\phi(x) \\rightarrow \\psi(y))$
-   - Use $$...$$ for display equations: $$\\sum_{i=1}^{n} x_i = \\int_0^1 f(x)dx$$
-   - Preserve all logical symbols: ∀, ∃, →, ↔, ∧, ∨, ¬
-   - Mathematical expressions MUST render as proper notation, not plain text
+1. MATHEMATICAL NOTATION:
+   - Use LaTeX symbols: \\neg, \\wedge, \\vee, \\rightarrow, \\leftrightarrow, \\forall, \\exists, etc.
+   - Examples: \\neg P, P \\wedge Q, P \\vee Q, P \\rightarrow Q, \\forall x \\exists y
 
-2. PROFESSIONAL FORMATTING:
-   - Use proper paragraph breaks (double line breaks between paragraphs)
-   - Clear section headers with ### for subsections
-   - Bullet points with proper spacing
-   - Professional academic tone throughout
+2. FORMATTING REQUIREMENTS - ABSOLUTELY FORBIDDEN:
+   - NO markdown headers (no # ## ###)
+   - NO bold formatting (no ** or __)
+   - NO italic formatting (no * or _)
+   - NO bullet points with * or -
+   - NO numbered lists
+   - NO any special formatting characters
+   - Use ONLY plain text with LaTeX mathematical symbols
 
 3. CONTENT QUALITY:
    - Significantly improve clarity and precision
    - Add substantive insights and analysis
    - Maintain academic rigor and sophistication
-   - Expand explanations where beneficial
    - Ensure logical flow and coherence
 
-4. STRUCTURE:
-   - Clear introduction of concepts
-   - Logical progression of ideas
-   - Proper transitions between sections
-   - Conclusive statements where appropriate
+4. OUTPUT FORMAT:
+   - Pure academic text with proper paragraphs
+   - Mathematical expressions using LaTeX notation
+   - No formatting markup whatsoever
+   - Professional academic tone
 
-OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-COMMENTARY.`;
+OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING MARKUP. NO META-COMMENTARY.`;
 
       let result: string;
       
@@ -1492,7 +1491,25 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
         });
       }
       
-      // CRITICAL: Fix formatting issues regardless of AI output
+      // AGGRESSIVELY STRIP ALL MARKDOWN FORMATTING FROM AI OUTPUT
+      result = result
+        .replace(/^#{1,6}\s*/gm, '')              // Remove # headers
+        .replace(/\*\*([^*\n]+)\*\*/g, '$1')     // Remove **bold**
+        .replace(/\*([^*\n]+)\*/g, '$1')         // Remove *italic*
+        .replace(/__([^_\n]+)__/g, '$1')         // Remove __text__
+        .replace(/_([^_\n]+)_/g, '$1')           // Remove _text_
+        .replace(/`([^`\n]+)`/g, '$1')           // Remove `code`
+        .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
+        .replace(/^\s*[-*+]\s+/gm, '')           // Remove bullet points
+        .replace(/^\s*\d+\.\s+/gm, '')           // Remove numbered lists
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove markdown links
+        .replace(/<[^>]+>/g, '')                 // Remove HTML tags
+        .replace(/&[^;]+;/g, '')                 // Remove HTML entities
+        .replace(/\n{3,}/g, '\n\n')              // Normalize excessive line breaks
+        .trim();
+      
+      console.log('After markdown stripping:', result.substring(0, 200));
+      
       result = ensurePerfectFormatting(result);
       
       // Save chunk rewrite to database

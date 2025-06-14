@@ -167,13 +167,23 @@ function renderMathContent(content: string): string {
     return `<div class="math-display" style="text-align: center; margin: 1em 0; font-size: 1.2em; font-weight: 500;">${rendered}</div>`;
   });
   
+  // COMPLETELY REMOVE ALL MARKDOWN FORMATTING
+  processed = processed
+    .replace(/^#{1,6}\s*/gm, '')              // Remove # headers
+    .replace(/\*\*([^*]+)\*\*/g, '$1')       // Remove **bold**
+    .replace(/\*([^*]+)\*/g, '$1')           // Remove *italic*
+    .replace(/__([^_]+)__/g, '$1')           // Remove __text__
+    .replace(/_([^_]+)_/g, '$1')             // Remove _text_
+    .replace(/`([^`]+)`/g, '$1')             // Remove `code`
+    .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
+    .replace(/^\s*[-*+]\s*/gm, '')           // Remove bullets
+    .replace(/^\s*\d+\.\s*/gm, '')           // Remove numbers
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+    .replace(/<[^>]+>/g, '')                 // Remove HTML
+    .replace(/&[^;]+;/g, '');                // Remove entities
+  
   // Convert line breaks to HTML
   processed = processed.replace(/\n/g, '<br/>');
-  
-  // Handle markdown-style formatting
-  processed = processed.replace(/^# (.+)$/gm, '<h1 style="font-size: 2.5em; font-weight: bold; margin: 1em 0 0.5em 0; border-bottom: 2px solid #ddd; padding-bottom: 0.3em;">$1</h1>');
-  processed = processed.replace(/^## (.+)$/gm, '<h2 style="font-size: 2em; font-weight: bold; margin: 0.8em 0 0.4em 0;">$1</h2>');
-  processed = processed.replace(/^### (.+)$/gm, '<h3 style="font-size: 1.5em; font-weight: bold; margin: 0.6em 0 0.3em 0;">$1</h3>');
   
   // Handle paragraphs
   const lines = processed.split('<br/>');
