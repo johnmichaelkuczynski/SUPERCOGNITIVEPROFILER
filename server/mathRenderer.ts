@@ -1,7 +1,6 @@
 // Comprehensive LaTeX to Unicode Mathematical Notation Converter
 
 export function renderMathematicalNotation(content: string): string {
-  console.log('Math renderer input:', content.substring(0, 200) + '...');
   let processed = content;
   
   // Process display math environments first $$...$$
@@ -287,11 +286,7 @@ function processLaTeXMath(latex: string): string {
   // Apply text-to-symbol conversions with word boundaries
   Object.entries(textToSymbolMap).forEach(([text, symbol]) => {
     const regex = new RegExp(`\\b${text}\\b`, 'g');
-    const beforeReplace = processed;
     processed = processed.replace(regex, symbol);
-    if (beforeReplace !== processed) {
-      console.log(`Replaced "${text}" with "${symbol}"`);
-    }
   });
   
   // Additional direct string replacements for common problematic cases
@@ -340,7 +335,6 @@ function processLaTeXMath(latex: string): string {
   processed = processed.replace(/\\left\|/g, '|').replace(/\\right\|/g, '|');
   processed = processed.replace(/\\;/g, ' ').replace(/\\,/g, ' ').replace(/\\!/g, '');
   
-  console.log('Math renderer output:', processed.substring(0, 200) + '...');
   return processed;
 }
 
