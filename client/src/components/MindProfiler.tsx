@@ -152,7 +152,7 @@ interface MindProfilerProps {
 }
 
 export default function MindProfiler({ userId }: MindProfilerProps) {
-  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis' | 'metacognitive' | 'metapsychological'>('cognitive');
+  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis' | 'metacognitive'>('cognitive');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
@@ -265,39 +265,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       toast({
         title: "Analysis Failed",
         description: error.message || "Failed to generate profile. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Metapsychological profile analysis mutation
-  const analyzeMetapsychological = useMutation({
-    mutationFn: async (data: {
-      analysisMode: string;
-      inputText?: string;
-    }) => {
-      const endpoint = data.analysisMode === 'instant' 
-        ? '/api/profile/metapsychological-instant'
-        : '/api/profile/metapsychological-comprehensive';
-      
-      const response = await apiRequest('POST', endpoint, {
-        inputText: data.inputText,
-        userId
-      });
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      setResults(data);
-      setShowResultsDialog(true);
-      toast({
-        title: "Metapsychological Profile Generated",
-        description: "Your comprehensive metapsychological analysis with six diagnostic components is ready.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Analysis Failed",
-        description: error.message || "Failed to generate metapsychological profile. Please try again.",
         variant: "destructive",
       });
     },
@@ -417,11 +384,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   };
 
   const handleAnalyze = () => {
-    if (profileType === 'metapsychological') {
-      handleMetapsychologicalAnalyze();
-      return;
-    }
-    
     if (analysisMode === 'instant' && inputText.trim().length < 100) {
       toast({
         title: "Insufficient Text",
@@ -449,22 +411,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     }
 
     analyzeFullProfile.mutate({
-      analysisMode,
-      inputText: analysisMode === 'instant' ? inputText : undefined
-    });
-  };
-
-  const handleMetapsychologicalAnalyze = () => {
-    if (analysisMode === 'instant' && inputText.trim().length < 100) {
-      toast({
-        title: "Insufficient Text",
-        description: "Please provide at least 100 characters for analysis.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    analyzeMetapsychological.mutate({
       analysisMode,
       inputText: analysisMode === 'instant' ? inputText : undefined
     });
@@ -549,11 +495,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
         <CardContent className="space-y-6">
           {/* Profile Type Selection */}
-          <div className="flex justify-center space-x-2 flex-wrap gap-2">
+          <div className="flex justify-center space-x-4">
             <Button
               variant={profileType === 'cognitive' ? 'default' : 'outline'}
               onClick={() => setProfileType('cognitive')}
-              className="flex items-center gap-2 px-4 py-3"
+              className="flex items-center gap-2 px-6 py-3"
             >
               <Brain className="h-5 w-5" />
               Cognitive
@@ -561,7 +507,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             <Button
               variant={profileType === 'psychological' ? 'default' : 'outline'}
               onClick={() => setProfileType('psychological')}
-              className="flex items-center gap-2 px-4 py-3"
+              className="flex items-center gap-2 px-6 py-3"
             >
               <Heart className="h-5 w-5" />
               Psychological
@@ -569,7 +515,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             <Button
               variant={profileType === 'synthesis' ? 'default' : 'outline'}
               onClick={() => setProfileType('synthesis')}
-              className="flex items-center gap-2 px-4 py-3"
+              className="flex items-center gap-2 px-6 py-3"
             >
               <Zap className="h-5 w-5" />
               Synthesis
@@ -577,18 +523,10 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             <Button
               variant={profileType === 'metacognitive' ? 'default' : 'outline'}
               onClick={() => setProfileType('metacognitive')}
-              className="flex items-center gap-2 px-4 py-3"
+              className="flex items-center gap-2 px-6 py-3"
             >
               <Shield className="h-5 w-5" />
               Metacognitive
-            </Button>
-            <Button
-              variant={profileType === 'metapsychological' ? 'default' : 'outline'}
-              onClick={() => setProfileType('metapsychological')}
-              className="flex items-center gap-2 px-4 py-3"
-            >
-              <Crown className="h-5 w-5" />
-              Metapsychological
             </Button>
           </div>
 
@@ -621,16 +559,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <h3 className="font-semibold text-gray-800 mb-1">Metacognitive Analysis</h3>
                   <p className="text-sm text-gray-600">
                     Analyzes your intellectual configuration from every possible angle using dialectical analysis (Thesis-Antithesis-Super-Thesis).
-                  </p>
-                </div>
-              </div>
-            ) : profileType === 'metapsychological' ? (
-              <div className="flex items-start gap-3">
-                <Crown className="h-6 w-6 text-purple-600 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Metapsychological Analysis</h3>
-                  <p className="text-sm text-gray-600">
-                    Advanced psychological profiling with six diagnostic components, each supported by quotes and explanations in dialectical structure.
                   </p>
                 </div>
               </div>
@@ -756,7 +684,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               ) : (
                 <>
                   <Zap className="h-4 w-4" />
-                  Analyze {profileType === 'cognitive' ? 'Cognition' : profileType === 'psychological' ? 'Psychology' : profileType === 'synthesis' ? 'Synthesis' : profileType === 'metacognitive' ? 'Metacognition' : 'Metapsychology'}
+                  Analyze {profileType === 'cognitive' ? 'Cognition' : 'Psychology'}
                 </>
               )}
             </Button>
@@ -779,8 +707,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 </>
               )}
             </Button>
-
-
 
             <Button
               onClick={handleClear}
@@ -2328,480 +2254,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* Metapsychological Profile Section */}
-            {results?.thesis && results?.antithesis && results?.superThesis && (
-              <div className="space-y-6">
-                <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">
-                  Metapsychological Profile Analysis
-                </h3>
-                
-                {/* Thesis Section */}
-                <div className="p-8 bg-green-50 rounded-xl border-2 border-green-200 shadow-sm">
-                  <h4 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
-                    <Lightbulb className="h-7 w-7" />
-                    Thesis: Primary Psychological Analysis
-                  </h4>
-                  
-                  <div className="space-y-6">
-                    {results.thesis.emotionalConfiguration && (
-                      <div className="p-5 bg-white rounded-lg border border-green-100">
-                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Emotional Configuration</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>
-                            {typeof results.thesis.emotionalConfiguration === 'string' 
-                              ? results.thesis.emotionalConfiguration 
-                              : (results.thesis.emotionalConfiguration?.analysis || 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                        
-                        {typeof results.thesis.emotionalConfiguration === 'object' && results.thesis.emotionalConfiguration.supportingQuotes && results.thesis.emotionalConfiguration.supportingQuotes.length > 0 && (
-                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
-                            {results.thesis.emotionalConfiguration.supportingQuotes.map((quote, index) => (
-                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
-                                "{quote}"
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {typeof results.thesis.emotionalConfiguration === 'object' && results.thesis.emotionalConfiguration.explanation && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
-                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
-                              <ReactMarkdown>{results.thesis.emotionalConfiguration.explanation}</ReactMarkdown>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {results.thesis.comparisonToParadigms && (
-                      <div className="p-5 bg-white rounded-lg border border-green-100">
-                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Comparison to Paradigm Examples</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>
-                            {typeof results.thesis.comparisonToParadigms === 'string' 
-                              ? results.thesis.comparisonToParadigms 
-                              : (results.thesis.comparisonToParadigms?.analysis || 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                        
-                        {typeof results.thesis.comparisonToParadigms === 'object' && results.thesis.comparisonToParadigms.supportingQuotes && results.thesis.comparisonToParadigms.supportingQuotes.length > 0 && (
-                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
-                            {results.thesis.comparisonToParadigms.supportingQuotes.map((quote, index) => (
-                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
-                                "{quote}"
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {typeof results.thesis.comparisonToParadigms === 'object' && results.thesis.comparisonToParadigms.explanation && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
-                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
-                              <ReactMarkdown>{results.thesis.comparisonToParadigms.explanation}</ReactMarkdown>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {results.thesis.uniqueStrengths && (
-                      <div className="p-5 bg-white rounded-lg border border-green-100">
-                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Unique Strengths</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>
-                            {typeof results.thesis.uniqueStrengths === 'string' 
-                              ? results.thesis.uniqueStrengths 
-                              : (results.thesis.uniqueStrengths?.analysis || 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                        
-                        {typeof results.thesis.uniqueStrengths === 'object' && results.thesis.uniqueStrengths.supportingQuotes && results.thesis.uniqueStrengths.supportingQuotes.length > 0 && (
-                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
-                            {results.thesis.uniqueStrengths.supportingQuotes.map((quote, index) => (
-                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
-                                "{quote}"
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {typeof results.thesis.uniqueStrengths === 'object' && results.thesis.uniqueStrengths.explanation && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
-                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
-                              <ReactMarkdown>{results.thesis.uniqueStrengths.explanation}</ReactMarkdown>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {results.thesis.uniqueWeaknesses && (
-                      <div className="p-5 bg-white rounded-lg border border-green-100">
-                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Unique Weaknesses</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>
-                            {typeof results.thesis.uniqueWeaknesses === 'string' 
-                              ? results.thesis.uniqueWeaknesses 
-                              : (results.thesis.uniqueWeaknesses?.analysis || 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                        
-                        {typeof results.thesis.uniqueWeaknesses === 'object' && results.thesis.uniqueWeaknesses.supportingQuotes && results.thesis.uniqueWeaknesses.supportingQuotes.length > 0 && (
-                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
-                            {results.thesis.uniqueWeaknesses.supportingQuotes.map((quote, index) => (
-                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
-                                "{quote}"
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {typeof results.thesis.uniqueWeaknesses === 'object' && results.thesis.uniqueWeaknesses.explanation && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
-                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
-                              <ReactMarkdown>{results.thesis.uniqueWeaknesses.explanation}</ReactMarkdown>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {results.thesis.interpersonalSocialFit && (
-                      <div className="p-5 bg-white rounded-lg border border-green-100">
-                        <h5 className="font-semibold text-green-700 mb-3 text-lg">Interpersonal/Social Fit</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>
-                            {typeof results.thesis.interpersonalSocialFit === 'string' 
-                              ? results.thesis.interpersonalSocialFit 
-                              : (results.thesis.interpersonalSocialFit?.analysis || 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                        
-                        {typeof results.thesis.interpersonalSocialFit === 'object' && results.thesis.interpersonalSocialFit.supportingQuotes && results.thesis.interpersonalSocialFit.supportingQuotes.length > 0 && (
-                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
-                            {results.thesis.interpersonalSocialFit.supportingQuotes.map((quote, index) => (
-                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
-                                "{quote}"
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {typeof results.thesis.interpersonalSocialFit === 'object' && results.thesis.interpersonalSocialFit.explanation && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
-                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
-                              <ReactMarkdown>{results.thesis.interpersonalSocialFit.explanation}</ReactMarkdown>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {results.thesis.mostRevealingQuotation && (
-                      <div className="p-5 bg-white rounded-lg border border-green-100">
-                        <h5 className="font-semibold text-green-700 mb-3 text-lg flex items-center gap-2">
-                          <Quote className="h-5 w-5" />
-                          Most Revealing Quotation
-                        </h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>
-                            {typeof results.thesis.mostRevealingQuotation === 'string' 
-                              ? results.thesis.mostRevealingQuotation 
-                              : (results.thesis.mostRevealingQuotation?.analysis || 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                        
-                        {typeof results.thesis.mostRevealingQuotation === 'object' && results.thesis.mostRevealingQuotation.supportingQuotes && results.thesis.mostRevealingQuotation.supportingQuotes.length > 0 && (
-                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
-                            {results.thesis.mostRevealingQuotation.supportingQuotes.map((quote, index) => (
-                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
-                                "{quote}"
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {typeof results.thesis.mostRevealingQuotation === 'object' && results.thesis.mostRevealingQuotation.explanation && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
-                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
-                              <ReactMarkdown>{results.thesis.mostRevealingQuotation.explanation}</ReactMarkdown>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Antithesis Section */}
-                <div className="p-8 bg-red-50 rounded-xl border-2 border-red-200 shadow-sm">
-                  <h4 className="text-2xl font-bold text-red-800 mb-6 flex items-center gap-3">
-                    <XCircle className="h-7 w-7" />
-                    Antithesis: Dissenting Analysis
-                  </h4>
-                  
-                  <div className="space-y-6">
-                    {results.antithesis.alternativeEmotionalConfiguration && (
-                      <div className="p-5 bg-white rounded-lg border border-red-100">
-                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Emotional Configuration</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.antithesis.alternativeEmotionalConfiguration === 'string' 
-                              ? results.antithesis.alternativeEmotionalConfiguration 
-                              : (typeof results.antithesis.alternativeEmotionalConfiguration === 'object' && results.antithesis.alternativeEmotionalConfiguration?.analysis 
-                                ? results.antithesis.alternativeEmotionalConfiguration.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.antithesis.counterParadigmComparison && (
-                      <div className="p-5 bg-white rounded-lg border border-red-100">
-                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Counter-Paradigm Comparison</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.antithesis.counterParadigmComparison === 'string' 
-                              ? results.antithesis.counterParadigmComparison 
-                              : (typeof results.antithesis.counterParadigmComparison === 'object' && results.antithesis.counterParadigmComparison?.analysis 
-                                ? results.antithesis.counterParadigmComparison.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.antithesis.hiddenStrengths && (
-                      <div className="p-5 bg-white rounded-lg border border-red-100">
-                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Hidden Strengths</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.antithesis.hiddenStrengths === 'string' 
-                              ? results.antithesis.hiddenStrengths 
-                              : (typeof results.antithesis.hiddenStrengths === 'object' && results.antithesis.hiddenStrengths?.analysis 
-                                ? results.antithesis.hiddenStrengths.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.antithesis.overlookedWeaknesses && (
-                      <div className="p-5 bg-white rounded-lg border border-red-100">
-                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Overlooked Weaknesses</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.antithesis.overlookedWeaknesses === 'string' 
-                              ? results.antithesis.overlookedWeaknesses 
-                              : (typeof results.antithesis.overlookedWeaknesses === 'object' && results.antithesis.overlookedWeaknesses?.analysis 
-                                ? results.antithesis.overlookedWeaknesses.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.antithesis.alternativeInterpersonalFit && (
-                      <div className="p-5 bg-white rounded-lg border border-red-100">
-                        <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Interpersonal Fit</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.antithesis.alternativeInterpersonalFit === 'string' 
-                              ? results.antithesis.alternativeInterpersonalFit 
-                              : (typeof results.antithesis.alternativeInterpersonalFit === 'object' && results.antithesis.alternativeInterpersonalFit?.analysis 
-                                ? results.antithesis.alternativeInterpersonalFit.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.antithesis.alternativeQuotationInterpretation && (
-                      <div className="p-5 bg-white rounded-lg border border-red-100">
-                        <h5 className="font-semibold text-red-700 mb-3 text-lg flex items-center gap-2">
-                          <Quote className="h-5 w-5" />
-                          Alternative Quotation Interpretation
-                        </h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.antithesis.alternativeQuotationInterpretation === 'string' 
-                              ? results.antithesis.alternativeQuotationInterpretation 
-                              : (typeof results.antithesis.alternativeQuotationInterpretation === 'object' && results.antithesis.alternativeQuotationInterpretation?.analysis 
-                                ? results.antithesis.alternativeQuotationInterpretation.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Super-Thesis Section */}
-                <div className="p-8 bg-blue-50 rounded-xl border-2 border-blue-200 shadow-sm">
-                  <h4 className="text-2xl font-bold text-blue-800 mb-6 flex items-center gap-3">
-                    <Crown className="h-7 w-7" />
-                    Super-Thesis: Reinforced Analysis
-                  </h4>
-                  
-                  <div className="space-y-6">
-                    {results.superThesis.reinforcedEmotionalConfiguration && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Reinforced Emotional Configuration</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.reinforcedEmotionalConfiguration === 'string' 
-                              ? results.superThesis.reinforcedEmotionalConfiguration 
-                              : (typeof results.superThesis.reinforcedEmotionalConfiguration === 'object' && results.superThesis.reinforcedEmotionalConfiguration?.analysis 
-                                ? results.superThesis.reinforcedEmotionalConfiguration.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.superThesis.definitiveParadigmComparison && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Definitive Paradigm Comparison</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.definitiveParadigmComparison === 'string' 
-                              ? results.superThesis.definitiveParadigmComparison 
-                              : (typeof results.superThesis.definitiveParadigmComparison === 'object' && results.superThesis.definitiveParadigmComparison?.analysis 
-                                ? results.superThesis.definitiveParadigmComparison.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.superThesis.confirmedStrengths && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Strengths</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.confirmedStrengths === 'string' 
-                              ? results.superThesis.confirmedStrengths 
-                              : (typeof results.superThesis.confirmedStrengths === 'object' && results.superThesis.confirmedStrengths?.analysis 
-                                ? results.superThesis.confirmedStrengths.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.superThesis.confirmedWeaknesses && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Weaknesses</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.confirmedWeaknesses === 'string' 
-                              ? results.superThesis.confirmedWeaknesses 
-                              : (typeof results.superThesis.confirmedWeaknesses === 'object' && results.superThesis.confirmedWeaknesses?.analysis 
-                                ? results.superThesis.confirmedWeaknesses.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.superThesis.finalInterpersonalAssessment && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Interpersonal Assessment</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.finalInterpersonalAssessment === 'string' 
-                              ? results.superThesis.finalInterpersonalAssessment 
-                              : (typeof results.superThesis.finalInterpersonalAssessment === 'object' && results.superThesis.finalInterpersonalAssessment?.analysis 
-                                ? results.superThesis.finalInterpersonalAssessment.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.superThesis.quotationSignificance && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg flex items-center gap-2">
-                          <Quote className="h-5 w-5" />
-                          Quotation Significance
-                        </h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.quotationSignificance === 'string' 
-                              ? results.superThesis.quotationSignificance 
-                              : (typeof results.superThesis.quotationSignificance === 'object' && results.superThesis.quotationSignificance?.analysis 
-                                ? results.superThesis.quotationSignificance.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.superThesis.refutationOfAntithesis && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg flex items-center gap-2">
-                          <Shield className="h-5 w-5" />
-                          Refutation of Antithesis
-                        </h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.refutationOfAntithesis === 'string' 
-                              ? results.superThesis.refutationOfAntithesis 
-                              : (typeof results.superThesis.refutationOfAntithesis === 'object' && results.superThesis.refutationOfAntithesis?.analysis 
-                                ? results.superThesis.refutationOfAntithesis.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-
-                    {results.superThesis.finalPsychologicalAssessment && (
-                      <div className="p-5 bg-white rounded-lg border border-blue-100">
-                        <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Psychological Assessment</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>
-                            {typeof results.superThesis.finalPsychologicalAssessment === 'string' 
-                              ? results.superThesis.finalPsychologicalAssessment 
-                              : (typeof results.superThesis.finalPsychologicalAssessment === 'object' && results.superThesis.finalPsychologicalAssessment?.analysis 
-                                ? results.superThesis.finalPsychologicalAssessment.analysis
-                                : 'No analysis available')}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {results.overallMetapsychologicalProfile && (
-                  <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-200">
-                    <h4 className="font-bold text-purple-900 mb-4 text-lg">Overall Metapsychological Profile</h4>
-                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown>
-                        {typeof results.overallMetapsychologicalProfile === 'string' 
-                          ? results.overallMetapsychologicalProfile 
-                          : (typeof results.overallMetapsychologicalProfile === 'object' && results.overallMetapsychologicalProfile?.analysis 
-                            ? results.overallMetapsychologicalProfile.analysis
-                            : 'No analysis available')}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
