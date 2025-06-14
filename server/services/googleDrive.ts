@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import PDFDocument from 'pdfkit';
 
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 
@@ -101,7 +102,6 @@ class GoogleDriveService {
 
   // Create PDF from content with mathematical notation
   private async createPDFFromContent(content: string): Promise<Buffer> {
-    const PDFDocument = (await import('pdfkit')).default;
     const doc = new PDFDocument();
     const chunks: Buffer[] = [];
 
