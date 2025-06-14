@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -21,7 +21,7 @@ export default function Header({ currentPath }: HeaderProps) {
   ];
 
   // Get user data from localStorage or use default
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = React.useState(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
@@ -37,7 +37,7 @@ export default function Header({ currentPath }: HeaderProps) {
   });
   
   // Update user data if it changes
-  useEffect(() => {
+  React.useEffect(() => {
     const handleUserUpdate = () => {
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
