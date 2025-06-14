@@ -1783,6 +1783,21 @@ Return only the rewritten text with proper paragraph formatting. No additional c
 <head>
     <meta charset="utf-8">
     <title>${documentName || 'Document'}</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)'], ['$', '$']],
+                displayMath: [['\\[', '\\]'], ['$$', '$$']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -1816,22 +1831,6 @@ Return only the rewritten text with proper paragraph formatting. No additional c
             margin: 10px 0;
             line-height: 1.6;
         }
-        .math-inline { 
-            font-style: italic; 
-            background: #f8f8f8; 
-            padding: 1px 3px;
-            border-radius: 2px;
-            border: 1px solid #e0e0e0;
-        }
-        .math-block { 
-            font-style: italic; 
-            background: #f5f5f5; 
-            padding: 8px;
-            margin: 10px 0;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
         @media print {
             body { margin: 0; padding: 15mm; }
             .section { break-inside: avoid; }
@@ -1846,42 +1845,9 @@ Return only the rewritten text with proper paragraph formatting. No additional c
       results.forEach((result: any, index: number) => {
         let content = result.rewrittenContent || '';
         
-        // Convert math notation to properly formatted HTML
+        // Keep LaTeX markup intact for proper MathJax rendering
+        // DO NOT convert LaTeX to HTML - let MathJax handle it
         content = content
-          // LaTeX display equations
-          .replace(/\$\$([^$]+)\$\$/g, '<div class="math-block">$1</div>')
-          // LaTeX inline math
-          .replace(/\$([^$]+)\$/g, '<span class="math-inline">$1</span>')
-          // Common mathematical symbols and functions
-          .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-inline">($1)/($2)</span>')
-          .replace(/\\sqrt\{([^}]+)\}/g, '<span class="math-inline">√($1)</span>')
-          .replace(/\\sum_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">Σ<sub>$1</sub><sup>$2</sup></span>')
-          .replace(/\\sum/g, '<span class="math-inline">Σ</span>')
-          .replace(/\\int_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">∫<sub>$1</sub><sup>$2</sup></span>')
-          .replace(/\\int/g, '<span class="math-inline">∫</span>')
-          .replace(/\\infty/g, '<span class="math-inline">∞</span>')
-          .replace(/\\pi/g, '<span class="math-inline">π</span>')
-          .replace(/\\alpha/g, '<span class="math-inline">α</span>')
-          .replace(/\\beta/g, '<span class="math-inline">β</span>')
-          .replace(/\\gamma/g, '<span class="math-inline">γ</span>')
-          .replace(/\\delta/g, '<span class="math-inline">δ</span>')
-          .replace(/\\epsilon/g, '<span class="math-inline">ε</span>')
-          .replace(/\\theta/g, '<span class="math-inline">θ</span>')
-          .replace(/\\lambda/g, '<span class="math-inline">λ</span>')
-          .replace(/\\mu/g, '<span class="math-inline">μ</span>')
-          .replace(/\\sigma/g, '<span class="math-inline">σ</span>')
-          .replace(/\\omega/g, '<span class="math-inline">ω</span>')
-          .replace(/\\Omega/g, '<span class="math-inline">Ω</span>')
-          // Subscripts and superscripts
-          .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
-          .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
-          .replace(/_([0-9a-zA-Z])/g, '<sub>$1</sub>')
-          .replace(/\^([0-9a-zA-Z])/g, '<sup>$1</sup>')
-          // Clean up LaTeX commands
-          .replace(/\\text\{([^}]+)\}/g, '$1')
-          .replace(/\\\\/g, '<br>')
-          .replace(/\{([^}]+)\}/g, '$1')
-          .replace(/\\\w+\s*/g, '')
           // Convert markdown formatting
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
