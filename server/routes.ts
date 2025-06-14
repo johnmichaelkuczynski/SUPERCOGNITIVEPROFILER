@@ -1972,20 +1972,18 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
         return res.status(400).json({ error: 'Results required' });
       }
 
-      // Process content to remove ALL markup and convert LaTeX to Unicode
+      // Process content for PDF with proper mathematical notation
       let cleanContent = '';
       
       results.forEach((result, index) => {
         let content = result.rewrittenContent || '';
         
-        // First remove markdown and other markup before math processing
+        // Remove markdown formatting only
         content = content
-          .replace(/^#{1,6}\s*/gm, '')              // Remove # headers
-          .replace(/\*\*([^*]+)\*\*/g, '$1')       // Remove **bold**
-          .replace(/\*([^*]+)\*/g, '$1')           // Remove *italic*
-          .replace(/__([^_]+)__/g, '$1')           // Remove __text__
-          .replace(/_([^_]+)_/g, '$1')             // Remove _text_
-          .replace(/`([^`]+)`/g, '$1')             // Remove `code`
+          .replace(/^#{1,6}\s*/gm, '')              // Remove headers
+          .replace(/\*\*([^*]+)\*\*/g, '$1')       // Remove bold
+          .replace(/\*([^*]+)\*/g, '$1')           // Remove italic
+          .replace(/`([^`]+)`/g, '$1')             // Remove code
           .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
           .replace(/^\s*[-*+]\s*/gm, '')           // Remove bullets
           .replace(/^\s*\d+\.\s*/gm, '')           // Remove numbers
@@ -1995,54 +1993,20 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
           .replace(/\n{2,}/g, '\n\n')              // Normalize breaks
           .trim();
         
-        // Process mathematical content for proper MathJax rendering
-        // Convert Unicode symbols to LaTeX and wrap entire mathematical expressions
-        
-        // Step 1: Convert Unicode symbols to LaTeX commands
-        content = content
-          .replace(/¬/g, '\\neg ')
-          .replace(/∀/g, '\\forall ')
-          .replace(/∃/g, '\\exists ')
-          .replace(/∧/g, ' \\wedge ')
-          .replace(/∨/g, ' \\vee ')
-          .replace(/→/g, ' \\rightarrow ')
-          .replace(/↔/g, ' \\leftrightarrow ')
-          .replace(/∈/g, ' \\in ')
-          .replace(/⊂/g, ' \\subset ')
-          .replace(/∪/g, ' \\cup ')
-          .replace(/∩/g, ' \\cap ')
-          .replace(/α/g, '\\alpha')
-          .replace(/β/g, '\\beta')
-          .replace(/γ/g, '\\gamma')
-          .replace(/δ/g, '\\delta')
-          .replace(/ε/g, '\\epsilon')
-          .replace(/φ/g, '\\phi')
-          .replace(/ψ/g, '\\psi')
-          .replace(/ω/g, '\\omega')
-          .replace(/∫/g, '\\int ')
-          .replace(/≤/g, ' \\leq ')
-          .replace(/≥/g, ' \\geq ')
-          .replace(/≠/g, ' \\neq ');
-        
-        // Step 2: Identify and wrap complete mathematical expressions (not individual symbols)
-        content = content
-          // Wrap complex logical expressions like: ¬(P ∨ Q)
-          .replace(/(\\neg\s*\([^)]+\))/g, '\\($1\\)')
-          // Wrap quantifier expressions like: ∀x ∀y(φ(x) ∧ φ(y) → x = y)
-          .replace(/(\\forall\s+[a-z]\s+\\forall\s+[a-z]\s*\([^)]+\))/g, '\\($1\\)')
-          // Wrap simple logical operations like: P → Q
-          .replace(/([A-Z]\s+\\rightarrow\s+[A-Z])/g, '\\($1\\)')
-          .replace(/([A-Z]\s+\\wedge\s+[A-Z])/g, '\\($1\\)')
-          .replace(/([A-Z]\s+\\vee\s+[A-Z])/g, '\\($1\\)')
-          // Wrap function expressions like: φ(x)
-          .replace(/(\\phi\([^)]+\))/g, '\\($1\\)')
-          // Wrap simple equations like: α + β = γ
-          .replace(/(\\alpha\s*\+\s*\\beta\s*=\s*\\gamma)/g, '\\($1\\)')
-          // Clean up extra spaces
-          .replace(/\s+/g, ' ')
-          .trim();
+        // Process mathematical content in a single pass to avoid nested delimiters
+        const finalContent = content
+          // Convert Unicode to LaTeX and wrap in single operation
+          .replace(/¬\s*\(([^)]+)\)/g, '$$\\neg($1)$$')  
+          .replace(/∀\s*([x-z])\s*∀\s*([x-z])\s*\(([^)]+)\)/g, '$$\\forall $1 \\forall $2($3)$$')
+          .replace(/([A-Z])\s*→\s*([A-Z])/g, '$$1 \\rightarrow $2$$')
+          .replace(/([A-Z])\s*∧\s*([A-Z])/g, '$$1 \\wedge $2$$')
+          .replace(/([A-Z])\s*∨\s*([A-Z])/g, '$$1 \\vee $2$$')
+          .replace(/φ\s*\(([^)]+)\)/g, '$$\\phi($1)$$')
+          .replace(/α\s*\+\s*β\s*=\s*γ/g, '$$\\alpha + \\beta = \\gamma$$')
+          // Convert remaining isolated symbols
+          .replace(/([¬∀∃∧∨→↔φαβγδε])/g, '$$$1$$');
 
-        cleanContent += `Section ${index + 1}: ${result.originalChunk.title || `Part ${index + 1}`}\n\n${content}\n\n`;
+        cleanContent += `Section ${index + 1}: ${result.originalChunk.title || `Part ${index + 1}`}\n\n${finalContent}\n\n`;
       });
 
       // Create HTML with MathJax for proper mathematical notation rendering
