@@ -1528,8 +1528,39 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
               }
             }
             
+            // Apply the same aggressive markdown stripping as non-streaming
+            let cleanedResult = (fullResult || result)
+              // CRITICAL: Remove ALL possible header patterns
+              .replace(/^#+\s*(.*)$/gm, '$1')          // Remove # headers with capture
+              .replace(/#{1,6}\s*/g, '')               // Remove remaining # symbols
+              .replace(/^#.*$/gm, '')                  // Remove any remaining lines starting with #
+              
+              // Remove ALL markdown formatting
+              .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1') // Remove *, **, *** formatting
+              .replace(/_{1,3}([^_]+)_{1,3}/g, '$1')   // Remove _, __, ___ formatting
+              .replace(/`{1,3}([^`]+)`{1,3}/g, '$1')   // Remove `, ``, ``` formatting
+              .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
+              .replace(/~~([^~]+)~~/g, '$1')           // Remove strikethrough
+              
+              // Remove list formatting
+              .replace(/^\s*[-*+]\s+/gm, '')           // Remove bullet points
+              .replace(/^\s*\d+\.\s+/gm, '')           // Remove numbered lists
+              .replace(/^\s*[-=]{3,}\s*$/gm, '')       // Remove horizontal rules
+              
+              // Remove links and other markdown
+              .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove markdown links
+              .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove images
+              .replace(/<[^>]+>/g, '')                 // Remove HTML tags
+              .replace(/&[^;]+;/g, '')                 // Remove HTML entities
+              
+              // Clean up whitespace and empty lines
+              .replace(/^\s*$/gm, '')                  // Remove empty lines
+              .replace(/\n{3,}/g, '\n\n')              // Normalize line breaks
+              .replace(/^\s+/gm, '')                   // Remove leading spaces
+              .trim();
+            
             // Apply mathematical notation processing
-            const processedResult = renderMathematicalNotation(fullResult || result);
+            const processedResult = renderMathematicalNotation(cleanedResult);
             
             console.log("Sending final processed result");
             
@@ -1583,8 +1614,39 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
               await new Promise(resolve => setTimeout(resolve, 30));
             }
             
+            // Apply the same aggressive markdown stripping as non-streaming
+            let cleanedResult = result
+              // CRITICAL: Remove ALL possible header patterns
+              .replace(/^#+\s*(.*)$/gm, '$1')          // Remove # headers with capture
+              .replace(/#{1,6}\s*/g, '')               // Remove remaining # symbols
+              .replace(/^#.*$/gm, '')                  // Remove any remaining lines starting with #
+              
+              // Remove ALL markdown formatting
+              .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1') // Remove *, **, *** formatting
+              .replace(/_{1,3}([^_]+)_{1,3}/g, '$1')   // Remove _, __, ___ formatting
+              .replace(/`{1,3}([^`]+)`{1,3}/g, '$1')   // Remove `, ``, ``` formatting
+              .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
+              .replace(/~~([^~]+)~~/g, '$1')           // Remove strikethrough
+              
+              // Remove list formatting
+              .replace(/^\s*[-*+]\s+/gm, '')           // Remove bullet points
+              .replace(/^\s*\d+\.\s+/gm, '')           // Remove numbered lists
+              .replace(/^\s*[-=]{3,}\s*$/gm, '')       // Remove horizontal rules
+              
+              // Remove links and other markdown
+              .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove markdown links
+              .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove images
+              .replace(/<[^>]+>/g, '')                 // Remove HTML tags
+              .replace(/&[^;]+;/g, '')                 // Remove HTML entities
+              
+              // Clean up whitespace and empty lines
+              .replace(/^\s*$/gm, '')                  // Remove empty lines
+              .replace(/\n{3,}/g, '\n\n')              // Normalize line breaks
+              .replace(/^\s+/gm, '')                   // Remove leading spaces
+              .trim();
+            
             // Apply mathematical notation processing
-            const processedResult = renderMathematicalNotation(result);
+            const processedResult = renderMathematicalNotation(cleanedResult);
             
             // Send final processed result
             res.write(`data: ${JSON.stringify({ 
@@ -1635,21 +1697,37 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
         });
       }
       
-      // AGGRESSIVELY STRIP ALL MARKDOWN FORMATTING FROM AI OUTPUT
+      // ULTRA-AGGRESSIVE MARKDOWN STRIPPING - REMOVE ALL FORMATTING
       console.log('Before markdown stripping:', result.substring(0, 200));
       
       result = result
-        .replace(/#{1,6}\s*/g, '')               // Remove ALL # headers
-        .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1') // Remove * and ** formatting
-        .replace(/_{1,2}([^_]+)_{1,2}/g, '$1')   // Remove _ and __ formatting
-        .replace(/`([^`]+)`/g, '$1')             // Remove `code`
+        // CRITICAL: Remove ALL possible header patterns
+        .replace(/^#+\s*(.*)$/gm, '$1')          // Remove # headers with capture
+        .replace(/#{1,6}\s*/g, '')               // Remove remaining # symbols
+        .replace(/^#.*$/gm, '')                  // Remove any remaining lines starting with #
+        
+        // Remove ALL markdown formatting
+        .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1') // Remove *, **, *** formatting
+        .replace(/_{1,3}([^_]+)_{1,3}/g, '$1')   // Remove _, __, ___ formatting
+        .replace(/`{1,3}([^`]+)`{1,3}/g, '$1')   // Remove `, ``, ``` formatting
         .replace(/```[\s\S]*?```/g, '')          // Remove code blocks
+        .replace(/~~([^~]+)~~/g, '$1')           // Remove strikethrough
+        
+        // Remove list formatting
         .replace(/^\s*[-*+]\s+/gm, '')           // Remove bullet points
         .replace(/^\s*\d+\.\s+/gm, '')           // Remove numbered lists
+        .replace(/^\s*[-=]{3,}\s*$/gm, '')       // Remove horizontal rules
+        
+        // Remove links and other markdown
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove markdown links
+        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // Remove images
         .replace(/<[^>]+>/g, '')                 // Remove HTML tags
         .replace(/&[^;]+;/g, '')                 // Remove HTML entities
-        .replace(/\n{3,}/g, '\n\n')              // Normalize excessive line breaks
+        
+        // Clean up whitespace and empty lines
+        .replace(/^\s*$/gm, '')                  // Remove empty lines
+        .replace(/\n{3,}/g, '\n\n')              // Normalize line breaks
+        .replace(/^\s+/gm, '')                   // Remove leading spaces
         .trim();
       
       console.log('After markdown stripping:', result.substring(0, 200));
