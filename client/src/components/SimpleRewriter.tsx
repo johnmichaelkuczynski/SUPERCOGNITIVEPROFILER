@@ -170,8 +170,10 @@ export default function SimpleRewriter({
       return;
     }
 
-    setIsRewriting(true);
+    // Always start completely fresh - clear any previous results
     setRewriteResults([]);
+
+    setIsRewriting(true);
 
     try {
       const selectedChunkData = chunks.filter(chunk => selectedChunks.has(chunk.id));
