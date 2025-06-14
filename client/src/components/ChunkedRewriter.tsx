@@ -70,6 +70,248 @@ export default function ChunkedRewriter({
   
   const { toast } = useToast();
 
+  // COMPREHENSIVE mathematical notation processing for streaming content
+  const processStreamingMath = (text: string): string => {
+    let processed = text;
+    
+    // Handle display math environments $$...$$
+    processed = processed.replace(/\$\$([^$]+)\$\$/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+    
+    // Handle inline math $...$
+    processed = processed.replace(/\$([^$]+)\$/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+    
+    // Handle LaTeX display math \[...\]
+    processed = processed.replace(/\\\[([^\]]+)\\\]/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+    
+    // Handle LaTeX inline math \(...\)
+    processed = processed.replace(/\\\(([^)]+)\\\)/g, (match, latex) => {
+      const rendered = renderLatexExpression(latex.trim());
+      return rendered;
+    });
+
+    return processed;
+  };
+
+  // COMPREHENSIVE LaTeX expression renderer
+  const renderLatexExpression = (latex: string): string => {
+    let rendered = latex;
+    
+    // Handle matrices with proper Unicode brackets
+    rendered = rendered.replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g, (match, content) => {
+      const rows = content.split('\\\\').map((row: string) => {
+        const cells = row.split('&').map((cell: string) => renderLatexExpression(cell.trim()));
+        return cells.join('  ');
+      });
+      return `⎛${rows.join('⎞\n⎜').replace(/⎞\n⎜/g, '⎞\n⎜')}⎠`;
+    });
+    
+    rendered = rendered.replace(/\\begin\{bmatrix\}([\s\S]*?)\\end\{bmatrix\}/g, (match, content) => {
+      const rows = content.split('\\\\').map((row: string) => {
+        const cells = row.split('&').map((cell: string) => renderLatexExpression(cell.trim()));
+        return cells.join('  ');
+      });
+      return `⎡${rows.join('⎤\n⎢').replace(/⎤\n⎢/g, '⎤\n⎢')}⎦`;
+    });
+    
+    rendered = rendered.replace(/\\begin\{matrix\}([\s\S]*?)\\end\{matrix\}/g, (match, content) => {
+      const rows = content.split('\\\\').map((row: string) => {
+        const cells = row.split('&').map((cell: string) => renderLatexExpression(cell.trim()));
+        return cells.join('  ');
+      });
+      return rows.join('\n');
+    });
+    
+    // Handle fractions with proper Unicode fractions and visual stacking
+    rendered = rendered.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, (match, num, den) => {
+      const processedNum = renderLatexExpression(num);
+      const processedDen = renderLatexExpression(den);
+      
+      // For simple single-character numerators and denominators, use Unicode fractions
+      const simpleChars = /^[0-9]$/;
+      if (simpleChars.test(processedNum) && simpleChars.test(processedDen)) {
+        const fractionMap: Record<string, string> = {
+          '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾',
+          '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘', '1/6': '⅙',
+          '5/6': '⅚', '1/7': '⅐', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝',
+          '7/8': '⅞', '1/9': '⅑', '1/10': '⅒'
+        };
+        const key = `${processedNum}/${processedDen}`;
+        if (fractionMap[key]) return fractionMap[key];
+      }
+      
+      // For complex fractions, create visual stacking
+      const lineLength = Math.max(processedNum.length, processedDen.length);
+      return `${processedNum}\n${'-'.repeat(lineLength)}\n${processedDen}`;
+    });
+    
+    // CRITICAL FIX: Handle malformed superscripts and subscripts BEFORE processing valid ones
+    rendered = rendered.replace(/([A-Za-z0-9])_(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+    rendered = rendered.replace(/([A-Za-z0-9])\^(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+    rendered = rendered.replace(/([A-Za-z0-9])_$/g, '$1');
+    rendered = rendered.replace(/([A-Za-z0-9])\^$/g, '$1');
+    rendered = rendered.replace(/([A-Za-z0-9])_(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+    rendered = rendered.replace(/([A-Za-z0-9])\^(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+
+    // Handle superscripts and subscripts with Unicode
+    rendered = rendered.replace(/\^(\{[^}]+\}|[a-zA-Z0-9])/g, (match, sup) => {
+      const content = sup.startsWith('{') ? sup.slice(1, -1) : sup;
+      const processed = renderLatexExpression(content);
+      
+      // Use Unicode superscript characters where possible
+      const superscriptMap: Record<string, string> = {
+        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵',
+        '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '+': '⁺', '-': '⁻',
+        '=': '⁼', '(': '⁽', ')': '⁾', 'n': 'ⁿ', 'i': 'ⁱ'
+      };
+      
+      let result = '';
+      for (const char of processed) {
+        result += superscriptMap[char] || char;
+      }
+      return result;
+    });
+    
+    rendered = rendered.replace(/_(\{[^}]+\}|[a-zA-Z0-9])/g, (match, sub) => {
+      const content = sub.startsWith('{') ? sub.slice(1, -1) : sub;
+      const processed = renderLatexExpression(content);
+      
+      // Use Unicode subscript characters where possible
+      const subscriptMap: Record<string, string> = {
+        '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅',
+        '6': '₆', '7': '₇', '8': '₈', '9': '₉', '+': '₊', '-': '₋',
+        '=': '₌', '(': '₍', ')': '₎', 'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ',
+        'i': 'ᵢ', 'j': 'ⱼ', 'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ',
+        'o': 'ₒ', 'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ',
+        'v': 'ᵥ', 'x': 'ₓ'
+      };
+      
+      let result = '';
+      for (const char of processed) {
+        result += subscriptMap[char] || char;
+      }
+      return result;
+    });
+    
+    // Handle integrals with proper sizing and limits
+    rendered = rendered.replace(/\\int_(\{[^}]+\}|[^\\^]+)\^(\{[^}]+\}|[^\\]+)/g, (match, lower, upper) => {
+      const lowerContent = lower.startsWith('{') ? lower.slice(1, -1) : lower;
+      const upperContent = upper.startsWith('{') ? upper.slice(1, -1) : upper;
+      const processedUpper = renderLatexExpression(upperContent);
+      const processedLower = renderLatexExpression(lowerContent);
+      return `∫${processedUpper}\n ${processedLower}`;
+    });
+    
+    rendered = rendered.replace(/\\int/g, '∫');
+    rendered = rendered.replace(/\\iint/g, '∬');
+    rendered = rendered.replace(/\\iiint/g, '∭');
+    rendered = rendered.replace(/\\oint/g, '∮');
+    
+    // Handle summations and products with limits
+    rendered = rendered.replace(/\\sum_(\{[^}]+\}|[^\\^]+)\^(\{[^}]+\}|[^\\]+)/g, (match, lower, upper) => {
+      const lowerContent = lower.startsWith('{') ? lower.slice(1, -1) : lower;
+      const upperContent = upper.startsWith('{') ? upper.slice(1, -1) : upper;
+      const processedUpper = renderLatexExpression(upperContent);
+      const processedLower = renderLatexExpression(lowerContent);
+      return `∑${processedUpper}\n ${processedLower}`;
+    });
+    
+    rendered = rendered.replace(/\\sum/g, '∑');
+    rendered = rendered.replace(/\\prod/g, '∏');
+
+    // COMPREHENSIVE mathematical symbols map
+    const symbolMap: Record<string, string> = {
+      // Basic logic
+      '\\neg': '¬', '\\lnot': '¬', '\\land': '∧', '\\wedge': '∧', 
+      '\\lor': '∨', '\\vee': '∨', '\\rightarrow': '→', '\\to': '→',
+      '\\leftarrow': '←', '\\leftrightarrow': '↔', '\\iff': '↔',
+      '\\Rightarrow': '⇒', '\\implies': '⇒', '\\Leftarrow': '⇐', '\\Leftrightarrow': '⇔',
+      
+      // Mathematical operators
+      '\\times': '×', '\\cdot': '·', '\\div': '÷', '\\pm': '±', '\\mp': '∓',
+      '\\leq': '≤', '\\geq': '≥', '\\neq': '≠', '\\approx': '≈', '\\equiv': '≡',
+      '\\sim': '∼', '\\simeq': '≃', '\\cong': '≅', '\\propto': '∝',
+      
+      // Set theory
+      '\\in': '∈', '\\notin': '∉', '\\subset': '⊂', '\\supset': '⊃',
+      '\\subseteq': '⊆', '\\supseteq': '⊇', '\\cup': '∪', '\\cap': '∩',
+      '\\emptyset': '∅', '\\varnothing': '∅', '\\setminus': '∖',
+      
+      // Greek letters (lowercase)
+      '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\delta': 'δ',
+      '\\epsilon': 'ε', '\\varepsilon': 'ε', '\\zeta': 'ζ', '\\eta': 'η',
+      '\\theta': 'θ', '\\vartheta': 'ϑ', '\\iota': 'ι', '\\kappa': 'κ',
+      '\\lambda': 'λ', '\\mu': 'μ', '\\nu': 'ν', '\\xi': 'ξ',
+      '\\omicron': 'ο', '\\pi': 'π', '\\varpi': 'ϖ', '\\rho': 'ρ',
+      '\\varrho': 'ϱ', '\\sigma': 'σ', '\\varsigma': 'ς', '\\tau': 'τ',
+      '\\upsilon': 'υ', '\\phi': 'φ', '\\varphi': 'φ', '\\chi': 'χ',
+      '\\psi': 'ψ', '\\omega': 'ω',
+      
+      // Greek letters (uppercase)
+      '\\Gamma': 'Γ', '\\Delta': 'Δ', '\\Theta': 'Θ', '\\Lambda': 'Λ',
+      '\\Xi': 'Ξ', '\\Pi': 'Π', '\\Sigma': 'Σ', '\\Upsilon': 'Υ',
+      '\\Phi': 'Φ', '\\Chi': 'Χ', '\\Psi': 'Ψ', '\\Omega': 'Ω',
+      
+      // Number sets (blackboard bold)
+      '\\mathbb{N}': 'ℕ', '\\mathbb{Z}': 'ℤ', '\\mathbb{Q}': 'ℚ',
+      '\\mathbb{R}': 'ℝ', '\\mathbb{C}': 'ℂ', '\\mathbb{H}': 'ℍ',
+      '\\mathbb{P}': 'ℙ', '\\mathbb{F}': 'F',
+      
+      // Logic quantifiers
+      '\\forall': '∀', '\\exists': '∃', '\\nexists': '∄',
+      '\\therefore': '∴', '\\because': '∵',
+      
+      // Calculus and analysis
+      '\\partial': '∂', '\\nabla': '∇', '\\infty': '∞', '\\aleph': 'ℵ',
+      '\\lim': 'lim', '\\sup': 'sup', '\\inf': 'inf', '\\max': 'max', '\\min': 'min',
+      
+      // Arrows and relations
+      '\\mapsto': '↦', '\\longmapsto': '⟼', '\\hookleftarrow': '↩',
+      '\\hookrightarrow': '↪', '\\uparrow': '↑', '\\downarrow': '↓',
+      '\\updownarrow': '↕', '\\Uparrow': '⇑', '\\Downarrow': '⇓',
+      
+      // Miscellaneous
+      '\\dots': '…', '\\ldots': '…', '\\cdots': '⋯', '\\vdots': '⋮',
+      '\\ddots': '⋱', '\\angle': '∠', '\\triangle': '△', '\\square': '□',
+      '\\diamond': '◊', '\\star': '⋆', '\\dagger': '†', '\\ddagger': '‡',
+      
+      // Brackets and delimiters
+      '\\langle': '⟨', '\\rangle': '⟩', '\\lceil': '⌈', '\\rceil': '⌉',
+      '\\lfloor': '⌊', '\\rfloor': '⌋', '\\|': '‖'
+    };
+    
+    // Apply symbol replacements
+    Object.entries(symbolMap).forEach(([latex, symbol]) => {
+      rendered = rendered.split(latex).join(symbol);
+    });
+    
+    // Handle function names with proper formatting
+    const functionNames = ['sin', 'cos', 'tan', 'sec', 'csc', 'cot', 
+                          'sinh', 'cosh', 'tanh', 'log', 'ln', 'exp',
+                          'det', 'tr', 'rank', 'dim', 'ker', 'im'];
+    functionNames.forEach(func => {
+      const regex = new RegExp(`\\\\${func}\\b`, 'g');
+      rendered = rendered.replace(regex, func);
+    });
+    
+    // Clean up remaining LaTeX artifacts
+    rendered = rendered.replace(/\{([^}]*)\}/g, '$1');
+    rendered = rendered.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')');
+    rendered = rendered.replace(/\\left\[/g, '[').replace(/\\right\]/g, ']');
+    rendered = rendered.replace(/\\left\|/g, '|').replace(/\\right\|/g, '|');
+    rendered = rendered.replace(/\\;/g, ' ').replace(/\\,/g, ' ').replace(/\\!/g, '');
+    
+    return rendered;
+  };
+
   const cancelRewrite = () => {
     setIsCancelled(true);
     toast({
@@ -322,12 +564,15 @@ export default function ChunkedRewriter({
                       // Real-time update: show streaming content in the output box
                       streamingContent += data.content;
                       
+                      // Process mathematical notation immediately for display
+                      const processedContent = processStreamingMath(streamingContent);
+                      
                       // Update chunk with streaming content immediately
                       setChunks(prev => prev.map(c => 
                         c.id === chunk.id 
                           ? { 
                               ...c, 
-                              rewritten: streamingContent,
+                              rewritten: processedContent,
                               isProcessing: true // Keep processing state during streaming
                             }
                           : c
@@ -337,7 +582,7 @@ export default function ChunkedRewriter({
                       setLiveProgressChunks(prev => prev.map((item, idx) => 
                         idx === i ? {
                           ...item,
-                          content: streamingContent,
+                          content: processedContent,
                           completed: false // Still streaming
                         } : item
                       ));
@@ -545,7 +790,9 @@ export default function ChunkedRewriter({
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 rounded p-3 min-h-[100px] max-h-[300px] overflow-y-auto">
                   {chunk.content ? (
-                    <MathRenderer content={chunk.content} />
+                    <div className="whitespace-pre-wrap font-mono text-sm">
+                      {chunk.content}
+                    </div>
                   ) : (
                     <span className="text-gray-400">Waiting for content...</span>
                   )}

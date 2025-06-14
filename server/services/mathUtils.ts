@@ -1,0 +1,116 @@
+// Mathematical notation utility for converting LaTeX to Unicode
+export function renderMathematicalNotation(text: string): string {
+  let processed = text;
+  
+  // CRITICAL FIX: Handle malformed superscripts and subscripts BEFORE processing valid ones
+  // Fix invalid patterns like A_ or B^ that don't have arguments
+  processed = processed.replace(/([A-Za-z0-9])_(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+  processed = processed.replace(/([A-Za-z0-9])\^(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+  
+  // Fix incomplete patterns at end of expressions
+  processed = processed.replace(/([A-Za-z0-9])_$/g, '$1');
+  processed = processed.replace(/([A-Za-z0-9])\^$/g, '$1');
+  
+  // Fix patterns like A_ ∪ B_ or A^ ∩ B^
+  processed = processed.replace(/([A-Za-z0-9])_(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+  processed = processed.replace(/([A-Za-z0-9])\^(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+
+  // Mathematical symbols map for LaTeX to Unicode conversion
+  const symbolMap: Record<string, string> = {
+    // Basic logic
+    '\\neg': '¬', '\\lnot': '¬', '\\land': '∧', '\\wedge': '∧', 
+    '\\lor': '∨', '\\vee': '∨', '\\rightarrow': '→', '\\to': '→',
+    '\\leftarrow': '←', '\\leftrightarrow': '↔', '\\iff': '↔',
+    '\\Rightarrow': '⇒', '\\implies': '⇒', '\\Leftarrow': '⇐', '\\Leftrightarrow': '⇔',
+    
+    // Mathematical operators
+    '\\times': '×', '\\cdot': '·', '\\div': '÷', '\\pm': '±', '\\mp': '∓',
+    '\\leq': '≤', '\\geq': '≥', '\\neq': '≠', '\\approx': '≈', '\\equiv': '≡',
+    '\\sim': '∼', '\\simeq': '≃', '\\cong': '≅', '\\propto': '∝',
+    
+    // Set theory
+    '\\in': '∈', '\\notin': '∉', '\\subset': '⊂', '\\supset': '⊃',
+    '\\subseteq': '⊆', '\\supseteq': '⊇', '\\cup': '∪', '\\cap': '∩',
+    '\\emptyset': '∅', '\\varnothing': '∅', '\\setminus': '∖',
+    
+    // Greek letters (lowercase)
+    '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\delta': 'δ',
+    '\\epsilon': 'ε', '\\varepsilon': 'ε', '\\zeta': 'ζ', '\\eta': 'η',
+    '\\theta': 'θ', '\\vartheta': 'ϑ', '\\iota': 'ι', '\\kappa': 'κ',
+    '\\lambda': 'λ', '\\mu': 'μ', '\\nu': 'ν', '\\xi': 'ξ',
+    '\\omicron': 'ο', '\\pi': 'π', '\\varpi': 'ϖ', '\\rho': 'ρ',
+    '\\varrho': 'ϱ', '\\sigma': 'σ', '\\varsigma': 'ς', '\\tau': 'τ',
+    '\\upsilon': 'υ', '\\phi': 'φ', '\\varphi': 'φ', '\\chi': 'χ',
+    '\\psi': 'ψ', '\\omega': 'ω',
+    
+    // Greek letters (uppercase)
+    '\\Gamma': 'Γ', '\\Delta': 'Δ', '\\Theta': 'Θ', '\\Lambda': 'Λ',
+    '\\Xi': 'Ξ', '\\Pi': 'Π', '\\Sigma': 'Σ', '\\Upsilon': 'Υ',
+    '\\Phi': 'Φ', '\\Chi': 'Χ', '\\Psi': 'Ψ', '\\Omega': 'Ω',
+    
+    // Number sets (blackboard bold)
+    '\\mathbb{N}': 'ℕ', '\\mathbb{Z}': 'ℤ', '\\mathbb{Q}': 'ℚ',
+    '\\mathbb{R}': 'ℝ', '\\mathbb{C}': 'ℂ', '\\mathbb{H}': 'ℍ',
+    '\\mathbb{P}': 'ℙ', '\\mathbb{F}': 'F',
+    
+    // Logic quantifiers
+    '\\forall': '∀', '\\exists': '∃', '\\nexists': '∄',
+    '\\therefore': '∴', '\\because': '∵',
+    
+    // Calculus and analysis
+    '\\partial': '∂', '\\nabla': '∇', '\\infty': '∞', '\\aleph': 'ℵ',
+    '\\int': '∫', '\\iint': '∬', '\\iiint': '∭', '\\oint': '∮',
+    '\\sum': '∑', '\\prod': '∏',
+    
+    // Arrows and relations
+    '\\mapsto': '↦', '\\longmapsto': '⟼', '\\hookleftarrow': '↩',
+    '\\hookrightarrow': '↪', '\\uparrow': '↑', '\\downarrow': '↓',
+    '\\updownarrow': '↕', '\\Uparrow': '⇑', '\\Downarrow': '⇓',
+    
+    // Miscellaneous
+    '\\dots': '…', '\\ldots': '…', '\\cdots': '⋯', '\\vdots': '⋮',
+    '\\ddots': '⋱', '\\angle': '∠', '\\triangle': '△', '\\square': '□',
+    '\\diamond': '◊', '\\star': '⋆', '\\dagger': '†', '\\ddagger': '‡'
+  };
+  
+  // Apply symbol replacements
+  Object.entries(symbolMap).forEach(([latex, symbol]) => {
+    processed = processed.split(latex).join(symbol);
+  });
+  
+  // Handle fractions with Unicode fractions where possible
+  processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, (match, num, den) => {
+    const simpleChars = /^[0-9]$/;
+    if (simpleChars.test(num) && simpleChars.test(den)) {
+      const fractionMap: Record<string, string> = {
+        '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾',
+        '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘', '1/6': '⅙',
+        '5/6': '⅚', '1/7': '⅐', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝',
+        '7/8': '⅞', '1/9': '⅑', '1/10': '⅒'
+      };
+      const key = `${num}/${den}`;
+      if (fractionMap[key]) return fractionMap[key];
+    }
+    return `${num}/${den}`;
+  });
+  
+  // Handle superscripts and subscripts
+  processed = processed.replace(/\^(\{[^}]+\}|[a-zA-Z0-9])/g, (match, sup) => {
+    const content = sup.startsWith('{') ? sup.slice(1, -1) : sup;
+    return `^${content}`;
+  });
+  
+  processed = processed.replace(/_(\{[^}]+\}|[a-zA-Z0-9])/g, (match, sub) => {
+    const content = sub.startsWith('{') ? sub.slice(1, -1) : sub;
+    return `_${content}`;
+  });
+  
+  // Clean up remaining LaTeX artifacts
+  processed = processed.replace(/\{([^}]*)\}/g, '$1');
+  processed = processed.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')');
+  processed = processed.replace(/\\left\[/g, '[').replace(/\\right\]/g, ']');
+  processed = processed.replace(/\\left\|/g, '|').replace(/\\right\|/g, '|');
+  processed = processed.replace(/\\;/g, ' ').replace(/\\,/g, ' ').replace(/\\!/g, '');
+  
+  return processed;
+}
