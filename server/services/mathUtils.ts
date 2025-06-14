@@ -2,19 +2,116 @@
 export function renderMathematicalNotation(text: string): string {
   let processed = text;
   
-  // AGGRESSIVE PATTERN-BASED FIXES FOR EXACT PATTERNS SEEN IN LOGS
+  // STEP 1: EXACT PATTERN FIXES from logs - target literal strings
+  // Fix \{α\} → α (exact pattern from logs)
+  processed = processed.split('\\{α\\}').join('α');
+  processed = processed.split('\\{β\\}').join('β');
+  processed = processed.split('\\{γ\\}').join('γ');
+  processed = processed.split('\\{δ\\}').join('δ');
+  processed = processed.split('\\{ε\\}').join('ε');
+  processed = processed.split('\\{φ\\}').join('φ');
+  processed = processed.split('\\{ψ\\}').join('ψ');
+  processed = processed.split('\\{ω\\}').join('ω');
+  processed = processed.split('\\{λ\\}').join('λ');
+  processed = processed.split('\\{μ\\}').join('μ');
+  processed = processed.split('\\{σ\\}').join('σ');
+  processed = processed.split('\\{π\\}').join('π');
+  processed = processed.split('\\{θ\\}').join('θ');
   
-  // Fix the exact patterns from logs: \{α\} → α
-  processed = processed.replace(/\\{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])\\}/g, '$1');
-  processed = processed.replace(/\\{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])}/g, '$1');
-  processed = processed.replace(/{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])\\}/g, '$1');
-  processed = processed.replace(/{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])}/g, '$1');
+  // Fix partial patterns too
+  processed = processed.split('\\{α}').join('α');
+  processed = processed.split('{α\\}').join('α');
+  processed = processed.split('{α}').join('α');
   
-  // Direct replacements for common mathematical operators
-  processed = processed.replace(/\\oplus/g, '⊕');
-  processed = processed.replace(/\\ominus/g, '⊖');
-  processed = processed.replace(/\\otimes/g, '⊗');
-  processed = processed.replace(/\\odot/g, '⊙');
+  // Fix patterns that appear as \α\ (from logs)
+  processed = processed.split('\\α\\').join('α');
+  processed = processed.split('\\β\\').join('β');
+  processed = processed.split('\\γ\\').join('γ');
+  processed = processed.split('\\δ\\').join('δ');
+  processed = processed.split('\\ε\\').join('ε');
+  processed = processed.split('\\φ\\').join('φ');
+  processed = processed.split('\\ψ\\').join('ψ');
+  processed = processed.split('\\ω\\').join('ω');
+  processed = processed.split('\\λ\\').join('λ');
+  processed = processed.split('\\μ\\').join('μ');
+  processed = processed.split('\\σ\\').join('σ');
+  processed = processed.split('\\π\\').join('π');
+  processed = processed.split('\\θ\\').join('θ');
+  
+  // STEP 2: Direct string replacements for problematic LaTeX commands
+  const directReplacements = [
+    ['\\oplus', '⊕'],
+    ['\\ominus', '⊖'], 
+    ['\\otimes', '⊗'],
+    ['\\odot', '⊙'],
+    ['\\cup', '∪'],
+    ['\\cap', '∩'],
+    ['\\subset', '⊂'],
+    ['\\supset', '⊃'],
+    ['\\subseteq', '⊆'],
+    ['\\supseteq', '⊇'],
+    ['\\in', '∈'],
+    ['\\notin', '∉'],
+    ['\\emptyset', '∅'],
+    ['\\neg', '¬'],
+    ['\\wedge', '∧'],
+    ['\\vee', '∨'],
+    ['\\rightarrow', '→'],
+    ['\\leftarrow', '←'],
+    ['\\leftrightarrow', '↔'],
+    ['\\forall', '∀'],
+    ['\\exists', '∃'],
+    ['\\leq', '≤'],
+    ['\\geq', '≥'],
+    ['\\neq', '≠'],
+    ['\\approx', '≈'],
+    ['\\equiv', '≡'],
+    ['\\infty', '∞'],
+    ['\\sum', '∑'],
+    ['\\prod', '∏'],
+    ['\\int', '∫'],
+    ['\\partial', '∂'],
+    ['\\pm', '±'],
+    ['\\times', '×'],
+    ['\\cdot', '⋅'],
+    ['\\alpha', 'α'],
+    ['\\beta', 'β'],
+    ['\\gamma', 'γ'],
+    ['\\delta', 'δ'],
+    ['\\epsilon', 'ε'],
+    ['\\phi', 'φ'],
+    ['\\psi', 'ψ'],
+    ['\\omega', 'ω'],
+    ['\\lambda', 'λ'],
+    ['\\mu', 'μ'],
+    ['\\sigma', 'σ'],
+    ['\\pi', 'π'],
+    ['\\theta', 'θ'],
+    ['\\xi', 'ξ'],
+    ['\\rho', 'ρ'],
+    ['\\tau', 'τ'],
+    ['\\chi', 'χ'],
+    ['\\eta', 'η'],
+    ['\\iota', 'ι'],
+    ['\\kappa', 'κ'],
+    ['\\nu', 'ν'],
+    ['\\zeta', 'ζ'],
+    ['\\Gamma', 'Γ'],
+    ['\\Delta', 'Δ'],
+    ['\\Theta', 'Θ'],
+    ['\\Lambda', 'Λ'],
+    ['\\Xi', 'Ξ'],
+    ['\\Pi', 'Π'],
+    ['\\Sigma', 'Σ'],
+    ['\\Phi', 'Φ'],
+    ['\\Psi', 'Ψ'],
+    ['\\Omega', 'Ω']
+  ];
+  
+  // Apply direct replacements using split/join for reliability
+  for (const [latex, unicode] of directReplacements) {
+    processed = processed.split(latex).join(unicode);
+  }
   
   // CRITICAL FIX: Handle malformed superscripts and subscripts BEFORE processing valid ones
   // Fix invalid patterns like A_ or B^ that don't have arguments
