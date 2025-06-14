@@ -2481,9 +2481,33 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                     {results.thesis.interpersonalSocialFit && (
                       <div className="p-5 bg-white rounded-lg border border-green-100">
                         <h5 className="font-semibold text-green-700 mb-3 text-lg">Interpersonal/Social Fit</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.thesis.interpersonalSocialFit}</ReactMarkdown>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
+                          <ReactMarkdown>
+                            {typeof results.thesis.interpersonalSocialFit === 'string' 
+                              ? results.thesis.interpersonalSocialFit 
+                              : (results.thesis.interpersonalSocialFit?.analysis || 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
+                        
+                        {typeof results.thesis.interpersonalSocialFit === 'object' && results.thesis.interpersonalSocialFit.supportingQuotes && results.thesis.interpersonalSocialFit.supportingQuotes.length > 0 && (
+                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
+                            {results.thesis.interpersonalSocialFit.supportingQuotes.map((quote, index) => (
+                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
+                                "{quote}"
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {typeof results.thesis.interpersonalSocialFit === 'object' && results.thesis.interpersonalSocialFit.explanation && (
+                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
+                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.thesis.interpersonalSocialFit.explanation}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -2493,9 +2517,33 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           <Quote className="h-5 w-5" />
                           Most Revealing Quotation
                         </h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.thesis.mostRevealingQuotation}</ReactMarkdown>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
+                          <ReactMarkdown>
+                            {typeof results.thesis.mostRevealingQuotation === 'string' 
+                              ? results.thesis.mostRevealingQuotation 
+                              : (results.thesis.mostRevealingQuotation?.analysis || 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
+                        
+                        {typeof results.thesis.mostRevealingQuotation === 'object' && results.thesis.mostRevealingQuotation.supportingQuotes && results.thesis.mostRevealingQuotation.supportingQuotes.length > 0 && (
+                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
+                            {results.thesis.mostRevealingQuotation.supportingQuotes.map((quote, index) => (
+                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
+                                "{quote}"
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {typeof results.thesis.mostRevealingQuotation === 'object' && results.thesis.mostRevealingQuotation.explanation && (
+                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
+                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.thesis.mostRevealingQuotation.explanation}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
