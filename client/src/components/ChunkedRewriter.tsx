@@ -1706,12 +1706,23 @@ export default function ChunkedRewriter({
                 </span>
               </div>
               
-              {chunk.completed && chunk.content && (
+              {chunk.content && (
                 <div className="mt-2 p-3 bg-white rounded border text-sm">
-                  <div className="text-gray-600 mb-1">Content preview:</div>
-                  <div className="line-clamp-3">
-                    {chunk.content.substring(0, 200)}
-                    {chunk.content.length > 200 && '...'}
+                  <div className="text-gray-600 mb-1">
+                    {chunk.completed ? 'Final content:' : 'Streaming content:'}
+                  </div>
+                  <div className={`whitespace-pre-wrap ${chunk.completed ? 'line-clamp-3' : ''}`}>
+                    {chunk.completed ? (
+                      <>
+                        {chunk.content.substring(0, 200)}
+                        {chunk.content.length > 200 && '...'}
+                      </>
+                    ) : (
+                      <div className="font-mono text-xs">
+                        {chunk.content}
+                        <span className="animate-pulse">|</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
