@@ -19,7 +19,7 @@ import { sendEmail } from './services/email';
 import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
-import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
+import { generateInstantProfile, generateMetacognitiveProfile } from "./services/profiling";
 
 // Configure multer for file uploads
 const upload = multer({ 
