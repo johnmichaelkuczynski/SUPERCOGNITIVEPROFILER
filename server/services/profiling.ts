@@ -162,37 +162,34 @@ interface MetacognitiveProfile {
 async function generateSynthesisProfile(text: string, isComprehensive: boolean = false): Promise<SynthesisProfile> {
   const analysisDepth = isComprehensive ? "comprehensive multi-dimensional" : "focused instant";
   
-  const prompt = `🚨🚨🚨 ABSOLUTE EVIDENCE MANDATE 🚨🚨🚨
+  const prompt = `🚨 ABSOLUTE EVIDENCE MANDATE 🚨
 
-YOU ARE COMPLETELY FORBIDDEN FROM WRITING ANY STATEMENT WITHOUT AN EXACT QUOTE.
+FAILURE TO FOLLOW THESE RULES = COMPLETE FAILURE:
 
-MANDATORY FORMAT FOR EVERY SINGLE STATEMENT:
-"[EXACT QUOTE FROM TEXT]" → This reveals [specific synthesis pattern] because [detailed reasoning] → Therefore [conclusion about integration].
+1. EVERY STATEMENT MUST BEGIN WITH: "Quote: '[exact text from source]'"
+2. THEN ADD: "→ This demonstrates [integration pattern] because [reasoning]"
+3. THEN ADD: "→ Therefore [conclusion]"
 
-IF YOU WRITE EVEN ONE SENTENCE WITHOUT STARTING WITH A QUOTE, YOU HAVE COMPLETELY FAILED.
+NO EXCEPTIONS. NO GENERAL STATEMENTS. NO SUMMARIES WITHOUT QUOTES.
+
+If you write ANY sentence that doesn't start with "Quote: '[exact text]'", you have FAILED.
 
 TEXT TO ANALYZE:
 ${text}
 
-ABSOLUTE REQUIREMENTS:
-- Every field must contain only statements that begin with exact quotations
-- Every synthesis conclusion must be directly connected to specific quoted text
-- No general statements about integration without supporting quotes
-- No assessments of intellectual-emotional balance without textual evidence
+You must analyze intellectual-emotional integration by starting EVERY analysis with direct quotes.
 
-You are analyzing intellectual-emotional integration through communication patterns.
+MANDATORY FORMAT - COPY EXACTLY:
 
-MANDATORY EVIDENCE FORMAT for every field:
-1. "Quote 1" → [Integration reasoning] → [Synthesis conclusion]
-2. "Quote 2" → [Integration reasoning] → [Synthesis conclusion]  
-3. "Quote 3" → [Integration reasoning] → [Synthesis conclusion]
+intellectEmotionBalance: "Quote: '[exact quote 1]' → This demonstrates [integration pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-For every synthesis assessment, you must:
-1. Start with exact quote
-2. Explain what this reveals about intellectual-emotional integration
-3. Connect it to broader synthesis pattern
+decisionMakingStyle: "Quote: '[exact quote 1]' → This demonstrates [decision pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-ABSOLUTE REQUIREMENT: Every statement about balance, decision-making, stress patterns, or emotional reasoning MUST begin with a direct quote from the text.
+stressVsClarity: "Quote: '[exact quote 1]' → This demonstrates [stress pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
+
+emotionalReasoningPattern: "Quote: '[exact quote 1]' → This demonstrates [reasoning pattern] because [explanation] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
+
+Return JSON format with exact structure above.
 
 3. DECISION-MAKING PSYCHOLOGY: Analyze what their communication reveals about:
    - How they actually process decisions (not how they claim to)
@@ -592,36 +589,34 @@ Format as JSON with this structure:
 
 // Generate metacognitive profile from text analysis
 export async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false): Promise<MetacognitiveProfile> {
-  const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
-  
-  const prompt = `🚨🚨🚨 ABSOLUTE EVIDENCE MANDATE 🚨🚨🚨
+  const prompt = `🚨 ABSOLUTE EVIDENCE MANDATE 🚨
 
-YOU ARE FORBIDDEN FROM MAKING ANY STATEMENT WITHOUT:
-1. EXACT QUOTATION from the text in quotes
-2. DETAILED ARGUMENT explaining the connection  
-3. RIGOROUS REASONING chain from quote to conclusion
+FAILURE TO FOLLOW THESE RULES = COMPLETE FAILURE:
 
-VIOLATION = IMMEDIATE FAILURE
+1. EVERY STATEMENT MUST BEGIN WITH: "Quote: '[exact text from source]'"
+2. THEN ADD: "→ This demonstrates [intellectual pattern] because [reasoning]"
+3. THEN ADD: "→ Therefore [conclusion]"
 
-EVERY SINGLE SENTENCE YOU WRITE MUST BEGIN WITH A QUOTE FROM THE TEXT.
+NO EXCEPTIONS. NO GENERAL STATEMENTS. NO SUMMARIES WITHOUT QUOTES.
 
-FORMAT: "Quote from text" → [Your argument explaining why this quote proves X] → [Further reasoning connecting quote to your conclusion]
-
-IF YOU WRITE EVEN ONE SENTENCE WITHOUT A SUPPORTING QUOTE, YOU HAVE FAILED COMPLETELY.
+If you write ANY sentence that doesn't start with "Quote: '[exact text]'", you have FAILED.
 
 TEXT TO ANALYZE:
 ${text}
 
-MANDATORY FORMAT FOR EVERY FIELD:
-"Exact quote 1" → This quote demonstrates [specific reasoning] because [detailed argument] → Therefore [conclusion].
-"Exact quote 2" → This quote reveals [specific reasoning] because [detailed argument] → Therefore [conclusion].
-"Exact quote 3" → This quote shows [specific reasoning] because [detailed argument] → Therefore [conclusion].
+You must analyze intellectual configuration using dialectical methodology by starting EVERY analysis with direct quotes.
 
-NO GENERAL STATEMENTS ALLOWED. NO SUMMARY STATEMENTS ALLOWED. NO CONCLUSIONS WITHOUT QUOTES.
+MANDATORY FORMAT FOR THESIS - COPY EXACTLY:
 
-You must analyze this text using dialectical methodology with THREE perspectives, but EVERY STATEMENT in EVERY section must start with a direct quote.
+intellectualConfiguration: "Quote: '[exact quote 1]' → This demonstrates [intellectual pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
 
-ABSOLUTE REQUIREMENT: Begin every analytical statement with "Quote:" followed by exact text, then "→ Analysis:" followed by your reasoning.
+cognitiveArchitecture: "Quote: '[exact quote 1]' → This demonstrates [cognitive pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
+
+metacognitiveAwareness: "Quote: '[exact quote 1]' → This demonstrates [awareness pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 2]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]. Quote: '[exact quote 3]' → This demonstrates [pattern] because [reasoning] → Therefore [conclusion]."
+
+Use same format for ANTITHESIS and SUPER-THESIS sections.
+
+Return JSON format with dialectical structure (thesis, antithesis, superThesis).
 
 RETURN EXACTLY THIS JSON STRUCTURE:
 {
