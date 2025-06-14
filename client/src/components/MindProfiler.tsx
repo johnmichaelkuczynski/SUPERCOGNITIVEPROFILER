@@ -544,11 +544,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
         <CardContent className="space-y-6">
           {/* Profile Type Selection */}
-          <div className="flex justify-center space-x-4">
+          <div className="flex justify-center space-x-2 flex-wrap gap-2">
             <Button
               variant={profileType === 'cognitive' ? 'default' : 'outline'}
               onClick={() => setProfileType('cognitive')}
-              className="flex items-center gap-2 px-6 py-3"
+              className="flex items-center gap-2 px-4 py-3"
             >
               <Brain className="h-5 w-5" />
               Cognitive
@@ -556,7 +556,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             <Button
               variant={profileType === 'psychological' ? 'default' : 'outline'}
               onClick={() => setProfileType('psychological')}
-              className="flex items-center gap-2 px-6 py-3"
+              className="flex items-center gap-2 px-4 py-3"
             >
               <Heart className="h-5 w-5" />
               Psychological
@@ -564,7 +564,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             <Button
               variant={profileType === 'synthesis' ? 'default' : 'outline'}
               onClick={() => setProfileType('synthesis')}
-              className="flex items-center gap-2 px-6 py-3"
+              className="flex items-center gap-2 px-4 py-3"
             >
               <Zap className="h-5 w-5" />
               Synthesis
@@ -572,10 +572,27 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             <Button
               variant={profileType === 'metacognitive' ? 'default' : 'outline'}
               onClick={() => setProfileType('metacognitive')}
-              className="flex items-center gap-2 px-6 py-3"
+              className="flex items-center gap-2 px-4 py-3"
             >
               <Shield className="h-5 w-5" />
               Metacognitive
+            </Button>
+            <Button
+              onClick={handleMetapsychologicalAnalyze}
+              disabled={analyzeMetapsychological.isPending || (analysisMode === 'instant' && inputText.length < 100)}
+              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+            >
+              {analyzeMetapsychological.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Crown className="h-5 w-5" />
+                  Metapsychological
+                </>
+              )}
             </Button>
           </div>
 
@@ -757,24 +774,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               )}
             </Button>
 
-            <Button
-              onClick={handleMetapsychologicalAnalyze}
-              disabled={analyzeMetapsychological.isPending || (analysisMode === 'instant' && inputText.length < 100)}
-              variant="outline"
-              className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
-            >
-              {analyzeMetapsychological.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <Crown className="h-4 w-4" />
-                  Metapsychological Profiling
-                </>
-              )}
-            </Button>
+
 
             <Button
               onClick={handleClear}

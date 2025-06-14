@@ -1166,7 +1166,15 @@ RETURN EXACTLY THIS JSON STRUCTURE:
   }
 
   try {
-    const parsedResult = JSON.parse(result);
+    // Clean the result by removing markdown code blocks if present
+    let cleanResult = result.trim();
+    if (cleanResult.startsWith('```json')) {
+      cleanResult = cleanResult.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanResult.startsWith('```')) {
+      cleanResult = cleanResult.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    const parsedResult = JSON.parse(cleanResult);
     
     // Save the profile
     const analysisType = isComprehensive ? 'comprehensive' : 'instant';
@@ -1189,6 +1197,7 @@ RETURN EXACTLY THIS JSON STRUCTURE:
     return parsedResult;
   } catch (error) {
     console.error('Error parsing metapsychological profile result:', error);
+    console.error('Raw result:', result);
     throw new Error('Failed to parse metapsychological profile response');
   }
 }
