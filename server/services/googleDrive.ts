@@ -25,6 +25,25 @@ class GoogleDriveService {
     this.drive = google.drive({ version: 'v3', auth: this.oauth2Client });
   }
 
+  // Set access token for authenticated requests
+  setAccessToken(accessToken: string) {
+    this.oauth2Client.setCredentials({ access_token: accessToken });
+  }
+
+  // Initialize with refresh token if available
+  private async ensureAuthenticated() {
+    try {
+      // For now, we'll need to implement proper OAuth flow
+      // This requires the user to complete authentication first
+      const tokens = this.oauth2Client.credentials;
+      if (!tokens.access_token && !tokens.refresh_token) {
+        throw new Error('No authentication tokens available. Please complete Google Drive authentication first.');
+      }
+    } catch (error) {
+      throw new Error('Google Drive authentication required. Please authenticate first using the authorization URL.');
+    }
+  }
+
   // Generate authorization URL
   getAuthUrl(): string {
     return this.oauth2Client.generateAuthUrl({
@@ -46,6 +65,8 @@ class GoogleDriveService {
 
   // Save PDF to Google Drive
   async savePDF(content: string, filename: string): Promise<string> {
+    await this.ensureAuthenticated();
+    
     try {
       // Create PDF buffer from HTML content
       const pdfBuffer = await this.createPDFFromContent(content);
