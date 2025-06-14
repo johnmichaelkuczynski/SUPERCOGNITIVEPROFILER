@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import MathRenderer from './MathRenderer';
+import { GoogleDriveIntegration } from './GoogleDriveIntegration';
 
 interface RewriteResult {
   originalChunk: {

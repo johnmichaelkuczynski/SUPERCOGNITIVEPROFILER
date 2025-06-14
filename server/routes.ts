@@ -2792,6 +2792,116 @@ Return only the new content without any additional comments, explanations, or he
     }
   });
 
+  // Google Drive Integration Routes
+  
+  // Get Google Drive authorization URL
+  app.get('/api/google-drive/auth-url', (req: Request, res: Response) => {
+    if (!googleDriveService) {
+      return res.status(500).json({ error: 'Google Drive not configured - missing API credentials' });
+    }
+    
+    try {
+      const authUrl = googleDriveService.getAuthUrl();
+      res.json({ authUrl });
+    } catch (error) {
+      console.error('Error generating auth URL:', error);
+      res.status(500).json({ error: 'Failed to generate authorization URL' });
+    }
+  });
+
+  // Handle Google OAuth callback
+  app.get('/auth/google/callback', async (req: Request, res: Response) => {
+    if (!googleDriveService) {
+      return res.status(500).send('Google Drive not configured');
+    }
+    
+    const { code } = req.query;
+    
+    if (!code) {
+      return res.status(400).send('Authorization code not provided');
+    }
+    
+    try {
+      await googleDriveService.setCredentials(code as string);
+      res.send(`
+        <html>
+          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h2 style="color: #28a745;">✓ Google Drive Authorization Successful!</h2>
+            <p>You can now save documents to Google Drive with perfect mathematical notation.</p>
+            <p style="color: #6c757d;">This window will close automatically in 3 seconds...</p>
+            <script>
+              setTimeout(() => window.close(), 3000);
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('Error setting credentials:', error);
+      res.status(500).send('Authorization failed');
+    }
+  });
+
+  // Save document to Google Drive as PDF with perfect math notation
+  app.post('/api/google-drive/save-pdf', async (req: Request, res: Response) => {
+    if (!googleDriveService) {
+      return res.status(500).json({ error: 'Google Drive not configured - missing API credentials' });
+    }
+    
+    try {
+      const { content, filename } = req.body;
+      
+      if (!content || !filename) {
+        return res.status(400).json({ error: 'Content and filename are required' });
+      }
+
+      // Process mathematical notation for clean PDF output
+      const processedContent = renderMathematicalNotation(content);
+      
+      const driveLink = await googleDriveService.savePDF(processedContent, filename);
+      
+      res.json({ 
+        success: true, 
+        driveLink,
+        message: 'PDF with mathematical notation saved to Google Drive successfully'
+      });
+    } catch (error) {
+      console.error('Error saving to Google Drive:', error);
+      res.status(500).json({ error: 'Failed to save to Google Drive' });
+    }
+  });
+
+  // Save document to Google Drive as text
+  app.post('/api/google-drive/save-document', async (req: Request, res: Response) => {
+    if (!googleDriveService) {
+      return res.status(500).json({ error: 'Google Drive not configured - missing API credentials' });
+    }
+    
+    try {
+      const { content, filename, format = 'txt' } = req.body;
+      
+      if (!content || !filename) {
+        return res.status(400).json({ error: 'Content and filename are required' });
+      }
+
+      // Process mathematical notation
+      const processedContent = renderMathematicalNotation(content);
+      
+      const mimeType = format === 'txt' ? 'text/plain' : 'application/vnd.google-apps.document';
+      const fullFilename = filename.includes('.') ? filename : `${filename}.${format}`;
+      
+      const driveLink = await googleDriveService.saveDocument(processedContent, fullFilename, mimeType);
+      
+      res.json({ 
+        success: true, 
+        driveLink,
+        message: 'Document with mathematical notation saved to Google Drive successfully'
+      });
+    } catch (error) {
+      console.error('Error saving document to Google Drive:', error);
+      res.status(500).json({ error: 'Failed to save document to Google Drive' });
+    }
+  });
+
   // Mind Profiler API Routes
   
   // Instant profile analysis
