@@ -2473,6 +2473,9 @@ CRITICAL REQUIREMENTS:
 - Use proper subscripts and superscripts with _ and ^
 - Keep all non-mathematical text unchanged
 - Ensure equations are properly balanced and syntactically correct
+- IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
+- Remove ALL markdown headers, bold text, italic text, and other formatting
+- Present the content as clean, readable plain text with proper LaTeX math notation
 
 Content to convert:
 ${content}`;
@@ -2503,7 +2506,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2517,7 +2520,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax.' },
+            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
@@ -2543,7 +2546,18 @@ ${content}`;
         result = response.content[0].type === 'text' ? response.content[0].text : '';
       }
 
-      res.json({ mathContent: result });
+      // Clean up any remaining markdown formatting
+      const cleanResult = result
+        .replace(/^#+ /gm, '') // Remove markdown headers
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
+        .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting  
+        .replace(/`(.*?)`/g, '$1') // Remove inline code formatting
+        .replace(/^- /gm, '') // Remove bullet points
+        .replace(/^\* /gm, '') // Remove asterisk bullet points
+        .replace(/^\d+\. /gm, '') // Remove numbered lists
+        .trim();
+
+      res.json({ mathContent: cleanResult });
     } catch (error) {
       console.error('Text to Math conversion error:', error);
       res.status(500).json({ error: 'Failed to convert text to mathematical notation' });
