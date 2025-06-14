@@ -70,37 +70,106 @@ export default function ChunkedRewriter({
   
   const { toast } = useToast();
 
-  // COMPREHENSIVE mathematical notation processing for streaming content
-  const processStreamingMath = (text: string): string => {
+  // Process raw LaTeX commands in text without delimiters
+  const processRawLatexCommands = (text: string): string => {
     let processed = text;
     
-    // Handle display math environments $$...$$
-    processed = processed.replace(/\$\$([^$]+)\$\$/g, (match, latex) => {
-      const rendered = renderLatexExpression(latex.trim());
-      return rendered;
-    });
+    // Basic logic symbols
+    processed = processed.replace(/\\rightarrow/g, '→');
+    processed = processed.replace(/\\leftarrow/g, '←');
+    processed = processed.replace(/\\leftrightarrow/g, '↔');
+    processed = processed.replace(/\\Rightarrow/g, '⇒');
+    processed = processed.replace(/\\Leftarrow/g, '⇐');
+    processed = processed.replace(/\\Leftrightarrow/g, '⇔');
+    processed = processed.replace(/\\land/g, '∧');
+    processed = processed.replace(/\\lor/g, '∨');
+    processed = processed.replace(/\\wedge/g, '∧');
+    processed = processed.replace(/\\vee/g, '∨');
+    processed = processed.replace(/\\neg/g, '¬');
+    processed = processed.replace(/\\lnot/g, '¬');
+    processed = processed.replace(/\\forall/g, '∀');
+    processed = processed.replace(/\\exists/g, '∃');
     
-    // Handle inline math $...$
-    processed = processed.replace(/\$([^$]+)\$/g, (match, latex) => {
-      const rendered = renderLatexExpression(latex.trim());
-      return rendered;
-    });
+    // Set theory symbols
+    processed = processed.replace(/\\in/g, '∈');
+    processed = processed.replace(/\\notin/g, '∉');
+    processed = processed.replace(/\\subset/g, '⊂');
+    processed = processed.replace(/\\supset/g, '⊃');
+    processed = processed.replace(/\\subseteq/g, '⊆');
+    processed = processed.replace(/\\supseteq/g, '⊇');
+    processed = processed.replace(/\\cup/g, '∪');
+    processed = processed.replace(/\\cap/g, '∩');
+    processed = processed.replace(/\\emptyset/g, '∅');
     
-    // Handle LaTeX display math \[...\]
-    processed = processed.replace(/\\\[([^\]]+)\\\]/g, (match, latex) => {
-      const rendered = renderLatexExpression(latex.trim());
-      return rendered;
-    });
+    // Greek letters
+    processed = processed.replace(/\\alpha/g, 'α');
+    processed = processed.replace(/\\beta/g, 'β');
+    processed = processed.replace(/\\gamma/g, 'γ');
+    processed = processed.replace(/\\delta/g, 'δ');
+    processed = processed.replace(/\\epsilon/g, 'ε');
+    processed = processed.replace(/\\zeta/g, 'ζ');
+    processed = processed.replace(/\\eta/g, 'η');
+    processed = processed.replace(/\\theta/g, 'θ');
+    processed = processed.replace(/\\iota/g, 'ι');
+    processed = processed.replace(/\\kappa/g, 'κ');
+    processed = processed.replace(/\\lambda/g, 'λ');
+    processed = processed.replace(/\\mu/g, 'μ');
+    processed = processed.replace(/\\nu/g, 'ν');
+    processed = processed.replace(/\\xi/g, 'ξ');
+    processed = processed.replace(/\\pi/g, 'π');
+    processed = processed.replace(/\\rho/g, 'ρ');
+    processed = processed.replace(/\\sigma/g, 'σ');
+    processed = processed.replace(/\\tau/g, 'τ');
+    processed = processed.replace(/\\upsilon/g, 'υ');
+    processed = processed.replace(/\\phi/g, 'φ');
+    processed = processed.replace(/\\chi/g, 'χ');
+    processed = processed.replace(/\\psi/g, 'ψ');
+    processed = processed.replace(/\\omega/g, 'ω');
     
-    // Handle LaTeX inline math \(...\)
-    processed = processed.replace(/\\\(([^)]+)\\\)/g, (match, latex) => {
-      const rendered = renderLatexExpression(latex.trim());
-      return rendered;
-    });
-
-    // CRITICAL: Also process raw LaTeX commands in text
-    processed = renderLatexExpression(processed);
-
+    // Capital Greek letters
+    processed = processed.replace(/\\Gamma/g, 'Γ');
+    processed = processed.replace(/\\Delta/g, 'Δ');
+    processed = processed.replace(/\\Theta/g, 'Θ');
+    processed = processed.replace(/\\Lambda/g, 'Λ');
+    processed = processed.replace(/\\Xi/g, 'Ξ');
+    processed = processed.replace(/\\Pi/g, 'Π');
+    processed = processed.replace(/\\Sigma/g, 'Σ');
+    processed = processed.replace(/\\Phi/g, 'Φ');
+    processed = processed.replace(/\\Psi/g, 'Ψ');
+    processed = processed.replace(/\\Omega/g, 'Ω');
+    
+    // Mathematical symbols
+    processed = processed.replace(/\\infty/g, '∞');
+    processed = processed.replace(/\\partial/g, '∂');
+    processed = processed.replace(/\\nabla/g, '∇');
+    processed = processed.replace(/\\pm/g, '±');
+    processed = processed.replace(/\\mp/g, '∓');
+    processed = processed.replace(/\\times/g, '×');
+    processed = processed.replace(/\\div/g, '÷');
+    processed = processed.replace(/\\cdot/g, '⋅');
+    processed = processed.replace(/\\leq/g, '≤');
+    processed = processed.replace(/\\geq/g, '≥');
+    processed = processed.replace(/\\neq/g, '≠');
+    processed = processed.replace(/\\approx/g, '≈');
+    processed = processed.replace(/\\equiv/g, '≡');
+    processed = processed.replace(/\\sim/g, '∼');
+    processed = processed.replace(/\\propto/g, '∝');
+    
+    // Integrals and calculus
+    processed = processed.replace(/\\int/g, '∫');
+    processed = processed.replace(/\\iint/g, '∬');
+    processed = processed.replace(/\\iiint/g, '∭');
+    processed = processed.replace(/\\oint/g, '∮');
+    processed = processed.replace(/\\sum/g, '∑');
+    processed = processed.replace(/\\prod/g, '∏');
+    
+    // Number sets
+    processed = processed.replace(/\\mathbb\{N\}/g, 'ℕ');
+    processed = processed.replace(/\\mathbb\{Z\}/g, 'ℤ');
+    processed = processed.replace(/\\mathbb\{Q\}/g, 'ℚ');
+    processed = processed.replace(/\\mathbb\{R\}/g, 'ℝ');
+    processed = processed.replace(/\\mathbb\{C\}/g, 'ℂ');
+    
     return processed;
   };
 
