@@ -152,7 +152,7 @@ interface MindProfilerProps {
 }
 
 export default function MindProfiler({ userId }: MindProfilerProps) {
-  const [profileType, setProfileType] = useState<'cognitive' | 'psychological' | 'synthesis' | 'metacognitive'>('cognitive');
+  const [profileType, setProfileType] = useState<'psychological' | 'synthesis' | 'metacognitive'>('psychological');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
@@ -497,14 +497,6 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
           {/* Profile Type Selection */}
           <div className="flex justify-center space-x-4">
             <Button
-              variant={profileType === 'cognitive' ? 'default' : 'outline'}
-              onClick={() => setProfileType('cognitive')}
-              className="flex items-center gap-2 px-6 py-3"
-            >
-              <Brain className="h-5 w-5" />
-              Cognitive
-            </Button>
-            <Button
               variant={profileType === 'psychological' ? 'default' : 'outline'}
               onClick={() => setProfileType('psychological')}
               className="flex items-center gap-2 px-6 py-3"
@@ -532,17 +524,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
 
           {/* Profile Description */}
           <div className="p-4 bg-white rounded-lg border border-gray-200">
-            {profileType === 'cognitive' ? (
-              <div className="flex items-start gap-3">
-                <Brain className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Cognitive Analysis</h3>
-                  <p className="text-sm text-gray-600">
-                    Analyzes your writing to profile your cognitive patterns, reasoning style, and intellectual characteristics.
-                  </p>
-                </div>
-              </div>
-            ) : profileType === 'psychological' ? (
+            {profileType === 'psychological' ? (
               <div className="flex items-start gap-3">
                 <Heart className="h-6 w-6 text-pink-600 mt-1 flex-shrink-0" />
                 <div>
