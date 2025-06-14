@@ -1654,6 +1654,10 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
       
       console.log('After markdown stripping:', result.substring(0, 200));
       
+      // Apply mathematical notation conversion IMMEDIATELY
+      result = renderMathematicalNotation(result);
+      console.log('After math conversion:', result.substring(0, 200));
+      
       result = ensurePerfectFormatting(result);
       
       // Save chunk rewrite to database

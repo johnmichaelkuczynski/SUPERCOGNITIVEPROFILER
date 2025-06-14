@@ -32,6 +32,7 @@ export function renderMathematicalNotation(text: string): string {
     '\\in': '∈', '\\notin': '∉', '\\subset': '⊂', '\\supset': '⊃',
     '\\subseteq': '⊆', '\\supseteq': '⊇', '\\cup': '∪', '\\cap': '∩',
     '\\emptyset': '∅', '\\varnothing': '∅', '\\setminus': '∖',
+    '\\oplus': '⊕', '\\ominus': '⊖', '\\otimes': '⊗', '\\odot': '⊙',
     
     // Greek letters (lowercase)
     '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\delta': 'δ',
@@ -77,6 +78,12 @@ export function renderMathematicalNotation(text: string): string {
   Object.entries(symbolMap).forEach(([latex, symbol]) => {
     processed = processed.split(latex).join(symbol);
   });
+  
+  // Handle escaped braces around single characters \{α\} → α
+  processed = processed.replace(/\\?\{([αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ])\}\\?/g, '$1');
+  
+  // Handle general escaped braces \{content\} → content  
+  processed = processed.replace(/\\?\{([^}]+)\}\\?/g, '$1');
   
   // Handle fractions with Unicode fractions where possible
   processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, (match, num, den) => {
