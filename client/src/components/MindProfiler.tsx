@@ -2383,10 +2383,14 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-green-100">
                         <h5 className="font-semibold text-green-700 mb-3 text-lg">Comparison to Paradigm Examples</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>{results.thesis.comparisonToParadigms.analysis}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.thesis.comparisonToParadigms === 'string' 
+                              ? results.thesis.comparisonToParadigms 
+                              : (results.thesis.comparisonToParadigms?.analysis || 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                         
-                        {results.thesis.comparisonToParadigms.supportingQuotes && results.thesis.comparisonToParadigms.supportingQuotes.length > 0 && (
+                        {typeof results.thesis.comparisonToParadigms === 'object' && results.thesis.comparisonToParadigms.supportingQuotes && results.thesis.comparisonToParadigms.supportingQuotes.length > 0 && (
                           <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
                             <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
                             {results.thesis.comparisonToParadigms.supportingQuotes.map((quote, index) => (
@@ -2397,7 +2401,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           </div>
                         )}
                         
-                        {results.thesis.comparisonToParadigms.explanation && (
+                        {typeof results.thesis.comparisonToParadigms === 'object' && results.thesis.comparisonToParadigms.explanation && (
                           <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                             <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
                             <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
@@ -2412,10 +2416,14 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-green-100">
                         <h5 className="font-semibold text-green-700 mb-3 text-lg">Unique Strengths</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>{results.thesis.uniqueStrengths.analysis}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.thesis.uniqueStrengths === 'string' 
+                              ? results.thesis.uniqueStrengths 
+                              : (results.thesis.uniqueStrengths?.analysis || 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                         
-                        {results.thesis.uniqueStrengths.supportingQuotes && results.thesis.uniqueStrengths.supportingQuotes.length > 0 && (
+                        {typeof results.thesis.uniqueStrengths === 'object' && results.thesis.uniqueStrengths.supportingQuotes && results.thesis.uniqueStrengths.supportingQuotes.length > 0 && (
                           <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
                             <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
                             {results.thesis.uniqueStrengths.supportingQuotes.map((quote, index) => (
@@ -2426,7 +2434,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                           </div>
                         )}
                         
-                        {results.thesis.uniqueStrengths.explanation && (
+                        {typeof results.thesis.uniqueStrengths === 'object' && results.thesis.uniqueStrengths.explanation && (
                           <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
                             <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
                             <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
@@ -2440,9 +2448,33 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                     {results.thesis.uniqueWeaknesses && (
                       <div className="p-5 bg-white rounded-lg border border-green-100">
                         <h5 className="font-semibold text-green-700 mb-3 text-lg">Unique Weaknesses</h5>
-                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                          <ReactMarkdown>{results.thesis.uniqueWeaknesses}</ReactMarkdown>
+                        <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
+                          <ReactMarkdown>
+                            {typeof results.thesis.uniqueWeaknesses === 'string' 
+                              ? results.thesis.uniqueWeaknesses 
+                              : (results.thesis.uniqueWeaknesses?.analysis || 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
+                        
+                        {typeof results.thesis.uniqueWeaknesses === 'object' && results.thesis.uniqueWeaknesses.supportingQuotes && results.thesis.uniqueWeaknesses.supportingQuotes.length > 0 && (
+                          <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                            <h6 className="font-semibold text-green-800 mb-2">Supporting Quotes:</h6>
+                            {results.thesis.uniqueWeaknesses.supportingQuotes.map((quote, index) => (
+                              <div key={index} className="mb-2 italic text-green-700 border-l-2 border-green-300 pl-3">
+                                "{quote}"
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {typeof results.thesis.uniqueWeaknesses === 'object' && results.thesis.uniqueWeaknesses.explanation && (
+                          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                            <h6 className="font-semibold text-blue-800 mb-2">Analysis:</h6>
+                            <div className="text-blue-700 leading-relaxed prose prose-sm max-w-none">
+                              <ReactMarkdown>{results.thesis.uniqueWeaknesses.explanation}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
