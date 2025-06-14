@@ -661,58 +661,73 @@ export default function SimpleRewriter({
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {rewriteResults.map((result, index) => (
-                        <Card 
-                          key={index} 
-                          className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-green-500"
-                          onClick={() => openRewriteViewer(result)}
-                        >
-                          <CardHeader>
-                            <CardTitle className="text-sm flex items-center justify-between">
-                              <span>{result.originalChunk.title}</span>
+                        <div key={index} className="border border-green-200 rounded-lg">
+                          {/* Header */}
+                          <div className="bg-green-50 px-4 py-3 border-b border-green-200">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-green-800">
+                                {result.originalChunk.title}
+                              </h3>
                               <div className="flex items-center gap-2">
                                 <Badge variant="secondary" className="text-xs">
                                   {result.originalChunk.wordCount} words
                                 </Badge>
-                                <Eye className="h-4 w-4 text-gray-500" />
-                              </div>
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div>
-                              <h5 className="text-xs font-medium text-gray-600 mb-1">
-                                Original Preview:
-                              </h5>
-                              <div className="text-xs text-gray-700 bg-gray-50 p-2 rounded">
-                                {result.originalChunk.content.substring(0, 120)}...
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => openRewriteViewer(result)}
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  Full Screen
+                                </Button>
                               </div>
                             </div>
-                            <Separator />
-                            <div>
-                              <h5 className="text-xs font-medium text-green-600 mb-1">
-                                Rewritten Preview:
-                              </h5>
-                              <div className="text-xs text-green-700 bg-green-50 p-2 rounded">
-                                {result.rewrittenContent.substring(0, 120)}...
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between pt-2">
-                              <span className="text-xs text-gray-500">Click to view full rewrite</span>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openRewriteViewer(result);
+                          </div>
+
+                          {/* Full Rewritten Content */}
+                          <div className="p-4">
+                            <h4 className="text-sm font-medium text-green-700 mb-3">
+                              Professional Rewrite:
+                            </h4>
+                            <div className="prose prose-sm max-w-none">
+                              <ReactMarkdown
+                                remarkPlugins={[remarkMath]}
+                                rehypePlugins={[rehypeKatex]}
+                                components={{
+                                  h1: ({children}) => <h1 className="text-xl font-bold mb-4 text-gray-900">{children}</h1>,
+                                  h2: ({children}) => <h2 className="text-lg font-bold mb-3 text-gray-800">{children}</h2>,
+                                  h3: ({children}) => <h3 className="text-base font-bold mb-2 text-gray-700">{children}</h3>,
+                                  p: ({children}) => <p className="mb-3 text-gray-800 leading-relaxed">{children}</p>,
+                                  ul: ({children}) => <ul className="mb-3 ml-4 list-disc">{children}</ul>,
+                                  ol: ({children}) => <ol className="mb-3 ml-4 list-decimal">{children}</ol>,
+                                  li: ({children}) => <li className="mb-1 text-gray-800">{children}</li>,
+                                  blockquote: ({children}) => <blockquote className="border-l-4 border-blue-500 pl-3 my-3 italic text-gray-700">{children}</blockquote>,
+                                  code: ({children, className}) => {
+                                    if (className?.includes('language-')) {
+                                      return <code className="block bg-gray-100 p-3 rounded text-sm font-mono">{children}</code>;
+                                    }
+                                    return <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</code>;
+                                  }
                                 }}
                               >
-                                <Eye className="h-3 w-3 mr-1" />
-                                View Full
-                              </Button>
+                                {result.rewrittenContent}
+                              </ReactMarkdown>
                             </div>
-                          </CardContent>
-                        </Card>
+
+                            {result.explanation && (
+                              <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+                                <h5 className="text-sm font-medium text-blue-800 mb-2">
+                                  Explanation:
+                                </h5>
+                                <div className="text-sm text-blue-700">
+                                  {result.explanation}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   )}
