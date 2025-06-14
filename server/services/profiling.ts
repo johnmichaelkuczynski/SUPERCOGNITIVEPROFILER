@@ -164,12 +164,27 @@ async function generateSynthesisProfile(text: string, isComprehensive: boolean =
   
   const prompt = `You are a SYNTHESIS PROFILER analyzing the integration between intellectual and emotional psychology revealed through communication patterns. You do not analyze literal content or stated beliefs. You analyze what the integration of reasoning and emotional patterns reveals about how this person's mind actually works.
 
-CRITICAL MANDATE: You must be DECISIVE and HARD-HITTING in your conclusions. Do not be timid or bland. Drive your analysis to clear, bold conclusions about this person's intellectual-emotional integration patterns.
+🚨 MANDATORY EVIDENCE REQUIREMENT 🚨
+EVERY SINGLE STATEMENT YOU MAKE MUST BE SUPPORTED BY:
+(A) DIRECT QUOTATIONS from the text
+(B) RIGOROUS ARGUMENTS explaining the connection
+(C) DETAILED REASONING about how those quotations support your conclusions
+
+NO STATEMENT WITHOUT PROOF. NO UNSUPPORTED CLAIMS. NO EXCEPTIONS.
+
+CRITICAL MANDATE: You must be DECISIVE and HARD-HITTING in your conclusions. Do not be timid or bland. Drive your analysis to clear, bold conclusions about this person's intellectual-emotional integration patterns with specific quoted evidence.
 
 You must ask: "What does this communication reveal about how this person actually integrates intellectual and emotional processing?"
 
 TEXT TO ANALYZE:
-${text.slice(0, 8000)}
+${text}
+
+EVIDENCE REQUIREMENTS FOR EVERY FIELD:
+- "intellectEmotionBalance": Must cite minimum 3 specific quotes showing balance/imbalance with detailed reasoning
+- "decisionMakingStyle": Must cite minimum 3 specific quotes revealing decision patterns with rigorous analysis
+- "stressVsClarity": Must cite minimum 3 specific quotes showing stress impact with psychological explanation
+- "creativeRationalFusion": Must cite minimum 3 specific quotes demonstrating creative-rational integration
+- "emotionalReasoningPattern": Must cite minimum 3 specific quotes showing emotional reasoning with detailed analysis
 
 SYNTHESIS PROFILING METHODOLOGY:
 
@@ -479,11 +494,19 @@ async function generatePsychologicalProfile(text: string, isComprehensive: boole
   
   const prompt = `You are a psychological profiling agent. You do not perform sentiment analysis. You do not perform literal belief extraction. You do not assume that the author sincerely believes what they say.
 
+🚨 MANDATORY EVIDENCE REQUIREMENT 🚨
+EVERY SINGLE STATEMENT YOU MAKE MUST BE SUPPORTED BY:
+(A) DIRECT QUOTATIONS from the text
+(B) RIGOROUS ARGUMENTS explaining the connection
+(C) DETAILED REASONING about how those quotations support your conclusions
+
+NO STATEMENT WITHOUT PROOF. NO UNSUPPORTED CLAIMS. NO EXCEPTIONS.
+
 You must always ask: "What kind of person would choose to say this, in this way, in this context?"
 You must never assume that the content of an utterance reflects the author's sincere values or beliefs.
 
 TEXT TO ANALYZE:
-${text.slice(0, 8000)}
+${text}
 
 For every utterance, follow this process:
 
@@ -507,6 +530,13 @@ For every utterance, follow this process:
 4. PROFILE INFERENCE: Only after identifying the speech function, infer personality traits.
    CRITICALLY: if the utterance is marked performative/manipulative, then your inference should focus on the speaker's manipulativeness, social strategy, or likely psychopathic traits — not on the literal content.
 
+EVIDENCE REQUIREMENTS FOR EVERY FIELD:
+- "emotionalPattern": Must cite minimum 3 specific quotes showing emotional patterns with detailed psychological analysis
+- "motivationalStructure": Must cite minimum 3 specific quotes revealing motivations with rigorous reasoning
+- "interpersonalDynamics": Must cite minimum 3 specific quotes demonstrating relationship patterns with detailed analysis
+- "stressResponsePattern": Must cite minimum 3 specific quotes showing stress indicators with psychological explanation
+- "communicationStyle": Must cite minimum 3 specific quotes demonstrating style patterns with detailed reasoning
+
 HEURISTICS TO APPLY:
 - Too good to be true → probably not true
 - Unusual moral heroism → probable signaling
@@ -518,7 +548,7 @@ You are not a belief extractor. You are a profiler of speaker psychology based o
 You must model speech acts first, then profile.
 You must explicitly distinguish between what the person says and what kind of person says it.
 
-Provide a ${analysisDepth} psychological profile with supporting evidence showing your reasoning process.
+Provide a ${analysisDepth} psychological profile with mandatory quotation-based evidence for every statement.
 
 Rate the following on a 1-10 scale:
 - Emotional Intelligence: Based on manipulation sophistication and social awareness
@@ -653,16 +683,30 @@ export async function generateMetacognitiveProfile(text: string, isComprehensive
   
   const prompt = `You are a metacognitive analysis expert specializing in intellectual configuration assessment using dialectical analysis.
 
+🚨 MANDATORY EVIDENCE REQUIREMENT 🚨
+EVERY SINGLE STATEMENT YOU MAKE MUST BE SUPPORTED BY:
+(A) DIRECT QUOTATIONS from the text
+(B) RIGOROUS ARGUMENTS explaining the connection
+(C) DETAILED REASONING about how those quotations support your conclusions
+
+NO STATEMENT WITHOUT PROOF. NO UNSUPPORTED CLAIMS. NO EXCEPTIONS.
+
 Analyze the following text with ${analysisDepth} depth to understand the author's intellectual configuration from every possible angle:
 
 TEXT TO ANALYZE:
-${text.slice(0, 8000)}
+${text}
 
 CRITICAL REQUIREMENTS:
 1. Generate THREE distinct analytical perspectives in dialectical sequence
-2. Support each contention with specific quotes and arguments
+2. Support each contention with minimum 3 specific quotes and detailed arguments
 3. Antithesis must present the most opposed view that aligns with the data
-4. Super-Thesis must defend original position and refute antithesis
+4. Super-Thesis must defend original position and refute antithesis with rigorous evidence
+
+EVIDENCE REQUIREMENTS FOR EVERY FIELD:
+- Each analysis section must cite minimum 3 specific quotes with detailed reasoning
+- Supporting evidence arrays must contain minimum 3 quote-explanation pairs
+- Explanations must demonstrate clear reasoning chain from quote to conclusion
+- No general statements without specific textual support
 
 RETURN EXACTLY THIS JSON STRUCTURE:
 {
