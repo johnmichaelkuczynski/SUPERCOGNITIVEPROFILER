@@ -1425,23 +1425,44 @@ YOUR REWRITTEN DOCUMENT:`;
         return res.status(400).json({ error: 'Content and instructions are required' });
       }
 
-      let prompt = `Please rewrite the following text according to these instructions: ${instructions}\n\n`;
-      
-      if (chatContext) {
-        prompt += `Chat context for reference:\n${chatContext}\n\n`;
-      }
+      let prompt = `You are an expert academic writer and editor. Your task is to produce exceptional, publication-quality content.
 
-      prompt += `Text to rewrite (chunk ${chunkIndex + 1} of ${totalChunks}):\n\n${content}\n\n`;
-      prompt += `CRITICAL FORMATTING REQUIREMENTS:
-1. ALWAYS format the output with proper paragraph breaks - use double line breaks (\\n\\n) between paragraphs
-2. If the text contains mathematical expressions or formulas:
-   - Preserve all LaTeX formatting using \\(...\\) for inline math and $$...$$ for display math
-   - Do not escape or convert LaTeX symbols
-   - Keep all mathematical notation in proper LaTeX format
-3. Ensure proper sentence spacing and readability
-4. Use clear paragraph structure - each major idea should be its own paragraph
+REWRITE INSTRUCTIONS: ${instructions}
 
-Return only the rewritten text with proper paragraph formatting. No additional comments, explanations, or headers.`;
+${chatContext ? `CONTEXT:\n${chatContext}\n\n` : ''}
+
+ORIGINAL TEXT TO REWRITE (Chunk ${chunkIndex + 1} of ${totalChunks}):
+${content}
+
+CRITICAL REQUIREMENTS FOR EXCEPTIONAL OUTPUT:
+
+1. MATHEMATICAL NOTATION - MANDATORY:
+   - Convert ALL mathematical expressions to proper LaTeX format
+   - Use $...$ for inline math: $\\forall x \\exists y (\\phi(x) \\rightarrow \\psi(y))$
+   - Use $$...$$ for display equations: $$\\sum_{i=1}^{n} x_i = \\int_0^1 f(x)dx$$
+   - Preserve all logical symbols: ∀, ∃, →, ↔, ∧, ∨, ¬
+   - Mathematical expressions MUST render as proper notation, not plain text
+
+2. PROFESSIONAL FORMATTING:
+   - Use proper paragraph breaks (double line breaks between paragraphs)
+   - Clear section headers with ### for subsections
+   - Bullet points with proper spacing
+   - Professional academic tone throughout
+
+3. CONTENT QUALITY:
+   - Significantly improve clarity and precision
+   - Add substantive insights and analysis
+   - Maintain academic rigor and sophistication
+   - Expand explanations where beneficial
+   - Ensure logical flow and coherence
+
+4. STRUCTURE:
+   - Clear introduction of concepts
+   - Logical progression of ideas
+   - Proper transitions between sections
+   - Conclusive statements where appropriate
+
+OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-COMMENTARY.`;
 
       let result: string;
       
