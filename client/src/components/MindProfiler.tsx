@@ -67,12 +67,7 @@ interface ProfileResults {
     methodologicalConcerns?: string;
     potentialOverreads?: string;
   };
-  superThesis?: {
-    title?: string;
-    strengthenedAssessment?: string;
-    refutationOfDissent?: string;
-    reinforcedConclusions?: string;
-  };
+
 
   // Psychological fields
   emotionalPattern?: string;
@@ -180,7 +175,7 @@ interface ProfileResults {
   reflectiveDepth?: number;
   overallMetacognitiveProfile?: string;
 
-  // Formal diagnostic components
+  // Legacy diagnostic fields
   typeOfIntelligence?: string;
   comparisonToParadigms?: string;
   uniqueStrengths?: string[];
@@ -188,46 +183,23 @@ interface ProfileResults {
   careerFitEcosystem?: string;
   mostRevealingQuotation?: string;
   
-  // Psychological formal diagnostics
-  formalDiagnostics?: {
-    emotionalConfiguration?: {
-      dominantStyle?: string[];
-      analysis?: string;
-      supportingEvidence?: SupportingEvidence[];
-    };
-    paradigmComparison?: {
-      strength?: string;
-      distinguishingFeatures?: string;
-      analysis?: string;
-      supportingEvidence?: SupportingEvidence[];
-    };
-    uniquePsychologicalStrengths?: {
-      strengths?: string[];
-      analysis?: string;
-      supportingEvidence?: SupportingEvidence[];
-    };
-    uniquePsychologicalWeaknesses?: {
-      weaknesses?: string[];
-      analysis?: string;
-      supportingEvidence?: SupportingEvidence[];
-    };
-    interpersonalSocialFit?: {
-      thriveEnvironments?: string[];
-      liabilityEnvironments?: string[];
-      analysis?: string;
-      supportingEvidence?: SupportingEvidence[];
-    };
-    mostRevealingQuotation?: {
-      quote?: string;
-      analysis?: string;
-      psychologicalSignificance?: string;
-    };
-  };
 
-  // Dialectical structure fields
-  thesis?: any;
-  antithesis?: any;
-  superThesis?: any;
+  // Metapsychological dialectical structure
+  dialectical?: {
+    thesis?: string;
+    antithesis?: string;
+    superThesis?: string;
+  };
+  
+  // Metapsychological diagnostics
+  diagnostics?: {
+    emotionalConfiguration?: string;
+    paradigmComparison?: string;
+    uniqueStrengths?: string;
+    uniqueWeaknesses?: string;
+    socialFit?: string;
+    revealingQuotation?: string;
+  };
 
   // Legacy nested structures (for backwards compatibility)
   cognitiveProfile?: any;
@@ -3480,6 +3452,111 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
             )}
 
+            {/* Metapsychological Profile Content */}
+            {profileType === 'metapsychological' && results && (
+              <>
+                <TabsContent value="dialectical" className="space-y-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
+                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center">
+                      <Scale className="mr-2 h-5 w-5" />
+                      Dialectical Framework
+                    </h3>
+                    
+                    {/* Thesis */}
+                    <div className="mb-6 bg-white p-4 rounded-lg border-l-4 border-green-500">
+                      <h4 className="text-lg font-bold text-green-700 mb-2">🎯 Thesis (Primary Analysis)</h4>
+                      <p className="text-gray-700 whitespace-pre-wrap">{results.dialectical?.thesis}</p>
+                    </div>
+
+                    {/* Antithesis */}
+                    <div className="mb-6 bg-white p-4 rounded-lg border-l-4 border-red-500">
+                      <h4 className="text-lg font-bold text-red-700 mb-2">⚔️ Antithesis (Dissenting Analysis)</h4>
+                      <p className="text-gray-700 whitespace-pre-wrap">{results.dialectical?.antithesis}</p>
+                    </div>
+
+                    {/* Super-Thesis */}
+                    <div className="bg-white p-4 rounded-lg border-l-4 border-blue-500">
+                      <h4 className="text-lg font-bold text-blue-700 mb-2">🏆 Super-Thesis (Refined Analysis)</h4>
+                      <p className="text-gray-700 whitespace-pre-wrap">{results.dialectical?.superThesis}</p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="diagnostics" className="space-y-6">
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border border-indigo-200">
+                    <h3 className="text-xl font-bold text-indigo-800 mb-4 flex items-center">
+                      <Microscope className="mr-2 h-5 w-5" />
+                      Formal Diagnostic Components
+                    </h3>
+                    
+                    <div className="grid gap-6">
+                      {/* Component 1: Emotional Configuration */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h4 className="text-lg font-bold text-purple-700 mb-2">1️⃣ Emotional Configuration/Style</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{results.diagnostics?.emotionalConfiguration}</p>
+                      </div>
+
+                      {/* Component 2: Paradigm Comparison */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h4 className="text-lg font-bold text-purple-700 mb-2">2️⃣ Comparison to Paradigm Examples</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{results.diagnostics?.paradigmComparison}</p>
+                      </div>
+
+                      {/* Component 3: Unique Strengths */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h4 className="text-lg font-bold text-purple-700 mb-2">3️⃣ Unique Psychological Strengths</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{results.diagnostics?.uniqueStrengths}</p>
+                      </div>
+
+                      {/* Component 4: Unique Weaknesses */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h4 className="text-lg font-bold text-purple-700 mb-2">4️⃣ Unique Psychological Weaknesses</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{results.diagnostics?.uniqueWeaknesses}</p>
+                      </div>
+
+                      {/* Component 5: Social Fit */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h4 className="text-lg font-bold text-purple-700 mb-2">5️⃣ Interpersonal/Social Fit</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{results.diagnostics?.socialFit}</p>
+                      </div>
+
+                      {/* Component 6: Revealing Quotation */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h4 className="text-lg font-bold text-purple-700 mb-2">6️⃣ Most Revealing Quotation and Why</h4>
+                        <p className="text-gray-700 whitespace-pre-wrap">{results.diagnostics?.revealingQuotation}</p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="summary" className="space-y-6">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200">
+                    <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center">
+                      <Brain className="mr-2 h-5 w-5" />
+                      Executive Summary
+                    </h3>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{results.summary}</p>
+                    </div>
+                    
+                    {results.keyInsights && (
+                      <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200">
+                        <h4 className="text-lg font-bold text-purple-700 mb-3">Key Psychological Insights</h4>
+                        <ul className="space-y-2">
+                          {results.keyInsights.map((insight: string, index: number) => (
+                            <li key={index} className="text-gray-700 flex items-start">
+                              <span className="text-purple-600 mr-2 font-bold">•</span>
+                              {insight}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </>
+            )}
 
             </div>
           </div>
