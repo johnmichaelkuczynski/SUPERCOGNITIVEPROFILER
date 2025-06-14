@@ -176,147 +176,264 @@ export default function RewriteViewer({
     }
   };
 
+  const handlePrintToPdf = () => {
+    if (!result) return;
+    
+    // Wait for MathJax to finish rendering, then print
+    setTimeout(() => {
+      const originalTitle = document.title;
+      document.title = result.originalChunk.title;
+      
+      // Add print-specific styles that preserve math
+      const printStyles = document.createElement('style');
+      printStyles.innerHTML = `
+        @media print {
+          @page { 
+            margin: 1in; 
+            size: letter;
+          }
+          body * { visibility: hidden; }
+          .print-content, .print-content * { visibility: visible; }
+          .print-content { 
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            color: black !important;
+            background: white !important;
+          }
+          .print-content h1 { 
+            font-size: 20pt; 
+            margin-bottom: 18pt; 
+            page-break-after: avoid;
+            border-bottom: 1pt solid black;
+            padding-bottom: 6pt;
+          }
+          .print-content h2 { 
+            font-size: 16pt; 
+            margin-bottom: 14pt; 
+            margin-top: 18pt;
+            page-break-after: avoid;
+          }
+          .print-content h3 { 
+            font-size: 14pt; 
+            margin-bottom: 12pt; 
+            margin-top: 14pt;
+            page-break-after: avoid;
+          }
+          .print-content p { 
+            margin-bottom: 12pt; 
+            text-align: justify;
+            orphans: 2;
+            widows: 2;
+          }
+          .print-content ul, .print-content ol { 
+            margin-bottom: 12pt; 
+            page-break-inside: avoid;
+          }
+          .print-content li { margin-bottom: 6pt; }
+          .print-content blockquote {
+            margin: 12pt 0;
+            padding-left: 12pt;
+            border-left: 2pt solid #666;
+            font-style: italic;
+          }
+          /* Math preservation */
+          .print-content .MathJax { 
+            font-size: inherit !important; 
+            color: black !important;
+          }
+          .print-content .MathJax_Display { 
+            margin: 12pt auto !important; 
+            text-align: center !important;
+          }
+          .print-content .MathJax span { 
+            color: black !important; 
+          }
+          /* Code blocks */
+          .print-content code {
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
+            background: #f5f5f5 !important;
+            padding: 2pt;
+            border: 1pt solid #ddd;
+          }
+          .print-content pre {
+            background: #f5f5f5 !important;
+            padding: 8pt;
+            border: 1pt solid #ddd;
+            font-size: 10pt;
+            overflow: visible;
+            white-space: pre-wrap;
+          }
+        }
+      `;
+      document.head.appendChild(printStyles);
+      
+      // Mark the content area for printing
+      const contentDiv = document.querySelector('.max-w-4xl > div');
+      if (contentDiv) {
+        contentDiv.classList.add('print-content');
+      }
+      
+      window.print();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.title = originalTitle;
+        document.head.removeChild(printStyles);
+        if (contentDiv) {
+          contentDiv.classList.remove('print-content');
+        }
+      }, 100);
+    }, 1500); // Wait longer for MathJax rendering
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white overflow-hidden">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-        <div className="flex items-center gap-4">
-          <Button size="sm" variant="outline" onClick={onClose}>
-            <X className="h-4 w-4 mr-1" />
-            Close
+    <div className="fixed inset-0 z-50 bg-white">
+      {/* Minimal Header */}
+      <div className="flex items-center justify-between p-3 border-b bg-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <Button size="sm" variant="ghost" onClick={onClose}>
+            <X className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-gray-800">
-            {result.originalChunk.title} - Professional Rewrite
+          <h1 className="text-lg font-semibold text-gray-800">
+            {result.originalChunk.title}
           </h1>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-1" />
-            Download
-          </Button>
           <Button size="sm" variant="outline" onClick={handleCopy}>
-            {isCopied ? (
-              <>
-                <Check className="h-4 w-4 mr-1" />
-                Copied
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 mr-1" />
-                Copy
-              </>
-            )}
+            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleDownload}>
+            <Download className="h-4 w-4" />
+          </Button>
+          <Button size="sm" variant="outline" onClick={handlePrintToPdf}>
+            <FileText className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Main Content - Full Screen */}
-      <div className="flex h-[calc(100vh-80px)]">
-        {/* Rewritten Content - Takes Most Space */}
-        <div className="flex-1 flex flex-col bg-white">
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-green-700 mb-2">
-              Professional Rewrite
-            </h2>
-            <p className="text-gray-600">Enhanced content with proper formatting and mathematical notation</p>
-          </div>
-          <div className="flex-1 overflow-auto p-6">
-            <div className="prose prose-lg max-w-none">
-              <MathJaxContext config={mathJaxConfig}>
-                <MathJax>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                    components={{
-                      // Enhanced rendering for better formatting
-                      h1: ({children}) => <h1 className="text-3xl font-bold mb-6 text-gray-900">{children}</h1>,
-                      h2: ({children}) => <h2 className="text-2xl font-bold mb-4 text-gray-800">{children}</h2>,
-                      h3: ({children}) => <h3 className="text-xl font-bold mb-3 text-gray-700">{children}</h3>,
-                      p: ({children}) => <p className="mb-4 text-gray-800 leading-relaxed">{children}</p>,
-                      ul: ({children}) => <ul className="mb-4 ml-6 list-disc">{children}</ul>,
-                      ol: ({children}) => <ol className="mb-4 ml-6 list-decimal">{children}</ol>,
-                      li: ({children}) => <li className="mb-2 text-gray-800">{children}</li>,
-                      blockquote: ({children}) => <blockquote className="border-l-4 border-blue-500 pl-4 my-4 italic text-gray-700">{children}</blockquote>,
-                      code: ({children, className}) => {
-                        if (className?.includes('language-')) {
-                          return <code className="block bg-gray-100 p-4 rounded text-sm font-mono">{children}</code>;
-                        }
-                        return <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">{children}</code>;
+      {/* FULL-SCREEN DOCUMENT DISPLAY */}
+      <div className="h-[calc(100vh-60px)] bg-white">
+        <div className="max-w-4xl mx-auto h-full p-8 overflow-auto">
+          {/* Large, Professional Document Display */}
+          <div className="bg-white">
+            <MathJaxContext config={mathJaxConfig}>
+              <MathJax>
+                <ReactMarkdown
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                  components={{
+                    h1: ({children}) => (
+                      <h1 className="text-5xl font-bold mb-8 text-gray-900 border-b-2 border-gray-200 pb-4">
+                        {children}
+                      </h1>
+                    ),
+                    h2: ({children}) => (
+                      <h2 className="text-4xl font-bold mb-6 text-gray-800 mt-12">
+                        {children}
+                      </h2>
+                    ),
+                    h3: ({children}) => (
+                      <h3 className="text-3xl font-bold mb-4 text-gray-700 mt-8">
+                        {children}
+                      </h3>
+                    ),
+                    h4: ({children}) => (
+                      <h4 className="text-2xl font-semibold mb-3 text-gray-700 mt-6">
+                        {children}
+                      </h4>
+                    ),
+                    p: ({children}) => (
+                      <p className="text-xl leading-relaxed mb-6 text-gray-800 font-light">
+                        {children}
+                      </p>
+                    ),
+                    ul: ({children}) => (
+                      <ul className="text-xl mb-6 ml-8 list-disc space-y-2">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({children}) => (
+                      <ol className="text-xl mb-6 ml-8 list-decimal space-y-2">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({children}) => (
+                      <li className="text-gray-800 leading-relaxed">
+                        {children}
+                      </li>
+                    ),
+                    blockquote: ({children}) => (
+                      <blockquote className="border-l-4 border-blue-500 pl-6 my-8 italic text-xl text-gray-700 bg-blue-50 py-6 rounded-r-lg">
+                        {children}
+                      </blockquote>
+                    ),
+                    code: ({children, className}) => {
+                      if (className?.includes('language-')) {
+                        return (
+                          <code className="block bg-gray-100 p-6 rounded-lg text-lg font-mono leading-relaxed overflow-x-auto">
+                            {children}
+                          </code>
+                        );
                       }
-                    }}
-                  >
-                    {result.rewrittenContent}
-                  </ReactMarkdown>
-                </MathJax>
-              </MathJaxContext>
-            </div>
+                      return (
+                        <code className="bg-gray-100 px-2 py-1 rounded font-mono text-lg">
+                          {children}
+                        </code>
+                      );
+                    },
+                    pre: ({children}) => (
+                      <pre className="bg-gray-100 p-6 rounded-lg overflow-x-auto mb-6">
+                        {children}
+                      </pre>
+                    )
+                  }}
+                >
+                  {result.rewrittenContent}
+                </ReactMarkdown>
+              </MathJax>
+            </MathJaxContext>
           </div>
         </div>
 
-        {/* Side Panel - Original Content & Controls */}
-        <div className="w-96 bg-gray-50 border-l flex flex-col">
-          {/* Original Content */}
-          <div className="border-b p-4">
-            <h3 className="font-semibold text-gray-700 mb-3">
-              Original ({result.originalChunk.wordCount} words)
-            </h3>
-            <div className="text-sm text-gray-600 bg-white p-3 rounded border max-h-40 overflow-auto">
-              {result.originalChunk.content}
-            </div>
-          </div>
-
-          {/* Explanation */}
-          {result.explanation && (
-            <div className="border-b p-4">
-              <h3 className="font-semibold text-blue-700 mb-3">Explanation</h3>
-              <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded">
-                {result.explanation}
-              </div>
-            </div>
-          )}
-
-          {/* Rewrite Controls */}
-          <div className="flex-1 p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">
-              Refine This Rewrite
-            </h3>
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Provide specific instructions for refinement..."
-                value={customInstructions}
-                onChange={(e) => setCustomInstructions(e.target.value)}
-                rows={4}
-                className="text-sm"
-              />
-              <div className="flex items-center justify-between">
-                <select 
-                  className="border rounded px-3 py-2 text-sm"
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                >
-                  <option value="claude">Claude (Recommended)</option>
-                  <option value="gpt4">GPT-4</option>
-                </select>
-                <Button 
-                  onClick={rewriteTheRewrite}
-                  disabled={isRewriting || !customInstructions.trim()}
-                  size="sm"
-                >
-                  {isRewriting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Refining...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Refine
-                    </>
-                  )}
-                </Button>
-              </div>
+        {/* Floating Controls */}
+        <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg border p-4 max-w-sm">
+          <h4 className="font-semibold mb-3 text-gray-800">Refine This Content</h4>
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Enter refinement instructions..."
+              value={customInstructions}
+              onChange={(e) => setCustomInstructions(e.target.value)}
+              rows={3}
+              className="text-sm"
+            />
+            <div className="flex gap-2">
+              <select 
+                className="flex-1 border rounded px-2 py-1 text-sm"
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+              >
+                <option value="claude">Claude</option>
+                <option value="gpt4">GPT-4</option>
+              </select>
+              <Button 
+                onClick={rewriteTheRewrite}
+                disabled={isRewriting || !customInstructions.trim()}
+                size="sm"
+              >
+                {isRewriting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           </div>
         </div>
