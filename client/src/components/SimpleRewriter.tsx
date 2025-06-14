@@ -346,8 +346,29 @@ export default function SimpleRewriter({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Edit3 className="h-5 w-5" />
-            Rewrite Document: {documentName}
+            Rewrite Document: {currentDocumentName}
           </DialogTitle>
+          
+          {/* Document Selector */}
+          {availableDocuments.length > 0 && (
+            <div className="mt-3">
+              <label className="block text-sm font-medium mb-2">
+                Select Document to Process
+              </label>
+              <select
+                value={selectedDocumentId}
+                onChange={(e) => setSelectedDocumentId(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
+              >
+                <option value="">Choose a document...</option>
+                {availableDocuments.map((doc) => (
+                  <option key={doc.id} value={doc.id}>
+                    {doc.title} ({new Date(doc.date).toLocaleDateString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </DialogHeader>
 
         <div className="flex flex-col flex-1 space-y-4 overflow-hidden">

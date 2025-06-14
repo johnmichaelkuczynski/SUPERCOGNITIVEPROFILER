@@ -1,6 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { documents } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
@@ -353,12 +356,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get documents route
   app.get('/api/documents', async (req: Request, res: Response) => {
     try {
-      const userId = 1; // Mock user ID for now
-      const documents = await storage.getDocumentsByUserId(userId);
-      res.json(documents);
+      const recentDocuments = await db.select({
+        id: documents.id,
+        title: documents.title,
+        excerpt: documents.excerpt,
+        date: documents.date,
+        model: documents.model
+      }).from(documents)
+      .orderBy(desc(documents.date))
+      .limit(20);
+
+      res.json(recentDocuments);
     } catch (error) {
       console.error('Error fetching documents:', error);
       res.status(500).json({ message: 'Failed to fetch documents', error: (error as Error).message });
+    }
+  });
+
+  // Get specific document by ID
+  app.get('/api/documents/:id', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const [document] = await db.select().from(documents).where(eq(documents.id, id));
+      
+      if (!document) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+
+      res.json(document);
+    } catch (error) {
+      console.error('Error fetching document:', error);
+      res.status(500).json({ error: 'Failed to fetch document' });
     }
   });
   
