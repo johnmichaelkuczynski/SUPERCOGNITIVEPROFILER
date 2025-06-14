@@ -1836,7 +1836,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
       results.forEach((result, index) => {
         let content = result.rewrittenContent || '';
         
-        // Convert LaTeX symbols to Unicode FIRST
+        // DIRECT LATEX TO UNICODE CONVERSION
         const latexToUnicode = {
           '\\neg': '¬', '\\lnot': '¬', '\\land': '∧', '\\wedge': '∧', '\\lor': '∨', '\\vee': '∨',
           '\\rightarrow': '→', '\\to': '→', '\\leftarrow': '←', '\\leftrightarrow': '↔', '\\iff': '↔',
@@ -1857,6 +1857,15 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
         Object.entries(latexToUnicode).forEach(([latex, unicode]) => {
           content = content.split(latex).join(unicode);
         });
+        
+        // Handle basic fractions
+        content = content.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
+        
+        // Clean up LaTeX artifacts
+        content = content.replace(/\$\$?([^$]+)\$\$?/g, '$1');
+        content = content.replace(/\\\[([^\]]+)\\\]/g, '$1');
+        content = content.replace(/\\\(([^)]+)\\\)/g, '$1');
+        content = content.replace(/\{([^}]+)\}/g, '$1');
         
         // AGGRESSIVELY remove ALL markup
         content = content

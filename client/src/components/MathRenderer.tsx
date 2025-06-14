@@ -102,70 +102,21 @@ const latexToUnicode: Record<string, string> = {
 function renderMathContent(content: string): string {
   let processed = content;
   
-  // FIRST: Convert ALL raw LaTeX symbols to Unicode (most important for your use case)
+  // DIRECT LATEX TO UNICODE REPLACEMENT - NO PROCESSING
   Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
     processed = processed.split(latexSymbol).join(unicode);
   });
   
-  // Handle display math blocks $$...$$
-  processed = processed.replace(/\$\$([^$]+)\$\$/g, (match, latex) => {
-    let rendered = latex;
-    // Apply symbol replacements again inside math blocks
-    Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.split(latexSymbol).join(unicode);
-    });
-    
-    // Handle fractions \frac{a}{b}
-    rendered = rendered.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
-    
-    // Handle subscripts and superscripts (basic)
-    rendered = rendered.replace(/\{([^}]+)\}/g, '$1');
-    rendered = rendered.replace(/_([a-zA-Z0-9]+)/g, '₍$1₎');
-    rendered = rendered.replace(/\^([a-zA-Z0-9]+)/g, '⁽$1⁾');
-    
-    return `<div class="math-display" style="text-align: center; margin: 1em 0; font-size: 1.2em; font-weight: 500;">${rendered}</div>`;
-  });
+  // Handle basic fractions
+  processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
   
-  // Handle inline math $...$
-  processed = processed.replace(/\$([^$]+)\$/g, (match, latex) => {
-    let rendered = latex;
-    // Apply symbol replacements again inside math blocks
-    Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.split(latexSymbol).join(unicode);
-    });
-    
-    // Handle fractions \frac{a}{b}
-    rendered = rendered.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
-    
-    // Handle subscripts and superscripts (basic)
-    rendered = rendered.replace(/\{([^}]+)\}/g, '$1');
-    rendered = rendered.replace(/_([a-zA-Z0-9]+)/g, '₍$1₎');
-    rendered = rendered.replace(/\^([a-zA-Z0-9]+)/g, '⁽$1⁾');
-    
-    return `<span class="math-inline" style="font-weight: 500;">${rendered}</span>`;
-  });
-  
-  // Handle \\(...\\) inline math
-  processed = processed.replace(/\\\(([^)]+)\\\)/g, (match, latex) => {
-    let rendered = latex;
-    Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.split(latexSymbol).join(unicode);
-    });
-    rendered = rendered.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
-    rendered = rendered.replace(/\{([^}]+)\}/g, '$1');
-    return `<span class="math-inline" style="font-weight: 500;">${rendered}</span>`;
-  });
-  
-  // Handle \\[...\\] display math
-  processed = processed.replace(/\\\[([^\]]+)\\\]/g, (match, latex) => {
-    let rendered = latex;
-    Object.entries(latexToUnicode).forEach(([latexSymbol, unicode]) => {
-      rendered = rendered.split(latexSymbol).join(unicode);
-    });
-    rendered = rendered.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
-    rendered = rendered.replace(/\{([^}]+)\}/g, '$1');
-    return `<div class="math-display" style="text-align: center; margin: 1em 0; font-size: 1.2em; font-weight: 500;">${rendered}</div>`;
-  });
+  // Clean up any LaTeX artifacts
+  processed = processed.replace(/\$\$?([^$]+)\$\$?/g, '$1'); // Remove $ delimiters
+  processed = processed.replace(/\\\[([^\]]+)\\\]/g, '$1');   // Remove \[...\]
+  processed = processed.replace(/\\\(([^)]+)\\\)/g, '$1');    // Remove \(...\)
+  processed = processed.replace(/\{([^}]+)\}/g, '$1');        // Remove braces
+  processed = processed.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')');
+  processed = processed.replace(/\\left\[/g, '[').replace(/\\right\]/g, ']');
   
   // COMPLETELY REMOVE ALL MARKDOWN FORMATTING
   processed = processed
