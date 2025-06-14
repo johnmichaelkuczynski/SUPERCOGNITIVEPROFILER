@@ -313,11 +313,32 @@ export default function SimpleRewriter({
     }
   };
 
-  const emailRewrite = async () => {
-    if (rewriteResults.length === 0) return;
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    fromEmail: '',
+    toEmail: '',
+    subject: ''
+  });
 
-    const email = prompt("Enter your email address:");
-    if (!email) return;
+  const emailRewrite = () => {
+    if (rewriteResults.length === 0) return;
+    setShowEmailForm(true);
+    setEmailForm({
+      fromEmail: '',
+      toEmail: '',
+      subject: `Rewritten Document: ${currentDocumentName}`
+    });
+  };
+
+  const sendEmail = async () => {
+    if (!emailForm.fromEmail || !emailForm.toEmail) {
+      toast({
+        title: "Missing Information",
+        description: "Both sender and recipient emails are required",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       const response = await fetch('/api/email-rewrite', {
@@ -326,21 +347,24 @@ export default function SimpleRewriter({
         body: JSON.stringify({
           results: rewriteResults,
           documentName: currentDocumentName,
-          recipientEmail: email
+          fromEmail: emailForm.fromEmail,
+          toEmail: emailForm.toEmail,
+          subject: emailForm.subject
         })
       });
 
       if (response.ok) {
         toast({
           title: "Email Sent",
-          description: `Document emailed to ${email}`
+          description: `Document sent from ${emailForm.fromEmail} to ${emailForm.toEmail}`
         });
+        setShowEmailForm(false);
       } else {
         const error = await response.json();
         throw new Error(error.error || 'Failed to send email');
       }
     } catch (error) {
-      console.error('Error emailing rewrite:', error);
+      console.error('Error sending email:', error);
       toast({
         title: "Email Failed",
         description: error instanceof Error ? error.message : "Failed to send email",
@@ -572,6 +596,66 @@ export default function SimpleRewriter({
             </Card>
           </div>
         </div>
+
+        {/* Email Form Modal */}
+        {showEmailForm && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+              <h3 className="text-lg font-semibold mb-4">Email Document</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    From Email (SendGrid Verified):
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="your-verified@domain.com"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={emailForm.fromEmail}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, fromEmail: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    To Email:
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="recipient@example.com"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={emailForm.toEmail}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, toEmail: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Subject:
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={emailForm.subject}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, subject: e.target.value }))}
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={sendEmail}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Send Email
+                  </button>
+                  <button
+                    onClick={() => setShowEmailForm(false)}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
