@@ -1995,14 +1995,22 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
           .replace(/\n{2,}/g, '\n\n')              // Normalize breaks
           .trim();
         
-        // THEN apply mathematical notation rendering to clean text
+        // Apply mathematical notation rendering and wrap in MathJax delimiters
         content = renderMathematicalNotation(content);
         
-        // Final cleanup of any remaining math delimiters
+        // Detect and wrap mathematical expressions for MathJax processing
         content = content
-          .replace(/\$\$?([^$]+)\$\$?/g, '$1')     // Remove math delimiters
-          .replace(/\\\[([^\]]+)\\\]/g, '$1')      // Remove \[...\]
-          .replace(/\\\(([^)]+)\\\)/g, '$1')       // Remove \(...\)
+          // Wrap complex mathematical expressions
+          .replace(/(¬\([^)]+\))/g, '\\($1\\)')
+          .replace(/(∀[x-z]\s*∀[x-z]\s*\([^)]+\))/g, '\\($1\\)')
+          .replace(/(∀[x-z][^\s.,;]*\s*[∈∉⊂⊃⊆⊇][^\s.,;]*)/g, '\\($1\\)')
+          .replace(/(∃[x-z][^\s.,;]*\s*[∈∉⊂⊃⊆⊇][^\s.,;]*)/g, '\\($1\\)')
+          .replace(/([A-Za-z]\s*[∧∨→↔]\s*[A-Za-z])/g, '\\($1\\)')
+          .replace(/(φ\([^)]+\))/g, '\\($1\\)')
+          .replace(/(∫[^.]+dx)/g, '\\($1\\)')
+          // Wrap individual mathematical symbols
+          .replace(/([¬∀∃∈∉⊂⊃⊆⊇∪∩∧∨→←↔⇒⇐⇔≤≥≠≈≡∼≃≅∝×·÷±∓∅∖])/g, '\\($1\\)')
+          .replace(/([αβγδεζηθικλμνξπρστυφχψωΓΔΘΛΞΠΣΥΦΧΨΩ])/g, '\\($1\\)')
           .trim();
 
         cleanContent += `Section ${index + 1}: ${result.originalChunk.title || `Part ${index + 1}`}\n\n${content}\n\n`;
