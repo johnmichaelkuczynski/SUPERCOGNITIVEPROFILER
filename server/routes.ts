@@ -1804,6 +1804,7 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
 <head>
     <meta charset="utf-8">
     <title>${documentName || 'Document'}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -1837,21 +1838,25 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
             margin: 10px 0;
             line-height: 1.6;
         }
-        .math-inline { 
-            font-style: italic; 
-            background: #f8f8f8; 
-            padding: 1px 3px;
-            border-radius: 2px;
-            border: 1px solid #e0e0e0;
+        /* KaTeX math styling for proper PDF display */
+        .katex { 
+            font-size: 1em !important; 
+            color: black !important;
         }
-        .math-block { 
-            font-style: italic; 
-            background: #f5f5f5; 
-            padding: 8px;
-            margin: 10px 0;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            text-align: center;
+        .katex-display { 
+            margin: 1em 0 !important; 
+            text-align: center !important;
+        }
+        .katex .base { 
+            color: black !important; 
+        }
+        .math-error {
+            color: red;
+            background: #fff3cd;
+            padding: 2px 4px;
+            border: 1px solid #ffeaa7;
+            border-radius: 3px;
+            font-size: 0.9em;
         }
         @media print {
             body { margin: 0; padding: 15mm; }
@@ -1863,11 +1868,70 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
 <body>
     <div class="document-title">${documentName || 'Rewritten Document'}</div>`;
 
-      // Process each section - keep LaTeX math notation completely intact
+      // Process each section with KaTeX server-side math rendering for PDF
+      const katex = require('katex');
+      
       results.forEach((result: any, index: number) => {
         let content = result.rewrittenContent || '';
         
-        // MINIMAL formatting - preserve all LaTeX math
+        // Render LaTeX math using KaTeX for proper PDF display
+        try {
+          // Process display math $$...$$
+          content = content.replace(/\$\$([^$]+)\$\$/g, (match, latex) => {
+            try {
+              return katex.renderToString(latex, {
+                displayMode: true,
+                throwOnError: false,
+                output: 'html'
+              });
+            } catch (e) {
+              return `<div class="math-error">$$${latex}$$</div>`;
+            }
+          });
+          
+          // Process inline math $...$
+          content = content.replace(/\$([^$]+)\$/g, (match, latex) => {
+            try {
+              return katex.renderToString(latex, {
+                displayMode: false,
+                throwOnError: false,
+                output: 'html'
+              });
+            } catch (e) {
+              return `<span class="math-error">$${latex}$</span>`;
+            }
+          });
+          
+          // Process \\(...\\) inline math
+          content = content.replace(/\\\(([^)]+)\\\)/g, (match, latex) => {
+            try {
+              return katex.renderToString(latex, {
+                displayMode: false,
+                throwOnError: false,
+                output: 'html'
+              });
+            } catch (e) {
+              return `<span class="math-error">\\(${latex}\\)</span>`;
+            }
+          });
+          
+          // Process \\[...\\] display math
+          content = content.replace(/\\\[([^\]]+)\\\]/g, (match, latex) => {
+            try {
+              return katex.renderToString(latex, {
+                displayMode: true,
+                throwOnError: false,
+                output: 'html'
+              });
+            } catch (e) {
+              return `<div class="math-error">\\[${latex}\\]</div>`;
+            }
+          });
+        } catch (error) {
+          console.error('KaTeX rendering error:', error);
+        }
+        
+        // Basic formatting
         content = content
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\n\n+/g, '</p><p class="content">')
