@@ -548,7 +548,7 @@ export default function ChunkedRewriter({
           setLiveProgressChunks(prev => prev.map((item, idx) => 
             idx === selectedCount + i ? {
               ...item,
-              content: result.newChunkContent,
+              content: newChunkContent,
               completed: true
             } : item
           ));
