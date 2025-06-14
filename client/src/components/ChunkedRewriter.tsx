@@ -68,6 +68,7 @@ export default function ChunkedRewriter({
   const [rerewriteInstructions, setRerewriteInstructions] = useState('');
   const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
   const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
+  const [isMathView, setIsMathView] = useState(false);
   
   const { toast } = useToast();
 
@@ -1117,23 +1118,41 @@ export default function ChunkedRewriter({
       <Dialog open={previewChunk !== null} onOpenChange={() => setPreviewChunk(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Chunk Preview - {previewChunk && `Chunk ${chunks.findIndex(c => c.id === previewChunk.id) + 1}`}
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>
+                Chunk Preview - {previewChunk && `Chunk ${chunks.findIndex(c => c.id === previewChunk.id) + 1}`}
+              </DialogTitle>
+              <Button 
+                size="sm" 
+                variant={isMathView ? "default" : "outline"} 
+                onClick={() => setIsMathView(!isMathView)}
+                title="Toggle Math View"
+              >
+                <Calculator className="h-4 w-4" />
+              </Button>
+            </div>
           </DialogHeader>
           {previewChunk && (
             <div className="space-y-4">
               <div>
                 <h3 className="font-medium mb-2">Original:</h3>
                 <div className="bg-gray-50 dark:bg-gray-800 rounded p-4">
-                  <MathRenderer content={previewChunk.content} />
+                  {isMathView ? (
+                    <KaTeXRenderer content={previewChunk.content} />
+                  ) : (
+                    <MathRenderer content={previewChunk.content} />
+                  )}
                 </div>
               </div>
               {previewChunk.rewritten && (
                 <div>
                   <h3 className="font-medium mb-2">Rewritten:</h3>
                   <div className="bg-green-50 dark:bg-green-950 rounded p-4">
-                    <MathRenderer content={previewChunk.rewritten} />
+                    {isMathView ? (
+                      <KaTeXRenderer content={previewChunk.rewritten} />
+                    ) : (
+                      <MathRenderer content={previewChunk.rewritten} />
+                    )}
                   </div>
                 </div>
               )}
