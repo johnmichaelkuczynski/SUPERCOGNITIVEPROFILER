@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Edit3, X, FileText, Download, Loader2, Share2 } from 'lucide-react';
+import { Edit3, X, FileText, Download, Loader2, Share2, RefreshCw } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -42,6 +42,7 @@ export default function SimpleRewriter({
   const [availableDocuments, setAvailableDocuments] = useState<any[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>(documentId || '');
   const [currentDocumentName, setCurrentDocumentName] = useState<string>(documentName || '');
+  const [rewritingIndex, setRewritingIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -387,6 +388,74 @@ export default function SimpleRewriter({
     });
   };
 
+  const rewriteTheRewrite = async (resultIndex: number) => {
+    const instructionsElement = document.getElementById(`rewrite-instructions-${resultIndex}`) as HTMLTextAreaElement;
+    const modelElement = document.getElementById(`rewrite-model-${resultIndex}`) as HTMLSelectElement;
+    
+    const customInstructions = instructionsElement?.value || '';
+    const selectedModel = modelElement?.value || 'claude';
+    
+    if (!customInstructions.trim()) {
+      toast({
+        title: "Instructions Required",
+        description: "Please provide specific instructions for how you want to rewrite this content",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const currentResult = rewriteResults[resultIndex];
+    if (!currentResult) return;
+
+    try {
+      // Call the rewrite API with the current rewritten content as input
+      const response = await fetch('/api/rewrite-chunk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: currentResult.rewrittenContent,
+          instructions: customInstructions,
+          model: selectedModel,
+          chunkIndex: 0,
+          totalChunks: 1
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Update the result in place with the new rewritten content
+        const updatedResults = [...rewriteResults];
+        updatedResults[resultIndex] = {
+          ...currentResult,
+          rewrittenContent: result.rewrittenContent,
+          explanation: result.explanation || undefined
+        };
+        
+        setRewriteResults(updatedResults);
+        
+        // Clear the instructions field
+        if (instructionsElement) {
+          instructionsElement.value = '';
+        }
+        
+        toast({
+          title: "Re-rewrite Complete",
+          description: "Content has been successfully rewritten with your custom instructions"
+        });
+      } else {
+        throw new Error('Failed to rewrite content');
+      }
+    } catch (error) {
+      console.error('Error in rewrite-the-rewrite:', error);
+      toast({
+        title: "Re-rewrite Failed",
+        description: error instanceof Error ? error.message : "Failed to rewrite content",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -611,6 +680,40 @@ export default function SimpleRewriter({
                                 </div>
                               </>
                             )}
+                            
+                            {/* Rewrite the Rewrite Section */}
+                            <Separator />
+                            <div className="bg-blue-50 p-3 rounded">
+                              <h5 className="text-xs font-medium text-blue-800 mb-2">
+                                Rewrite the Rewrite
+                              </h5>
+                              <div className="space-y-2">
+                                <Textarea
+                                  placeholder="Provide specific instructions for how you want to rewrite this content..."
+                                  className="text-xs"
+                                  rows={2}
+                                  id={`rewrite-instructions-${index}`}
+                                />
+                                <div className="flex items-center justify-between">
+                                  <select 
+                                    className="text-xs border rounded px-2 py-1"
+                                    id={`rewrite-model-${index}`}
+                                    defaultValue="claude"
+                                  >
+                                    <option value="claude">Claude</option>
+                                    <option value="gpt4">GPT-4</option>
+                                  </select>
+                                  <Button 
+                                    size="sm" 
+                                    className="text-xs px-3 py-1"
+                                    onClick={() => rewriteTheRewrite(index)}
+                                  >
+                                    <RefreshCw className="h-3 w-3 mr-1" />
+                                    Start Re-rewrite
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
                           </CardContent>
                         </Card>
                       ))}
