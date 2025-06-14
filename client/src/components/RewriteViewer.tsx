@@ -34,6 +34,7 @@ export default function RewriteViewer({
   const [selectedModel, setSelectedModel] = useState('claude');
   const [isRewriting, setIsRewriting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
 
   if (!result) return null;

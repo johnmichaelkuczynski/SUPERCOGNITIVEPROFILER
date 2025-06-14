@@ -21,6 +21,7 @@ import { WebSocketServer } from 'ws';
 import { renderMathematicalNotation } from './mathRenderer';
 import GoogleDriveService from './services/googleDrive';
 import { sendEmail } from './services/email';
+import { pdfExportService } from './services/pdfExport';
 import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
@@ -2899,6 +2900,29 @@ Return only the new content without any additional comments, explanations, or he
     } catch (error) {
       console.error('Error saving document to Google Drive:', error);
       res.status(500).json({ error: 'Failed to save document to Google Drive' });
+    }
+  });
+
+  // Direct PDF export endpoint (works without Google Drive)
+  app.post('/api/export/pdf', async (req: Request, res: Response) => {
+    try {
+      const { content, filename = 'document' } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      // Process mathematical notation for clean PDF output
+      const processedContent = renderMathematicalNotation(content);
+      
+      const pdfBuffer = await pdfExportService.generatePDF(processedContent, filename);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      res.status(500).json({ error: 'Failed to generate PDF' });
     }
   });
 

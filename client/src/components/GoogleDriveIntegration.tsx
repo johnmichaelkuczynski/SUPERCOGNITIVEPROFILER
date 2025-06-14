@@ -26,6 +26,7 @@ export function GoogleDriveIntegration({
   const [isSaving, setIsSaving] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [driveLink, setDriveLink] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
 
   const handleAuthorize = async () => {
@@ -122,6 +123,54 @@ export function GoogleDriveIntegration({
     }
   };
 
+  const handleDirectDownload = async () => {
+    try {
+      setIsDownloading(true);
+      
+      const response = await fetch('/api/export/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content,
+          filename
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${filename}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "PDF downloaded successfully",
+        description: "Document with mathematical notation saved to your device"
+      });
+
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error instanceof Error ? error.message : "Failed to download PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const formatDescription = {
     pdf: "Save as PDF with perfect mathematical notation rendering (∀∃∧∨→↔≤≥≠∈⊂∪∩)",
     txt: "Save as plain text with Unicode mathematical symbols",
@@ -196,23 +245,44 @@ export function GoogleDriveIntegration({
                 <span>Mathematical notation: ∀∃∧∨→↔≤≥≠∈⊂∪∩</span>
               </div>
               
-              <Button 
-                onClick={handleSave}
-                disabled={isSaving || !filename.trim()}
-                className="w-full gap-2"
-              >
-                {isSaving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Saving to Drive...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4" />
-                    Save {format.toUpperCase()} to Google Drive
-                  </>
-                )}
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={handleDirectDownload}
+                  disabled={isDownloading || !filename.trim()}
+                  variant="outline"
+                  className="gap-2"
+                >
+                  {isDownloading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Download PDF
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  onClick={handleSave}
+                  disabled={isSaving || !filename.trim()}
+                  className="gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Cloud className="h-4 w-4" />
+                      Save to Drive
+                    </>
+                  )}
+                </Button>
+              </div>
               
               {driveLink && (
                 <Card className="bg-green-50 border-green-200">
