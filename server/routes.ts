@@ -1889,42 +1889,177 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
           '\\therefore': '∴', '\\because': '∵'
         };
         
-        // DIRECT STRING REPLACEMENTS FOR FRACTIONS - EXACT MATCHES
-        content = content.split('\\frac{1}{2}').join('½');
-        content = content.split('\\frac{1}{3}').join('⅓');
-        content = content.split('\\frac{2}{3}').join('⅔');
-        content = content.split('\\frac{1}{4}').join('¼');
-        content = content.split('\\frac{3}{4}').join('¾');
-        content = content.split('\\frac{1}{5}').join('⅕');
-        content = content.split('\\frac{2}{5}').join('⅖');
-        content = content.split('\\frac{3}{5}').join('⅗');
-        content = content.split('\\frac{4}{5}').join('⅘');
-        content = content.split('\\frac{1}{6}').join('⅙');
-        content = content.split('\\frac{5}{6}').join('⅚');
-        content = content.split('\\frac{1}{8}').join('⅛');
-        content = content.split('\\frac{3}{8}').join('⅜');
-        content = content.split('\\frac{5}{8}').join('⅝');
-        content = content.split('\\frac{7}{8}').join('⅞');
+        // COMPREHENSIVE LATEX MATH PROCESSING - MATCH FRONTEND
         
-        // Handle any remaining fractions with simple format
-        content = content.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
+        // Handle matrices
+        content = content.replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g, (match: any, matrixContent: any) => {
+          const rows = matrixContent.split('\\\\').map((row: string) => {
+            const cells = row.split('&').map((cell: string) => cell.trim());
+            return cells.join(' ');
+          });
+          return `(${rows.join(') (')})`;
+        });
         
-        // Apply other symbol replacements
+        content = content.replace(/\\begin\{bmatrix\}([\s\S]*?)\\end\{bmatrix\}/g, (match: any, matrixContent: any) => {
+          const rows = matrixContent.split('\\\\').map((row: string) => {
+            const cells = row.split('&').map((cell: string) => cell.trim());
+            return cells.join(' ');
+          });
+          return `[${rows.join('] [')}]`;
+        });
+        
+        content = content.replace(/\\begin\{matrix\}([\s\S]*?)\\end\{matrix\}/g, (match: any, matrixContent: any) => {
+          const rows = matrixContent.split('\\\\').map((row: string) => {
+            const cells = row.split('&').map((cell: string) => cell.trim());
+            return cells.join(' ');
+          });
+          return rows.join(' | ');
+        });
+        
+        // Handle fractions with proper rendering
+        content = content.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, (match, num, den) => {
+          // Simple single-digit fractions to Unicode
+          const simpleChars = /^[0-9]$/;
+          if (simpleChars.test(num) && simpleChars.test(den)) {
+            const fractionMap: Record<string, string> = {
+              '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾',
+              '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘', '1/6': '⅙',
+              '5/6': '⅚', '1/7': '⅐', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝',
+              '7/8': '⅞', '1/9': '⅑', '1/10': '⅒'
+            };
+            const key = `${num}/${den}`;
+            if (fractionMap[key]) return fractionMap[key];
+          }
+          // Complex fractions as simple division
+          return `(${num})/(${den})`;
+        });
+        
+        // Handle superscripts and subscripts
+        content = content.replace(/\^(\{[^}]+\}|[^{\s])/g, (match, sup) => {
+          const exponent = sup.startsWith('{') ? sup.slice(1, -1) : sup;
+          return `^${exponent}`;
+        });
+        
+        content = content.replace(/_(\{[^}]+\}|[^{\s])/g, (match, sub) => {
+          const subscript = sub.startsWith('{') ? sub.slice(1, -1) : sub;
+          return `_${subscript}`;
+        });
+        
+        // Handle integrals and summations
+        content = content.split('\\int').join('∫');
+        content = content.split('\\iint').join('∬');
+        content = content.split('\\iiint').join('∭');
+        content = content.split('\\oint').join('∮');
+        content = content.split('\\sum').join('∑');
+        content = content.split('\\prod').join('∏');
+        
+        // Apply comprehensive symbol replacements
         Object.entries(symbolMap).forEach(([latex, symbol]) => {
           content = content.split(latex).join(symbol);
         });
         
-        // Remove all math delimiters
-        content = content.replace(/\$\$?([^$]*)\$\$?/g, '$1');
+        // Handle function names
+        const functionNames = ['sin', 'cos', 'tan', 'sec', 'csc', 'cot', 
+                              'sinh', 'cosh', 'tanh', 'log', 'ln', 'exp',
+                              'det', 'tr', 'rank', 'dim', 'ker', 'im'];
+        functionNames.forEach(func => {
+          const regex = new RegExp(`\\\\${func}\\b`, 'g');
+          content = content.replace(regex, func);
+        });
+        
+        // Process math environments before removing delimiters
+        content = content.replace(/\$\$([^$]+)\$\$/g, (match: any, mathContent: any) => {
+          let processed = mathContent;
+          
+          // Apply all mathematical transformations to display math
+          processed = processed.replace(/\\begin\{pmatrix\}([\s\S]*?)\\end\{pmatrix\}/g, (match: any, matrixContent: any) => {
+            const rows = matrixContent.split('\\\\').map((row: string) => {
+              const cells = row.split('&').map((cell: string) => cell.trim());
+              return cells.join(' ');
+            });
+            return `(${rows.join(') (')})`;
+          });
+          
+          processed = processed.replace(/\\begin\{bmatrix\}([\s\S]*?)\\end\{bmatrix\}/g, (match: any, matrixContent: any) => {
+            const rows = matrixContent.split('\\\\').map((row: string) => {
+              const cells = row.split('&').map((cell: string) => cell.trim());
+              return cells.join(' ');
+            });
+            return `[${rows.join('] [')}]`;
+          });
+          
+          // Handle fractions in math mode
+          processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, (match: any, num: any, den: any) => {
+            const simpleChars = /^[0-9]$/;
+            if (simpleChars.test(num) && simpleChars.test(den)) {
+              const fractionMap: Record<string, string> = {
+                '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾',
+                '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘', '1/6': '⅙',
+                '5/6': '⅚', '1/7': '⅐', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝',
+                '7/8': '⅞', '1/9': '⅑', '1/10': '⅒'
+              };
+              const key = `${num}/${den}`;
+              if (fractionMap[key]) return fractionMap[key];
+            }
+            return `(${num})/(${den})`;
+          });
+          
+          // Handle other mathematical elements
+          processed = processed.split('\\int').join('∫');
+          processed = processed.split('\\sum').join('∑');
+          processed = processed.split('\\prod').join('∏');
+          processed = processed.split('\\infty').join('∞');
+          processed = processed.split('\\pi').join('π');
+          processed = processed.split('\\sqrt').join('√');
+          
+          // Apply symbol map
+          Object.entries(symbolMap).forEach(([latex, symbol]) => {
+            processed = processed.split(latex).join(symbol);
+          });
+          
+          // Clean LaTeX artifacts
+          processed = processed.replace(/\{([^}]*)\}/g, '$1');
+          processed = processed.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')');
+          
+          return processed;
+        });
+        
+        content = content.replace(/\$([^$]+)\$/g, (match: any, mathContent: any) => {
+          let processed = mathContent;
+          
+          // Handle inline fractions
+          processed = processed.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, (match: any, num: any, den: any) => {
+            const simpleChars = /^[0-9]$/;
+            if (simpleChars.test(num) && simpleChars.test(den)) {
+              const fractionMap: Record<string, string> = {
+                '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾',
+                '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘', '1/6': '⅙',
+                '5/6': '⅚', '1/7': '⅐', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝',
+                '7/8': '⅞', '1/9': '⅑', '1/10': '⅒'
+              };
+              const key = `${num}/${den}`;
+              if (fractionMap[key]) return fractionMap[key];
+            }
+            return `(${num})/(${den})`;
+          });
+          
+          // Apply symbol transformations
+          Object.entries(symbolMap).forEach(([latex, symbol]) => {
+            processed = processed.split(latex).join(symbol);
+          });
+          
+          processed = processed.replace(/\{([^}]*)\}/g, '$1');
+          
+          return processed;
+        });
+        
+        // Remove remaining math delimiters
         content = content.replace(/\\\[([^\]]*)\\\]/g, '$1');
         content = content.replace(/\\\(([^)]*)\\\)/g, '$1');
         
-        // Clean up remaining LaTeX artifacts
-        content = content.replace(/\{([^}]*)\}/g, '$1');
-        content = content.replace(/\\left\(/g, '(');
-        content = content.replace(/\\right\)/g, ')');
-        content = content.replace(/\\left\[/g, '[');
-        content = content.replace(/\\right\]/g, ']');
+        // Final cleanup
+        content = content.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')');
+        content = content.replace(/\\left\[/g, '[').replace(/\\right\]/g, ']');
         
         // AGGRESSIVELY remove ALL markup
         content = content
