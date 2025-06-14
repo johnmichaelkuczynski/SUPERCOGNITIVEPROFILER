@@ -1,1 +1,0 @@
-// Backup of broken ChunkedRewriter component

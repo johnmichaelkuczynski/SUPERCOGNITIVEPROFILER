@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText, Globe, Calculator } from 'lucide-react';
+import { Separator } from "@/components/ui/separator";
+import { X, RefreshCw, Loader2, Download, Share2, Copy, Check } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import MathRenderer from './MathRenderer';
-import KaTeXRenderer from './KaTeXRenderer';
-import { GoogleDriveIntegration } from './GoogleDriveIntegration';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 interface RewriteResult {
   originalChunk: {
@@ -35,8 +39,6 @@ export default function RewriteViewer({
   const [selectedModel, setSelectedModel] = useState('claude');
   const [isRewriting, setIsRewriting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isMathView, setIsMathView] = useState(false);
   const { toast } = useToast();
 
   if (!result) return null;
@@ -52,6 +54,7 @@ export default function RewriteViewer({
     }
 
     setIsRewriting(true);
+
     try {
       const response = await fetch('/api/rewrite-chunk', {
         method: 'POST',
@@ -66,25 +69,29 @@ export default function RewriteViewer({
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const newResult = await response.json();
+        
         const updatedResult = {
           ...result,
-          rewrittenContent: data.rewrittenContent
+          rewrittenContent: newResult.rewrittenContent,
+          explanation: newResult.explanation || undefined
         };
+        
         onUpdate(updatedResult);
+        setCustomInstructions('');
         
         toast({
-          title: "Rewrite Complete",
-          description: "Content has been successfully rewritten"
+          title: "Re-rewrite Complete",
+          description: "Content has been successfully rewritten with your custom instructions"
         });
-        setCustomInstructions('');
       } else {
-        throw new Error('Failed to rewrite');
+        throw new Error('Failed to rewrite content');
       }
     } catch (error) {
+      console.error('Error in rewrite-the-rewrite:', error);
       toast({
-        title: "Rewrite Failed",
-        description: "Failed to rewrite content. Please try again.",
+        title: "Re-rewrite Failed",
+        description: error instanceof Error ? error.message : "Failed to rewrite content",
         variant: "destructive"
       });
     } finally {
@@ -96,253 +103,186 @@ export default function RewriteViewer({
     try {
       await navigator.clipboard.writeText(result.rewrittenContent);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+      
       toast({
-        title: "Copied to Clipboard",
-        description: "Content copied successfully"
+        title: "Copied to clipboard",
+        description: "The rewritten content has been copied to your clipboard",
       });
-    } catch (error) {
+    } catch (err) {
       toast({
-        title: "Copy Failed",
-        description: "Failed to copy content",
-        variant: "destructive"
+        title: "Failed to copy",
+        description: "Could not copy text to clipboard",
+        variant: "destructive",
       });
     }
   };
 
   const handleDownload = async () => {
     try {
-      setIsDownloading(true);
-      
-      const response = await fetch('/api/export/pdf', {
+      const response = await fetch('/api/download', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: result.rewrittenContent,
-          filename: result.originalChunk.title.replace(/[^a-zA-Z0-9]/g, '_') + '_rewritten'
+          format: 'docx',
+          filename: `${result.originalChunk.title}_rewritten`
         })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${result.originalChunk.title.replace(/[^a-zA-Z0-9]/g, '_')}_rewritten.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast({
-        title: "PDF downloaded successfully",
-        description: "Rewritten content with mathematical notation saved"
-      });
-
-    } catch (error) {
-      console.error('Download error:', error);
-      toast({
-        title: "Download failed",
-        description: error instanceof Error ? error.message : "Failed to download PDF",
-        variant: "destructive"
-      });
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const handleViewHTML = async () => {
-    if (!result) return;
-    
-    try {
-      const response = await fetch('/api/export-html', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          results: [result],
-          documentName: result.originalChunk.title
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate HTML view');
-      }
-
-      const htmlContent = await response.text();
-      const newWindow = window.open('', '_blank');
-      if (newWindow) {
-        newWindow.document.write(htmlContent);
-        newWindow.document.close();
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${result.originalChunk.title}_rewritten.docx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
         
         toast({
-          title: "HTML View Opened",
-          description: "Perfect mathematical notation view opened in new tab. Use browser print to save as PDF."
+          title: "Download Complete",
+          description: "Document downloaded successfully"
         });
       } else {
-        throw new Error('Failed to open new window');
+        throw new Error('Failed to download');
       }
-
     } catch (error) {
-      console.error('HTML view error:', error);
       toast({
-        title: "HTML View Failed",
-        description: error instanceof Error ? error.message : "Failed to open HTML view",
+        title: "Download Failed",
+        description: "Failed to download document",
         variant: "destructive"
       });
     }
   };
 
-  const handlePrintToPdf = () => {
-    if (!result) return;
-    
-    setTimeout(() => {
-      const originalTitle = document.title;
-      document.title = result.originalChunk.title;
-      
-      const printStyles = document.createElement('style');
-      printStyles.textContent = `
-        @media print {
-          * { -webkit-print-color-adjust: exact; color-adjust: exact; }
-          body { margin: 0; padding: 20px; font-family: 'Times New Roman', serif; }
-          .print-content { font-size: 12pt; line-height: 1.6; }
-          .print-content h1 { font-size: 18pt; margin-bottom: 16pt; }
-          .print-content h2 { font-size: 16pt; margin-bottom: 12pt; }
-          .print-content h3 { font-size: 14pt; margin-bottom: 10pt; }
-          .print-content p { margin-bottom: 12pt; text-align: justify; }
-          .math-display { font-size: inherit !important; color: black !important; }
-          .math-inline { color: black !important; }
-        }
-      `;
-      document.head.appendChild(printStyles);
-      
-      const contentDiv = document.querySelector('.max-w-4xl > div');
-      if (contentDiv) {
-        contentDiv.classList.add('print-content');
-      }
-      
-      window.print();
-      
-      setTimeout(() => {
-        document.title = originalTitle;
-        document.head.removeChild(printStyles);
-        if (contentDiv) {
-          contentDiv.classList.remove('print-content');
-        }
-      }, 100);
-    }, 1500);
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-white shadow-sm">
-        <div className="flex items-center gap-3">
-          <Button size="sm" variant="ghost" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold text-gray-800">
-            {result.originalChunk.title}
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            size="sm" 
-            variant={isMathView ? "default" : "outline"} 
-            onClick={() => setIsMathView(!isMathView)}
-            title="Toggle Math View"
-          >
-            <Calculator className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleCopy}>
-            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleDownload}>
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleViewHTML} title="View Perfect Math (Print to PDF)">
-            <Globe className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="outline" onClick={handlePrintToPdf}>
-            <FileText className="h-4 w-4" />
-          </Button>
-          <GoogleDriveIntegration 
-            content={result.rewrittenContent}
-            defaultFilename={`rewrite-${result.originalChunk.title.toLowerCase().replace(/\s+/g, '-')}`}
-            format="pdf"
-            onSuccess={(driveLink) => {
-              toast({
-                title: "Backup successful",
-                description: "Document with mathematical notation saved to Google Drive"
-              });
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Full-Screen Document Display */}
-      <div className="h-[calc(100vh-60px)] bg-white">
-        <div className="max-w-4xl mx-auto h-full p-8 overflow-auto">
-          <div className="bg-white">
-            {isMathView ? (
-              <KaTeXRenderer 
-                content={result.rewrittenContent}
-                className="prose prose-xl max-w-none leading-relaxed text-gray-800"
-              />
-            ) : (
-              <MathRenderer 
-                content={result.rewrittenContent}
-                className="prose prose-xl max-w-none leading-relaxed text-gray-800"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Floating Controls */}
-        <div className="fixed bottom-6 right-6 bg-white shadow-lg rounded-lg border p-4 max-w-sm">
-          <h4 className="font-semibold mb-3 text-gray-800">Refine This Content</h4>
-          <div className="space-y-3">
-            <Textarea
-              placeholder="Provide specific instructions for how you want to rewrite this content..."
-              value={customInstructions}
-              onChange={(e) => setCustomInstructions(e.target.value)}
-              className="min-h-[100px] text-sm"
-            />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center justify-between">
+            <span>{result.originalChunk.title} - Rewrite Result</span>
             <div className="flex gap-2">
-              <select 
-                value={selectedModel} 
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="flex-1 px-2 py-1 text-sm border rounded"
-              >
-                <option value="claude">Claude</option>
-                <option value="gpt4">GPT-4</option>
-                <option value="perplexity">Perplexity</option>
-              </select>
-              <Button 
-                size="sm" 
-                onClick={rewriteTheRewrite}
-                disabled={isRewriting || !customInstructions.trim()}
-                className="flex-shrink-0"
-              >
-                {isRewriting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+              <Button size="sm" variant="outline" onClick={handleDownload}>
+                <Download className="h-4 w-4 mr-1" />
+                Download
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleCopy}>
+                {isCopied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1" />
+                    Copied
+                  </>
                 ) : (
-                  <RefreshCw className="h-4 w-4" />
+                  <>
+                    <Copy className="h-4 w-4 mr-1" />
+                    Copy
+                  </>
                 )}
               </Button>
             </div>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            {/* Original Content */}
+            <Card className="flex flex-col h-full">
+              <CardHeader className="flex-shrink-0">
+                <CardTitle className="text-sm text-gray-600">
+                  Original ({result.originalChunk.wordCount} words)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-auto">
+                <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {result.originalChunk.content}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Rewritten Content */}
+            <Card className="flex flex-col h-full">
+              <CardHeader className="flex-shrink-0">
+                <CardTitle className="text-sm text-green-600">
+                  Rewritten Content
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-auto space-y-4">
+                <div className="text-sm whitespace-pre-wrap prose max-w-none">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                    {result.rewrittenContent}
+                  </ReactMarkdown>
+                </div>
+
+                {result.explanation && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h5 className="text-sm font-medium text-blue-600 mb-2">
+                        Explanation:
+                      </h5>
+                      <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded">
+                        {result.explanation}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Rewrite the Rewrite Section */}
+                <Separator />
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h5 className="text-sm font-medium text-blue-800 mb-3">
+                    🔄 Rewrite the Rewrite
+                  </h5>
+                  <div className="space-y-3">
+                    <Textarea
+                      placeholder="Provide specific instructions for how you want to rewrite this content..."
+                      value={customInstructions}
+                      onChange={(e) => setCustomInstructions(e.target.value)}
+                      rows={3}
+                      className="text-sm"
+                    />
+                    <div className="flex items-center justify-between">
+                      <select 
+                        className="text-sm border rounded px-3 py-2"
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                      >
+                        <option value="claude">Claude</option>
+                        <option value="gpt4">GPT-4</option>
+                      </select>
+                      <Button 
+                        onClick={rewriteTheRewrite}
+                        disabled={isRewriting || !customInstructions.trim()}
+                        className="px-4 py-2"
+                      >
+                        {isRewriting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Re-rewriting...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Start Re-rewrite
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

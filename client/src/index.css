@@ -1,4 +1,5 @@
-/* MathJax will handle all math rendering - no KaTeX needed */
+/* KaTeX CSS for math rendering */
+@import 'katex/dist/katex.min.css';
 
 @tailwind base;
 @tailwind components;

@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Edit3, X, FileText, Download, Loader2, Share2, RefreshCw, Eye } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import MathRenderer from './MathRenderer';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import RewriteViewer from './RewriteViewer';
 
 interface DocumentChunk {
@@ -293,37 +295,11 @@ export default function SimpleRewriter({
           printWindow.document.write(htmlContent);
           printWindow.document.close();
           
-          // Wait for MathJax to complete rendering before printing
+          // Trigger print dialog after content loads
           printWindow.onload = () => {
-            // Function to check if MathJax is ready
-            const waitForMathJax = () => {
-              if (printWindow.window.MathJax) {
-                // Wait for MathJax.typesetPromise() to complete
-                printWindow.window.MathJax.typesetPromise().then(() => {
-                  // Give extra time for rendering to complete
-                  setTimeout(() => {
-                    printWindow.print();
-                  }, 1000);
-                }).catch((err) => {
-                  console.error('MathJax error:', err);
-                  // Print anyway after delay
-                  setTimeout(() => {
-                    printWindow.print();
-                  }, 1000);
-                });
-              } else if (printWindow.window.mathJaxComplete) {
-                // MathJax finished from script
-                setTimeout(() => {
-                  printWindow.print();
-                }, 500);
-              } else {
-                // Check again in 100ms
-                setTimeout(waitForMathJax, 100);
-              }
-            };
-            
-            // Start checking for MathJax
-            setTimeout(waitForMathJax, 500);
+            setTimeout(() => {
+              printWindow.print();
+            }, 500);
           };
           
           toast({
@@ -685,52 +661,58 @@ export default function SimpleRewriter({
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       {rewriteResults.map((result, index) => (
-                        <div key={index} className="border border-green-200 rounded-lg">
-                          {/* Header */}
-                          <div className="bg-green-50 px-4 py-3 border-b border-green-200">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-green-800">
-                                {result.originalChunk.title}
-                              </h3>
+                        <Card 
+                          key={index} 
+                          className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-green-500"
+                          onClick={() => openRewriteViewer(result)}
+                        >
+                          <CardHeader>
+                            <CardTitle className="text-sm flex items-center justify-between">
+                              <span>{result.originalChunk.title}</span>
                               <div className="flex items-center gap-2">
                                 <Badge variant="secondary" className="text-xs">
                                   {result.originalChunk.wordCount} words
                                 </Badge>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => openRewriteViewer(result)}
-                                >
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  Full Screen
-                                </Button>
+                                <Eye className="h-4 w-4 text-gray-500" />
+                              </div>
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div>
+                              <h5 className="text-xs font-medium text-gray-600 mb-1">
+                                Original Preview:
+                              </h5>
+                              <div className="text-xs text-gray-700 bg-gray-50 p-2 rounded">
+                                {result.originalChunk.content.substring(0, 120)}...
                               </div>
                             </div>
-                          </div>
-
-                          {/* Full Rewritten Content */}
-                          <div className="p-4">
-                            <h4 className="text-sm font-medium text-green-700 mb-3">
-                              Professional Rewrite:
-                            </h4>
-                            <div className="prose prose-sm max-w-none">
-                              <MathRenderer content={result.rewrittenContent} />
-                            </div>
-
-                            {result.explanation && (
-                              <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
-                                <h5 className="text-sm font-medium text-blue-800 mb-2">
-                                  Explanation:
-                                </h5>
-                                <div className="text-sm text-blue-700">
-                                  {result.explanation}
-                                </div>
+                            <Separator />
+                            <div>
+                              <h5 className="text-xs font-medium text-green-600 mb-1">
+                                Rewritten Preview:
+                              </h5>
+                              <div className="text-xs text-green-700 bg-green-50 p-2 rounded">
+                                {result.rewrittenContent.substring(0, 120)}...
                               </div>
-                            )}
-                          </div>
-                        </div>
+                            </div>
+                            <div className="flex items-center justify-between pt-2">
+                              <span className="text-xs text-gray-500">Click to view full rewrite</span>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openRewriteViewer(result);
+                                }}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View Full
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   )}

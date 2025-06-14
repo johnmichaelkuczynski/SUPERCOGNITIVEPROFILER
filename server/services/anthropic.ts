@@ -18,7 +18,6 @@ interface LLMOptions {
   chunkSize?: string;
   maxTokens?: number;
   previousMessages?: Array<{role: string; content: string}>;
-  onChunk?: (chunk: string) => void;
 }
 
 export async function processClaude(
@@ -30,8 +29,7 @@ export async function processClaude(
     stream = false,
     chunkSize,
     maxTokens = 2048,
-    previousMessages = [],
-    onChunk
+    previousMessages = []
   } = options;
   try {
     // Implement chunking strategy if needed
@@ -54,52 +52,24 @@ export async function processClaude(
     // Add the current message
     messages.push({ role: 'user', content });
     
-    // Handle streaming vs non-streaming
-    if (stream && onChunk) {
-      console.log("Starting Claude streaming response...");
-      const streamResponse = await anthropic.messages.create({
-        model: MODEL,
-        messages: messages.map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        })),
-        temperature,
-        max_tokens: maxTokens,
-        stream: true
-      });
-      
-      let fullResponse = '';
-      for await (const chunk of streamResponse) {
-        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          const chunkText = chunk.delta.text;
-          fullResponse += chunkText;
-          onChunk(chunkText);
-        }
-      }
-      
-      console.log("Claude streaming completed, total length:", fullResponse.length);
-      return fullResponse;
-      
+    // Always use non-streaming for consistency
+    const response = await anthropic.messages.create({
+      model: MODEL,
+      messages: messages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      })),
+      temperature,
+      max_tokens: maxTokens,
+      stream: false
+    });
+    
+    // Return the content as string
+    if ('text' in response.content[0]) {
+      return response.content[0].text;
     } else {
-      // Non-streaming response
-      const response = await anthropic.messages.create({
-        model: MODEL,
-        messages: messages.map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        })),
-        temperature,
-        max_tokens: maxTokens,
-        stream: false
-      });
-      
-      // Return the content as string
-      if ('text' in response.content[0]) {
-        return response.content[0].text;
-      } else {
-        console.error("Unexpected response format from Anthropic:", response.content[0]);
-        throw new Error("Invalid response format from Claude");
-      }
+      console.error("Unexpected response format from Anthropic:", response.content[0]);
+      throw new Error("Invalid response format from Claude");
     }
   } catch (error) {
     console.error("Error calling Anthropic API:", error);

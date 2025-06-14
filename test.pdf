@@ -1,74 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Test</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+    <meta charset="UTF-8">
+    <title>Test Document</title>
     <style>
-        * { box-sizing: border-box; }
         body { 
-            font-family: 'Times New Roman', serif; 
-            font-size: 12pt; 
-            line-height: 1.5; 
-            margin: 0;
-            padding: 20px;
-            color: #000;
-            background: white;
-        }
-        .document-title { 
-            text-align: center; 
-            font-size: 18pt; 
-            font-weight: bold;
-            margin-bottom: 30px;
-            page-break-after: avoid;
-        }
-        .section { 
-            margin-bottom: 25px; 
-            page-break-inside: avoid;
-        }
-        .section-title { 
-            font-size: 14pt; 
-            font-weight: bold;
-            margin: 15px 0 10px 0;
-            page-break-after: avoid;
-        }
-        .content { 
-            text-align: justify; 
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-        /* KaTeX math styling for proper PDF display */
-        .katex { 
-            font-size: 1em !important; 
-            color: black !important;
-        }
-        .katex-display { 
-            margin: 1em 0 !important; 
-            text-align: center !important;
-        }
-        .katex .base { 
-            color: black !important; 
-        }
-        .math-error {
-            color: red;
-            background: #fff3cd;
-            padding: 2px 4px;
-            border: 1px solid #ffeaa7;
-            border-radius: 3px;
-            font-size: 0.9em;
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            color: #333;
         }
         @media print {
-            body { margin: 0; padding: 15mm; }
-            .section { break-inside: avoid; }
-            @page { margin: 15mm; }
+            body { margin: 0; padding: 15px; }
         }
     </style>
 </head>
 <body>
-    <div class="document-title">Test</div>
-    <div class="section">
-        <div class="section-title">Section 1: Test</div>
-        <p class="content"># Test Header</p><p class="content"><strong>Bold text</strong> and *italic text* with \neg P \wedge Q</p>
-    </div>
+    <div>Math Solutions<br><br>Problem 1: ∫(3x²-5x+2) dx<br><br>Solution: x³ - 5x²/2 + 2x + C<br><br>Problem 2: Find derivative of sin(x)/(x²+1)<br><br>Solution: Using quotient rule...</div>
 </body>
 </html>

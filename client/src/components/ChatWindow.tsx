@@ -4,9 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Send, Loader2, Settings2, Download, Calculator } from "lucide-react";
-import { GoogleDriveIntegration } from './GoogleDriveIntegration';
-import KaTeXRenderer from './KaTeXRenderer';
+import { Send, Loader2, Settings2 } from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
@@ -71,7 +69,6 @@ export default function ChatWindow({
   const [chunkSize, setChunkSize] = useState("auto");
   const [maxTokens, setMaxTokens] = useState(2048);
   const [stream, setStream] = useState(true);
-  const [isMathView, setIsMathView] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -117,15 +114,6 @@ export default function ChatWindow({
   };
   
   const renderMessageContent = (content: string) => {
-    if (isMathView) {
-      return (
-        <KaTeXRenderer 
-          content={content}
-          className="prose dark:prose-invert prose-sm max-w-none"
-        />
-      );
-    }
-    
     return (
       <ReactMarkdown
         rehypePlugins={[rehypeKatex]}
@@ -161,15 +149,6 @@ export default function ChatWindow({
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button 
-            size="sm" 
-            variant={isMathView ? "default" : "outline"} 
-            onClick={() => setIsMathView(!isMathView)}
-            title="Toggle Math View"
-          >
-            <Calculator className="h-4 w-4" />
-          </Button>
-          
           {wsStatus === 'connecting' && (
             <div className="text-sm text-yellow-500 flex items-center">
               <Loader2 className="h-4 w-4 mr-1 animate-spin" />
