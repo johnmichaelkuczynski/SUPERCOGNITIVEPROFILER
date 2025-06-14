@@ -1,6 +1,7 @@
 // Comprehensive LaTeX to Unicode Mathematical Notation Converter
 
 export function renderMathematicalNotation(content: string): string {
+  console.log('Math renderer input:', content.substring(0, 200) + '...');
   let processed = content;
   
   // Process display math environments first $$...$$
@@ -189,6 +190,101 @@ function processLaTeXMath(latex: string): string {
   // Apply symbol replacements
   Object.entries(symbolMap).forEach(([latex, symbol]) => {
     processed = processed.split(latex).join(symbol);
+  });
+  
+  // Handle text-based mathematical notation (for when AI generates words instead of LaTeX)
+  const textToSymbolMap: Record<string, string> = {
+    // Logic symbols
+    'wedge': '∧',
+    'vee': '∨', 
+    'land': '∧',
+    'lor': '∨',
+    'neg': '¬',
+    'lnot': '¬',
+    'rightarrow': '→',
+    'leftarrow': '←',
+    'leftrightarrow': '↔',
+    'Rightarrow': '⇒',
+    'Leftarrow': '⇐',
+    'Leftrightarrow': '⇔',
+    'implies': '⇒',
+    'iff': '↔',
+    'forall': '∀',
+    'exists': '∃',
+    'nexists': '∄',
+    'therefore': '∴',
+    'because': '∵',
+    
+    // Set theory
+    'in': '∈',
+    'notin': '∉',
+    'subset': '⊂',
+    'supset': '⊃',
+    'subseteq': '⊆',
+    'supseteq': '⊇',
+    'cup': '∪',
+    'cap': '∩',
+    'emptyset': '∅',
+    'varnothing': '∅',
+    'setminus': '∖',
+    
+    // Relations
+    'leq': '≤',
+    'geq': '≥',
+    'neq': '≠',
+    'equiv': '≡',
+    'approx': '≈',
+    'sim': '∼',
+    'simeq': '≃',
+    'cong': '≅',
+    'propto': '∝',
+    
+    // Operations
+    'times': '×',
+    'cdot': '·',
+    'div': '÷',
+    'pm': '±',
+    'mp': '∓',
+    
+    // Greek letters
+    'alpha': 'α', 'beta': 'β', 'gamma': 'γ', 'delta': 'δ',
+    'epsilon': 'ε', 'zeta': 'ζ', 'eta': 'η', 'theta': 'θ',
+    'iota': 'ι', 'kappa': 'κ', 'lambda': 'λ', 'mu': 'μ',
+    'nu': 'ν', 'xi': 'ξ', 'pi': 'π', 'rho': 'ρ',
+    'sigma': 'σ', 'tau': 'τ', 'upsilon': 'υ', 'phi': 'φ',
+    'chi': 'χ', 'psi': 'ψ', 'omega': 'ω',
+    'Gamma': 'Γ', 'Delta': 'Δ', 'Theta': 'Θ', 'Lambda': 'Λ',
+    'Xi': 'Ξ', 'Pi': 'Π', 'Sigma': 'Σ', 'Upsilon': 'Υ',
+    'Phi': 'Φ', 'Chi': 'Χ', 'Psi': 'Ψ', 'Omega': 'Ω',
+    
+    // Mathematical constants and symbols
+    'infty': '∞',
+    'partial': '∂',
+    'nabla': '∇',
+    'sum': '∑',
+    'prod': '∏',
+    'int': '∫',
+    'iint': '∬',
+    'iiint': '∭',
+    'oint': '∮',
+    'angle': '∠',
+    'triangle': '△',
+    'square': '□',
+    'diamond': '◊',
+    'star': '⋆',
+    'dagger': '†',
+    'ddagger': '‡',
+    'dots': '…',
+    'ldots': '…',
+    'cdots': '⋯',
+    'vdots': '⋮',
+    'ddots': '⋱'
+  };
+  
+  // Apply text-to-symbol conversions with word boundaries
+  Object.entries(textToSymbolMap).forEach(([text, symbol]) => {
+    const regex = new RegExp(`\\b${text}\\b`, 'g');
+    processed = processed.replace(regex, symbol);
   });
   
   // Clean up remaining LaTeX artifacts

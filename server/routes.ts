@@ -1837,59 +1837,6 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
       results.forEach((result, index) => {
         let content = result.rewrittenContent || '';
         
-        // DIRECT SYMBOL REPLACEMENTS - IDENTICAL TO FRONTEND
-        const symbolMap: Record<string, string> = {
-          // Basic logic symbols
-          '\\neg': '¬', '\\lnot': '¬',
-          '\\land': '∧', '\\wedge': '∧', 
-          '\\lor': '∨', '\\vee': '∨',
-          '\\rightarrow': '→', '\\to': '→',
-          '\\leftarrow': '←',
-          '\\leftrightarrow': '↔', '\\iff': '↔',
-          '\\Rightarrow': '⇒', '\\implies': '⇒',
-          '\\Leftarrow': '⇐',
-          '\\Leftrightarrow': '⇔',
-          
-          // Mathematical symbols
-          '\\times': '×', '\\cdot': '⋅',
-          '\\div': '÷', '\\pm': '±',
-          '\\leq': '≤', '\\geq': '≥',
-          '\\neq': '≠', '\\approx': '≈',
-          '\\equiv': '≡',
-          
-          // Set theory
-          '\\in': '∈', '\\notin': '∉',
-          '\\subset': '⊂', '\\supset': '⊃',
-          '\\subseteq': '⊆', '\\supseteq': '⊇',
-          '\\cup': '∪', '\\cap': '∩',
-          '\\emptyset': '∅',
-          
-          // Greek letters
-          '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\delta': 'δ',
-          '\\epsilon': 'ε', '\\zeta': 'ζ', '\\eta': 'η', '\\theta': 'θ',
-          '\\iota': 'ι', '\\kappa': 'κ', '\\lambda': 'λ', '\\mu': 'μ',
-          '\\nu': 'ν', '\\xi': 'ξ', '\\omicron': 'ο', '\\pi': 'π',
-          '\\rho': 'ρ', '\\sigma': 'σ', '\\tau': 'τ', '\\upsilon': 'υ',
-          '\\phi': 'φ', '\\chi': 'χ', '\\psi': 'ψ', '\\omega': 'ω',
-          
-          // Capital Greek
-          '\\Gamma': 'Γ', '\\Delta': 'Δ', '\\Theta': 'Θ', '\\Lambda': 'Λ',
-          '\\Xi': 'Ξ', '\\Pi': 'Π', '\\Sigma': 'Σ', '\\Upsilon': 'Υ',
-          '\\Phi': 'Φ', '\\Chi': 'Χ', '\\Psi': 'Ψ', '\\Omega': 'Ω',
-          
-          // Number sets
-          '\\mathbb{N}': 'ℕ', '\\mathbb{Z}': 'ℤ', '\\mathbb{Q}': 'ℚ',
-          '\\mathbb{R}': 'ℝ', '\\mathbb{C}': 'ℂ',
-          
-          // Calculus
-          '\\sum': '∑', '\\prod': '∏', '\\int': '∫',
-          '\\partial': '∂', '\\nabla': '∇', '\\infty': '∞',
-          
-          // Logic
-          '\\forall': '∀', '\\exists': '∃',
-          '\\therefore': '∴', '\\because': '∵'
-        };
-        
         // APPLY COMPREHENSIVE MATHEMATICAL NOTATION RENDERING
         content = renderMathematicalNotation(content);
         
