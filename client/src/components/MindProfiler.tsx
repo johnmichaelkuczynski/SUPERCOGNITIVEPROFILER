@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -1952,152 +1953,281 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   Metacognitive Analysis
                 </h3>
 
-                {/* Handle current API format with thesis.claim and evidence */}
+                {/* Dialectical Structure Display */}
                 {results.thesis && (
                   <div className="space-y-6">
                     {/* Thesis Section */}
-                    <div className="p-6 bg-green-50 rounded-lg border-2 border-green-200">
-                      <h4 className="font-bold text-green-900 mb-4 text-lg flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5" />
-                        THESIS
-                      </h4>
-                      {results.thesis.claim && (
-                        <div className="mb-4 p-4 bg-white rounded-lg border border-green-100">
-                          <h5 className="font-semibold text-green-800 mb-2">Primary Claim</h5>
-                          <div className="text-gray-700 leading-relaxed">
-                            <ReactMarkdown>{results.thesis.claim}</ReactMarkdown>
-                          </div>
+                    <Collapsible>
+                      <CollapsibleTrigger className="w-full p-6 bg-green-50 rounded-lg border-2 border-green-200 hover:bg-green-100 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-green-900 text-lg flex items-center gap-2">
+                            <CheckCircle className="h-5 w-5" />
+                            Thesis: Primary Analysis
+                          </h4>
+                          <ChevronDown className="h-5 w-5 text-green-700" />
                         </div>
-                      )}
-                      {results.thesis.evidence && results.thesis.evidence.length > 0 && (
-                        <div className="space-y-3">
-                          <h5 className="font-semibold text-green-800 mb-2">Supporting Evidence</h5>
-                          {results.thesis.evidence.map((item: any, index: number) => (
-                            <div key={index} className="p-3 bg-white rounded-lg border border-green-100">
-                              <div className="mb-2 text-sm font-medium text-green-700">
-                                Quote: "{item.quote}"
-                              </div>
-                              <div className="text-gray-700 text-sm leading-relaxed">
-                                <ReactMarkdown>{item.analysis}</ReactMarkdown>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2">
+                        <div className="p-6 bg-white rounded-lg border-2 border-green-200 space-y-6">
+                          {results.thesis.intellectualConfiguration && (
+                            <div>
+                              <h5 className="font-semibold text-green-700 mb-3 text-lg">Intellectual Configuration</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.thesis.intellectualConfiguration}</ReactMarkdown>
                               </div>
                             </div>
-                          ))}
+                          )}
+
+                          {results.thesis.cognitiveArchitecture && (
+                            <div>
+                              <h5 className="font-semibold text-green-700 mb-3 text-lg">Cognitive Architecture</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.thesis.cognitiveArchitecture}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+
+                          {results.thesis.metacognitiveAwareness && (
+                            <div>
+                              <h5 className="font-semibold text-green-700 mb-3 text-lg">Metacognitive Awareness</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.thesis.metacognitiveAwareness}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+
+                          {results.thesis.intellectualHabits && (
+                            <div>
+                              <h5 className="font-semibold text-green-700 mb-3 text-lg">Intellectual Habits</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.thesis.intellectualHabits}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+
+                          {results.thesis.epistemicVirtues && (
+                            <div>
+                              <h5 className="font-semibold text-green-700 mb-3 text-lg">Epistemic Virtues</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.thesis.epistemicVirtues}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+
+                          {results.thesis.reflectiveCapacity && (
+                            <div>
+                              <h5 className="font-semibold text-green-700 mb-3 text-lg">Reflective Capacity</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.thesis.reflectiveCapacity}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+
+                          {results.thesis.selfKnowledge && (
+                            <div>
+                              <h5 className="font-semibold text-green-700 mb-3 text-lg">Self Knowledge</h5>
+                              <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                <ReactMarkdown>{results.thesis.selfKnowledge}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     {/* Antithesis Section */}
                     {results.antithesis && (
-                      <div className="p-6 bg-red-50 rounded-lg border-2 border-red-200">
-                        <h4 className="font-bold text-red-900 mb-4 text-lg flex items-center gap-2">
-                          <XCircle className="h-5 w-5" />
-                          ANTITHESIS
-                        </h4>
-                        {results.antithesis.claim && (
-                          <div className="mb-4 p-4 bg-white rounded-lg border border-red-100">
-                            <h5 className="font-semibold text-red-800 mb-2">Counter Claim</h5>
-                            <div className="text-gray-700 leading-relaxed">
-                              <ReactMarkdown>{results.antithesis.claim}</ReactMarkdown>
-                            </div>
+                      <Collapsible>
+                        <CollapsibleTrigger className="w-full p-6 bg-red-50 rounded-lg border-2 border-red-200 hover:bg-red-100 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-red-900 text-lg flex items-center gap-2">
+                              <XCircle className="h-5 w-5" />
+                              Antithesis: Dissenting Analysis
+                            </h4>
+                            <ChevronDown className="h-5 w-5 text-red-700" />
                           </div>
-                        )}
-                        {results.antithesis.evidence && results.antithesis.evidence.length > 0 && (
-                          <div className="space-y-3">
-                            <h5 className="font-semibold text-red-800 mb-2">Supporting Evidence</h5>
-                            {results.antithesis.evidence.map((item: any, index: number) => (
-                              <div key={index} className="p-3 bg-white rounded-lg border border-red-100">
-                                <div className="mb-2 text-sm font-medium text-red-700">
-                                  Quote: "{item.quote}"
-                                </div>
-                                <div className="text-gray-700 text-sm leading-relaxed">
-                                  <ReactMarkdown>{item.analysis}</ReactMarkdown>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <div className="p-6 bg-white rounded-lg border-2 border-red-200 space-y-6">
+                            {results.antithesis.counterConfiguration && (
+                              <div>
+                                <h5 className="font-semibold text-red-700 mb-3 text-lg">Counter Configuration</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.antithesis.counterConfiguration}</ReactMarkdown>
                                 </div>
                               </div>
-                            ))}
+                            )}
+
+                            {results.antithesis.alternativeArchitecture && (
+                              <div>
+                                <h5 className="font-semibold text-red-700 mb-3 text-lg">Alternative Architecture</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.antithesis.alternativeArchitecture}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.antithesis.limitedAwareness && (
+                              <div>
+                                <h5 className="font-semibold text-red-700 mb-3 text-lg">Limited Awareness</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.antithesis.limitedAwareness}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.antithesis.problematicHabits && (
+                              <div>
+                                <h5 className="font-semibold text-red-700 mb-3 text-lg">Problematic Habits</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.antithesis.problematicHabits}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.antithesis.epistemicVices && (
+                              <div>
+                                <h5 className="font-semibold text-red-700 mb-3 text-lg">Epistemic Vices</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.antithesis.epistemicVices}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.antithesis.reflectiveLimitations && (
+                              <div>
+                                <h5 className="font-semibold text-red-700 mb-3 text-lg">Reflective Limitations</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.antithesis.reflectiveLimitations}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.antithesis.selfDeception && (
+                              <div>
+                                <h5 className="font-semibold text-red-700 mb-3 text-lg">Self Deception</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.antithesis.selfDeception}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        </CollapsibleContent>
+                      </Collapsible>
                     )}
 
                     {/* Super-Thesis Section */}
                     {results.superThesis && (
-                      <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
-                        <h4 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
-                          <CheckCircle className="h-5 w-5" />
-                          SUPER-THESIS
-                        </h4>
-                        {results.superThesis.claim && (
-                          <div className="mb-4 p-4 bg-white rounded-lg border border-blue-100">
-                            <h5 className="font-semibold text-blue-800 mb-2">Synthesis Claim</h5>
-                            <div className="text-gray-700 leading-relaxed">
-                              <ReactMarkdown>{results.superThesis.claim}</ReactMarkdown>
-                            </div>
+                      <Collapsible>
+                        <CollapsibleTrigger className="w-full p-6 bg-blue-50 rounded-lg border-2 border-blue-200 hover:bg-blue-100 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-blue-900 text-lg flex items-center gap-2">
+                              <Crown className="h-5 w-5" />
+                              Super-Thesis: Reinforced Analysis
+                            </h4>
+                            <ChevronDown className="h-5 w-5 text-blue-700" />
                           </div>
-                        )}
-                        {results.superThesis.evidence && results.superThesis.evidence.length > 0 && (
-                          <div className="space-y-3">
-                            <h5 className="font-semibold text-blue-800 mb-2">Supporting Evidence</h5>
-                            {results.superThesis.evidence.map((item: any, index: number) => (
-                              <div key={index} className="p-3 bg-white rounded-lg border border-blue-100">
-                                <div className="mb-2 text-sm font-medium text-blue-700">
-                                  Quote: "{item.quote}"
-                                </div>
-                                <div className="text-gray-700 text-sm leading-relaxed">
-                                  <ReactMarkdown>{item.analysis}</ReactMarkdown>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-2">
+                          <div className="p-6 bg-white rounded-lg border-2 border-blue-200 space-y-6">
+                            {results.superThesis.reinforcedConfiguration && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Reinforced Configuration</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.reinforcedConfiguration}</ReactMarkdown>
                                 </div>
                               </div>
-                            ))}
+                            )}
+
+                            {results.superThesis.defendedArchitecture && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Defended Architecture</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.defendedArchitecture}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.superThesis.validatedAwareness && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Validated Awareness</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.validatedAwareness}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.superThesis.confirmedHabits && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Confirmed Habits</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.confirmedHabits}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.superThesis.strengthenedVirtues && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Strengthened Virtues</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.strengthenedVirtues}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.superThesis.enhancedReflection && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Enhanced Reflection</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.enhancedReflection}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.superThesis.authenticSelfKnowledge && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Authentic Self Knowledge</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.authenticSelfKnowledge}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.superThesis.refutationOfAntithesis && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Refutation of Antithesis</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.refutationOfAntithesis}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+
+                            {results.superThesis.finalAssessment && (
+                              <div>
+                                <h5 className="font-semibold text-blue-700 mb-3 text-lg">Final Assessment</h5>
+                                <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                                  <ReactMarkdown>{results.superThesis.finalAssessment}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        </CollapsibleContent>
+                      </Collapsible>
                     )}
                   </div>
                 )}
 
-                {/* Thesis Section */}
-                {results.thesis && (
-                  <div className="p-8 bg-green-50 rounded-xl border-2 border-green-200 shadow-sm">
-                    <h4 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-3">
-                      <CheckCircle className="h-7 w-7" />
-                      {results.thesis.title || "Thesis: Primary Analysis"}
-                    </h4>
-                    
-                    <div className="space-y-6">
-                      {results.thesis.intellectualConfiguration && (
-                        <div className="p-5 bg-white rounded-lg border border-green-100">
-                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Intellectual Configuration</h5>
-                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                            <ReactMarkdown>{results.thesis.intellectualConfiguration}</ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
-
-                      {results.thesis.cognitiveArchitecture && (
-                        <div className="p-5 bg-white rounded-lg border border-green-100">
-                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Cognitive Architecture</h5>
-                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                            <ReactMarkdown>{results.thesis.cognitiveArchitecture}</ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
-
-                      {results.thesis.metacognitiveAwareness && (
-                        <div className="p-5 bg-white rounded-lg border border-green-100">
-                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Metacognitive Awareness</h5>
-                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                            <ReactMarkdown>{results.thesis.metacognitiveAwareness}</ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
-
-                      {results.thesis.intellectualHabits && (
-                        <div className="p-5 bg-white rounded-lg border border-green-100">
-                          <h5 className="font-semibold text-green-700 mb-3 text-lg">Intellectual Habits</h5>
-                          <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
-                            <ReactMarkdown>{results.thesis.intellectualHabits}</ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
+                {/* Overall Profile */}
+                {results.overallMetacognitiveProfile && (
+                  <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200">
+                    <h4 className="font-bold text-indigo-900 mb-4 text-lg">Overall Metacognitive Profile</h4>
+                    <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none">
+                      <ReactMarkdown>{results.overallMetacognitiveProfile}</ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
                       {results.thesis.epistemicVirtues && (
                         <div className="p-5 bg-white rounded-lg border border-green-100">
