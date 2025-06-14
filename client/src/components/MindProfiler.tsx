@@ -3480,3 +3480,43 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
             )}
 
+
+            </div>
+          </div>
+          
+          {/* Fixed footer with export options */}
+          <div className="border-t border-gray-200 p-6 bg-white">
+            <div className="flex justify-between items-center">
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => exportProfile.mutate('pdf')}
+                  disabled={exportProfile.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => exportProfile.mutate('docx')}
+                  disabled={exportProfile.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Export Word
+                </Button>
+              </div>
+              <Button 
+                onClick={() => setShowResultsDialog(false)}
+                className="bg-gray-600 hover:bg-gray-700"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
