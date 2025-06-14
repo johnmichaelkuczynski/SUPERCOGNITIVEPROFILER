@@ -417,6 +417,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   };
 
   const handleAnalyze = () => {
+    if (profileType === 'metapsychological') {
+      handleMetapsychologicalAnalyze();
+      return;
+    }
+    
     if (analysisMode === 'instant' && inputText.trim().length < 100) {
       toast({
         title: "Insufficient Text",
@@ -751,7 +756,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               ) : (
                 <>
                   <Zap className="h-4 w-4" />
-                  Analyze {profileType === 'cognitive' ? 'Cognition' : 'Psychology'}
+                  Analyze {profileType === 'cognitive' ? 'Cognition' : profileType === 'psychological' ? 'Psychology' : profileType === 'synthesis' ? 'Synthesis' : profileType === 'metacognitive' ? 'Metacognition' : 'Metapsychology'}
                 </>
               )}
             </Button>
@@ -2345,7 +2350,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                       <div className="p-5 bg-white rounded-lg border border-green-100">
                         <h5 className="font-semibold text-green-700 mb-3 text-lg">Emotional Configuration</h5>
                         <div className="text-gray-800 leading-relaxed prose prose-sm max-w-none mb-4">
-                          <ReactMarkdown>{typeof results.thesis.emotionalConfiguration === 'string' ? results.thesis.emotionalConfiguration : results.thesis.emotionalConfiguration.analysis}</ReactMarkdown>
+                          <ReactMarkdown>
+                            {typeof results.thesis.emotionalConfiguration === 'string' 
+                              ? results.thesis.emotionalConfiguration 
+                              : (results.thesis.emotionalConfiguration?.analysis || 'No analysis available')}
+                          </ReactMarkdown>
                         </div>
                         
                         {typeof results.thesis.emotionalConfiguration === 'object' && results.thesis.emotionalConfiguration.supportingQuotes && results.thesis.emotionalConfiguration.supportingQuotes.length > 0 && (
