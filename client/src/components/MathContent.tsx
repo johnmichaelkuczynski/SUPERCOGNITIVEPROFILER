@@ -60,9 +60,9 @@ export default function MathContent({ content, className = "" }: MathContentProp
 
   useEffect(() => {
     // Force MathJax re-render when content changes
-    if (window.MathJax && contentRef.current) {
+    if ((window as any).MathJax && contentRef.current) {
       setTimeout(() => {
-        window.MathJax.typesetPromise?.([contentRef.current]);
+        (window as any).MathJax.typesetPromise?.([contentRef.current]);
       }, 100);
     }
   }, [processedContent]);

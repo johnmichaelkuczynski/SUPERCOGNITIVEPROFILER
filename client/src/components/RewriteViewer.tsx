@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, FileText } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import MathContent from './MathContent';
+import MathRenderer from './MathRenderer';
 
 interface RewriteResult {
   originalChunk: {
@@ -217,7 +217,7 @@ export default function RewriteViewer({
       <div className="h-[calc(100vh-60px)] bg-white">
         <div className="max-w-4xl mx-auto h-full p-8 overflow-auto">
           <div className="bg-white">
-            <MathContent 
+            <MathRenderer 
               content={result.rewrittenContent}
               className="prose prose-xl max-w-none leading-relaxed text-gray-800"
             />
