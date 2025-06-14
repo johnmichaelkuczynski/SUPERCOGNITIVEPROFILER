@@ -201,6 +201,18 @@ interface ProfileResults {
     revealingQuotation?: string;
   };
 
+  // Legacy compatibility for superThesis
+  superThesis?: {
+    title?: string;
+    strengthenedAssessment?: string;
+    refutationOfDissent?: string;
+    reinforcedConclusions?: string;
+  };
+
+  // Additional fields for compatibility
+  keyInsights?: string[];
+  summary?: string;
+
   // Legacy nested structures (for backwards compatibility)
   cognitiveProfile?: any;
   psychologicalProfile?: any;
