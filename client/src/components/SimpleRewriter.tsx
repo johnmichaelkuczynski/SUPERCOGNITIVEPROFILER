@@ -120,9 +120,10 @@ export default function SimpleRewriter({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             content: chunk.content,
-            title: chunk.title,
-            customInstructions: customInstructions || 'Improve clarity, style, and readability while maintaining the original meaning and tone.',
-            documentName: documentName
+            instructions: customInstructions || 'Improve clarity, style, and readability while maintaining the original meaning and tone.',
+            model: 'claude',
+            chunkIndex: selectedChunkData.indexOf(chunk),
+            totalChunks: selectedChunkData.length
           })
         });
 

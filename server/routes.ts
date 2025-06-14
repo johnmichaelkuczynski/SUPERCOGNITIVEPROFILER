@@ -4903,7 +4903,18 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
   startPosition: number;
   endPosition: number;
 }> {
-  const maxChunkSize = 2000; // words
+  const targetChunkSize = 800; // Target words per chunk for better balance
+  const maxChunkSize = 1200; // Maximum words per chunk
+  const minChunkSize = 400; // Minimum words per chunk
+  
+  const totalWords = content.split(/\s+/).length;
+  
+  // Calculate optimal number of chunks
+  const targetChunks = Math.ceil(totalWords / targetChunkSize);
+  const optimalChunkSize = Math.ceil(totalWords / targetChunks);
+  
+  console.log(`Document has ${totalWords} words, creating ~${targetChunks} chunks of ~${optimalChunkSize} words each`);
+  
   const chunks: Array<{
     title: string;
     content: string;
@@ -4911,97 +4922,117 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
     endPosition: number;
   }> = [];
   
-  // Split content into lines for analysis
-  const lines = content.split('\n');
-  
-  // Detect headings (lines that look like section headers)
-  const headingPatterns = [
-    /^#{1,6}\s+/, // Markdown headings
-    /^[A-Z][A-Z\s0-9]{5,50}:?\s*$/, // ALL CAPS headings
-    /^\d+\.\s+[A-Z]/, // Numbered sections
-    /^Chapter\s+\d+/i, // Chapter headings
-    /^Section\s+\d+/i, // Section headings
-    /^[IVX]+\.\s+[A-Z]/, // Roman numeral sections
-  ];
+  // Split by paragraphs to maintain coherence
+  const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
   
   let currentChunk = '';
   let currentTitle = 'Introduction';
   let chunkIndex = 0;
-  let startPos = 0;
-  let currentLineIndex = 0;
+  let charPos = 0;
   
-  for (const line of lines) {
-    const isHeading = headingPatterns.some(pattern => pattern.test(line.trim()));
-    const currentWordCount = currentChunk.split(/\s+/).length;
+  // Simple heading detection patterns
+  const headingPatterns = [
+    /^#{1,6}\s+(.+)/, // Markdown headings
+    /^(\d+\.?\s+[A-Z][^.]*?)(?:\n|$)/, // Numbered sections
+    /^([A-Z][A-Z\s]{3,30})(?:\n|$)/, // ALL CAPS short headings
+  ];
+  
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i].trim();
+    const currentWordCount = currentChunk.split(/\s+/).filter(w => w.length > 0).length;
+    const paragraphWordCount = paragraph.split(/\s+/).filter(w => w.length > 0).length;
     
-    // Start new chunk if we hit a heading and current chunk is substantial
-    if (isHeading && currentWordCount > 100) {
-      // Save previous chunk
-      chunks.push({
-        title: currentTitle,
-        content: currentChunk.trim(),
-        startPosition: startPos,
-        endPosition: startPos + currentChunk.length
-      });
-      
-      startPos += currentChunk.length;
-      currentChunk = '';
-      chunkIndex++;
-    }
-    
-    // Update title if this is a heading
-    if (isHeading) {
-      currentTitle = line.replace(/^#+\s*/, '').replace(/^\d+\.\s*/, '').trim() || `Section ${chunkIndex + 1}`;
-      if (currentTitle.length > 100) {
-        currentTitle = currentTitle.substring(0, 97) + '...';
+    // Check if paragraph is a heading
+    let isHeading = false;
+    for (const pattern of headingPatterns) {
+      const match = paragraph.match(pattern);
+      if (match) {
+        isHeading = true;
+        const headingText = match[1] || match[0];
+        if (headingText && headingText.length < 100) {
+          currentTitle = headingText.replace(/^#+\s*/, '').replace(/^\d+\.?\s*/, '').trim();
+        }
+        break;
       }
     }
     
-    // Add line to current chunk
-    currentChunk += line + '\n';
+    // Decide whether to start a new chunk
+    const shouldStartNewChunk = (
+      (isHeading && currentWordCount > minChunkSize) ||
+      (currentWordCount + paragraphWordCount > maxChunkSize) ||
+      (currentWordCount > optimalChunkSize && paragraph.length > 100)
+    );
     
-    // Split chunk if it gets too large, even without a heading
-    if (currentWordCount > maxChunkSize) {
+    if (shouldStartNewChunk && currentChunk.trim().length > 0) {
+      // Save current chunk
       chunks.push({
-        title: currentTitle,
+        title: currentTitle || `Section ${chunkIndex + 1}`,
         content: currentChunk.trim(),
-        startPosition: startPos,
-        endPosition: startPos + currentChunk.length
+        startPosition: charPos - currentChunk.length,
+        endPosition: charPos
       });
       
-      startPos += currentChunk.length;
       currentChunk = '';
-      currentTitle = `Section ${chunkIndex + 2}`;
       chunkIndex++;
+      
+      // Update title for new chunk if this paragraph is a heading
+      if (!isHeading) {
+        currentTitle = `Section ${chunkIndex + 1}`;
+      }
     }
     
-    currentLineIndex++;
+    // Add paragraph to current chunk
+    if (currentChunk.length > 0) {
+      currentChunk += '\n\n';
+    }
+    currentChunk += paragraph;
+    charPos += paragraph.length + 2; // +2 for line breaks
   }
   
-  // Add final chunk if there's remaining content
-  if (currentChunk.trim()) {
+  // Add final chunk
+  if (currentChunk.trim().length > 0) {
     chunks.push({
-      title: currentTitle,
+      title: currentTitle || `Section ${chunkIndex + 1}`,
       content: currentChunk.trim(),
-      startPosition: startPos,
+      startPosition: charPos - currentChunk.length,
       endPosition: content.length
     });
   }
   
-  // If no intelligent chunking worked, fall back to word-based splitting
-  if (chunks.length === 0) {
-    const words = content.split(/\s+/);
-    for (let i = 0; i < words.length; i += maxChunkSize) {
-      const chunkWords = words.slice(i, i + maxChunkSize);
-      const chunkContent = chunkWords.join(' ');
-      chunks.push({
-        title: `Section ${Math.floor(i / maxChunkSize) + 1}`,
-        content: chunkContent,
-        startPosition: i,
-        endPosition: Math.min(i + maxChunkSize, words.length)
-      });
+  // Ensure we have balanced chunks - merge very small chunks
+  const balancedChunks = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    const wordCount = chunk.content.split(/\s+/).filter(w => w.length > 0).length;
+    
+    // If chunk is too small and there's a next chunk, merge them
+    if (wordCount < minChunkSize && i < chunks.length - 1) {
+      const nextChunk = chunks[i + 1];
+      const combinedWordCount = wordCount + nextChunk.content.split(/\s+/).filter(w => w.length > 0).length;
+      
+      if (combinedWordCount <= maxChunkSize) {
+        // Merge with next chunk
+        balancedChunks.push({
+          title: chunk.title,
+          content: chunk.content + '\n\n' + nextChunk.content,
+          startPosition: chunk.startPosition,
+          endPosition: nextChunk.endPosition
+        });
+        i++; // Skip next chunk since we merged it
+        continue;
+      }
     }
+    
+    balancedChunks.push(chunk);
   }
   
-  return chunks;
+  // Log chunk statistics
+  const chunkStats = balancedChunks.map(chunk => ({
+    title: chunk.title,
+    words: chunk.content.split(/\s+/).filter(w => w.length > 0).length
+  }));
+  
+  console.log('Chunk word counts:', chunkStats.map(s => `${s.title}: ${s.words} words`).join(', '));
+  
+  return balancedChunks;
 }
