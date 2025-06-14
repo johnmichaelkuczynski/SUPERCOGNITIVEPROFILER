@@ -1993,21 +1993,107 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
           .replace(/\n{2,}/g, '\n\n')              // Normalize breaks
           .trim();
         
-        // Mathematical processing for PDF using dedicated function
+        // Comprehensive mathematical processing for PDF using global Unicode conversion
         function processMathForPDF(text) {
-          // First, handle specific known expressions with exact matching
+          // First, create a comprehensive mapping of all Unicode mathematical symbols to LaTeX
+          const unicodeToLatex = {
+            // Logic symbols
+            '¬': '\\neg',
+            '∧': '\\wedge', 
+            '∨': '\\vee',
+            '→': '\\rightarrow',
+            '↔': '\\leftrightarrow',
+            '⊕': '\\oplus',
+            '⊗': '\\otimes',
+            
+            // Quantifiers
+            '∀': '\\forall',
+            '∃': '\\exists',
+            
+            // Set theory
+            '∈': '\\in',
+            '∉': '\\notin',
+            '⊂': '\\subset',
+            '⊃': '\\supset',
+            '⊆': '\\subseteq',
+            '⊇': '\\supseteq',
+            '∪': '\\cup',
+            '∩': '\\cap',
+            '∅': '\\emptyset',
+            
+            // Relations and operators
+            '≤': '\\leq',
+            '≥': '\\geq',
+            '≠': '\\neq',
+            '≈': '\\approx',
+            '≡': '\\equiv',
+            '∝': '\\propto',
+            '∞': '\\infty',
+            
+            // Greek letters
+            'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+            'ε': '\\epsilon', 'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta',
+            'ι': '\\iota', 'κ': '\\kappa', 'λ': '\\lambda', 'μ': '\\mu',
+            'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi', 'ρ': '\\rho',
+            'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
+            'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
+            
+            // Capital Greek
+            'Α': '\\Alpha', 'Β': '\\Beta', 'Γ': '\\Gamma', 'Δ': '\\Delta',
+            'Ε': '\\Epsilon', 'Ζ': '\\Zeta', 'Η': '\\Eta', 'Θ': '\\Theta',
+            'Ι': '\\Iota', 'Κ': '\\Kappa', 'Λ': '\\Lambda', 'Μ': '\\Mu',
+            'Ν': '\\Nu', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Ρ': '\\Rho',
+            'Σ': '\\Sigma', 'Τ': '\\Tau', 'Υ': '\\Upsilon', 'Φ': '\\Phi',
+            'Χ': '\\Chi', 'Ψ': '\\Psi', 'Ω': '\\Omega',
+            
+            // Mathematical symbols
+            '±': '\\pm',
+            '∓': '\\mp',
+            '×': '\\times',
+            '÷': '\\div',
+            '√': '\\sqrt',
+            '∫': '\\int',
+            '∮': '\\oint',
+            '∑': '\\sum',
+            '∏': '\\prod',
+            '∂': '\\partial',
+            '∇': '\\nabla',
+            '⟨': '\\langle',
+            '⟩': '\\rangle'
+          };
+          
           let processed = text;
           
-          // Handle the exact test expressions
-          if (processed.includes('¬(P ∨ Q)')) {
-            processed = processed.replace('¬(P ∨ Q)', '$$\\neg(P \\vee Q)$$');
-          }
-          if (processed.includes('∀x ∀y(φ(x) ∧ φ(y) → x = y)')) {
-            processed = processed.replace('∀x ∀y(φ(x) ∧ φ(y) → x = y)', '$$\\forall x \\forall y(\\phi(x) \\wedge \\phi(y) \\rightarrow x = y)$$');
-          }
-          if (processed.includes('α + β = γ')) {
-            processed = processed.replace('α + β = γ', '$$\\alpha + \\beta = \\gamma$$');
-          }
+          // Apply Unicode to LaTeX conversions with proper escaping
+          Object.entries(unicodeToLatex).forEach(([unicode, latex]) => {
+            // Create a properly escaped regex for the Unicode character
+            const escapedUnicode = unicode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(escapedUnicode, 'g');
+            // Wrap each conversion in math delimiters
+            processed = processed.replace(regex, `$${latex}$`);
+          });
+          
+          // Handle specific patterns
+          
+          // Matrix patterns like (a b; c d)
+          processed = processed.replace(/\(\s*([a-z])\s+([a-z])\s*;\s*([a-z])\s+([a-z])\s*\)/g, 
+            '$$\\begin{pmatrix} $1 & $2 \\\\ $3 & $4 \\end{pmatrix}$$');
+          
+          // Complex number notation
+          processed = processed.replace(/z\s*=\s*a\s*\+\s*bi/g, '$z = a + bi$');
+          processed = processed.replace(/i\^2\s*=\s*-1/g, '$i^2 = -1$');
+          
+          // Fractions
+          processed = processed.replace(/([0-9]+)\/([0-9]+)/g, '$\\frac{$1}{$2}$');
+          
+          // Square roots with parentheses
+          processed = processed.replace(/√\(([^)]+)\)/g, '$\\sqrt{$1}$');
+          
+          // Superscripts
+          processed = processed.replace(/([a-zA-Z])\^([0-9]+)/g, '$$1^{$2}$');
+          
+          // Function notation
+          processed = processed.replace(/([a-zA-Z])\(([^)]+)\)/g, '$$1($2)$');
           
           return processed;
         }
