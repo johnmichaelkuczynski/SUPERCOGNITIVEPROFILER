@@ -28,6 +28,7 @@ import {
   Users,
   TrendingUp,
   TrendingDown,
+  Microscope,
   AlertTriangle,
   Briefcase,
   Quote,
