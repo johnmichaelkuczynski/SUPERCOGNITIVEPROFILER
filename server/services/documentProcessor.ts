@@ -123,57 +123,88 @@ export async function extractText(file: Express.Multer.File): Promise<string> {
   return processed.text;
 }
 
-// Extract text from PDF using simple sequential method
+// Extract text from PDF using pdf.js-extract library
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    console.log("Extracting text from PDF using simple sequential method...");
+    console.log("Extracting text from PDF using pdf.js-extract...");
+    
+    const pdfExtract = new PDFExtract();
     
     return new Promise((resolve, reject) => {
-      const reader = new PdfReader();
-      const textChunks: string[] = [];
-      let currentPage = 0;
-      let pageText = '';
-      
-      const timeout = setTimeout(() => {
-        const finalText = textChunks.join('\n\n').trim();
-        console.log(`PDF extraction completed: ${finalText.length} characters from ${currentPage} pages`);
-        resolve(finalText || "PDF extraction failed - no readable text found.");
-      }, 15000);
-      
-      reader.parseBuffer(buffer, (err, item) => {
+      pdfExtract.extractBuffer(buffer, {}, (err: any, data: any) => {
         if (err) {
-          console.error("PDF parsing error:", err);
-          clearTimeout(timeout);
-          resolve("PDF parsing failed due to errors.");
+          console.error("PDF extraction error:", err);
+          resolve("PDF extraction failed - document may be corrupted or password-protected.");
           return;
         }
         
-        if (!item) {
-          // End of file
-          clearTimeout(timeout);
-          if (pageText.trim()) {
-            textChunks.push(pageText.trim());
-          }
-          const finalText = textChunks.join('\n\n').trim();
-          console.log(`PDF extraction completed: ${finalText.length} characters from ${currentPage} pages`);
-          resolve(finalText || "PDF extraction failed - no readable text found.");
+        if (!data || !data.pages || data.pages.length === 0) {
+          resolve("PDF extraction failed - no readable content found.");
           return;
         }
         
-        if (item.page) {
-          // New page - save previous page text
-          if (currentPage > 0 && pageText.trim()) {
-            textChunks.push(pageText.trim());
-          }
-          currentPage = item.page;
-          pageText = '';
-        } else if (item.text && typeof item.text === 'string') {
-          // Simple sequential text extraction - just join text as it appears
-          const cleanText = item.text.trim();
-          if (cleanText) {
-            pageText += cleanText + ' ';
+        let extractedText = '';
+        
+        // Extract text from each page
+        for (const page of data.pages) {
+          if (page.content && page.content.length > 0) {
+            // Sort content by y position (top to bottom) then x position (left to right)
+            const sortedContent = page.content
+              .filter((item: any) => item.str && item.str.trim())
+              .sort((a: any, b: any) => {
+                const yDiff = Math.abs(a.y - b.y);
+                if (yDiff < 5) { // Same line
+                  return a.x - b.x;
+                }
+                return b.y - a.y; // PDF coordinates are inverted
+              });
+            
+            // Group content by lines
+            const lines: string[] = [];
+            let currentLine = '';
+            let lastY = -1;
+            
+            for (const item of sortedContent) {
+              const text = item.str.trim();
+              if (!text) continue;
+              
+              // Check if this is a new line
+              if (lastY !== -1 && Math.abs(item.y - lastY) > 5) {
+                if (currentLine.trim()) {
+                  lines.push(currentLine.trim());
+                }
+                currentLine = text;
+              } else {
+                // Same line - add with space if needed
+                if (currentLine && !currentLine.endsWith(' ') && !text.startsWith(' ')) {
+                  currentLine += ' ';
+                }
+                currentLine += text;
+              }
+              
+              lastY = item.y;
+            }
+            
+            // Add the last line
+            if (currentLine.trim()) {
+              lines.push(currentLine.trim());
+            }
+            
+            // Join lines with newlines
+            if (lines.length > 0) {
+              extractedText += lines.join('\n') + '\n\n';
+            }
           }
         }
+        
+        // Clean up the extracted text
+        const cleanText = extractedText
+          .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines
+          .replace(/[ \t]{2,}/g, ' ') // Normalize spaces
+          .trim();
+        
+        console.log(`PDF extraction completed: ${cleanText.length} characters from ${data.pages.length} pages`);
+        resolve(cleanText || "PDF extraction completed but no readable text found.");
       });
     });
     
@@ -292,45 +323,9 @@ function reconstructBrokenText(text: string): string {
 
 
 
-// Fallback method for when primary extraction fails
+// Simple fallback: return a clear error message
 async function extractTextWithFallbackMethod(buffer: Buffer): Promise<string> {
-  return new Promise((resolve) => {
-    const reader = new PdfReader();
-    const textItems: string[] = [];
-    
-    const timeout = setTimeout(() => {
-      if (textItems.length > 0) {
-        // Join all text items with appropriate spacing
-        const text = textItems.join(' ').replace(/\s+/g, ' ').trim();
-        resolve(text);
-      } else {
-        resolve("PDF text extraction failed - document may be image-based or protected.");
-      }
-    }, 15000);
-    
-    reader.parseBuffer(buffer, (err, item) => {
-      if (err) {
-        console.error("Fallback PDF parsing error:", err);
-        return;
-      }
-      
-      if (!item) {
-        clearTimeout(timeout);
-        if (textItems.length > 0) {
-          const text = textItems.join(' ').replace(/\s+/g, ' ').trim();
-          console.log(`Fallback extraction completed: ${text.length} characters`);
-          resolve(text);
-        } else {
-          resolve("PDF text extraction failed - document may be image-based or protected.");
-        }
-        return;
-      }
-      
-      if (item.text && item.text.trim()) {
-        textItems.push(item.text.trim());
-      }
-    });
-  });
+  return "PDF text extraction failed - document may be corrupted, password-protected, or image-based.";
 }
 
 // Extract text from DOCX using mammoth
