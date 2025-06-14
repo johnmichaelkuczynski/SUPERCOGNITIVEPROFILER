@@ -101,7 +101,7 @@ class GoogleDriveService {
 
   // Create PDF from content with mathematical notation
   private async createPDFFromContent(content: string): Promise<Buffer> {
-    const PDFDocument = require('pdfkit');
+    const PDFDocument = (await import('pdfkit')).default;
     const doc = new PDFDocument();
     const chunks: Buffer[] = [];
 
