@@ -98,6 +98,9 @@ export default function ChunkedRewriter({
       return rendered;
     });
 
+    // CRITICAL: Also process raw LaTeX commands in text
+    processed = renderLatexExpression(processed);
+
     return processed;
   };
 
