@@ -97,38 +97,35 @@ export default function Home() {
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
 
-  // NUKE function to clear all data
+  // NUKE function to clear all data - no confirmation popup
   const handleNuke = async () => {
-    const confirmed = window.confirm('Are you sure you want to clear ALL data? This action cannot be undone.');
-    if (confirmed) {
-      try {
-        const response = await fetch('/api/nuke', { method: 'POST' });
-        if (response.ok) {
-          // Clear all local state
-          setMessages([]);
-          setFiles([]);
-          setPrompt('');
-          setDirectInputText('');
-          setUploadedDocuments({});
-          setAllDocuments([]);
-          setDocumentContent('');
-          setDocumentName('');
-          setSelectedChunks([]);
-          setSelectedChunk(null);
-          setDocumentChunks([]);
-          
-          // Reset all modals
-          setIsRewriterOpen(false);
-          setIsDocumentViewerOpen(false);
-          setIsChunkSelectorOpen(false);
-          setIsChunkedRewriterOpen(false);
-          
-          alert('All data has been cleared successfully.');
-        }
-      } catch (error) {
-        console.error('Error nuking data:', error);
-        alert('Error clearing data. Please try again.');
+    try {
+      const response = await fetch('/api/nuke', { method: 'POST' });
+      if (response.ok) {
+        // Clear all local state
+        setMessages([]);
+        setFiles([]);
+        setPrompt('');
+        setDirectInputText('');
+        setUploadedDocuments({});
+        setAllDocuments([]);
+        setDocumentContent('');
+        setDocumentName('');
+        setSelectedChunks([]);
+        setSelectedChunk(null);
+        setDocumentChunks([]);
+        
+        // Reset all modals
+        setIsRewriterOpen(false);
+        setIsDocumentViewerOpen(false);
+        setIsChunkSelectorOpen(false);
+        setIsChunkedRewriterOpen(false);
+        
+        // Force page reload to completely reset
+        window.location.reload();
       }
+    } catch (error) {
+      console.error('Error nuking data:', error);
     }
   };
 
