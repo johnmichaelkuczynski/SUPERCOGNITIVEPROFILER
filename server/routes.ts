@@ -2509,13 +2509,12 @@ ${content}`;
 
         result = response.content[0].type === 'text' ? response.content[0].text : '';
       } else if (selectedModel === 'gpt4') {
-        const { Configuration, OpenAIApi } = await import('openai');
-        const configuration = new Configuration({
+        const OpenAI = await import('openai');
+        const openai = new OpenAI.default({
           apiKey: process.env.OPENAI_API_KEY,
         });
-        const openai = new OpenAIApi(configuration);
 
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
             { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax.' },
@@ -2525,7 +2524,7 @@ ${content}`;
           temperature: 0.1
         });
 
-        result = response.data.choices[0]?.message?.content || '';
+        result = response.choices[0]?.message?.content || '';
       } else {
         // Fallback to Claude for other models
         const { default: Anthropic } = await import('@anthropic-ai/sdk');
