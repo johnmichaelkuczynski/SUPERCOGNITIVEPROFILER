@@ -4859,13 +4859,33 @@ Return only the new content without any additional comments, explanations, or he
   // Document chunking endpoint for large document processing
   app.post('/api/documents/chunk', async (req: Request, res: Response) => {
     try {
-      const { content, filename } = req.body;
+      const { content, filename, documentId } = req.body;
       
-      if (!content) {
-        return res.status(400).json({ error: 'Content is required' });
+      let documentContent = content;
+      let documentName = filename;
+      
+      // If documentId is provided, fetch the document from database
+      if (documentId) {
+        try {
+          const document = await storage.getDocument(documentId);
+          
+          if (!document) {
+            return res.status(404).json({ error: 'Document not found' });
+          }
+          
+          documentContent = document.content;
+          documentName = document.title;
+        } catch (dbError) {
+          console.error('Error fetching document:', dbError);
+          return res.status(500).json({ error: 'Failed to fetch document' });
+        }
+      }
+      
+      if (!documentContent) {
+        return res.status(400).json({ error: 'Content or documentId is required' });
       }
 
-      const chunks = createIntelligentChunks(content, filename);
+      const chunks = createIntelligentChunks(documentContent, documentName);
       res.json(chunks);
     } catch (error) {
       console.error('Error chunking document:', error);

@@ -242,7 +242,7 @@ export default function Home() {
       
       if (wordCount > 1000 || charCount > 5000) {
         // LARGE DOCUMENT - Open in chunked viewer instead
-        setChunkedViewerDocument(extractedText);
+        setChunkedViewerDocument(data.id); // Use the document ID from the response
         setChunkedViewerName(file.name);
         setIsChunkedViewerOpen(true);
         
