@@ -7,11 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Edit3, X, FileText, Download, Loader2, Share2, RefreshCw } from 'lucide-react';
+import { Edit3, X, FileText, Download, Loader2, Share2, RefreshCw, Eye } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import RewriteViewer from './RewriteViewer';
 
 interface DocumentChunk {
   id: number;
@@ -43,6 +44,8 @@ export default function SimpleRewriter({
   const [selectedDocumentId, setSelectedDocumentId] = useState<string>(documentId || '');
   const [currentDocumentName, setCurrentDocumentName] = useState<string>(documentName || '');
   const [rewritingIndex, setRewritingIndex] = useState<number | null>(null);
+  const [selectedResult, setSelectedResult] = useState<any | null>(null);
+  const [showRewriteViewer, setShowRewriteViewer] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -460,6 +463,24 @@ export default function SimpleRewriter({
     }
   };
 
+  const openRewriteViewer = (result: any) => {
+    setSelectedResult(result);
+    setShowRewriteViewer(true);
+  };
+
+  const handleRewriteUpdate = (updatedResult: any) => {
+    const resultIndex = rewriteResults.findIndex(r => 
+      r.originalChunk.id === updatedResult.originalChunk.id
+    );
+    
+    if (resultIndex !== -1) {
+      const updatedResults = [...rewriteResults];
+      updatedResults[resultIndex] = updatedResult;
+      setRewriteResults(updatedResults);
+      setSelectedResult(updatedResult);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -642,91 +663,53 @@ export default function SimpleRewriter({
                   ) : (
                     <div className="space-y-4">
                       {rewriteResults.map((result, index) => (
-                        <Card key={index}>
+                        <Card 
+                          key={index} 
+                          className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-green-500"
+                          onClick={() => openRewriteViewer(result)}
+                        >
                           <CardHeader>
-                            <CardTitle className="text-sm">
-                              {result.originalChunk.title}
+                            <CardTitle className="text-sm flex items-center justify-between">
+                              <span>{result.originalChunk.title}</span>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {result.originalChunk.wordCount} words
+                                </Badge>
+                                <Eye className="h-4 w-4 text-gray-500" />
+                              </div>
                             </CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-3">
                             <div>
                               <h5 className="text-xs font-medium text-gray-600 mb-1">
-                                Original ({result.originalChunk.wordCount} words):
+                                Original Preview:
                               </h5>
                               <div className="text-xs text-gray-700 bg-gray-50 p-2 rounded">
-                                {result.originalChunk.content.substring(0, 150)}...
+                                {result.originalChunk.content.substring(0, 120)}...
                               </div>
                             </div>
                             <Separator />
                             <div>
                               <h5 className="text-xs font-medium text-green-600 mb-1">
-                                Rewritten:
+                                Rewritten Preview:
                               </h5>
-                              <div className="text-xs whitespace-pre-wrap prose max-w-none">
-                                <ReactMarkdown
-                                  remarkPlugins={[remarkMath]}
-                                  rehypePlugins={[rehypeKatex]}
-                                >
-                                  {result.rewrittenContent}
-                                </ReactMarkdown>
+                              <div className="text-xs text-green-700 bg-green-50 p-2 rounded">
+                                {result.rewrittenContent.substring(0, 120)}...
                               </div>
                             </div>
-                            {result.explanation && (
-                              <>
-                                <Separator />
-                                <div>
-                                  <h5 className="text-xs font-medium text-blue-600 mb-1">
-                                    Explanation:
-                                  </h5>
-                                  <div className="text-xs text-blue-700 bg-blue-50 p-2 rounded">
-                                    {result.explanation}
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                            
-                            {/* Rewrite the Rewrite Section */}
-                            <Separator />
-                            <div className="bg-blue-50 p-3 rounded">
-                              <h5 className="text-xs font-medium text-blue-800 mb-2">
-                                Rewrite the Rewrite
-                              </h5>
-                              <div className="space-y-2">
-                                <Textarea
-                                  placeholder="Provide specific instructions for how you want to rewrite this content..."
-                                  className="text-xs"
-                                  rows={2}
-                                  id={`rewrite-instructions-${index}`}
-                                />
-                                <div className="flex items-center justify-between">
-                                  <select 
-                                    className="text-xs border rounded px-2 py-1"
-                                    id={`rewrite-model-${index}`}
-                                    defaultValue="claude"
-                                  >
-                                    <option value="claude">Claude</option>
-                                    <option value="gpt4">GPT-4</option>
-                                  </select>
-                                  <Button 
-                                    size="sm" 
-                                    className="text-xs px-3 py-1"
-                                    onClick={() => rewriteTheRewrite(index)}
-                                    disabled={rewritingIndex === index}
-                                  >
-                                    {rewritingIndex === index ? (
-                                      <>
-                                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                        Re-rewriting...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <RefreshCw className="h-3 w-3 mr-1" />
-                                        Start Re-rewrite
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
+                            <div className="flex items-center justify-between pt-2">
+                              <span className="text-xs text-gray-500">Click to view full rewrite</span>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openRewriteViewer(result);
+                                }}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View Full
+                              </Button>
                             </div>
                           </CardContent>
                         </Card>
@@ -799,6 +782,13 @@ export default function SimpleRewriter({
           </div>
         )}
       </DialogContent>
+
+      <RewriteViewer
+        isOpen={showRewriteViewer}
+        onClose={() => setShowRewriteViewer(false)}
+        result={selectedResult}
+        onUpdate={handleRewriteUpdate}
+      />
     </Dialog>
   );
 }
