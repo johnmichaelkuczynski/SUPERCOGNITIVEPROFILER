@@ -91,14 +91,27 @@ function processLaTeXMath(latex: string): string {
     return `${processedRoot}√(${processedContent})`;
   });
   
-  // Handle superscripts and subscripts
-  processed = processed.replace(/\^(\{[^}]+\}|[^{\s])/g, (match, exp) => {
+  // CRITICAL FIX: Handle malformed superscripts and subscripts BEFORE processing valid ones
+  // Fix invalid patterns like A_ or B^ that don't have arguments
+  processed = processed.replace(/([A-Za-z0-9])_(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+  processed = processed.replace(/([A-Za-z0-9])\^(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+  
+  // Fix incomplete patterns at end of expressions
+  processed = processed.replace(/([A-Za-z0-9])_$/g, '$1');
+  processed = processed.replace(/([A-Za-z0-9])\^$/g, '$1');
+  
+  // Fix patterns like A_ ∪ B_ or A^ ∩ B^
+  processed = processed.replace(/([A-Za-z0-9])_(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+  processed = processed.replace(/([A-Za-z0-9])\^(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+  
+  // Now handle valid superscripts and subscripts
+  processed = processed.replace(/\^(\{[^}]+\}|[a-zA-Z0-9])/g, (match, exp) => {
     const content = exp.startsWith('{') ? exp.slice(1, -1) : exp;
     const processedContent = processLaTeXMath(content);
     return convertToSuperscript(processedContent);
   });
   
-  processed = processed.replace(/_(\{[^}]+\}|[^{\s])/g, (match, sub) => {
+  processed = processed.replace(/_(\{[^}]+\}|[a-zA-Z0-9])/g, (match, sub) => {
     const content = sub.startsWith('{') ? sub.slice(1, -1) : sub;
     const processedContent = processLaTeXMath(content);
     return convertToSubscript(processedContent);

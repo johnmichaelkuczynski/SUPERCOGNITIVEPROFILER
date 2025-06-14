@@ -1472,69 +1472,123 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('Access-Control-Allow-Origin', '*');
         
-        console.log("Starting streaming response for chunk", chunkIndex);
+        console.log("Starting streaming response for chunk", chunkIndex, "with model", model);
         
-        // Get regular response first, then simulate streaming
-        let result: string;
+        // Send start signal
+        res.write(`data: ${JSON.stringify({ 
+          type: 'start', 
+          chunkIndex: chunkIndex 
+        })}\n\n`);
         
         try {
+          // Use Claude streaming API directly
           if (model === 'claude') {
-            result = await processClaude(prompt, {
-              temperature: 0.7,
-              maxTokens: 4000
-            });
-          } else if (model === 'gpt4') {
-            const { default: OpenAI } = await import('openai');
-            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+            console.log("Calling Claude with streaming enabled");
+            let fullResult = '';
             
-            const response = await openai.chat.completions.create({
-              model: "gpt-4o",
-              messages: [{ role: "user", content: prompt }],
+            const result = await processClaude(prompt, {
               temperature: 0.7,
-              max_tokens: 4000
+              maxTokens: 4000,
+              stream: true,
+              onChunk: (chunk: string) => {
+                fullResult += chunk;
+                console.log("Received chunk:", chunk.substring(0, 30) + "...");
+                // Send chunk immediately
+                res.write(`data: ${JSON.stringify({ 
+                  type: 'chunk', 
+                  content: chunk,
+                  fullContent: fullResult,
+                  chunkIndex: chunkIndex 
+                })}\n\n`);
+              }
             });
             
-            result = response.choices[0].message.content || '';
-          } else {
-            result = await processClaude(prompt, {
-              temperature: 0.7,
-              maxTokens: 4000
-            });
-          }
-          
-          console.log("Got full response, now streaming it word by word");
-          
-          // Simulate streaming by sending the response word by word
-          const words = result.split(' ');
-          let fullContent = '';
-          
-          for (let i = 0; i < words.length; i++) {
-            const word = words[i] + (i < words.length - 1 ? ' ' : '');
-            fullContent += word;
+            console.log("Claude streaming finished, applying math processing");
             
-            // Send each word as a chunk
+            // If no streaming happened, simulate it with the full result
+            if (fullResult === '' && result) {
+              console.log("No streaming occurred, simulating with full result");
+              const words = result.split(' ');
+              for (let i = 0; i < words.length; i++) {
+                const word = words[i] + (i < words.length - 1 ? ' ' : '');
+                fullResult += word;
+                
+                res.write(`data: ${JSON.stringify({ 
+                  type: 'chunk', 
+                  content: word,
+                  fullContent: fullResult,
+                  chunkIndex: chunkIndex 
+                })}\n\n`);
+                
+                await new Promise(resolve => setTimeout(resolve, 30));
+              }
+            }
+            
+            // Apply mathematical notation processing
+            const processedResult = renderMathematicalNotation(fullResult || result);
+            
+            console.log("Sending final processed result");
+            
+            // Send final processed result
             res.write(`data: ${JSON.stringify({ 
-              type: 'chunk', 
-              content: word,
-              fullContent: fullContent,
+              type: 'complete', 
+              rewrittenContent: processedResult,
               chunkIndex: chunkIndex 
             })}\n\n`);
             
-            // Small delay to make streaming visible
-            await new Promise(resolve => setTimeout(resolve, 50));
+          } else {
+            // For other models, get response and simulate streaming
+            let result: string = '';
+            
+            if (model === 'gpt4') {
+              const { default: OpenAI } = await import('openai');
+              const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+              
+              const response = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0.7,
+                max_tokens: 4000
+              });
+              
+              result = response.choices[0].message.content || '';
+            } else {
+              result = await processClaude(prompt, {
+                temperature: 0.7,
+                maxTokens: 4000
+              });
+            }
+            
+            console.log("Simulating streaming for", model, "with", result.length, "characters");
+            
+            // Simulate streaming by sending the response word by word
+            const words = result.split(' ');
+            let fullContent = '';
+            
+            for (let i = 0; i < words.length; i++) {
+              const word = words[i] + (i < words.length - 1 ? ' ' : '');
+              fullContent += word;
+              
+              res.write(`data: ${JSON.stringify({ 
+                type: 'chunk', 
+                content: word,
+                fullContent: fullContent,
+                chunkIndex: chunkIndex 
+              })}\n\n`);
+              
+              await new Promise(resolve => setTimeout(resolve, 30));
+            }
+            
+            // Apply mathematical notation processing
+            const processedResult = renderMathematicalNotation(result);
+            
+            // Send final processed result
+            res.write(`data: ${JSON.stringify({ 
+              type: 'complete', 
+              rewrittenContent: processedResult,
+              chunkIndex: chunkIndex 
+            })}\n\n`);
           }
-          
-          // Apply mathematical notation processing
-          const processedResult = renderMathematicalNotation(result);
-          
-          console.log("Streaming complete, sending final result");
-          
-          // Send final processed result
-          res.write(`data: ${JSON.stringify({ 
-            type: 'complete', 
-            rewrittenContent: processedResult,
-            chunkIndex: chunkIndex 
-          })}\n\n`);
           
         } catch (streamError) {
           console.error("Streaming error:", streamError);

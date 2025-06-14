@@ -96,14 +96,27 @@ function renderLatexExpression(latex: string): string {
     </span>`;
   });
   
+  // CRITICAL FIX: Handle malformed superscripts and subscripts BEFORE processing valid ones
+  // Fix invalid patterns like A_ or B^ that don't have arguments
+  rendered = rendered.replace(/([A-Za-z0-9])_(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+  rendered = rendered.replace(/([A-Za-z0-9])\^(\s|$|[^{a-zA-Z0-9])/g, '$1$2');
+  
+  // Fix incomplete patterns at end of expressions
+  rendered = rendered.replace(/([A-Za-z0-9])_$/g, '$1');
+  rendered = rendered.replace(/([A-Za-z0-9])\^$/g, '$1');
+  
+  // Fix patterns like A_ ∪ B_ or A^ ∩ B^
+  rendered = rendered.replace(/([A-Za-z0-9])_(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+  rendered = rendered.replace(/([A-Za-z0-9])\^(\s*[∪∩∧∨→←↔⊂⊃⊆⊇∈∉])/g, '$1$2');
+  
   // Handle superscripts and subscripts with proper positioning
-  rendered = rendered.replace(/\^(\{[^}]+\}|[^{\s])/g, (match, sup) => {
+  rendered = rendered.replace(/\^(\{[^}]+\}|[a-zA-Z0-9])/g, (match, sup) => {
     const content = sup.startsWith('{') ? sup.slice(1, -1) : sup;
     const processed = renderLatexExpression(content);
     return `<sup style="font-size: 0.7em; vertical-align: super;">${processed}</sup>`;
   });
   
-  rendered = rendered.replace(/_(\{[^}]+\}|[^{\s])/g, (match, sub) => {
+  rendered = rendered.replace(/_(\{[^}]+\}|[a-zA-Z0-9])/g, (match, sub) => {
     const content = sub.startsWith('{') ? sub.slice(1, -1) : sub;
     const processed = renderLatexExpression(content);
     return `<sub style="font-size: 0.7em; vertical-align: sub;">${processed}</sub>`;
