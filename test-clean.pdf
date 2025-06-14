@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Clean Test</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Times New Roman', serif; 
+            font-size: 12pt; 
+            line-height: 1.5; 
+            margin: 0;
+            padding: 20px;
+            color: #000;
+            background: white;
+        }
+        .document-title { 
+            text-align: center; 
+            font-size: 18pt; 
+            font-weight: bold;
+            margin-bottom: 30px;
+            page-break-after: avoid;
+        }
+        .section { 
+            margin-bottom: 25px; 
+            page-break-inside: avoid;
+        }
+        .section-title { 
+            font-size: 14pt; 
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            page-break-after: avoid;
+        }
+        .content { 
+            text-align: justify; 
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        /* KaTeX math styling for proper PDF display */
+        .katex { 
+            font-size: 1em !important; 
+            color: black !important;
+        }
+        .katex-display { 
+            margin: 1em 0 !important; 
+            text-align: center !important;
+        }
+        .katex .base { 
+            color: black !important; 
+        }
+        .math-error {
+            color: red;
+            background: #fff3cd;
+            padding: 2px 4px;
+            border: 1px solid #ffeaa7;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .section { break-inside: avoid; }
+            @page { margin: 15mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="document-title">Clean Test</div>
+    <div class="section">
+        <div class="section-title">Section 1: Math Test</div>
+        <p class="content"># Chapter 1: Mathematical Logic</p><p class="content">## 1.1 Basic Principles</p><p class="content"><strong>Important</strong>: The statement \neg(P \lor Q) \leftrightarrow (\neg P \land \neg Q) demonstrates De Morgan's law.</p><p class="content">- First principle: P → P<br>- Second principle: ¬¬P ⇔ P</p><p class="content">### Examples:</p><p class="content">1. ∀x ∈ ℝ (x² ≥ 0)<br>2. ∃y ∈ ℕ (y > 10)</p>
+    </div>
+</body>
+</html>

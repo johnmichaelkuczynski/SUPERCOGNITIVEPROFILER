@@ -1710,16 +1710,35 @@ OUTPUT ONLY THE REWRITTEN CONTENT WITH PERFECT MATHEMATICAL NOTATION. NO META-CO
           doc.font('Helvetica');
           doc.fontSize(12);
           
-          // Further sanitize content for PDF - remove all HTML/markdown formatting
-          const sanitizedContent = processedContent
-            .replace(/<[^>]+>/g, '')           // Remove HTML tags
-            .replace(/&[a-z]+;/gi, '')         // Remove HTML entities
-            .replace(/[^\x00-\x7F]/g, (char) => { // Handle non-ASCII safely
-              // Keep common math symbols, replace others
-              const safeChars = '∫∑∏√±×÷≤≥≠≈∞∂θπαβγδεζηκλμνξρστφχψω';
-              return safeChars.includes(char) ? char : '';
-            })
+          // COMPREHENSIVE cleanup for PDF - remove ALL markup and formatting
+          let sanitizedContent = processedContent
+            // Remove markdown headers - convert to clean text
+            .replace(/^#{1,6}\s+(.+)$/gm, '$1')        // # Header -> Header
+            .replace(/^\*{1,3}\s*(.+?)\s*\*{1,3}$/gm, '$1')  // *text* -> text
+            .replace(/\*\*(.+?)\*\*/g, '$1')          // **bold** -> bold
+            .replace(/\*(.+?)\*/g, '$1')              // *italic* -> italic
+            .replace(/__(.+?)__/g, '$1')              // __underline__ -> underline
+            .replace(/_(.+?)_/g, '$1')                // _italic_ -> italic
+            .replace(/`(.+?)`/g, '$1')                // `code` -> code
+            .replace(/```[\s\S]*?```/g, '')           // Remove code blocks
+            .replace(/^\s*[-*+]\s+/gm, '• ')          // List bullets to •
+            .replace(/^\s*\d+\.\s+/gm, '')            // Remove numbered list numbers
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')  // [text](link) -> text
+            .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // ![alt](img) -> alt
+            .replace(/<[^>]+>/g, '')                  // Remove HTML tags
+            .replace(/&[a-z]+;/gi, '')                // Remove HTML entities
+            .replace(/^\s*>\s+/gm, '')                // Remove blockquotes
+            .replace(/\|\s*([^|]+)\s*\|/g, '$1 ')     // Remove table formatting
+            .replace(/[-=]{3,}/g, '')                 // Remove horizontal rules
+            .replace(/\n{3,}/g, '\n\n')               // Multiple newlines to double
+            .replace(/^\s+/gm, '')                    // Remove leading whitespace
             .trim();
+
+          // Keep essential mathematical symbols and clean text
+          sanitizedContent = sanitizedContent.replace(/[^\x00-\x7F]/g, (char) => {
+            const mathSymbols = '¬∧∨→←↔⇒⇐⇔∑∏∫√±×÷≤≥≠≈∞∂∇∈∉⊂⊃⊆⊇∪∩∅∀∃∴∵ℝℕℤℚℂαβγδεζηθικλμνξπρστυφχψω';
+            return mathSymbols.includes(char) ? char : '';
+          });
           
           // Add content to PDF with proper line breaks
           const paragraphs = sanitizedContent.split('\n\n');
