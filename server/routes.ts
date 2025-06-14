@@ -1168,6 +1168,49 @@ YOUR REWRITTEN DOCUMENT:`;
     }
   });
 
+  // Email sharing route for rewrite results
+  app.post('/api/email-rewrite', async (req: Request, res: Response) => {
+    try {
+      const { results, documentName, recipientEmail } = req.body;
+      
+      if (!results || !Array.isArray(results)) {
+        return res.status(400).json({ error: 'Invalid results data' });
+      }
+      
+      if (!recipientEmail) {
+        return res.status(400).json({ error: 'Recipient email is required' });
+      }
+
+      // Generate email content
+      const emailContent = results.map((result: any, index: number) => 
+        `## Section ${index + 1}: ${result.originalChunk.title}\n\n${result.rewrittenContent}\n\n`
+      ).join('');
+
+      const htmlContent = results.map((result: any, index: number) => 
+        `<h2>Section ${index + 1}: ${result.originalChunk.title}</h2><p>${result.rewrittenContent.replace(/\n/g, '<br>')}</p>`
+      ).join('');
+
+      // Send email using the email service
+      const emailSent = await sendEmail({
+        to: recipientEmail,
+        from: 'noreply@analyticphilosophy.ai',
+        subject: `Rewritten Document: ${documentName}`,
+        text: `Here is your rewritten document: ${documentName}\n\n${emailContent}`,
+        html: `<h1>Rewritten Document: ${documentName}</h1>${htmlContent}`
+      });
+
+      if (emailSent) {
+        res.json({ success: true, message: 'Document emailed successfully' });
+      } else {
+        res.status(500).json({ error: 'Failed to send email' });
+      }
+
+    } catch (error) {
+      console.error('Error emailing rewrite:', error);
+      res.status(500).json({ error: 'Failed to email document' });
+    }
+  });
+
   // Email Sharing API using SendGrid
   app.post('/api/share-document', async (req: Request, res: Response) => {
     try {

@@ -305,34 +305,37 @@ export default function SimpleRewriter({
     }
   };
 
-  const shareRewrite = async () => {
+  const emailRewrite = async () => {
     if (rewriteResults.length === 0) return;
 
+    const email = prompt("Enter your email address:");
+    if (!email) return;
+
     try {
-      const response = await fetch('/api/share-rewrite', {
+      const response = await fetch('/api/email-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           results: rewriteResults,
-          documentName: documentName
+          documentName: currentDocumentName,
+          recipientEmail: email
         })
       });
 
       if (response.ok) {
-        const data = await response.json();
-        navigator.clipboard.writeText(data.shareUrl);
         toast({
-          title: "Share Link Copied",
-          description: "Share link has been copied to clipboard"
+          title: "Email Sent",
+          description: `Document emailed to ${email}`
         });
       } else {
-        throw new Error('Failed to create share link');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to send email');
       }
     } catch (error) {
-      console.error('Error sharing rewrite:', error);
+      console.error('Error emailing rewrite:', error);
       toast({
-        title: "Share Failed",
-        description: "Failed to create share link",
+        title: "Email Failed",
+        description: error instanceof Error ? error.message : "Failed to send email",
         variant: "destructive"
       });
     }
@@ -489,9 +492,9 @@ export default function SimpleRewriter({
                         <FileText className="h-4 w-4 mr-1" />
                         Print to PDF
                       </Button>
-                      <Button size="sm" variant="outline" onClick={shareRewrite}>
+                      <Button size="sm" variant="outline" onClick={emailRewrite}>
                         <Share2 className="h-4 w-4 mr-1" />
-                        Share
+                        Email Document
                       </Button>
                     </div>
                   )}

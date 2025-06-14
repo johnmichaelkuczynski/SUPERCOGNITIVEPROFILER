@@ -10,7 +10,7 @@ if (process.env.SENDGRID_API_KEY) {
 }
 
 // Use verified sender email for all outgoing emails
-const VERIFIED_SENDER = 'JM@ANALYTICPHILOSOPHY.AI';
+const VERIFIED_SENDER = process.env.SENDGRID_VERIFIED_SENDER || 'JM@ANALYTICPHILOSOPHY.AI';
 
 export interface EmailParams {
   to: string;
