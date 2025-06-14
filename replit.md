@@ -101,5 +101,5 @@ Changelog:
 ## User Preferences
 
 ```
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language. User is extremely frustrated with mathematical notation display issues. Stop reviewing/checking - just fix directly and immediately.
 ```
