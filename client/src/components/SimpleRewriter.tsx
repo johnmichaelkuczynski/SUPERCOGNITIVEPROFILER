@@ -207,6 +207,98 @@ export default function SimpleRewriter({
     }
   };
 
+  const printToPdf = () => {
+    if (rewriteResults.length === 0) return;
+
+    // Create a new window with properly formatted content
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Print Failed",
+        description: "Please allow pop-ups to use the print function",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Combine all rewritten content with proper formatting
+    const combinedContent = rewriteResults.map(result => 
+      `<div class="section">
+        <h2>${result.originalChunk.title}</h2>
+        <div class="content">${result.rewrittenContent}</div>
+      </div>`
+    ).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${documentName} - Rewritten</title>
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+          <style>
+            body {
+              font-family: 'Times New Roman', serif;
+              line-height: 1.6;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 40px 20px;
+              color: #333;
+            }
+            h1 {
+              text-align: center;
+              border-bottom: 2px solid #333;
+              padding-bottom: 20px;
+              margin-bottom: 40px;
+            }
+            h2 {
+              color: #2563eb;
+              margin-top: 40px;
+              margin-bottom: 20px;
+              border-bottom: 1px solid #e5e7eb;
+              padding-bottom: 10px;
+            }
+            .section {
+              margin-bottom: 40px;
+              page-break-inside: avoid;
+            }
+            .content {
+              text-align: justify;
+            }
+            .katex {
+              font-size: 1.1em;
+            }
+            @media print {
+              body { margin: 0; padding: 20px; }
+              .section { page-break-inside: avoid; }
+            }
+          </style>
+          <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+        </head>
+        <body>
+          <h1>${documentName} - Rewritten</h1>
+          ${combinedContent}
+          <script>
+            document.addEventListener("DOMContentLoaded", function() {
+              renderMathInElement(document.body, {
+                delimiters: [
+                  {left: "$$", right: "$$", display: true},
+                  {left: "$", right: "$", display: false},
+                  {left: "\\(", right: "\\)", display: false},
+                  {left: "\\[", right: "\\]", display: true}
+                ]
+              });
+              setTimeout(() => window.print(), 1000);
+            });
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
   const shareRewrite = async () => {
     if (rewriteResults.length === 0) return;
 
@@ -302,14 +394,14 @@ export default function SimpleRewriter({
             </div>
           </div>
 
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0">
             {/* Chunks Selection Panel */}
-            <Card className="flex flex-col">
-              <CardHeader>
+            <Card className="flex flex-col min-h-0">
+              <CardHeader className="flex-shrink-0">
                 <CardTitle className="text-sm">Select Chunks to Rewrite</CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
+              <CardContent className="flex-1 overflow-hidden p-0">
+                <ScrollArea className="h-full p-6">
                   {isLoading ? (
                     <div className="flex items-center justify-center h-32">
                       <Loader2 className="h-6 w-6 animate-spin" />
@@ -356,7 +448,7 @@ export default function SimpleRewriter({
             </Card>
 
             {/* Results Panel */}
-            <Card className="flex flex-col">
+            <Card className="flex flex-col min-h-0">
               <CardHeader className="flex-shrink-0">
                 <CardTitle className="text-sm flex items-center justify-between">
                   Rewrite Results
@@ -364,7 +456,11 @@ export default function SimpleRewriter({
                     <div className="flex gap-2">
                       <Button size="sm" variant="outline" onClick={downloadRewrite}>
                         <Download className="h-4 w-4 mr-1" />
-                        Download
+                        Download DOCX
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={printToPdf}>
+                        <FileText className="h-4 w-4 mr-1" />
+                        Print to PDF
                       </Button>
                       <Button size="sm" variant="outline" onClick={shareRewrite}>
                         <Share2 className="h-4 w-4 mr-1" />
