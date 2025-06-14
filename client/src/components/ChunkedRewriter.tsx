@@ -109,7 +109,7 @@ export default function ChunkedRewriter({
     })));
     
     toast({
-      title: "🧨 NUKED!",
+      title: "NUKED!",
       description: "Everything has been reset. Fresh start!",
       variant: "destructive"
     });
@@ -153,82 +153,6 @@ export default function ChunkedRewriter({
 
   const deselectAllChunks = () => {
     setChunks(prev => prev.map(chunk => ({ ...chunk, selected: false })));
-  };
-
-  const processHomeworkMode = async () => {
-    try {
-      let chatContext = '';
-      if (includeChatContext && chatHistory.length > 0) {
-        chatContext = '\n\nChat Context (for reference):\n' + 
-          chatHistory.slice(-10).map(msg => `${msg.role}: ${msg.content}`).join('\n');
-      }
-
-      setProgress(50);
-
-      const response = await fetch('/api/homework-mode', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          instructions: originalText, // The text contains the instructions to follow
-          userPrompt: instructions, // User's additional guidance
-          model: selectedModel,
-          chatContext: includeChatContext ? chatContext : undefined,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to process homework');
-      }
-
-      const result = await response.json();
-      
-      setProgress(100);
-
-      // Prepare metadata
-      const metadata = {
-        originalLength: originalText.length,
-        rewrittenLength: result.response.length,
-        mode: 'homework',
-        model: selectedModel,
-        instructions: instructions,
-        includedChatContext: includeChatContext
-      };
-
-      // Store results for popup display
-      setFinalRewrittenContent(result.response);
-      setRewriteMetadata(metadata);
-      setShowResultsPopup(true);
-
-      toast({
-        title: "Homework Complete!",
-        description: "Successfully completed the assignment.",
-      });
-
-      // Add to chat immediately
-      onAddToChat(
-        `**Homework Assignment Completed:**\n\n${result.response}`,
-        { 
-          type: 'homework_completion',
-          originalInstructions: originalText,
-          userGuidance: instructions
-        }
-      );
-
-      // Save as document
-      onRewriteComplete(result.response, metadata);
-
-    } catch (error) {
-      console.error('Homework processing error:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to process homework",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
   const startRewrite = async () => {
@@ -386,8 +310,8 @@ export default function ChunkedRewriter({
               const { done, value } = await reader.read();
               if (done) break;
 
-              const chunk = decoder.decode(value);
-              const lines = chunk.split('\n');
+              const chunk_data = decoder.decode(value);
+              const lines = chunk_data.split('\n');
 
               for (const line of lines) {
                 if (line.startsWith('data: ')) {
@@ -471,8 +395,6 @@ export default function ChunkedRewriter({
             } : item
           ));
 
-          // Store completed chunk (don't automatically add to chat)
-
           processedChunks++;
           setProgress((processedChunks / totalOperations) * 100);
         }
@@ -484,1278 +406,381 @@ export default function ChunkedRewriter({
         finalContent = originalText;
       }
 
-      // Step 2: Generate new chunks if needed (cap at maximum 5 chunks to prevent overwhelming)
-      if (rewriteMode === 'add' || rewriteMode === 'both') {
-        const maxNewChunks = Math.min(numberOfNewChunks, 5);
-        for (let i = 0; i < maxNewChunks; i++) {
-          // Update current chunk index for new chunks
-          setCurrentChunkIndex(processedChunks);
-          
-          const response = await fetch('/api/generate-new-chunk', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              originalContent: originalText,
-              newChunkInstructions: newChunkInstructions,
-              existingContent: finalContent,
-              model: selectedModel,
-              chatContext: includeChatContext ? chatContext : undefined,
-              chunkNumber: i + 1,
-              totalNewChunks: numberOfNewChunks
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`Failed to generate new chunk ${i + 1}`);
-          }
-
-          const result = await response.json();
-          
-          // Add new chunk to final content
-          finalContent += '\n\n' + result.newChunkContent;
-
-          // Update live progress with new chunk
-          const selectedCount = chunks.filter(chunk => chunk.selected).length;
-          setLiveProgressChunks(prev => prev.map((item, idx) => 
-            idx === selectedCount + i ? {
-              ...item,
-              content: result.newChunkContent,
-              completed: true
-            } : item
-          ));
-
-          processedChunks++;
-          setProgress((processedChunks / totalOperations) * 100);
-        }
-      }
-
-      // Prepare metadata
+      // Complete final metadata and callback
       const metadata = {
         originalLength: originalText.length,
         rewrittenLength: finalContent.length,
-        chunksProcessed: chunks.filter(chunk => chunk.selected).length,
-        newChunksAdded: rewriteMode === 'add' || rewriteMode === 'both' ? numberOfNewChunks : 0,
+        chunksProcessed: processedChunks,
         model: selectedModel,
-        instructions: instructions,
-        newChunkInstructions: newChunkInstructions,
+        mode: processingMode,
         rewriteMode: rewriteMode,
+        instructions: instructions,
         includedChatContext: includeChatContext
       };
 
-      // Store results for popup display - force it to show!
-      console.log("Setting popup content:", finalContent.length, "characters");
-      console.log("Setting popup metadata:", metadata);
+      // Store results for popup display
       setFinalRewrittenContent(finalContent);
       setRewriteMetadata(metadata);
       setShowResultsPopup(true);
-      console.log("Popup state set to true - should display now!");
 
       toast({
-        title: "Rewrite complete!",
-        description: `Successfully processed content with ${metadata.chunksProcessed} rewritten chunks${metadata.newChunksAdded ? ` and ${metadata.newChunksAdded} new chunks` : ''}.`,
+        title: "Rewrite Complete!",
+        description: `Successfully processed ${processedChunks} chunks.`,
       });
 
-      // Don't automatically add rewrite results to chat
-      
+      // Complete the rewrite process
       onRewriteComplete(finalContent, metadata);
 
     } catch (error) {
       console.error('Rewrite error:', error);
       toast({
-        title: "Rewrite failed",
-        description: error instanceof Error ? error.message : "An error occurred during rewriting.",
-        variant: "destructive"
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to rewrite content",
+        variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
+      // Reset cancellation flag and live progress after completion
+      setIsCancelled(false);
+      
+      // Reset chunk processing states
+      setChunks(prev => prev.map(chunk => ({
+        ...chunk,
+        isProcessing: false
+      })));
     }
   };
 
-  const printChunksAsPDF = () => {
-    const rewrittenText = chunks
-      .filter(chunk => chunk.selected && chunk.rewritten)
-      .map(chunk => chunk.rewritten)
-      .join('\n\n');
-
-    if (!rewrittenText) {
-      toast({
-        title: "No content to print",
-        description: "Please complete the rewrite first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Create proper PDF with MathJax
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    if (!printWindow) {
-      toast({
-        title: "Pop-up blocked",
-        description: "Please allow pop-ups and try again.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Clean content but preserve LaTeX math
-    let cleanContent = rewrittenText
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*([^$*]*)\*/g, '<em>$1</em>')
-      .replace(/\(\*([^)]*)\*\)/g, '($1)')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>');
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Rewritten Chunks</title>
-          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-          <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-          <script>
-            window.MathJax = {
-              tex: {
-                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-                processEscapes: true,
-                processEnvironments: true
-              },
-              options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-              },
-              startup: {
-                ready: () => {
-                  MathJax.startup.defaultReady();
-                  setTimeout(() => {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('content').style.display = 'block';
-                  }, 1000);
-                }
-              }
-            };
-          </script>
-          <style>
-            body { 
-              font-family: 'Times New Roman', serif; 
-              line-height: 1.6; 
-              max-width: 8.5in; 
-              margin: 0 auto; 
-              padding: 1in;
-              color: black;
-              background: white;
-            }
-            h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
-            p { margin-bottom: 12px; }
-            .MathJax { font-size: 1em !important; }
-            #loading { text-align: center; padding: 50px; }
-            #content { display: none; }
-            .controls { text-align: center; margin: 20px 0; }
-            .controls button { 
-              margin: 0 10px; padding: 10px 20px; 
-              background: #007bff; color: white; 
-              border: none; border-radius: 4px; cursor: pointer; 
-            }
-            .controls button:hover { background: #0056b3; }
-            .controls .close { background: #6c757d; }
-            .controls .close:hover { background: #545b62; }
-            @media print {
-              .controls { display: none; }
-              body { margin: 0.5in; }
-            }
-          </style>
-        </head>
-        <body>
-          <div id="loading">Loading math notation...</div>
-          <div id="content">
-            <div class="controls">
-              <button onclick="window.print()">📄 Save as PDF</button>
-              <button class="close" onclick="window.close()">Close</button>
-            </div>
-            <div id="text-content"><p>${cleanContent}</p></div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-
-    toast({
-      title: "PDF window opened!",
-      description: "Math notation will render in a moment, then click 'Save as PDF'",
-    });
-  };
-
-  const shareViaEmail = async () => {
-    if (!emailAddress || !senderEmail) {
-      toast({
-        title: "Email addresses required",
-        description: "Please enter both recipient and verified sender email addresses.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const rewrittenText = chunks
-      .filter(chunk => chunk.selected && chunk.rewritten)
-      .map(chunk => chunk.rewritten)
-      .join('\n\n');
-
-    if (!rewrittenText) {
-      toast({
-        title: "No content to share",
-        description: "Please complete the rewrite first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const downloadPDF = async () => {
     try {
-      const response = await fetch('/api/share-rewrite', {
+      toast({
+        title: "Generating PDF...",
+        description: "Creating your document download.",
+      });
+
+      const content = chunks.filter(chunk => chunk.selected && chunk.rewritten)
+        .map(chunk => chunk.rewritten).join('\n\n');
+
+      if (!content) {
+        toast({
+          title: "No content to export",
+          description: "Please rewrite some chunks first.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('/api/export-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content: rewrittenText,
-          recipientEmail: emailAddress,
-          senderEmail: senderEmail,
-          subject: 'Rewritten Document'
+          content: content,
+          title: 'Rewritten Document',
+          metadata: {
+            model: selectedModel,
+            instructions: instructions,
+            chunksCount: chunks.filter(chunk => chunk.selected).length
+          }
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Email sharing failed');
+        throw new Error('Failed to generate PDF');
       }
 
-      toast({
-        title: "Email sent!",
-        description: `Rewritten document sent to ${emailAddress}`,
-      });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `rewritten-document-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-      setEmailAddress('');
+      toast({
+        title: "PDF Downloaded!",
+        description: "Your rewritten document has been saved.",
+      });
     } catch (error) {
+      console.error('PDF export error:', error);
       toast({
-        title: "Email failed",
-        description: "Unable to send email. Please try again.",
-        variant: "destructive"
+        title: "Export Failed",
+        description: error instanceof Error ? error.message : "Failed to create PDF",
+        variant: "destructive",
       });
     }
-  };
-
-  const addToChat = () => {
-    const rewrittenText = chunks
-      .filter(chunk => chunk.selected && chunk.rewritten)
-      .map(chunk => chunk.rewritten)
-      .join('\n\n');
-
-    if (!rewrittenText) {
-      toast({
-        title: "No content to add",
-        description: "Please complete the rewrite first.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const metadata = {
-      type: 'chunked_rewrite',
-      originalLength: originalText.length,
-      rewrittenLength: rewrittenText.length,
-      chunksProcessed: chunks.filter(c => c.selected && c.rewritten).length,
-      model: selectedModel,
-      instructions: instructions
-    };
-
-    onAddToChat(`**Rewritten Document:**\n\n${rewrittenText}`, metadata);
-
-    toast({
-      title: "Added to chat",
-      description: "The rewritten content has been added to your conversation.",
-    });
-  };
-
-  // Split content into chunks for re-rewriting
-  const splitContentIntoRewriteChunks = (content: string) => {
-    const words = content.split(/\s+/);
-    const chunkSize = 500;
-    const chunks: Array<{id: string, content: string, selected: boolean}> = [];
-
-    for (let i = 0; i < words.length; i += chunkSize) {
-      const chunkWords = words.slice(i, i + chunkSize);
-      const chunkContent = chunkWords.join(' ');
-      
-      chunks.push({
-        id: `rewrite_chunk_${i / chunkSize}`,
-        content: chunkContent,
-        selected: true
-      });
-    }
-
-    return chunks;
-  };
-
-  // Handle re-rewrite process
-  const startRerewrite = async () => {
-    if (!rerewriteInstructions.trim()) {
-      toast({
-        title: "Instructions required",
-        description: "Please provide instructions for the re-rewrite.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const selectedChunks = rewriteChunks.filter(chunk => chunk.selected);
-    if (selectedChunks.length === 0) {
-      toast({
-        title: "No chunks selected",
-        description: "Please select at least one chunk to re-rewrite.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsRerewriting(true);
-
-    try {
-      let rerewrittenContent = '';
-      
-      for (let i = 0; i < selectedChunks.length; i++) {
-        const chunk = selectedChunks[i];
-        
-        const response = await fetch('/api/rewrite-chunk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: chunk.content,
-            instructions: rerewriteInstructions,
-            model: rerewriteModel,
-            chunkIndex: i,
-            totalChunks: selectedChunks.length,
-            mode: 'rewrite'
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to re-rewrite chunk ${i + 1}`);
-        }
-
-        const result = await response.json();
-        rerewrittenContent += (i > 0 ? '\n\n' : '') + result.rewrittenContent;
-      }
-
-      // Update the final content with re-rewritten version
-      setFinalRewrittenContent(rerewrittenContent);
-      
-      // Update metadata
-      setRewriteMetadata((prev: any) => ({
-        ...prev,
-        rewrittenLength: rerewrittenContent.length,
-        isRerewrite: true,
-        rerewriteInstructions: rerewriteInstructions,
-        rerewriteModel: rerewriteModel
-      }));
-
-      // Save the re-rewritten content to Documents section
-      try {
-        const saveResponse = await fetch('/api/documents', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: `Re-rewritten: ${rewriteMetadata?.title || 'Document'}`,
-            content: rerewrittenContent,
-            type: 'rewrite',
-            originalLength: rewriteMetadata?.originalLength || 0,
-            rewrittenLength: rerewrittenContent.length,
-            model: rerewriteModel,
-            instructions: rerewriteInstructions
-          }),
-        });
-
-        if (saveResponse.ok) {
-          console.log("Re-rewritten document saved to Documents section");
-        } else {
-          console.warn("Failed to save re-rewritten document to Documents section");
-        }
-      } catch (saveError) {
-        console.error("Error saving re-rewritten document:", saveError);
-      }
-
-      // Automatically add re-rewritten content to chat
-      const rerewriteMetadata = {
-        type: 'rerewrite',
-        originalLength: rewriteMetadata?.originalLength || 0,
-        rewrittenLength: rerewrittenContent.length,
-        chunksRerewrote: selectedChunks.length,
-        model: rerewriteModel,
-        instructions: rerewriteInstructions,
-        isRerewrite: true
-      };
-
-      onAddToChat(`**Re-rewritten Content:**\n\n${rerewrittenContent}`, rerewriteMetadata);
-
-      setShowRerewriteForm(false);
-      setRerewriteInstructions('');
-
-      toast({
-        title: "Re-rewrite complete!",
-        description: `Successfully re-rewrote ${selectedChunks.length} chunk(s) and added to chat.`,
-      });
-
-    } catch (error) {
-      console.error('Re-rewrite error:', error);
-      toast({
-        title: "Re-rewrite failed",
-        description: error instanceof Error ? error.message : "An error occurred during re-rewriting.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRerewriting(false);
-    }
-  };
-
-  const formatContent = (content: string) => {
-    return (
-      <div className="prose dark:prose-invert prose-sm max-w-none">
-        <MathRenderer content={content} />
-      </div>
-    );
   };
 
   return (
-    <>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Smart Document Rewriter</CardTitle>
-          <CardDescription>
-            Rewrite large documents chunk by chunk with full control and real-time preview
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-        {/* Processing Mode Selection */}
-        <div className="space-y-4">
-          <Label className="text-lg font-semibold">Processing Mode</Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
-                  onClick={() => setProcessingMode('rewrite')}>
-              <CardContent className="p-4 text-center">
-                <h3 className="font-semibold">Rewrite Mode</h3>
-                <p className="text-sm text-muted-foreground mt-2">Transform and improve the existing text</p>
-              </CardContent>
-            </Card>
-            <Card className={`cursor-pointer transition-all ${processingMode === 'homework' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:bg-gray-50'}`}
-                  onClick={() => setProcessingMode('homework')}>
-              <CardContent className="p-4 text-center">
-                <h3 className="font-semibold">Homework Mode</h3>
-                <p className="text-sm text-muted-foreground mt-2">Follow instructions, complete assignments, answer questions</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Rewrite Mode Selection - only show in rewrite mode */}
-        {processingMode === 'rewrite' && (
-        <div className="space-y-4">
-          <Label className="text-lg font-semibold">Rewriting Mode</Label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className={`cursor-pointer transition-all ${rewriteMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
-                  onClick={() => setRewriteMode('rewrite')}>
-              <CardContent className="p-4 text-center">
-                <h3 className="font-semibold">Rewrite Existing Only</h3>
-                <p className="text-sm text-muted-foreground mt-2">Modify existing chunks without adding new content</p>
-              </CardContent>
-            </Card>
-            <Card className={`cursor-pointer transition-all ${rewriteMode === 'add' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
-                  onClick={() => setRewriteMode('add')}>
-              <CardContent className="p-4 text-center">
-                <h3 className="font-semibold">Add New Chunks Only</h3>
-                <p className="text-sm text-muted-foreground mt-2">Keep existing content unchanged, add new material</p>
-              </CardContent>
-            </Card>
-            <Card className={`cursor-pointer transition-all ${rewriteMode === 'both' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
-                  onClick={() => setRewriteMode('both')}>
-              <CardContent className="p-4 text-center">
-                <h3 className="font-semibold">Both Rewrite & Add</h3>
-                <p className="text-sm text-muted-foreground mt-2">Modify existing chunks AND add new content</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-        )}
-
-        {/* Configuration Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            {processingMode === 'homework' ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="instructions">Additional Guidance (Optional)</Label>
-                  <SpeechInput
-                    onTranscript={(text) => {
-                      const newInstructions = instructions ? `${instructions} ${text}` : text;
-                      setInstructions(newInstructions);
-                    }}
-                    onAppend={true}
-                    size="sm"
-                    className="h-8 w-8"
-                  />
-                </div>
-                <Textarea
-                  id="instructions"
-                  placeholder="Provide any additional guidance for completing the assignment (e.g., 'show all work', 'explain your reasoning', 'use specific examples')..."
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            ) : (rewriteMode === 'rewrite' || rewriteMode === 'both') && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="instructions">Rewrite Instructions for Existing Content</Label>
-                  <SpeechInput
-                    onTranscript={(text) => {
-                      const newInstructions = instructions ? `${instructions} ${text}` : text;
-                      setInstructions(newInstructions);
-                    }}
-                    onAppend={true}
-                    size="sm"
-                    className="h-8 w-8"
-                  />
-                </div>
-                <Textarea
-                  id="instructions"
-                  placeholder="Enter specific instructions for how you want the existing text rewritten..."
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            )}
-            
-            {(rewriteMode === 'add' || rewriteMode === 'both') && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="newChunkInstructions">Instructions for New Content</Label>
-                  <SpeechInput
-                    onTranscript={(text) => {
-                      const newInstructions = newChunkInstructions ? `${newChunkInstructions} ${text}` : text;
-                      setNewChunkInstructions(newInstructions);
-                    }}
-                    onAppend={true}
-                    size="sm"
-                    className="h-8 w-8"
-                  />
-                </div>
-                <Textarea
-                  id="newChunkInstructions"
-                  placeholder="Provide detailed instructions for what new content should be added. Be specific about topics, themes, examples, or sections you want included..."
-                  value={newChunkInstructions}
-                  onChange={(e) => setNewChunkInstructions(e.target.value)}
-                  rows={6}
-                  className="min-h-[120px]"
-                />
-                <div className="flex items-center space-x-2 mt-2">
-                  <Label htmlFor="numberOfNewChunks" className="text-sm">Number of new chunks:</Label>
-                  <input
-                    type="number"
-                    id="numberOfNewChunks"
-                    min="1"
-                    max="10"
-                    value={numberOfNewChunks}
-                    onChange={(e) => setNumberOfNewChunks(parseInt(e.target.value) || 1)}
-                    className="w-20 px-2 py-1 border rounded text-sm"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* Live Progress Dialog */}
+      <Dialog open={showLiveProgress} onOpenChange={setShowLiveProgress}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Processing Chunks - Live Progress</DialogTitle>
+            <DialogDescription>
+              Watch your content being rewritten in real-time
+            </DialogDescription>
+          </DialogHeader>
           
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="model">AI Model</Label>
-              <Select value={selectedModel} onValueChange={(value: any) => setSelectedModel(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="claude">Claude</SelectItem>
-                  <SelectItem value="gpt4">GPT-4</SelectItem>
-                  <SelectItem value="perplexity">Perplexity</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="chatContext"
-                checked={includeChatContext}
-                onCheckedChange={(checked) => setIncludeChatContext(!!checked)}
-              />
-              <Label htmlFor="chatContext">Include chat context</Label>
-            </div>
-          </div>
-        </div>
-
-        {/* Chunk Selection */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Text Chunks ({chunks.length})</h3>
-            <div className="space-x-2">
-              <Button size="sm" variant="outline" onClick={selectAllChunks}>
-                Select All
-              </Button>
-              <Button size="sm" variant="outline" onClick={deselectAllChunks}>
-                Deselect All
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-            {chunks.map((chunk, index) => (
-              <Card 
-                key={chunk.id} 
-                className={`relative cursor-pointer transition-all ${
-                  chunk.selected ? 'ring-2 ring-blue-500' : ''
-                } ${chunk.isProcessing ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''} ${
-                  chunk.isComplete ? 'bg-green-50 dark:bg-green-900/20' : ''
-                }`}
-                onClick={() => toggleChunkSelection(chunk.id)}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm">Chunk {index + 1}</CardTitle>
-                    <div className="flex space-x-1">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewChunk(chunk);
-                            }}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>Chunk {index + 1} Preview</DialogTitle>
-                            <DialogDescription>
-                              {chunk.rewritten ? 'Rewritten version' : 'Original content'}
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="mt-4">
-                            {formatContent(chunk.rewritten || chunk.content)}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                      <Checkbox
-                        checked={chunk.selected}
-                        onClick={(e) => e.stopPropagation()}
-                        onCheckedChange={() => toggleChunkSelection(chunk.id)}
-                      />
+            {liveProgressChunks.map((chunk, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  {chunk.completed ? (
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs">✓</span>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {chunk.preview}
-                  </p>
-                  {chunk.isProcessing && (
-                    <div className="mt-2 text-xs text-yellow-600 dark:text-yellow-400">
-                      Processing...
-                    </div>
+                  ) : (
+                    <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
                   )}
-                  {chunk.isComplete && (
-                    <div className="mt-2 text-xs text-green-600 dark:text-green-400">
-                      ✓ Complete
-                    </div>
+                  <h3 className="font-medium">{chunk.title}</h3>
+                  {index === currentChunkIndex && !chunk.completed && (
+                    <span className="text-blue-500 text-sm">(Processing...)</span>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded p-3 min-h-[100px] max-h-[300px] overflow-y-auto">
+                  {chunk.content ? (
+                    <MathRenderer content={chunk.content} />
+                  ) : (
+                    <span className="text-gray-400">Waiting for content...</span>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-
-        {/* Progress Section */}
-        {isProcessing && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>
-                {rewriteMode === 'add' 
-                  ? `Generating new chunk ${currentChunkIndex + 1} of ${numberOfNewChunks}`
-                  : rewriteMode === 'rewrite' 
-                    ? `Rewriting chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length}`
-                    : `Processing chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length + numberOfNewChunks}`
-                }
-              </span>
-              <span>{Math.round(progress)}%</span>
+          
+          <div className="flex justify-between items-center">
+            <Button onClick={cancelRewrite} variant="destructive" disabled={!isProcessing}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <div className="text-sm text-gray-500">
+              {liveProgressChunks.filter(c => c.completed).length} of {liveProgressChunks.length} chunks completed
             </div>
-            <Progress value={progress} className="w-full" />
           </div>
-        )}
+        </DialogContent>
+      </Dialog>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {!isProcessing ? (
-            <Button 
-              onClick={startRewrite} 
-              disabled={processingMode === 'rewrite' ? chunks.filter(c => c.selected).length === 0 : false}
-              className="flex items-center space-x-2"
-            >
-              <Play className="w-4 h-4" />
-              <span>{processingMode === 'homework' ? 'Start Homework' : 'Start Rewrite'}</span>
-            </Button>
-          ) : (
-            <Button 
-              onClick={cancelRewrite} 
-              variant="destructive"
-              className="flex items-center space-x-2"
-            >
-              <X className="w-4 h-4" />
-              <span>Cancel Rewrite</span>
-            </Button>
-          )}
-
-          <Button 
-            onClick={nukeEverything} 
-            variant="destructive"
-            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700"
-          >
-            <Bomb className="w-4 h-4" />
-            <span>🧨 NUKE</span>
-          </Button>
-
-          <Button 
-            variant="outline" 
-            onClick={addToChat}
-            disabled={!chunks.some(c => c.rewritten)}
-            className="flex items-center space-x-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>Add to Chat</span>
-          </Button>
-
-          <Button 
-            variant="outline" 
-            onClick={printChunksAsPDF}
-            disabled={!chunks.some(c => c.rewritten)}
-            className="flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Save as PDF</span>
-          </Button>
-        </div>
-
-        {/* Email Sharing */}
-        <div className="space-y-2">
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Recipient email address..."
-              value={emailAddress}
-              onChange={(e) => setEmailAddress(e.target.value)}
-              disabled={!chunks.some(c => c.rewritten)}
-              className="flex-1"
-            />
-            <Input
-              placeholder="Your verified SendGrid sender email..."
-              value={senderEmail}
-              onChange={(e) => setSenderEmail(e.target.value)}
-              disabled={!chunks.some(c => c.rewritten)}
-              className="flex-1"
-            />
-            <Button 
-              onClick={shareViaEmail}
-              disabled={!chunks.some(c => c.rewritten) || !emailAddress || !senderEmail}
-              className="flex items-center space-x-2"
-            >
-              <Mail className="w-4 h-4" />
-              <span>Share</span>
-            </Button>
-          </div>
-          <p className="text-xs text-red-600">
-            Sender email must be verified in your SendGrid account
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-
-    {/* Persistent Results Popup */}
-    <Dialog open={showResultsPopup} onOpenChange={setShowResultsPopup}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-xl">
-            {rewriteMetadata?.isRerewrite ? '🔄 Re-rewritten Content' : 'Rewrite Results'} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
-          </DialogTitle>
-          <DialogDescription>
-            {rewriteMetadata && (
-              <div className="text-sm space-y-1">
-                {rewriteMetadata.isRerewrite && (
-                  <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
-                )}
-                <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
-                <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
-                {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
-                {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
-                <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>
-                {rewriteMetadata.isRerewrite && (
-                  <div className="text-blue-600">Re-rewrite instructions: {rewriteMetadata.rerewriteInstructions}</div>
-                )}
-              </div>
-            )}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex flex-col h-[75vh]">
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded-lg">
-            <Button 
-              onClick={() => {
-                // Split content into chunks for potential re-rewriting
-                const chunks = splitContentIntoRewriteChunks(finalRewrittenContent);
-                setRewriteChunks(chunks);
-                setShowRerewriteForm(!showRerewriteForm);
-              }}
-              variant="outline"
-              className="flex items-center space-x-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>Rewrite the Rewrite</span>
-            </Button>
-            
-            <Button 
-              onClick={() => {
-                onAddToChat(`**Rewritten Document:**\n\n${finalRewrittenContent}`, rewriteMetadata);
-                toast({
-                  title: "Added to chat!",
-                  description: "The rewritten content has been added to your chat.",
-                });
-              }}
-              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span>Add to Chat</span>
-            </Button>
-
-            <Button 
-              onClick={() => {
-                // Close popup and go straight back to chat
-                setShowResultsPopup(false);
-                setFinalRewrittenContent('');
-                setRewriteMetadata(null);
-                onAddToChat(`**Rewritten Document:**\n\n${finalRewrittenContent}`, rewriteMetadata);
-                toast({
-                  title: "Back to chat!",
-                  description: "Content added and returned to main chat.",
-                });
-              }}
-              variant="outline"
-              className="flex items-center space-x-2 border-green-500 text-green-700 hover:bg-green-50"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Chat</span>
-            </Button>
-
-            <Button 
-              onClick={() => {
-                // Use the working PDF approach from chat
-                const printWindow = window.open('', '_blank');
-                if (!printWindow) {
-                  toast({
-                    title: "Pop-up blocked",
-                    description: "Please allow pop-ups and try again.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-
-                // Use the exact same working HTML structure as the chat PDF
-                const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-    <title>Rewrite Results</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-                processEscapes: true,
-                processEnvironments: true
-            },
-            options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-            }
-        };
-    </script>
-    <style>
-        body { font-family: 'Times New Roman', serif; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in; color: black; background: white; }
-        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
-        p { margin-bottom: 12px; }
-        .MathJax { font-size: 1em !important; }
-        .print-button { text-align: center; margin: 20px 0; }
-        .print-button button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        @media print { .print-button { display: none; } body { margin: 0.5in; } }
-    </style>
-</head>
-<body>
-    <div class="print-button">
-        <button onclick="window.print()">📄 Save as PDF</button>
-        <button onclick="window.close()" style="background: #6c757d; margin-left: 10px;">Close</button>
-    </div>
-    <div id="content">${finalRewrittenContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')}</div>
-    <script>
-        if (window.MathJax) {
-            MathJax.typesetPromise([document.getElementById('content')]).then(() => {
-                console.log('MathJax rendering complete');
-            });
-        }
-    </script>
-</body>
-</html>`;
-
-                printWindow.document.write(htmlContent);
-                printWindow.document.close();
-
-                toast({
-                  title: "PDF ready!",
-                  description: "Click 'Save as PDF' in the new window",
-                });
-              }}
-              className="flex items-center space-x-2"
-            >
-              <Download className="w-4 h-4" />
-              <span>Save as PDF</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={async () => {
-                try {
-                  const response = await fetch('/api/download-rewrite', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      content: finalRewrittenContent,
-                      format: 'docx',
-                      title: 'Rewritten Document'
-                    }),
-                  });
-
-                  if (!response.ok) throw new Error('Download failed');
-
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.style.display = 'none';
-                  a.href = url;
-                  a.download = 'rewritten-document.docx';
-                  document.body.appendChild(a);
-                  a.click();
-                  window.URL.revokeObjectURL(url);
-                  document.body.removeChild(a);
-
-                  toast({
-                    title: "Download started",
-                    description: "Your Word document is downloading.",
-                  });
-                } catch (error) {
-                  toast({
-                    title: "Download failed",
-                    description: "Unable to download the file. Please try again.",
-                    variant: "destructive"
-                  });
-                }
-              }}
-              className="flex items-center space-x-2"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download Word</span>
-            </Button>
-
-            <div className="flex space-x-2 flex-1 max-w-md">
-              <Input
-                type="email"
-                placeholder="Enter email address to share..."
-                value={emailAddress}
-                onChange={(e) => {
-                  setEmailAddress(e.target.value);
-                  // Save to localStorage for next time
-                  if (e.target.value) {
-                    localStorage.setItem('userEmail', e.target.value);
-                  }
-                }}
-                onFocus={() => {
-                  // Auto-fill from localStorage if empty
-                  if (!emailAddress) {
-                    const savedEmail = localStorage.getItem('userEmail');
-                    if (savedEmail) {
-                      setEmailAddress(savedEmail);
-                    }
-                  }
-                }}
-                autoComplete="email"
-                className="flex-1"
-              />
-              <Button 
-                onClick={async () => {
-                  if (!emailAddress) {
-                    toast({
-                      title: "Email required",
-                      description: "Please enter an email address.",
-                      variant: "destructive"
-                    });
-                    return;
-                  }
-
-                  try {
-                    const response = await fetch('/api/share-rewrite', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        content: finalRewrittenContent,
-                        recipientEmail: emailAddress,
-                        subject: 'Rewritten Document'
-                      }),
-                    });
-
-                    if (!response.ok) throw new Error('Email sharing failed');
-
-                    toast({
-                      title: "Email sent!",
-                      description: `Rewritten document sent to ${emailAddress}`,
-                    });
-
-                    setEmailAddress('');
-                  } catch (error) {
-                    toast({
-                      title: "Email failed",
-                      description: "Unable to send email. Please try again.",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-                disabled={!emailAddress}
-                className="flex items-center space-x-2"
-              >
-                <Mail className="w-4 h-4" />
-                <span>Share</span>
+      {/* Configuration Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            Smart Document Rewriter
+            <div className="flex space-x-2">
+              <Button onClick={nukeEverything} variant="destructive" size="sm">
+                <Bomb className="h-4 w-4 mr-1" />
+                NUKE
               </Button>
             </div>
+          </CardTitle>
+          <CardDescription>
+            Rewrite your document with AI assistance. Select chunks to process individually for precise control.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Processing Mode Toggle */}
+          <div className="space-y-2">
+            <Label>Processing Mode</Label>
+            <Select value={processingMode} onValueChange={(value: 'rewrite' | 'homework') => setProcessingMode(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="rewrite">Rewrite Mode - Transform and improve existing text</SelectItem>
+                <SelectItem value="homework">Homework Mode - Complete assignments, answer questions, follow instructions</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Re-rewrite Form */}
-          {showRerewriteForm && (
-            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
-              <h3 className="text-lg font-semibold text-blue-900">Rewrite the Rewrite</h3>
-              
-              <div className="space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor="rerewrite-instructions">Custom Instructions</Label>
-                    <SpeechInput
-                      onTranscript={(text) => {
-                        const newInstructions = rerewriteInstructions ? `${rerewriteInstructions} ${text}` : text;
-                        setRerewriteInstructions(newInstructions);
-                      }}
-                      onAppend={true}
-                      size="sm"
-                      className="h-8 w-8"
-                    />
-                  </div>
-                  <Textarea
-                    id="rerewrite-instructions"
-                    placeholder="Provide specific instructions for how you want to rewrite this content..."
-                    value={rerewriteInstructions}
-                    onChange={(e) => setRerewriteInstructions(e.target.value)}
-                    rows={3}
-                  />
-                </div>
+          {/* Instructions */}
+          <div className="space-y-2">
+            <Label htmlFor="instructions">
+              {processingMode === 'homework' ? 'Additional Guidance (Optional)' : 'Rewrite Instructions'}
+            </Label>
+            <div className="flex space-x-2">
+              <Textarea
+                id="instructions"
+                placeholder={
+                  processingMode === 'homework'
+                    ? "Any additional guidance for how to approach the homework..."
+                    : "Describe how you want the text to be rewritten..."
+                }
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                rows={3}
+                className="flex-1"
+              />
+              <SpeechInput
+                onTranscript={(transcript) => setInstructions(prev => prev + ' ' + transcript)}
+                className="mt-0"
+              />
+            </div>
+          </div>
 
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <Label htmlFor="rerewrite-model">AI Model</Label>
-                    <Select value={rerewriteModel} onValueChange={(value: 'claude' | 'gpt4' | 'perplexity') => setRerewriteModel(value)}>
-                      <SelectTrigger id="rerewrite-model" className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="claude">Claude</SelectItem>
-                        <SelectItem value="gpt4">GPT-4</SelectItem>
-                        <SelectItem value="perplexity">Perplexity</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+          {/* Model Selection */}
+          <div className="space-y-2">
+            <Label>AI Model</Label>
+            <Select value={selectedModel} onValueChange={(value: 'claude' | 'gpt4' | 'perplexity') => setSelectedModel(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="claude">Claude (Anthropic) - Best for analysis and writing</SelectItem>
+                <SelectItem value="gpt4">GPT-4 (OpenAI) - Great for creative tasks</SelectItem>
+                <SelectItem value="perplexity">Perplexity - Good for research-based content</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-                {/* Chunk Selection for multi-chunk content */}
-                {rewriteChunks.length > 1 && (
-                  <div className="space-y-2">
-                    <Label>Select Chunks to Re-rewrite ({rewriteChunks.filter(c => c.selected).length} of {rewriteChunks.length} selected)</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                      {rewriteChunks.map((chunk, index) => (
-                        <div key={chunk.id} className="flex items-center space-x-2 p-2 border rounded">
-                          <Checkbox
-                            checked={chunk.selected}
-                            onCheckedChange={(checked) => {
-                              setRewriteChunks(prev => prev.map(c => 
-                                c.id === chunk.id ? { ...c, selected: !!checked } : c
-                              ));
-                            }}
-                          />
-                          <span className="text-sm">Chunk {index + 1}</span>
-                          <span className="text-xs text-gray-500 truncate">
-                            ({chunk.content.substring(0, 50)}...)
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setRewriteChunks(prev => prev.map(c => ({ ...c, selected: true })))}
-                      >
-                        Select All
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setRewriteChunks(prev => prev.map(c => ({ ...c, selected: false })))}
-                      >
-                        Deselect All
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={startRerewrite}
-                    disabled={isRerewriting || !rerewriteInstructions.trim()}
-                    className="flex items-center space-x-2"
-                  >
-                    {isRerewriting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Re-rewriting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4" />
-                        <span>Start Re-rewrite</span>
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowRerewriteForm(false);
-                      setRerewriteInstructions('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
+          {/* Chat Context Toggle */}
+          {chatHistory.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="include-context" 
+                checked={includeChatContext}
+                onCheckedChange={setIncludeChatContext}
+              />
+              <Label htmlFor="include-context" className="text-sm">
+                Include recent chat context ({chatHistory.length} messages)
+              </Label>
             </div>
           )}
+        </CardContent>
+      </Card>
 
-          {/* Content Display */}
-          <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white">
-            <div id="rewrite-content" className="prose max-w-none">
-              <MathRenderer content={finalRewrittenContent} />
-            </div>
+      {/* Chunk Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Document Chunks ({chunks.filter(c => c.selected).length} of {chunks.length} selected)</CardTitle>
+          <CardDescription>
+            Select which parts of your document to process. Each chunk is approximately 500 words.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex space-x-2 mb-4">
+            <Button onClick={selectAllChunks} variant="outline" size="sm">Select All</Button>
+            <Button onClick={deselectAllChunks} variant="outline" size="sm">Deselect All</Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    {/* Live Progress Popup */}
-    <Dialog open={showLiveProgress} onOpenChange={setShowLiveProgress}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>🔄 Rewriting in Progress</DialogTitle>
-          <DialogDescription>
-            Watch each chunk being processed in real-time - you're not being strung along!
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-          {liveProgressChunks.map((chunk, index) => (
-            <div 
-              key={index}
-              className={`p-4 border rounded-lg transition-all ${
-                chunk.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-              }`}
-            >
-              <div className="flex items-center space-x-2 mb-2">
-                {chunk.completed ? (
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+            {chunks.map((chunk, index) => (
+              <div 
+                key={chunk.id} 
+                className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                  chunk.selected ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'border-gray-200'
+                } ${chunk.isProcessing ? 'animate-pulse' : ''}`}
+                onClick={() => toggleChunkSelection(chunk.id)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      checked={chunk.selected} 
+                      onChange={() => toggleChunkSelection(chunk.id)}
+                    />
+                    <span className="font-medium">Chunk {index + 1}</span>
+                    {chunk.isProcessing && <span className="text-blue-500 text-sm">(Processing...)</span>}
+                    {chunk.isComplete && <span className="text-green-500 text-sm">✓ Complete</span>}
                   </div>
-                ) : (
-                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPreviewChunk(chunk);
+                    }}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                  {chunk.preview}
+                </p>
+                {chunk.rewritten && (
+                  <div className="mt-2 p-2 bg-green-50 dark:bg-green-950 rounded border-l-4 border-green-500">
+                    <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Rewritten:</p>
+                    <div className="text-sm text-green-600 dark:text-green-400 max-h-32 overflow-y-auto">
+                      <MathRenderer content={chunk.rewritten.substring(0, 200) + (chunk.rewritten.length > 200 ? '...' : '')} />
+                    </div>
+                  </div>
                 )}
-                <h3 className="font-medium">{chunk.title}</h3>
-                <span className="text-sm text-gray-500">
-                  {chunk.completed ? '✓ Complete' : '⏳ Processing...'}
-                </span>
               </div>
-              
-              {chunk.content && (
-                <div className="mt-2 p-3 bg-white rounded border text-sm">
-                  <div className="text-gray-600 mb-1">
-                    {chunk.completed ? 'Final content:' : 'Streaming content:'}
-                  </div>
-                  <div className={`whitespace-pre-wrap ${chunk.completed ? 'line-clamp-3' : ''}`}>
-                    {chunk.completed ? (
-                      <>
-                        {chunk.content.substring(0, 200)}
-                        {chunk.content.length > 200 && '...'}
-                      </>
-                    ) : (
-                      <div className="font-mono text-xs">
-                        {chunk.content}
-                        <span className="animate-pulse">|</span>
-                      </div>
-                    )}
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className="flex space-x-2">
+        <Button 
+          onClick={startRewrite} 
+          disabled={isProcessing || chunks.filter(c => c.selected).length === 0}
+          className="flex-1"
+        >
+          {isProcessing ? (
+            <>
+              <Pause className="h-4 w-4 mr-2" />
+              Processing... ({currentChunkIndex + 1}/{chunks.filter(c => c.selected).length})
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4 mr-2" />
+              {processingMode === 'homework' ? 'Complete Homework' : 'Start Rewrite'}
+            </>
+          )}
+        </Button>
+        
+        {chunks.some(chunk => chunk.rewritten) && (
+          <Button onClick={downloadPDF} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+        )}
+      </div>
+
+      {/* Progress Bar */}
+      {isProcessing && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Progress</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <Progress value={progress} />
+        </div>
+      )}
+
+      {/* Preview Dialog */}
+      <Dialog open={previewChunk !== null} onOpenChange={() => setPreviewChunk(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Chunk Preview - {previewChunk && `Chunk ${chunks.findIndex(c => c.id === previewChunk.id) + 1}`}
+            </DialogTitle>
+          </DialogHeader>
+          {previewChunk && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-2">Original:</h3>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded p-4">
+                  <MathRenderer content={previewChunk.content} />
+                </div>
+              </div>
+              {previewChunk.rewritten && (
+                <div>
+                  <h3 className="font-medium mb-2">Rewritten:</h3>
+                  <div className="bg-green-50 dark:bg-green-950 rounded p-4">
+                    <MathRenderer content={previewChunk.rewritten} />
                   </div>
                 </div>
               )}
             </div>
-          ))}
-        </div>
-        
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="text-sm text-gray-600">
-            {liveProgressChunks.filter(c => c.completed).length} of {liveProgressChunks.length} chunks completed
-          </div>
-          <div className="w-32 bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ 
-                width: `${liveProgressChunks.length > 0 ? (liveProgressChunks.filter(c => c.completed).length / liveProgressChunks.length) * 100 : 0}%` 
-              }}
-            ></div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-    </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
