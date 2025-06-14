@@ -1995,22 +1995,51 @@ OUTPUT ONLY THE REWRITTEN CONTENT AS PLAIN TEXT WITH LATEX MATH. NO FORMATTING M
           .replace(/\n{2,}/g, '\n\n')              // Normalize breaks
           .trim();
         
-        // Apply mathematical notation rendering and wrap in MathJax delimiters
-        content = renderMathematicalNotation(content);
+        // Process mathematical content for proper MathJax rendering
+        // Convert Unicode symbols to LaTeX and wrap entire mathematical expressions
         
-        // Detect and wrap mathematical expressions for MathJax processing
+        // Step 1: Convert Unicode symbols to LaTeX commands
         content = content
-          // Wrap complex mathematical expressions
-          .replace(/(¬\([^)]+\))/g, '\\($1\\)')
-          .replace(/(∀[x-z]\s*∀[x-z]\s*\([^)]+\))/g, '\\($1\\)')
-          .replace(/(∀[x-z][^\s.,;]*\s*[∈∉⊂⊃⊆⊇][^\s.,;]*)/g, '\\($1\\)')
-          .replace(/(∃[x-z][^\s.,;]*\s*[∈∉⊂⊃⊆⊇][^\s.,;]*)/g, '\\($1\\)')
-          .replace(/([A-Za-z]\s*[∧∨→↔]\s*[A-Za-z])/g, '\\($1\\)')
-          .replace(/(φ\([^)]+\))/g, '\\($1\\)')
-          .replace(/(∫[^.]+dx)/g, '\\($1\\)')
-          // Wrap individual mathematical symbols
-          .replace(/([¬∀∃∈∉⊂⊃⊆⊇∪∩∧∨→←↔⇒⇐⇔≤≥≠≈≡∼≃≅∝×·÷±∓∅∖])/g, '\\($1\\)')
-          .replace(/([αβγδεζηθικλμνξπρστυφχψωΓΔΘΛΞΠΣΥΦΧΨΩ])/g, '\\($1\\)')
+          .replace(/¬/g, '\\neg ')
+          .replace(/∀/g, '\\forall ')
+          .replace(/∃/g, '\\exists ')
+          .replace(/∧/g, ' \\wedge ')
+          .replace(/∨/g, ' \\vee ')
+          .replace(/→/g, ' \\rightarrow ')
+          .replace(/↔/g, ' \\leftrightarrow ')
+          .replace(/∈/g, ' \\in ')
+          .replace(/⊂/g, ' \\subset ')
+          .replace(/∪/g, ' \\cup ')
+          .replace(/∩/g, ' \\cap ')
+          .replace(/α/g, '\\alpha')
+          .replace(/β/g, '\\beta')
+          .replace(/γ/g, '\\gamma')
+          .replace(/δ/g, '\\delta')
+          .replace(/ε/g, '\\epsilon')
+          .replace(/φ/g, '\\phi')
+          .replace(/ψ/g, '\\psi')
+          .replace(/ω/g, '\\omega')
+          .replace(/∫/g, '\\int ')
+          .replace(/≤/g, ' \\leq ')
+          .replace(/≥/g, ' \\geq ')
+          .replace(/≠/g, ' \\neq ');
+        
+        // Step 2: Identify and wrap complete mathematical expressions (not individual symbols)
+        content = content
+          // Wrap complex logical expressions like: ¬(P ∨ Q)
+          .replace(/(\\neg\s*\([^)]+\))/g, '\\($1\\)')
+          // Wrap quantifier expressions like: ∀x ∀y(φ(x) ∧ φ(y) → x = y)
+          .replace(/(\\forall\s+[a-z]\s+\\forall\s+[a-z]\s*\([^)]+\))/g, '\\($1\\)')
+          // Wrap simple logical operations like: P → Q
+          .replace(/([A-Z]\s+\\rightarrow\s+[A-Z])/g, '\\($1\\)')
+          .replace(/([A-Z]\s+\\wedge\s+[A-Z])/g, '\\($1\\)')
+          .replace(/([A-Z]\s+\\vee\s+[A-Z])/g, '\\($1\\)')
+          // Wrap function expressions like: φ(x)
+          .replace(/(\\phi\([^)]+\))/g, '\\($1\\)')
+          // Wrap simple equations like: α + β = γ
+          .replace(/(\\alpha\s*\+\s*\\beta\s*=\s*\\gamma)/g, '\\($1\\)')
+          // Clean up extra spaces
+          .replace(/\s+/g, ' ')
           .trim();
 
         cleanContent += `Section ${index + 1}: ${result.originalChunk.title || `Part ${index + 1}`}\n\n${content}\n\n`;
