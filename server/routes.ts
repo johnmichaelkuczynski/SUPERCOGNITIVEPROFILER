@@ -24,6 +24,63 @@ import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 
+// Function to ensure perfect text formatting
+function ensurePerfectFormatting(text: string): string {
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+  
+  // Step 1: Clean up any existing formatting issues
+  let cleaned = text.trim();
+  
+  // Step 2: Fix sentence spacing - ensure single space after periods, exclamation marks, question marks
+  cleaned = cleaned.replace(/([.!?])\s+/g, '$1 ');
+  
+  // Step 3: Create proper paragraph breaks
+  // Split on periods followed by capital letters (likely new sentences that should be paragraphs)
+  // But preserve existing paragraph breaks
+  const sentences = cleaned.split(/(?<=[.!?])\s+(?=[A-Z])/);
+  
+  // Step 4: Group sentences into logical paragraphs
+  const paragraphs: string[] = [];
+  let currentParagraph = '';
+  
+  for (let i = 0; i < sentences.length; i++) {
+    const sentence = sentences[i].trim();
+    if (!sentence) continue;
+    
+    // Add sentence to current paragraph
+    if (currentParagraph) {
+      currentParagraph += ' ' + sentence;
+    } else {
+      currentParagraph = sentence;
+    }
+    
+    // Create paragraph break every 2-4 sentences or when it gets long
+    const sentenceCount = currentParagraph.split(/[.!?]/).length - 1;
+    const shouldBreak = sentenceCount >= 3 || currentParagraph.length > 400;
+    
+    if (shouldBreak || i === sentences.length - 1) {
+      paragraphs.push(currentParagraph);
+      currentParagraph = '';
+    }
+  }
+  
+  // Step 5: Join paragraphs with double line breaks
+  let result = paragraphs.join('\n\n');
+  
+  // Step 6: Clean up any multiple line breaks
+  result = result.replace(/\n{3,}/g, '\n\n');
+  
+  // Step 7: Ensure proper spacing around mathematical expressions
+  result = result.replace(/\s*\\\(/g, ' \\(');
+  result = result.replace(/\\\)\s*/g, '\\) ');
+  result = result.replace(/\s*\$\$/g, '\n\n$$');
+  result = result.replace(/\$\$\s*/g, '$$\n\n');
+  
+  return result.trim();
+}
+
 // Configure multer for file uploads
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -5113,63 +5170,6 @@ Return only the new content without any additional comments, explanations, or he
   });
 
   return httpServer;
-}
-
-// Function to ensure perfect text formatting
-function ensurePerfectFormatting(text: string): string {
-  if (!text || typeof text !== 'string') {
-    return '';
-  }
-  
-  // Step 1: Clean up any existing formatting issues
-  let cleaned = text.trim();
-  
-  // Step 2: Fix sentence spacing - ensure single space after periods, exclamation marks, question marks
-  cleaned = cleaned.replace(/([.!?])\s+/g, '$1 ');
-  
-  // Step 3: Create proper paragraph breaks
-  // Split on periods followed by capital letters (likely new sentences that should be paragraphs)
-  // But preserve existing paragraph breaks
-  const sentences = cleaned.split(/(?<=[.!?])\s+(?=[A-Z])/);
-  
-  // Step 4: Group sentences into logical paragraphs
-  const paragraphs: string[] = [];
-  let currentParagraph = '';
-  
-  for (let i = 0; i < sentences.length; i++) {
-    const sentence = sentences[i].trim();
-    if (!sentence) continue;
-    
-    // Add sentence to current paragraph
-    if (currentParagraph) {
-      currentParagraph += ' ' + sentence;
-    } else {
-      currentParagraph = sentence;
-    }
-    
-    // Create paragraph break every 2-4 sentences or when it gets long
-    const sentenceCount = currentParagraph.split(/[.!?]/).length - 1;
-    const shouldBreak = sentenceCount >= 3 || currentParagraph.length > 400;
-    
-    if (shouldBreak || i === sentences.length - 1) {
-      paragraphs.push(currentParagraph);
-      currentParagraph = '';
-    }
-  }
-  
-  // Step 5: Join paragraphs with double line breaks
-  let result = paragraphs.join('\n\n');
-  
-  // Step 6: Clean up any multiple line breaks
-  result = result.replace(/\n{3,}/g, '\n\n');
-  
-  // Step 7: Ensure proper spacing around mathematical expressions
-  result = result.replace(/\s*\\\(/g, ' \\(');
-  result = result.replace(/\\\)\s*/g, '\\) ');
-  result = result.replace(/\s*\$\$/g, '\n\n$$');
-  result = result.replace(/\$\$\s*/g, '$$\n\n');
-  
-  return result.trim();
 }
 
 function createIntelligentChunks(content: string, filename?: string): Array<{
