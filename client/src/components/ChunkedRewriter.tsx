@@ -31,7 +31,7 @@ interface ChunkedRewriterProps {
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
   onAddToChat: (content: string, metadata: any) => void;
   chatHistory?: Array<{role: string; content: string}>;
-  initialProcessingMode?: 'rewrite' | 'homework';
+  initialProcessingMode?: 'rewrite' | 'homework' | 'text-to-math';
 }
 
 export default function ChunkedRewriter({ 
@@ -54,7 +54,7 @@ export default function ChunkedRewriter({
   const [senderEmail, setSenderEmail] = useState('');
   
   // Processing mode options - use the passed initial mode
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>(initialProcessingMode);
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>(initialProcessingMode);
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
   const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);
@@ -346,6 +346,22 @@ export default function ChunkedRewriter({
                 chatContext: includeChatContext ? chatContext : undefined,
               }),
             });
+          } else if (processingMode === 'text-to-math') {
+            // Use text-to-math endpoint for mathematical notation conversion
+            response = await fetch('/api/text-to-math', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                content: chunk.content,
+                instructions: instructions || 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                model: selectedModel,
+                chatContext: includeChatContext ? chatContext : undefined,
+                chunkIndex: i,
+                totalChunks: selectedChunks.length
+              }),
+            });
           } else {
             // Use rewrite endpoint
             response = await fetch('/api/rewrite-chunk', {
@@ -371,8 +387,10 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
 
-          // Store the content immediately (homework returns 'response', rewrite returns 'rewrittenContent')
-          const content = processingMode === 'homework' ? result.response : result.rewrittenContent;
+          // Store the content immediately (homework returns 'response', text-to-math returns 'mathContent', rewrite returns 'rewrittenContent')
+          const content = processingMode === 'homework' ? result.response : 
+                         processingMode === 'text-to-math' ? result.mathContent : 
+                         result.rewrittenContent;
           rewrittenChunks.push(content);
 
           // Update chunk with rewritten content
@@ -874,7 +892,7 @@ export default function ChunkedRewriter({
         {/* Processing Mode Selection */}
         <div className="space-y-4">
           <Label className="text-lg font-semibold">Processing Mode</Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
                   onClick={() => setProcessingMode('rewrite')}>
               <CardContent className="p-4 text-center">
@@ -887,6 +905,13 @@ export default function ChunkedRewriter({
               <CardContent className="p-4 text-center">
                 <h3 className="font-semibold">Homework Mode</h3>
                 <p className="text-sm text-muted-foreground mt-2">Follow instructions, complete assignments, answer questions</p>
+              </CardContent>
+            </Card>
+            <Card className={`cursor-pointer transition-all ${processingMode === 'text-to-math' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50'}`}
+                  onClick={() => setProcessingMode('text-to-math')}>
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Text to Math</h3>
+                <p className="text-sm text-muted-foreground mt-2">Convert markup to perfect mathematical notation</p>
               </CardContent>
             </Card>
           </div>
@@ -1143,7 +1168,9 @@ export default function ChunkedRewriter({
               className="flex items-center space-x-2"
             >
               <Play className="w-4 h-4" />
-              <span>{processingMode === 'homework' ? 'Start Homework' : 'Start Rewrite'}</span>
+              <span>{processingMode === 'homework' ? 'Start Homework' : 
+                     processingMode === 'text-to-math' ? 'Convert to Math' : 
+                     'Start Rewrite'}</span>
             </Button>
           ) : (
             <Button 
