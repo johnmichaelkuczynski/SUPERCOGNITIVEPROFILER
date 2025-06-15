@@ -1335,24 +1335,28 @@ export default function ChunkedRewriter({
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            {rewriteMetadata?.isRerewrite ? '🔄 Re-rewritten Content' : 'Rewrite Results'} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
+            📄 Complete Rewritten Document {rewriteMetadata?.isRerewrite ? '(Re-rewritten)' : ''} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'All Chunks Combined' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
           </DialogTitle>
           <DialogDescription>
-            {rewriteMetadata && (
-              <div className="text-sm space-y-1">
-                {rewriteMetadata.isRerewrite && (
-                  <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
-                )}
-                <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
-                <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
-                {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
-                {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
-                <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>
-                {rewriteMetadata.isRerewrite && (
-                  <div className="text-blue-600">Re-rewrite instructions: {rewriteMetadata.rerewriteInstructions}</div>
-                )}
-              </div>
-            )}
+            <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
+              <div className="font-medium text-green-800 mb-2">✅ Entire Document Ready - All Chunks Combined into One Unified Text</div>
+              <div className="text-sm text-green-700 mb-2">This popup displays your complete rewritten document in one scrollable view. No need to view individual chunks separately.</div>
+              {rewriteMetadata && (
+                <div className="text-sm space-y-1">
+                  {rewriteMetadata.isRerewrite && (
+                    <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
+                  )}
+                  <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
+                  <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
+                  {rewriteMetadata.chunksProcessed > 0 && <div>Chunks processed: {rewriteMetadata.chunksProcessed} (all combined below)</div>}
+                  {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
+                  <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>
+                  {rewriteMetadata.isRerewrite && (
+                    <div className="text-blue-600">Re-rewrite instructions: {rewriteMetadata.rerewriteInstructions}</div>
+                  )}
+                </div>
+              )}
+            </div>
           </DialogDescription>
         </DialogHeader>
         
@@ -1716,8 +1720,12 @@ export default function ChunkedRewriter({
             </div>
           )}
 
-          {/* Content Display */}
-          <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white">
+          {/* Content Display - Complete Rewritten Document */}
+          <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white max-h-[60vh]">
+            <div className="mb-4 p-2 bg-blue-50 rounded text-sm text-blue-800">
+              <strong>Complete Rewritten Document</strong> - {finalRewrittenContent.length.toLocaleString()} characters
+              {rewriteMetadata && ` | ${rewriteMetadata.chunksProcessed || 0} chunks processed`}
+            </div>
             <div id="rewrite-content" className="prose max-w-none">
               {formatContent(finalRewrittenContent)}
             </div>
