@@ -100,6 +100,7 @@ Changelog:
 - June 15, 2025. Added PDF download functionality with perfect mathematical notation rendering using Puppeteer and MathJax
 - June 15, 2025. Enhanced Text to Math to preserve original formatting structure including line breaks and spacing
 - June 15, 2025. Updated Text to Math to maintain full sentence structure and context - math expressions now render inline with proper sentence flow
+- June 15, 2025. Fixed rewrite mode to use exact formatting logic from homework mode - math expressions now stay within full sentences with proper context preserved
 ```
 
 ## User Preferences

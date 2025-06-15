@@ -1395,28 +1395,52 @@ Return only the rewritten text with proper paragraph formatting. No additional c
       let result: string;
       
       if (model === 'claude') {
-        result = await processClaude(prompt, {
-          temperature: 0.7,
-          maxTokens: 4000
+        // Use direct Claude API call with explicit system prompt like homework mode
+        const { default: Anthropic } = await import('@anthropic-ai/sdk');
+        const anthropic = new Anthropic({
+          apiKey: process.env.ANTHROPIC_API_KEY,
         });
+
+        const response = await anthropic.messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4000,
+          temperature: 0.7,
+          system: "Rewrite text according to instructions while maintaining full sentence structure. Do not isolate math expressions - every expression must stay inside a full sentence. Insert rendered math expressions directly into sentences in place of raw descriptions. Retain phrasing like 'is', 'equals', 'at', 'from', 'to', etc. Preserve punctuation from original sentences. Use proper LaTeX delimiters: $...$ for inline math. Complete the entire rewrite fully and directly.",
+          messages: [{ role: 'user', content: prompt }]
+        });
+
+        result = response.content[0].type === 'text' ? response.content[0].text : '';
       } else if (model === 'gpt4') {
         const { default: OpenAI } = await import('openai');
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         
         const response = await openai.chat.completions.create({
           model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [{ role: "user", content: prompt }],
+          messages: [
+            { role: "system", content: "Rewrite text according to instructions while maintaining full sentence structure. Do not isolate math expressions - every expression must stay inside a full sentence. Insert rendered math expressions directly into sentences in place of raw descriptions. Retain phrasing like 'is', 'equals', 'at', 'from', 'to', etc. Preserve punctuation from original sentences. Use proper LaTeX delimiters: $...$ for inline math. Complete the entire rewrite fully and directly." },
+            { role: "user", content: prompt }
+          ],
           temperature: 0.7,
           max_tokens: 4000
         });
         
         result = response.choices[0].message.content || '';
       } else {
-        // Fallback to Claude
-        result = await processClaude(prompt, {
-          temperature: 0.7,
-          maxTokens: 4000
+        // Fallback to Claude with same system prompt
+        const { default: Anthropic } = await import('@anthropic-ai/sdk');
+        const anthropic = new Anthropic({
+          apiKey: process.env.ANTHROPIC_API_KEY,
         });
+
+        const response = await anthropic.messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4000,
+          temperature: 0.7,
+          system: "Rewrite text according to instructions while maintaining full sentence structure. Do not isolate math expressions - every expression must stay inside a full sentence. Insert rendered math expressions directly into sentences in place of raw descriptions. Retain phrasing like 'is', 'equals', 'at', 'from', 'to', etc. Preserve punctuation from original sentences. Use proper LaTeX delimiters: $...$ for inline math. Complete the entire rewrite fully and directly.",
+          messages: [{ role: 'user', content: prompt }]
+        });
+
+        result = response.content[0].type === 'text' ? response.content[0].text : '';
       }
       
       // CRITICAL: Fix formatting issues regardless of AI output
