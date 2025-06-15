@@ -1337,8 +1337,48 @@ export default function ChunkedRewriter({
           </Button>
         </div>
 
-        {/* View Complete Document Button - ALWAYS VISIBLE AFTER ANY REWRITE */}
-        {(chunks.some(c => c.rewritten) || chunks.some(c => c.isComplete)) && (
+        {/* FORCE VISIBLE: View Complete Document Button */}
+        <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-green-800">📄 View Complete Rewritten Document</h3>
+              <p className="text-sm text-green-700">Click to see your entire rewritten document in one unified view</p>
+            </div>
+            <Button 
+              onClick={() => {
+                // Get all rewritten chunks OR build from database/API
+                let completeDocument = '';
+                const rewrittenChunks = chunks.filter(chunk => chunk.rewritten);
+                
+                if (rewrittenChunks.length > 0) {
+                  completeDocument = rewrittenChunks.map(chunk => chunk.rewritten).join('\n\n');
+                } else {
+                  // Fallback: try to get from API or show message
+                  completeDocument = 'No rewritten content available yet. Please complete the rewrite process first.';
+                }
+                
+                const metadata = {
+                  originalLength: originalText.length,
+                  rewrittenLength: completeDocument.length,
+                  chunksProcessed: rewrittenChunks.length,
+                  newChunksAdded: 0,
+                  model: selectedModel,
+                  instructions: instructions,
+                  rewriteMode: 'rewrite'
+                };
+
+                showCompleteDocument(completeDocument, metadata, "Complete Rewritten Document");
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
+              size="lg"
+            >
+              📄 View Complete Document
+            </Button>
+          </div>
+        </div>
+
+        {/* Conditional message for when chunks are available */}
+        {(chunks.some(c => c.rewritten) || chunks.some(c => c.isComplete)) ? null : (
           <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
