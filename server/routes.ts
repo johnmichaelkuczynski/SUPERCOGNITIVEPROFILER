@@ -1895,22 +1895,21 @@ Return only the rewritten text with proper paragraph formatting. No additional c
 <body>
     <div class="document-title">${documentName || 'Rewritten Document'}</div>`;
 
-      // Process each section with proper math notation
+      // Process each section with clean text - NO MARKDOWN
       results.forEach((result: any, index: number) => {
         let content = result.rewrittenContent || '';
         
-        // Keep LaTeX markup intact for proper MathJax rendering
-        // DO NOT convert LaTeX to HTML - let MathJax handle it
+        // CLEAN ALL MARKDOWN FORMATTING - no markup in PDF
+        content = cleanMarkdownFormatting(content);
+        
+        // Only format for HTML display - convert line breaks to proper HTML
         content = content
-          // Convert markdown formatting
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(/\n\n+/g, '</p><p class="content">')
           .replace(/\n/g, '<br>');
 
         htmlContent += `
     <div class="section">
-        <div class="section-title">Section ${index + 1}: ${result.originalChunk.title}</div>
+        <div class="section-title">Section ${index + 1}: ${result.originalChunk?.title || 'Content'}</div>
         <p class="content">${content}</p>
     </div>`;
       });

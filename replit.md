@@ -100,6 +100,8 @@ Changelog:
 - June 14, 2025. Implemented automatic math formatting pipeline - all rewrite/homework output now gets perfect mathematical notation
 - June 14, 2025. Fixed Text to Math API to remove all markdown formatting from downloads - clean plain text output with perfect LaTeX
 - June 14, 2025. Mathematical rendering system completed and verified working - all modes operational with clean downloads
+- June 15, 2025. Removed all markdown formatting from rewrite and homework mode outputs - no more headers, bold text, or markup symbols
+- June 15, 2025. Fixed PDF download to strip all markdown formatting using cleanMarkdownFormatting function - math-perfect clean PDFs
 ```
 
 ## User Preferences
