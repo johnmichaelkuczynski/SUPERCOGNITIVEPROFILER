@@ -1494,6 +1494,33 @@ export default function ChunkedRewriter({
             
             <Button 
               variant="outline" 
+              onClick={() => {
+                // Download as clean TXT file
+                const cleanContent = finalRewrittenContent;
+                const blob = new Blob([cleanContent], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'rewritten-document.txt';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                toast({
+                  title: "Download started",
+                  description: "Your text file is downloading.",
+                });
+              }}
+              className="flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download TXT</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
               onClick={async () => {
                 try {
                   const response = await fetch('/api/download-rewrite', {
