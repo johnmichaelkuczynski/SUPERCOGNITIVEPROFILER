@@ -81,7 +81,7 @@ export default function Home() {
   const [isChunkedRewriterOpen, setIsChunkedRewriterOpen] = useState(false);
   const [rewriterText, setRewriterText] = useState<string>('');
   const [rewriterTitle, setRewriterTitle] = useState<string>('');
-  const [rewriterProcessingMode, setRewriterProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
+  const [rewriterProcessingMode, setRewriterProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>('rewrite');
   
   // Chunked document viewer state
   const [isChunkedViewerOpen, setIsChunkedViewerOpen] = useState(false);
@@ -92,7 +92,7 @@ export default function Home() {
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
   
   // Direct text processor state
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>('rewrite');
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>('rewrite');
   const [directInputText, setDirectInputText] = useState<string>('');
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
@@ -810,7 +810,7 @@ Document text: ${extractedText}`;
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Mode Selection */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card 
               className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
               onClick={() => setProcessingMode('rewrite')}
@@ -827,6 +827,15 @@ Document text: ${extractedText}`;
               <CardContent className="p-4 text-center">
                 <h3 className="font-semibold">Homework Mode</h3>
                 <p className="text-sm text-muted-foreground mt-2">Complete assignments, answer questions, follow instructions</p>
+              </CardContent>
+            </Card>
+            <Card 
+              className={`cursor-pointer transition-all ${processingMode === 'text-to-math' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50'}`}
+              onClick={() => setProcessingMode('text-to-math')}
+            >
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Text to Math</h3>
+                <p className="text-sm text-muted-foreground mt-2">Convert markup to perfect mathematical notation</p>
               </CardContent>
             </Card>
           </div>
@@ -889,6 +898,8 @@ Document text: ${extractedText}`;
                   
                   const title = processingMode === 'homework' 
                     ? 'Direct Input - Homework Mode' 
+                    : processingMode === 'text-to-math'
+                    ? 'Direct Input - Text to Math Mode'
                     : 'Direct Input - Rewrite Mode';
                   
                   // Open chunked rewriter for both modes
@@ -901,7 +912,7 @@ Document text: ${extractedText}`;
                 }}
               >
                 <Play className="h-4 w-4" />
-                <span>{isDirectProcessing ? 'Processing...' : (processingMode === 'homework' ? 'Complete Assignment' : 'Rewrite Text')}</span>
+                <span>{isDirectProcessing ? 'Processing...' : (processingMode === 'homework' ? 'Complete Assignment' : processingMode === 'text-to-math' ? 'Convert to Math' : 'Rewrite Text')}</span>
               </Button>
             </div>
           </div>

@@ -94,6 +94,9 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 ```
 Changelog:
 - June 14, 2025. Initial setup
+- June 14, 2025. Added "Text to Math" processing mode with proper LaTeX/MathJax rendering
+- June 14, 2025. Implemented automatic math formatting pipeline - all rewrite/homework output now gets perfect mathematical notation
+- June 14, 2025. Fixed Text to Math API to remove all markdown formatting from downloads - clean plain text output with perfect LaTeX
 ```
 
 ## User Preferences

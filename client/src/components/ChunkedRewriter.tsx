@@ -31,7 +31,7 @@ interface ChunkedRewriterProps {
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
   onAddToChat: (content: string, metadata: any) => void;
   chatHistory?: Array<{role: string; content: string}>;
-  initialProcessingMode?: 'rewrite' | 'homework';
+  initialProcessingMode?: 'rewrite' | 'homework' | 'text-to-math';
 }
 
 export default function ChunkedRewriter({ 
@@ -54,7 +54,7 @@ export default function ChunkedRewriter({
   const [senderEmail, setSenderEmail] = useState('');
   
   // Processing mode options - use the passed initial mode
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>(initialProcessingMode);
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>(initialProcessingMode);
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
   const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);
@@ -187,20 +187,48 @@ export default function ChunkedRewriter({
 
       const result = await response.json();
       
+      setProgress(75);
+
+      // AUTO-APPLY TEXT TO MATH: Automatically run homework results through math formatting
+      let finalContent = result.response;
+      try {
+        const mathResponse = await fetch('/api/text-to-math', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: finalContent,
+            instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+            model: selectedModel
+          }),
+        });
+
+        if (mathResponse.ok) {
+          const mathResult = await mathResponse.json();
+          finalContent = mathResult.mathContent;
+          console.log('[auto-math] Homework result automatically formatted for math');
+        }
+      } catch (error) {
+        console.warn('[auto-math] Failed to format homework result for math:', error);
+        // Continue with original content if math formatting fails
+      }
+
       setProgress(100);
 
       // Prepare metadata
       const metadata = {
         originalLength: originalText.length,
-        rewrittenLength: result.response.length,
+        rewrittenLength: finalContent.length,
         mode: 'homework',
         model: selectedModel,
         instructions: instructions,
-        includedChatContext: includeChatContext
+        includedChatContext: includeChatContext,
+        mathFormatted: true
       };
 
       // Store results for popup display
-      setFinalRewrittenContent(result.response);
+      setFinalRewrittenContent(finalContent);
       setRewriteMetadata(metadata);
       setShowResultsPopup(true);
 
@@ -211,16 +239,17 @@ export default function ChunkedRewriter({
 
       // Add to chat immediately
       onAddToChat(
-        `**Homework Assignment Completed:**\n\n${result.response}`,
+        `**Homework Assignment Completed:**\n\n${finalContent}`,
         { 
           type: 'homework_completion',
           originalInstructions: originalText,
-          userGuidance: instructions
+          userGuidance: instructions,
+          mathFormatted: true
         }
       );
 
       // Save as document
-      onRewriteComplete(result.response, metadata);
+      onRewriteComplete(finalContent, metadata);
 
     } catch (error) {
       console.error('Homework processing error:', error);
@@ -346,6 +375,22 @@ export default function ChunkedRewriter({
                 chatContext: includeChatContext ? chatContext : undefined,
               }),
             });
+          } else if (processingMode === 'text-to-math') {
+            // Use text-to-math endpoint for mathematical notation conversion
+            response = await fetch('/api/text-to-math', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                content: chunk.content,
+                instructions: instructions || 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                model: selectedModel,
+                chatContext: includeChatContext ? chatContext : undefined,
+                chunkIndex: i,
+                totalChunks: selectedChunks.length
+              }),
+            });
           } else {
             // Use rewrite endpoint
             response = await fetch('/api/rewrite-chunk', {
@@ -371,8 +416,39 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
 
-          // Store the content immediately (homework returns 'response', rewrite returns 'rewrittenContent')
-          const content = processingMode === 'homework' ? result.response : result.rewrittenContent;
+          // Store the content immediately (homework returns 'response', text-to-math returns 'mathContent', rewrite returns 'rewrittenContent')
+          let content = processingMode === 'homework' ? result.response : 
+                       processingMode === 'text-to-math' ? result.mathContent : 
+                       result.rewrittenContent;
+
+          // AUTO-APPLY TEXT TO MATH: For rewrite and homework modes, automatically run through math formatting
+          if (processingMode === 'rewrite' || processingMode === 'homework') {
+            try {
+              const mathResponse = await fetch('/api/text-to-math', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  content: content,
+                  instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                  model: selectedModel,
+                  chunkIndex: i,
+                  totalChunks: selectedChunks.length
+                }),
+              });
+
+              if (mathResponse.ok) {
+                const mathResult = await mathResponse.json();
+                content = mathResult.mathContent; // Use the math-formatted version
+                console.log(`[auto-math] Chunk ${i + 1} automatically formatted for math`);
+              }
+            } catch (error) {
+              console.warn(`[auto-math] Failed to format chunk ${i + 1} for math:`, error);
+              // Continue with original content if math formatting fails
+            }
+          }
+
           rewrittenChunks.push(content);
 
           // Update chunk with rewritten content
@@ -438,15 +514,41 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
           
+          // AUTO-APPLY TEXT TO MATH: Format new chunks for math too
+          let newChunkContent = result.newChunkContent;
+          try {
+            const mathResponse = await fetch('/api/text-to-math', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                content: newChunkContent,
+                instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                model: selectedModel,
+                chunkIndex: i,
+                totalChunks: maxNewChunks
+              }),
+            });
+
+            if (mathResponse.ok) {
+              const mathResult = await mathResponse.json();
+              newChunkContent = mathResult.mathContent;
+              console.log(`[auto-math] New chunk ${i + 1} automatically formatted for math`);
+            }
+          } catch (error) {
+            console.warn(`[auto-math] Failed to format new chunk ${i + 1} for math:`, error);
+          }
+          
           // Add new chunk to final content
-          finalContent += '\n\n' + result.newChunkContent;
+          finalContent += '\n\n' + newChunkContent;
 
           // Update live progress with new chunk
           const selectedCount = chunks.filter(chunk => chunk.selected).length;
           setLiveProgressChunks(prev => prev.map((item, idx) => 
             idx === selectedCount + i ? {
               ...item,
-              content: result.newChunkContent,
+              content: newChunkContent,
               completed: true
             } : item
           ));
@@ -874,7 +976,7 @@ export default function ChunkedRewriter({
         {/* Processing Mode Selection */}
         <div className="space-y-4">
           <Label className="text-lg font-semibold">Processing Mode</Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
                   onClick={() => setProcessingMode('rewrite')}>
               <CardContent className="p-4 text-center">
@@ -887,6 +989,13 @@ export default function ChunkedRewriter({
               <CardContent className="p-4 text-center">
                 <h3 className="font-semibold">Homework Mode</h3>
                 <p className="text-sm text-muted-foreground mt-2">Follow instructions, complete assignments, answer questions</p>
+              </CardContent>
+            </Card>
+            <Card className={`cursor-pointer transition-all ${processingMode === 'text-to-math' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50'}`}
+                  onClick={() => setProcessingMode('text-to-math')}>
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">Text to Math</h3>
+                <p className="text-sm text-muted-foreground mt-2">Convert markup to perfect mathematical notation</p>
               </CardContent>
             </Card>
           </div>
@@ -1143,7 +1252,9 @@ export default function ChunkedRewriter({
               className="flex items-center space-x-2"
             >
               <Play className="w-4 h-4" />
-              <span>{processingMode === 'homework' ? 'Start Homework' : 'Start Rewrite'}</span>
+              <span>{processingMode === 'homework' ? 'Start Homework' : 
+                     processingMode === 'text-to-math' ? 'Convert to Math' : 
+                     'Start Rewrite'}</span>
             </Button>
           ) : (
             <Button 
