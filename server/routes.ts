@@ -2498,7 +2498,10 @@ Return only the new content without any additional comments, explanations, or he
         messages: [{ role: 'user', content: prompt }]
       });
 
-      const result = response.content[0].type === 'text' ? response.content[0].text : '';
+      let result = response.content[0].type === 'text' ? response.content[0].text : '';
+
+      // Remove markdown formatting for clean output
+      result = cleanMarkdownFormatting(result);
 
       res.json({ response: result });
     } catch (error) {
