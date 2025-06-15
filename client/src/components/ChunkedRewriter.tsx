@@ -1742,19 +1742,23 @@ export default function ChunkedRewriter({
             </div>
           )}
 
-          {/* Content Display - Editable Area */}
-          <div className="flex-1 overflow-hidden p-4 border rounded-lg">
+          {/* Content Display - Fully Editable Textarea */}
+          <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
+            <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
+              ✏️ Content is editable - click to modify text directly
+            </div>
             <textarea
               value={finalRewrittenContent}
               onChange={(e) => setFinalRewrittenContent(e.target.value)}
-              className="w-full h-full resize-none border-none outline-none font-serif text-sm leading-relaxed p-0"
+              className="flex-1 w-full resize-none border-none outline-none p-4"
               style={{ 
                 fontFamily: '"Times New Roman", serif',
                 fontSize: '14px',
                 lineHeight: '1.6',
-                background: 'transparent'
+                minHeight: '400px'
               }}
-              placeholder="Processed content will appear here and can be edited..."
+              placeholder="Processed content will appear here and can be edited directly..."
+              spellCheck={false}
             />
           </div>
         </div>

@@ -106,6 +106,8 @@ Changelog:
 - June 15, 2025. Enhanced system prompts to prevent transitional text, editorial comments, and structural annotations for professional output
 - June 15, 2025. Fixed broken PDF math rendering by reverting to browser-based print-to-PDF - only reliable method for perfect mathematical notation
 - June 15, 2025. Server-side Puppeteer PDF generation replaced with browser print workflow for proper MathJax rendering in downloaded PDFs
+- June 15, 2025. Made popup content fully editable - users can now directly edit processed content in both rewrite and homework mode popups
+- June 15, 2025. Replaced broken PDF download with proper print dialog that automatically opens with "Save as PDF" option for perfect math rendering
 ```
 
 ## User Preferences
