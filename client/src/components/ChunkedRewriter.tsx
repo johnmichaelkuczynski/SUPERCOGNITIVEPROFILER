@@ -571,13 +571,13 @@ export default function ChunkedRewriter({
         includedChatContext: includeChatContext
       };
 
-      // Store results for popup display - force it to show!
-      console.log("Setting popup content:", finalContent.length, "characters");
-      console.log("Setting popup metadata:", metadata);
+      // AUTOMATICALLY show complete unified document after rewriting
+      console.log("Rewrite complete - showing unified document:", finalContent.length, "characters");
       setFinalRewrittenContent(finalContent);
       setRewriteMetadata(metadata);
       setShowResultsPopup(true);
-      console.log("Popup state set to true - should display now!");
+      setShowLiveProgress(false); // Hide progress popup
+      console.log("Complete document popup activated!");
 
       toast({
         title: "Rewrite complete!",
@@ -1240,6 +1240,39 @@ export default function ChunkedRewriter({
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="w-full" />
+          </div>
+        )}
+
+        {/* URGENT: View Complete Document - Always Available */}
+        {originalText && (
+          <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-blue-800">📄 View Complete Original Document</h3>
+                <p className="text-sm text-blue-700">See your entire document in one unified view before rewriting</p>
+              </div>
+              <Button 
+                onClick={() => {
+                  const metadata = {
+                    originalLength: originalText.length,
+                    rewrittenLength: originalText.length,
+                    chunksProcessed: 0,
+                    newChunksAdded: 0,
+                    model: selectedModel,
+                    instructions: 'Original document view',
+                    rewriteMode: 'view'
+                  };
+
+                  setFinalRewrittenContent(originalText);
+                  setRewriteMetadata(metadata);
+                  setShowResultsPopup(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg"
+                size="lg"
+              >
+                📄 View Complete Document
+              </Button>
+            </div>
           </div>
         )}
 
