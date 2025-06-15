@@ -1470,29 +1470,40 @@ YOUR REWRITTEN DOCUMENT:`;
   // Chunked rewriter API endpoints
   app.post('/api/rewrite-chunk', async (req: Request, res: Response) => {
     try {
-      const { content, instructions, model, chatContext, chunkIndex, totalChunks } = req.body;
+      const { content, instructions, model, chatContext, chunkIndex, totalChunks, documentTitle, previousChunks, nextChunks } = req.body;
       
       if (!content || !instructions) {
         return res.status(400).json({ error: 'Content and instructions are required' });
       }
 
-      let prompt = `Please rewrite the following text according to these instructions: ${instructions}\n\n`;
+      let prompt = `You are rewriting part of a unified academic work titled "${documentTitle || 'Academic Document'}". This is section ${chunkIndex + 1} of ${totalChunks} total sections. Maintain coherence with the overall work.\n\n`;
+      
+      prompt += `DOCUMENT CONTEXT:\n`;
+      if (previousChunks && previousChunks.length > 0) {
+        prompt += `Previous sections covered: ${previousChunks.map((chunk: any, i: number) => `Section ${i + 1}: ${chunk.title || 'Content'}`).join(', ')}\n`;
+      }
+      if (nextChunks && nextChunks.length > 0) {
+        prompt += `Upcoming sections will cover: ${nextChunks.map((chunk: any, i: number) => `Section ${chunkIndex + i + 2}: ${chunk.title || 'Content'}`).join(', ')}\n`;
+      }
+      prompt += `\n`;
+
+      prompt += `REWRITE INSTRUCTIONS: ${instructions}\n\n`;
       
       if (chatContext) {
-        prompt += `Chat context for reference:\n${chatContext}\n\n`;
+        prompt += `Additional context for reference:\n${chatContext}\n\n`;
       }
 
-      prompt += `Text to rewrite (chunk ${chunkIndex + 1} of ${totalChunks}):\n\n${content}\n\n`;
-      prompt += `CRITICAL FORMATTING REQUIREMENTS:
-1. ALWAYS format the output with proper paragraph breaks - use double line breaks (\\n\\n) between paragraphs
-2. If the text contains mathematical expressions or formulas:
-   - Preserve all LaTeX formatting using \\(...\\) for inline math and $$...$$ for display math
-   - Do not escape or convert LaTeX symbols
-   - Keep all mathematical notation in proper LaTeX format
-3. Ensure proper sentence spacing and readability
-4. Use clear paragraph structure - each major idea should be its own paragraph
+      prompt += `SECTION TO REWRITE (Section ${chunkIndex + 1} of the overall work):\n\n${content}\n\n`;
+      prompt += `CRITICAL REQUIREMENTS:
+1. This is NOT a standalone document - it's part of a larger unified work
+2. Do NOT add chapter headings, introductions, or conclusions that treat this as a complete work
+3. Maintain continuity with previous sections and prepare for upcoming sections
+4. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
+5. Preserve LaTeX math formatting: \\(...\\) for inline math, $$...$$ for display math
+6. Focus on improving the content while maintaining its role within the larger document structure
+7. Do not repeat information that would be covered in other sections
 
-Return only the rewritten text with proper paragraph formatting. No additional comments, explanations, or headers.`;
+Return only the rewritten section content. No headers, chapter titles, or standalone document formatting.`;
 
       let result: string;
       

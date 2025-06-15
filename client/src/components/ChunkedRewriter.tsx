@@ -392,7 +392,10 @@ export default function ChunkedRewriter({
               }),
             });
           } else {
-            // Use rewrite endpoint
+            // Use rewrite endpoint with document context
+            const previousChunks = selectedChunks.slice(0, i).map(c => ({ title: c.preview.substring(0, 50), content: c.content }));
+            const nextChunks = selectedChunks.slice(i + 1).map(c => ({ title: c.preview.substring(0, 50), content: c.content }));
+            
             response = await fetch('/api/rewrite-chunk', {
               method: 'POST',
               headers: {
@@ -405,6 +408,9 @@ export default function ChunkedRewriter({
                 chatContext: includeChatContext ? chatContext : undefined,
                 chunkIndex: i,
                 totalChunks: selectedChunks.length,
+                documentTitle: originalText.substring(0, 100) || 'Academic Document',
+                previousChunks: previousChunks,
+                nextChunks: nextChunks,
                 mode: rewriteMode
               }),
             });
@@ -853,6 +859,9 @@ export default function ChunkedRewriter({
       for (let i = 0; i < selectedChunks.length; i++) {
         const chunk = selectedChunks[i];
         
+        const previousChunks = selectedChunks.slice(0, i).map(c => ({ title: 'Re-rewrite Section', content: c.content }));
+        const nextChunks = selectedChunks.slice(i + 1).map(c => ({ title: 'Re-rewrite Section', content: c.content }));
+        
         const response = await fetch('/api/rewrite-chunk', {
           method: 'POST',
           headers: {
@@ -864,6 +873,9 @@ export default function ChunkedRewriter({
             model: rerewriteModel,
             chunkIndex: i,
             totalChunks: selectedChunks.length,
+            documentTitle: rewriteMetadata?.title || 'Re-rewritten Document',
+            previousChunks: previousChunks,
+            nextChunks: nextChunks,
             mode: 'rewrite'
           }),
         });
