@@ -2415,6 +2415,9 @@ CRITICAL REQUIREMENTS:
 - IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
 - Remove ALL markdown headers, bold text, italic text, and other formatting
 - Present the content as clean, readable plain text with proper LaTeX math notation
+- PRESERVE THE ORIGINAL FORMATTING STRUCTURE: Keep the same line breaks, spacing, and layout as the input
+- If input has one math problem per line, output should have one problem per line
+- Maintain paragraph breaks and spacing exactly as they appear in the original
 
 Content to convert:
 ${content}`;
@@ -2445,7 +2448,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input - if input has one problem per line, output should have one problem per line.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2459,7 +2462,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.' },
+            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input - if input has one problem per line, output should have one problem per line.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,

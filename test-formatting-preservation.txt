@@ -1,0 +1,19 @@
+Mathematical Problems with Formatting Test
+
+Problem 1: Find the derivative of f(x) = x^2 + 3x - 5
+
+Problem 2: Solve the equation 2x + 7 = 15
+
+Problem 3: Calculate the integral of ∫(x^3 + 2x) dx
+
+Problem 4: Simplify the expression (a + b)^2 = a^2 + 2ab + b^2
+
+Problem 5: Find the limit as x approaches 0 of sin(x)/x
+
+Problem 6: Given that f(x) = e^x, find f'(x)
+
+Problem 7: Evaluate ∑_{n=1}^{10} n^2
+
+Problem 8: Solve for x: x^2 - 4x + 4 = 0
+
+This test document has one mathematical problem per line to verify that the Text to Math function preserves this formatting structure while converting to proper LaTeX notation.
