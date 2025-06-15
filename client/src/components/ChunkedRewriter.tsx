@@ -71,7 +71,18 @@ export default function ChunkedRewriter({
   const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
   const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
   
+  // Dedicated Complete Document Popup
+  const [showCompleteDocumentPopup, setShowCompleteDocumentPopup] = useState(false);
+  const [completeDocumentContent, setCompleteDocumentContent] = useState('');
+  const [completeDocumentMetadata, setCompleteDocumentMetadata] = useState<any>(null);
+  
   const { toast } = useToast();
+
+  const showCompleteDocument = (content: string, metadata: any, title: string = "Complete Rewritten Document") => {
+    setCompleteDocumentContent(content);
+    setCompleteDocumentMetadata({ ...metadata, title });
+    setShowCompleteDocumentPopup(true);
+  };
 
   const cancelRewrite = () => {
     setIsCancelled(true);
@@ -573,11 +584,9 @@ export default function ChunkedRewriter({
 
       // AUTOMATICALLY show complete unified document after rewriting
       console.log("Rewrite complete - showing unified document:", finalContent.length, "characters");
-      setFinalRewrittenContent(finalContent);
-      setRewriteMetadata(metadata);
-      setShowResultsPopup(true);
+      showCompleteDocument(finalContent, metadata, "Complete Rewritten Document");
       setShowLiveProgress(false); // Hide progress popup
-      console.log("Complete document popup activated!");
+      console.log("Dedicated complete document popup activated!");
 
       toast({
         title: "Rewrite complete!",
@@ -1263,9 +1272,7 @@ export default function ChunkedRewriter({
                     rewriteMode: 'view'
                   };
 
-                  setFinalRewrittenContent(originalText);
-                  setRewriteMetadata(metadata);
-                  setShowResultsPopup(true);
+                  showCompleteDocument(originalText, metadata, "Complete Original Document");
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg"
                 size="lg"
@@ -1355,9 +1362,7 @@ export default function ChunkedRewriter({
                     rewriteMode: 'rewrite'
                   };
 
-                  setFinalRewrittenContent(completeDocument);
-                  setRewriteMetadata(metadata);
-                  setShowResultsPopup(true);
+                  showCompleteDocument(completeDocument, metadata, "Complete Rewritten Document");
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
                 size="lg"
@@ -1863,6 +1868,152 @@ export default function ChunkedRewriter({
                 width: `${liveProgressChunks.length > 0 ? (liveProgressChunks.filter(c => c.completed).length / liveProgressChunks.length) * 100 : 0}%` 
               }}
             ></div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    
+    {/* DEDICATED COMPLETE DOCUMENT POPUP */}
+    <Dialog open={showCompleteDocumentPopup} onOpenChange={setShowCompleteDocumentPopup}>
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">
+            📄 {completeDocumentMetadata?.title || "Complete Document"}
+          </DialogTitle>
+          <DialogDescription>
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
+              <div className="font-semibold text-green-800 mb-2">✅ Unified Document View - No Chunks, Just Complete Text</div>
+              {completeDocumentMetadata && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="text-green-700">
+                    <strong>Length:</strong> {completeDocumentContent.length.toLocaleString()} characters
+                  </div>
+                  <div className="text-green-700">
+                    <strong>Words:</strong> {completeDocumentContent.split(/\s+/).length.toLocaleString()}
+                  </div>
+                  {completeDocumentMetadata.chunksProcessed > 0 && (
+                    <div className="text-green-700">
+                      <strong>Chunks Combined:</strong> {completeDocumentMetadata.chunksProcessed}
+                    </div>
+                  )}
+                  <div className="text-green-700">
+                    <strong>Model:</strong> {completeDocumentMetadata.model?.toUpperCase() || 'N/A'}
+                  </div>
+                </div>
+              )}
+              <div className="text-sm text-green-600 mt-2 italic">Scroll to read the entire document from start to finish</div>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="flex flex-col h-[80vh]">
+          {/* Action Bar */}
+          <div className="flex flex-wrap gap-2 mb-4 p-3 bg-gray-50 rounded-lg border">
+            <Button 
+              onClick={() => {
+                // Add to chat
+                onAddToChat(`**${completeDocumentMetadata?.title || 'Complete Document'}:**\n\n${completeDocumentContent}`, completeDocumentMetadata);
+                toast({
+                  title: "Added to chat",
+                  description: "Complete document added to your conversation",
+                });
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              💬 Add to Chat
+            </Button>
+            
+            <Button 
+              onClick={() => {
+                // PDF Download
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                  toast({
+                    title: "Pop-up blocked",
+                    description: "Please allow pop-ups and try again.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+
+                const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <title>${completeDocumentMetadata?.title || 'Complete Document'}</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Times New Roman', serif; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in; color: black; background: white; }
+        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
+        p { margin-bottom: 12px; }
+        .MathJax { font-size: 1em !important; }
+        .print-button { text-align: center; margin: 20px 0; }
+        .print-button button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        @media print { .print-button { display: none; } body { margin: 0.5in; } }
+    </style>
+</head>
+<body>
+    <div class="print-button">
+        <button onclick="window.print()">📄 Save as PDF</button>
+        <button onclick="window.close()" style="background: #6c757d; margin-left: 10px;">Close</button>
+    </div>
+    <div id="content">${completeDocumentContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')}</div>
+    <script>
+        if (window.MathJax) {
+            MathJax.typesetPromise([document.getElementById('content')]).then(() => {
+                console.log('MathJax rendering complete');
+            });
+        }
+    </script>
+</body>
+</html>`;
+
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+
+                toast({
+                  title: "PDF ready",
+                  description: "Click 'Save as PDF' in the new window",
+                });
+              }}
+              variant="outline"
+            >
+              📄 Save as PDF
+            </Button>
+
+            <Button 
+              onClick={() => setShowCompleteDocumentPopup(false)}
+              variant="outline"
+            >
+              ✕ Close
+            </Button>
+          </div>
+
+          {/* COMPLETE DOCUMENT CONTENT - SCROLLABLE */}
+          <div className="flex-1 overflow-auto border-2 border-blue-200 rounded-lg p-6 bg-white">
+            <div className="mb-4 p-3 bg-blue-50 rounded text-sm text-blue-800 border border-blue-200">
+              <strong>Complete {completeDocumentMetadata?.rewriteMode === 'view' ? 'Original' : 'Rewritten'} Document</strong>
+              <div className="text-xs mt-1">
+                {completeDocumentContent.length.toLocaleString()} characters • {completeDocumentContent.split(/\s+/).length.toLocaleString()} words
+                {completeDocumentMetadata?.chunksProcessed > 0 && ` • ${completeDocumentMetadata.chunksProcessed} chunks combined`}
+              </div>
+            </div>
+            <div id="complete-document-content" className="prose max-w-none text-base leading-relaxed">
+              {formatContent(completeDocumentContent)}
+            </div>
           </div>
         </div>
       </DialogContent>
