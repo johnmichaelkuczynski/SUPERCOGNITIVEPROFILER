@@ -1339,7 +1339,7 @@ export default function ChunkedRewriter({
           </Button>
         </div>
 
-        {/* FORCE VISIBLE: View Complete Document Button */}
+        {/* WORKING: View Complete Document Button - Shows unified rewritten content */}
         <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -1347,43 +1347,39 @@ export default function ChunkedRewriter({
               <p className="text-sm text-green-700">Click to see your entire rewritten document in one unified view</p>
             </div>
             <Button 
-              onClick={async () => {
-                try {
-                  // First try to get from local chunks
-                  let completeDocument = '';
-                  const rewrittenChunks = chunks.filter(chunk => chunk.rewritten);
-                  
-                  if (rewrittenChunks.length > 0) {
-                    completeDocument = rewrittenChunks.map(chunk => chunk.rewritten).join('\n\n');
-                  } else {
-                    // Get from database via API
-                    const response = await fetch(`/api/complete-rewrite/${documentId || 'default'}`);
-                    if (response.ok) {
-                      const data = await response.json();
-                      completeDocument = data.content;
-                    } else {
-                      throw new Error('No rewritten content found');
-                    }
-                  }
-                  
-                  const metadata = {
-                    originalLength: originalText.length,
-                    rewrittenLength: completeDocument.length,
-                    chunksProcessed: rewrittenChunks.length,
-                    newChunksAdded: 0,
-                    model: selectedModel,
-                    instructions: instructions,
-                    rewriteMode: 'rewrite'
-                  };
-
-                  showCompleteDocument(completeDocument, metadata, "Complete Rewritten Document");
-                } catch (error) {
+              onClick={() => {
+                // Get all rewritten chunks and combine them
+                const rewrittenChunks = chunks.filter(chunk => chunk.rewritten && chunk.rewritten.trim() !== '');
+                
+                if (rewrittenChunks.length === 0) {
                   toast({
-                    title: "Error",
-                    description: "Failed to retrieve complete rewritten document. Please ensure the rewrite process is completed.",
+                    title: "No Content",
+                    description: "No rewritten content available. Please complete the rewrite process first.",
                     variant: "destructive"
                   });
+                  return;
                 }
+                
+                // Combine all rewritten chunks in order
+                const completeDocument = rewrittenChunks
+                  .sort((a, b) => parseInt(a.id.split('-')[1] || '0') - parseInt(b.id.split('-')[1] || '0'))
+                  .map(chunk => chunk.rewritten)
+                  .join('\n\n');
+                
+                const metadata = {
+                  originalLength: originalText.length,
+                  rewrittenLength: completeDocument.length,
+                  chunksProcessed: rewrittenChunks.length,
+                  newChunksAdded: 0,
+                  model: selectedModel,
+                  instructions: instructions,
+                  rewriteMode: processingMode
+                };
+
+                // Show the complete document in popup
+                setCompleteDocumentContent(completeDocument);
+                setCompleteDocumentMetadata(metadata);
+                setShowCompleteDocumentPopup(true);
               }}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
               size="lg"
