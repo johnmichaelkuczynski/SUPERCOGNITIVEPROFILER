@@ -1332,7 +1332,7 @@ export default function ChunkedRewriter({
 
     {/* Persistent Results Popup */}
     <Dialog open={showResultsPopup} onOpenChange={setShowResultsPopup}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
+      <DialogContent className="max-w-6xl overflow-hidden h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl">
             {rewriteMetadata?.isRerewrite ? '🔄 Re-rewritten Content' : 'Rewrite Results'} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
@@ -1355,8 +1355,6 @@ export default function ChunkedRewriter({
             )}
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="flex flex-col h-[75vh]">
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded-lg">
             <Button 
@@ -1716,8 +1714,8 @@ export default function ChunkedRewriter({
             </div>
           )}
 
-          {/* Content Display */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden border rounded-lg p-4 bg-white max-h-[60vh]">
+          {/* Content Display - Scrollable Area */}
+          <div className="flex-1 overflow-y-auto p-4 border border-red-500">
             <div id="rewrite-content" className="prose max-w-none">
               {formatContent(finalRewrittenContent)}
             </div>
