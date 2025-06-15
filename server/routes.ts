@@ -1536,6 +1536,43 @@ Return only the rewritten text with proper paragraph formatting. No additional c
     }
   });
 
+  // Get complete rewritten document from database
+  app.get('/api/complete-rewrite/:documentId', async (req: Request, res: Response) => {
+    try {
+      const { documentId } = req.params;
+      
+      // Get all rewritten chunks for this document from the database
+      const chunks = await storage.getRewrittenChunks(documentId);
+      
+      if (!chunks || chunks.length === 0) {
+        return res.status(404).json({ error: 'No rewritten content found for this document' });
+      }
+      
+      // Combine all chunks into complete document
+      const completeContent = chunks
+        .sort((a, b) => (a.chunkIndex || 0) - (b.chunkIndex || 0))
+        .map(chunk => chunk.rewrittenContent)
+        .join('\n\n');
+      
+      const metadata = {
+        documentId,
+        totalChunks: chunks.length,
+        totalLength: completeContent.length,
+        model: chunks[0]?.model || 'unknown',
+        lastUpdated: chunks[0]?.updatedAt || new Date()
+      };
+      
+      res.json({
+        content: completeContent,
+        metadata
+      });
+      
+    } catch (error) {
+      console.error('Error retrieving complete rewrite:', error);
+      res.status(500).json({ error: 'Failed to retrieve complete rewritten document' });
+    }
+  });
+
   app.post('/api/download-rewrite', async (req: Request, res: Response) => {
     try {
       const { content, format, title } = req.body;

@@ -39,6 +39,7 @@ export interface IStorage {
   // Rewrite methods
   getRewrite(id: number): Promise<Rewrite | undefined>;
   getRewritesByUserId(userId: number): Promise<Rewrite[]>;
+  getRewrittenChunks(documentId: string): Promise<any[]>;
   createRewrite(rewrite: InsertRewrite): Promise<Rewrite>;
   deleteRewrite(id: number): Promise<boolean>;
   
@@ -552,6 +553,23 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Database error in createRewrite, falling back to memory storage:", error);
       return this.memStorage.createRewrite(rewrite);
+    }
+  }
+
+  async getRewrittenChunks(documentId: string): Promise<any[]> {
+    try {
+      // Get all rewrites for this document and return them as chunks
+      const results = await db.select().from(rewrites).where(eq(rewrites.documentId, documentId));
+      return results.map((rewrite, index) => ({
+        id: rewrite.id,
+        chunkIndex: index,
+        rewrittenContent: rewrite.rewrittenContent,
+        model: rewrite.model,
+        updatedAt: rewrite.createdAt
+      }));
+    } catch (error) {
+      console.error("Database error in getRewrittenChunks:", error);
+      return [];
     }
   }
 

@@ -1345,29 +1345,43 @@ export default function ChunkedRewriter({
               <p className="text-sm text-green-700">Click to see your entire rewritten document in one unified view</p>
             </div>
             <Button 
-              onClick={() => {
-                // Get all rewritten chunks OR build from database/API
-                let completeDocument = '';
-                const rewrittenChunks = chunks.filter(chunk => chunk.rewritten);
-                
-                if (rewrittenChunks.length > 0) {
-                  completeDocument = rewrittenChunks.map(chunk => chunk.rewritten).join('\n\n');
-                } else {
-                  // Fallback: try to get from API or show message
-                  completeDocument = 'No rewritten content available yet. Please complete the rewrite process first.';
-                }
-                
-                const metadata = {
-                  originalLength: originalText.length,
-                  rewrittenLength: completeDocument.length,
-                  chunksProcessed: rewrittenChunks.length,
-                  newChunksAdded: 0,
-                  model: selectedModel,
-                  instructions: instructions,
-                  rewriteMode: 'rewrite'
-                };
+              onClick={async () => {
+                try {
+                  // First try to get from local chunks
+                  let completeDocument = '';
+                  const rewrittenChunks = chunks.filter(chunk => chunk.rewritten);
+                  
+                  if (rewrittenChunks.length > 0) {
+                    completeDocument = rewrittenChunks.map(chunk => chunk.rewritten).join('\n\n');
+                  } else {
+                    // Get from database via API
+                    const response = await fetch(`/api/complete-rewrite/${currentDocumentId}`);
+                    if (response.ok) {
+                      const data = await response.json();
+                      completeDocument = data.content;
+                    } else {
+                      throw new Error('No rewritten content found');
+                    }
+                  }
+                  
+                  const metadata = {
+                    originalLength: originalText.length,
+                    rewrittenLength: completeDocument.length,
+                    chunksProcessed: rewrittenChunks.length,
+                    newChunksAdded: 0,
+                    model: selectedModel,
+                    instructions: instructions,
+                    rewriteMode: 'rewrite'
+                  };
 
-                showCompleteDocument(completeDocument, metadata, "Complete Rewritten Document");
+                  showCompleteDocument(completeDocument, metadata, "Complete Rewritten Document");
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to retrieve complete rewritten document. Please ensure the rewrite process is completed.",
+                    variant: "destructive"
+                  });
+                }
               }}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
               size="lg"
