@@ -1297,6 +1297,44 @@ export default function ChunkedRewriter({
           </Button>
         </div>
 
+        {/* View Complete Document Button - PROMINENT */}
+        {chunks.some(c => c.rewritten) && (
+          <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-green-800">📄 Complete Document Ready</h3>
+                <p className="text-sm text-green-700">View your entire rewritten document in one unified view</p>
+              </div>
+              <Button 
+                onClick={() => {
+                  const completeDocument = chunks
+                    .filter(chunk => chunk.rewritten)
+                    .map(chunk => chunk.rewritten)
+                    .join('\n\n');
+                  
+                  const metadata = {
+                    originalLength: originalText.length,
+                    rewrittenLength: completeDocument.length,
+                    chunksProcessed: chunks.filter(c => c.rewritten).length,
+                    newChunksAdded: 0,
+                    model: selectedModel,
+                    instructions: instructions,
+                    rewriteMode: 'rewrite'
+                  };
+
+                  setFinalRewrittenContent(completeDocument);
+                  setRewriteMetadata(metadata);
+                  setShowResultsPopup(true);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
+                size="lg"
+              >
+                📄 View Complete Document
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Email Sharing */}
         <div className="space-y-2">
           <div className="flex space-x-2">
