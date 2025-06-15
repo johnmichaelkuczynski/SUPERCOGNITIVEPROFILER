@@ -1372,13 +1372,23 @@ YOUR REWRITTEN DOCUMENT:`;
 
       prompt += `Text to rewrite (chunk ${chunkIndex + 1} of ${totalChunks}):\n\n${content}\n\n`;
       prompt += `CRITICAL FORMATTING REQUIREMENTS:
-1. ALWAYS format the output with proper paragraph breaks - use double line breaks (\\n\\n) between paragraphs
-2. If the text contains mathematical expressions or formulas:
-   - Preserve all LaTeX formatting using \\(...\\) for inline math and $$...$$ for display math
-   - Do not escape or convert LaTeX symbols
-   - Keep all mathematical notation in proper LaTeX format
-3. Ensure proper sentence spacing and readability
-4. Use clear paragraph structure - each major idea should be its own paragraph
+1. MAINTAIN FULL SENTENCE STRUCTURE: Do not isolate math expressions - every expression must stay inside a full sentence
+2. INSERT RENDERED MATH EXPRESSIONS DIRECTLY into sentences in place of raw descriptions
+3. RETAIN phrasing like "is", "equals", "at", "from", "to", etc. — do not drop these during rewriting
+4. PRESERVE punctuation (periods, commas, etc.) from the original sentence
+5. Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
+6. Convert all mathematical symbols to LaTeX (e.g., α → \\alpha, π → \\pi, ∞ → \\infty)
+7. Format fractions with \\frac{numerator}{denominator}
+8. Use proper subscripts and superscripts with _ and ^
+9. PRESERVE THE ORIGINAL FORMATTING STRUCTURE: Keep the same line breaks, spacing, and layout as the input
+10. DO NOT display math expressions on separate lines unless the original input had a line break
+11. ALWAYS format the output with proper paragraph breaks - use double line breaks (\\n\\n) between paragraphs
+12. Ensure proper sentence spacing and readability
+13. Use clear paragraph structure - each major idea should be its own paragraph
+
+EXAMPLE OF CORRECT OUTPUT:
+Input: "The derivative of x squared plus 3 x minus 5."
+Output: "The derivative of $x^2 + 3x - 5$ is $2x + 3$."
 
 Return only the rewritten text with proper paragraph formatting. No additional comments, explanations, or headers.`;
 
