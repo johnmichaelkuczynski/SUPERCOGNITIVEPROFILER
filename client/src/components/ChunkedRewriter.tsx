@@ -1420,76 +1420,62 @@ export default function ChunkedRewriter({
             </Button>
 
             <Button 
-              onClick={() => {
-                // Use the working PDF approach from chat
-                const printWindow = window.open('', '_blank');
-                if (!printWindow) {
+              onClick={async () => {
+                try {
+                  // Create structured data for the print endpoint
+                  const response = await fetch('/api/print-pdf', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      results: [{ 
+                        rewrittenContent: finalRewrittenContent,
+                        originalChunk: { title: 'Document Content' }
+                      }],
+                      documentName: 'Rewritten Document'
+                    }),
+                  });
+
+                  if (response.ok) {
+                    const htmlContent = await response.text();
+                    
+                    // Open formatted document in print window
+                    const printWindow = window.open('', '_blank');
+                    if (printWindow) {
+                      printWindow.document.write(htmlContent);
+                      printWindow.document.close();
+                      
+                      // Automatically trigger print dialog after MathJax loads
+                      printWindow.onload = () => {
+                        setTimeout(() => {
+                          printWindow.print(); // This opens the print dialog with "Save as PDF" option
+                        }, 1500); // Give MathJax time to render
+                      };
+                      
+                      toast({
+                        title: "Print dialog opening",
+                        description: "Choose 'Save as PDF' from the print dialog for perfect math",
+                      });
+                    } else {
+                      throw new Error('Please allow popups to print');
+                    }
+                  } else {
+                    throw new Error('Failed to prepare print document');
+                  }
+                } catch (error) {
+                  console.error('Print error:', error);
                   toast({
-                    title: "Pop-up blocked",
-                    description: "Please allow pop-ups and try again.",
+                    title: "Print failed",
+                    description: "Please allow popups and try again",
                     variant: "destructive"
                   });
-                  return;
                 }
-
-                // Use the exact same working HTML structure as the chat PDF
-                const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-    <title>Rewrite Results</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-                processEscapes: true,
-                processEnvironments: true
-            },
-            options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-            }
-        };
-    </script>
-    <style>
-        body { font-family: 'Times New Roman', serif; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in; color: black; background: white; }
-        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
-        p { margin-bottom: 12px; }
-        .MathJax { font-size: 1em !important; }
-        .print-button { text-align: center; margin: 20px 0; }
-        .print-button button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        @media print { .print-button { display: none; } body { margin: 0.5in; } }
-    </style>
-</head>
-<body>
-    <div class="print-button">
-        <button onclick="window.print()">📄 Save as PDF</button>
-        <button onclick="window.close()" style="background: #6c757d; margin-left: 10px;">Close</button>
-    </div>
-    <div id="content">${finalRewrittenContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')}</div>
-    <script>
-        if (window.MathJax) {
-            MathJax.typesetPromise([document.getElementById('content')]).then(() => {
-                console.log('MathJax rendering complete');
-            });
-        }
-    </script>
-</body>
-</html>`;
-
-                printWindow.document.write(htmlContent);
-                printWindow.document.close();
-
-                toast({
-                  title: "PDF window opened!",
-                  description: "Wait for math to render, then Print → Save as PDF",
-                });
               }}
               className="flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
-              <span>Save as PDF</span>
+              <span>Print as PDF</span>
             </Button>
             
             <Button 
@@ -1756,11 +1742,20 @@ export default function ChunkedRewriter({
             </div>
           )}
 
-          {/* Content Display - Scrollable Area */}
-          <div className="flex-1 overflow-y-auto p-4 border rounded-lg">
-            <div id="rewrite-content" className="prose max-w-none">
-              {formatContent(finalRewrittenContent)}
-            </div>
+          {/* Content Display - Editable Area */}
+          <div className="flex-1 overflow-hidden p-4 border rounded-lg">
+            <textarea
+              value={finalRewrittenContent}
+              onChange={(e) => setFinalRewrittenContent(e.target.value)}
+              className="w-full h-full resize-none border-none outline-none font-serif text-sm leading-relaxed p-0"
+              style={{ 
+                fontFamily: '"Times New Roman", serif',
+                fontSize: '14px',
+                lineHeight: '1.6',
+                background: 'transparent'
+              }}
+              placeholder="Processed content will appear here and can be edited..."
+            />
           </div>
         </div>
       </DialogContent>

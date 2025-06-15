@@ -211,14 +211,25 @@ export default function RewriteViewer({
                   Rewritten Content
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-auto space-y-4">
-                <div className="text-sm whitespace-pre-wrap prose max-w-none">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                  >
-                    {result.rewrittenContent}
-                  </ReactMarkdown>
+              <CardContent className="flex-1 overflow-hidden space-y-4">
+                <div className="h-64 border rounded-lg p-2">
+                  <textarea
+                    value={result.rewrittenContent}
+                    onChange={(e) => {
+                      const updatedResult = {
+                        ...result,
+                        rewrittenContent: e.target.value
+                      };
+                      onUpdate(updatedResult);
+                    }}
+                    className="w-full h-full resize-none border-none outline-none text-sm leading-relaxed"
+                    style={{ 
+                      fontFamily: '"Times New Roman", serif',
+                      fontSize: '14px',
+                      lineHeight: '1.6'
+                    }}
+                    placeholder="Rewritten content will appear here and can be edited..."
+                  />
                 </div>
 
                 {result.explanation && (
