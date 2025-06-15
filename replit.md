@@ -109,6 +109,7 @@ Changelog:
 - June 15, 2025. Made popup content fully editable - users can now directly edit processed content in both rewrite and homework mode popups
 - June 15, 2025. Replaced broken PDF download with proper print dialog that automatically opens with "Save as PDF" option for perfect math rendering
 - June 15, 2025. Fixed auxiliary chat content to display clean text with proper mathematical notation instead of broken LaTeX and markdown formatting
+- June 15, 2025. Fixed homework mode processing failure - now correctly processes entire text as single unit instead of attempting chunk-based processing
 ```
 
 ## User Preferences

@@ -454,13 +454,12 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
 
-          // Store the content immediately (homework returns 'response', text-to-math returns 'mathContent', rewrite returns 'rewrittenContent')
-          let content = processingMode === 'homework' ? result.response : 
-                       processingMode === 'text-to-math' ? result.mathContent : 
+          // Store the content immediately (text-to-math returns 'mathContent', rewrite returns 'rewrittenContent')
+          let content = processingMode === 'text-to-math' ? result.mathContent : 
                        result.rewrittenContent;
 
-          // AUTO-APPLY TEXT TO MATH: For rewrite and homework modes, automatically run through math formatting
-          if (processingMode === 'rewrite' || processingMode === 'homework') {
+          // AUTO-APPLY TEXT TO MATH: For rewrite mode, automatically run through math formatting
+          if (processingMode === 'rewrite') {
             try {
               const mathResponse = await fetch('/api/text-to-math', {
                 method: 'POST',
