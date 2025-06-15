@@ -2405,6 +2405,8 @@ Return only the new content without any additional comments, explanations, or he
       let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Ensure all mathematical expressions, equations, formulas, and symbols are properly formatted with LaTeX markup for perfect rendering.
 
 CRITICAL REQUIREMENTS:
+- MAINTAIN FULL SENTENCE STRUCTURE: Do not strip out context or text around math expressions
+- INSERT RENDERED MATH EXPRESSIONS DIRECTLY into sentences in place of raw descriptions
 - Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
 - Convert all mathematical symbols to LaTeX (e.g., α → \\alpha, π → \\pi, ∞ → \\infty)
 - Preserve all mathematical meaning and context
@@ -2418,6 +2420,14 @@ CRITICAL REQUIREMENTS:
 - PRESERVE THE ORIGINAL FORMATTING STRUCTURE: Keep the same line breaks, spacing, and layout as the input
 - If input has one math problem per line, output should have one problem per line
 - Maintain paragraph breaks and spacing exactly as they appear in the original
+- DO NOT display math expressions on separate lines unless the original input had a line break
+- RETAIN phrasing like "is", "equals", "at", "from", "to", etc. — do not drop these during rewriting
+- PRESERVE punctuation (periods, commas, etc.) from the original sentence
+- Ensure LaTeX expressions are wrapped in proper inline math delimiters $...$
+
+EXAMPLE:
+Input: "The derivative of x squared plus 3 x minus 5."
+Output: "The derivative of $x^2 + 3x - 5$ is $2x + 3$."
 
 Content to convert:
 ${content}`;
@@ -2448,7 +2458,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input - if input has one problem per line, output should have one problem per line.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. MAINTAIN FULL SENTENCE STRUCTURE - do not strip out context or text around math expressions. INSERT rendered math expressions directly into sentences in place of raw descriptions. RETAIN phrasing like 'is', 'equals', 'at', 'from', 'to', etc. PRESERVE punctuation from original sentences. Be precise and accurate with LaTeX syntax using $...$ for inline math. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2462,7 +2472,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input - if input has one problem per line, output should have one problem per line.' },
+            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. MAINTAIN FULL SENTENCE STRUCTURE - do not strip out context or text around math expressions. INSERT rendered math expressions directly into sentences in place of raw descriptions. RETAIN phrasing like "is", "equals", "at", "from", "to", etc. PRESERVE punctuation from original sentences. Be precise and accurate with LaTeX syntax using $...$ for inline math. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
