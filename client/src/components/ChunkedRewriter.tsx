@@ -1355,8 +1355,11 @@ export default function ChunkedRewriter({
             )}
           </DialogDescription>
         </DialogHeader>
+        
+        {/* Main Content Container */}
+        <div className="flex flex-col flex-1 overflow-hidden">
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex flex-wrap gap-2 mb-4 p-4 bg-gray-50 rounded-lg flex-shrink-0">
             <Button 
               onClick={() => {
                 // Split content into chunks for potential re-rewriting
@@ -1715,7 +1718,7 @@ export default function ChunkedRewriter({
           )}
 
           {/* Content Display - Scrollable Area */}
-          <div className="flex-1 overflow-y-auto p-4 border border-red-500">
+          <div className="flex-1 overflow-y-auto p-4 border rounded-lg">
             <div id="rewrite-content" className="prose max-w-none">
               {formatContent(finalRewrittenContent)}
             </div>

@@ -81,6 +81,57 @@ function ensurePerfectFormatting(text: string): string {
   return result.trim();
 }
 
+// Clean markdown formatting from text
+function cleanMarkdownFormatting(text: string): string {
+  if (!text) return text;
+  
+  let cleaned = text;
+  
+  // Remove markdown headers (# ## ### etc.)
+  cleaned = cleaned.replace(/^#+\s+/gm, '');
+  
+  // Remove bold formatting (**text** or __text__)
+  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, '$1');
+  cleaned = cleaned.replace(/__(.*?)__/g, '$1');
+  
+  // Remove italic formatting (*text* or _text_)
+  cleaned = cleaned.replace(/\*(.*?)\*/g, '$1');
+  cleaned = cleaned.replace(/_(.*?)_/g, '$1');
+  
+  // Remove strikethrough (~~text~~)
+  cleaned = cleaned.replace(/~~(.*?)~~/g, '$1');
+  
+  // Remove code blocks (```text```)
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, (match) => {
+    return match.replace(/```\w*\n?/g, '').replace(/```$/g, '');
+  });
+  
+  // Remove inline code (`text`)
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+  
+  // Remove markdown links [text](url) -> text
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  
+  // Remove reference-style links [text][ref] -> text
+  cleaned = cleaned.replace(/\[([^\]]+)\]\[[^\]]*\]/g, '$1');
+  
+  // Remove horizontal rules (--- or ***)
+  cleaned = cleaned.replace(/^[-*]{3,}\s*$/gm, '');
+  
+  // Remove blockquotes (> text)
+  cleaned = cleaned.replace(/^>\s*/gm, '');
+  
+  // Remove list markers (- * + and numbers)
+  cleaned = cleaned.replace(/^\s*[-*+]\s+/gm, '');
+  cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, '');
+  
+  // Clean up extra whitespace
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  cleaned = cleaned.trim();
+  
+  return cleaned;
+}
+
 // Configure multer for file uploads
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -1472,6 +1523,9 @@ Return only the rewritten text with proper paragraph formatting. No additional c
       
       // CRITICAL: Fix formatting issues regardless of AI output
       result = ensurePerfectFormatting(result);
+      
+      // Remove markdown formatting for clean output
+      result = cleanMarkdownFormatting(result);
       
       // Save chunk rewrite to database
       try {
