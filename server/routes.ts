@@ -1135,21 +1135,82 @@ YOUR REWRITTEN DOCUMENT:`;
         
       } else if (format === 'pdf') {
         try {
-          // Generate PDF with perfect mathematical notation
-          const { generatePDFWithMath } = await import('./services/pdfGenerator');
-          const pdfBuffer = await generatePDFWithMath(content, filename);
+          // Generate PDF
+          const PDFDocument = await import('pdfkit');
+          const doc = new PDFDocument.default();
           
-          // Set headers and send PDF
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
-          res.setHeader('Content-Length', pdfBuffer.length);
-          res.send(pdfBuffer);
+          // Create a buffer to store PDF
+          const chunks: Buffer[] = [];
           
-          console.log('PDF with mathematical notation generated successfully');
+          // Capture PDF data chunks
+          doc.on('data', (chunk) => {
+            chunks.push(chunk);
+          });
           
+          // Handle errors on the doc
+          doc.on('error', (pdfError) => {
+            console.error('PDF generation error:', pdfError);
+            return res.status(500).json({ error: 'PDF generation failed', details: pdfError.message });
+          });
+          
+          // When document is done, create buffer and send response
+          doc.on('end', () => {
+            try {
+              const result = Buffer.concat(chunks);
+              
+              // Set headers
+              res.setHeader('Content-Type', 'application/pdf');
+              res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
+              res.setHeader('Content-Length', result.length);
+              
+              // Send buffer
+              res.send(result);
+              console.log('PDF document generated successfully');
+            } catch (bufferError) {
+              console.error('PDF buffer error:', bufferError);
+              return res.status(500).json({ error: 'PDF buffer creation failed', details: bufferError.message });
+            }
+          });
+          
+          // Add content to PDF with proper font settings
+          doc.font('Helvetica');
+          doc.fontSize(12);
+          
+          // Sanitize content for PDF - remove all HTML/markdown formatting
+          const sanitizedContent = content
+            .replace(/<[^>]+>/g, '')           // Remove HTML tags
+            .replace(/&[a-z]+;/gi, '')         // Remove HTML entities
+            .replace(/\*\*(.*?)\*\*/g, '$1')   // Remove bold markdown
+            .replace(/\*(.*?)\*/g, '$1')       // Remove italic markdown
+            .replace(/`(.*?)`/g, '$1')         // Remove code markdown
+            .replace(/#{1,6}\s/g, '')          // Remove heading markdown
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to text
+            .replace(/[^\x00-\x7F]/g, (char) => { // Handle non-ASCII safely
+              // Keep common math symbols, replace others
+              const safeChars = '∫∑∏√±×÷≤≥≠≈∞∂';
+              return safeChars.includes(char) ? char : '';
+            })
+            .trim();
+          
+          // Add content to PDF with proper line breaks
+          const paragraphs = sanitizedContent.split('\n\n');
+          for (let i = 0; i < paragraphs.length; i++) {
+            const paragraph = paragraphs[i] || ' ';
+            doc.text(paragraph, {
+              align: 'left',
+              continued: false
+            });
+            
+            if (i < paragraphs.length - 1) {
+              doc.moveDown();
+            }
+          }
+          
+          // Finalize PDF
+          doc.end();
         } catch (pdfError) {
           console.error('PDF creation error:', pdfError);
-          return res.status(500).json({ error: 'Failed to generate PDF file', details: pdfError instanceof Error ? pdfError.message : String(pdfError) });
+          return res.status(500).json({ error: 'Failed to generate PDF file', details: pdfError.message });
         }
         
       } else {
@@ -1372,75 +1433,41 @@ YOUR REWRITTEN DOCUMENT:`;
 
       prompt += `Text to rewrite (chunk ${chunkIndex + 1} of ${totalChunks}):\n\n${content}\n\n`;
       prompt += `CRITICAL FORMATTING REQUIREMENTS:
-1. MAINTAIN FULL SENTENCE STRUCTURE: Do not isolate math expressions - every expression must stay inside a full sentence
-2. INSERT RENDERED MATH EXPRESSIONS DIRECTLY into sentences in place of raw descriptions
-3. RETAIN phrasing like "is", "equals", "at", "from", "to", etc. — do not drop these during rewriting
-4. PRESERVE punctuation (periods, commas, etc.) from the original sentence
-5. Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
-6. Convert all mathematical symbols to LaTeX (e.g., α → \\alpha, π → \\pi, ∞ → \\infty)
-7. Format fractions with \\frac{numerator}{denominator}
-8. Use proper subscripts and superscripts with _ and ^
-9. PRESERVE THE ORIGINAL FORMATTING STRUCTURE: Keep the same line breaks, spacing, and layout as the input
-10. DO NOT display math expressions on separate lines unless the original input had a line break
-11. ALWAYS format the output with proper paragraph breaks - use double line breaks (\\n\\n) between paragraphs
-12. Ensure proper sentence spacing and readability
-13. Use clear paragraph structure - each major idea should be its own paragraph
-
-EXAMPLE OF CORRECT OUTPUT:
-Input: "The derivative of x squared plus 3 x minus 5."
-Output: "The derivative of $x^2 + 3x - 5$ is $2x + 3$."
+1. ALWAYS format the output with proper paragraph breaks - use double line breaks (\\n\\n) between paragraphs
+2. If the text contains mathematical expressions or formulas:
+   - Preserve all LaTeX formatting using \\(...\\) for inline math and $$...$$ for display math
+   - Do not escape or convert LaTeX symbols
+   - Keep all mathematical notation in proper LaTeX format
+3. Ensure proper sentence spacing and readability
+4. Use clear paragraph structure - each major idea should be its own paragraph
 
 Return only the rewritten text with proper paragraph formatting. No additional comments, explanations, or headers.`;
 
       let result: string;
       
       if (model === 'claude') {
-        // Use direct Claude API call with explicit system prompt like homework mode
-        const { default: Anthropic } = await import('@anthropic-ai/sdk');
-        const anthropic = new Anthropic({
-          apiKey: process.env.ANTHROPIC_API_KEY,
-        });
-
-        const response = await anthropic.messages.create({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4000,
+        result = await processClaude(prompt, {
           temperature: 0.7,
-          system: "Rewrite text according to instructions while maintaining full sentence structure. Do not isolate math expressions - every expression must stay inside a full sentence. Insert rendered math expressions directly into sentences in place of raw descriptions. Retain phrasing like 'is', 'equals', 'at', 'from', 'to', etc. Preserve punctuation from original sentences. Use proper LaTeX delimiters: $...$ for inline math. Complete the entire rewrite fully and directly.",
-          messages: [{ role: 'user', content: prompt }]
+          maxTokens: 4000
         });
-
-        result = response.content[0].type === 'text' ? response.content[0].text : '';
       } else if (model === 'gpt4') {
         const { default: OpenAI } = await import('openai');
         const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         
         const response = await openai.chat.completions.create({
           model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          messages: [
-            { role: "system", content: "Rewrite text according to instructions while maintaining full sentence structure. Do not isolate math expressions - every expression must stay inside a full sentence. Insert rendered math expressions directly into sentences in place of raw descriptions. Retain phrasing like 'is', 'equals', 'at', 'from', 'to', etc. Preserve punctuation from original sentences. Use proper LaTeX delimiters: $...$ for inline math. Complete the entire rewrite fully and directly." },
-            { role: "user", content: prompt }
-          ],
+          messages: [{ role: "user", content: prompt }],
           temperature: 0.7,
           max_tokens: 4000
         });
         
         result = response.choices[0].message.content || '';
       } else {
-        // Fallback to Claude with same system prompt
-        const { default: Anthropic } = await import('@anthropic-ai/sdk');
-        const anthropic = new Anthropic({
-          apiKey: process.env.ANTHROPIC_API_KEY,
-        });
-
-        const response = await anthropic.messages.create({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4000,
+        // Fallback to Claude
+        result = await processClaude(prompt, {
           temperature: 0.7,
-          system: "Rewrite text according to instructions while maintaining full sentence structure. Do not isolate math expressions - every expression must stay inside a full sentence. Insert rendered math expressions directly into sentences in place of raw descriptions. Retain phrasing like 'is', 'equals', 'at', 'from', 'to', etc. Preserve punctuation from original sentences. Use proper LaTeX delimiters: $...$ for inline math. Complete the entire rewrite fully and directly.",
-          messages: [{ role: 'user', content: prompt }]
+          maxTokens: 4000
         });
-
-        result = response.content[0].type === 'text' ? response.content[0].text : '';
       }
       
       // CRITICAL: Fix formatting issues regardless of AI output
@@ -1533,43 +1560,6 @@ Return only the rewritten text with proper paragraph formatting. No additional c
     } catch (error) {
       console.error('Error fetching rewrites:', error);
       res.status(500).json({ error: 'Failed to fetch rewrites' });
-    }
-  });
-
-  // Get complete rewritten document from database
-  app.get('/api/complete-rewrite/:documentId', async (req: Request, res: Response) => {
-    try {
-      const { documentId } = req.params;
-      
-      // Get all rewritten chunks for this document from the database
-      const chunks = await storage.getRewrittenChunks(documentId);
-      
-      if (!chunks || chunks.length === 0) {
-        return res.status(404).json({ error: 'No rewritten content found for this document' });
-      }
-      
-      // Combine all chunks into complete document
-      const completeContent = chunks
-        .sort((a, b) => (a.chunkIndex || 0) - (b.chunkIndex || 0))
-        .map(chunk => chunk.rewrittenContent)
-        .join('\n\n');
-      
-      const metadata = {
-        documentId,
-        totalChunks: chunks.length,
-        totalLength: completeContent.length,
-        model: chunks[0]?.model || 'unknown',
-        lastUpdated: chunks[0]?.updatedAt || new Date()
-      };
-      
-      res.json({
-        content: completeContent,
-        metadata
-      });
-      
-    } catch (error) {
-      console.error('Error retrieving complete rewrite:', error);
-      res.status(500).json({ error: 'Failed to retrieve complete rewritten document' });
     }
   });
 
@@ -1793,21 +1783,6 @@ Return only the rewritten text with proper paragraph formatting. No additional c
 <head>
     <meta charset="utf-8">
     <title>${documentName || 'Document'}</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['\\(', '\\)'], ['$', '$']],
-                displayMath: [['\\[', '\\]'], ['$$', '$$']],
-                processEscapes: true,
-                processEnvironments: true
-            },
-            options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-            }
-        };
-    </script>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -1841,6 +1816,22 @@ Return only the rewritten text with proper paragraph formatting. No additional c
             margin: 10px 0;
             line-height: 1.6;
         }
+        .math-inline { 
+            font-style: italic; 
+            background: #f8f8f8; 
+            padding: 1px 3px;
+            border-radius: 2px;
+            border: 1px solid #e0e0e0;
+        }
+        .math-block { 
+            font-style: italic; 
+            background: #f5f5f5; 
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
         @media print {
             body { margin: 0; padding: 15mm; }
             .section { break-inside: avoid; }
@@ -1855,9 +1846,42 @@ Return only the rewritten text with proper paragraph formatting. No additional c
       results.forEach((result: any, index: number) => {
         let content = result.rewrittenContent || '';
         
-        // Keep LaTeX markup intact for proper MathJax rendering
-        // DO NOT convert LaTeX to HTML - let MathJax handle it
+        // Convert math notation to properly formatted HTML
         content = content
+          // LaTeX display equations
+          .replace(/\$\$([^$]+)\$\$/g, '<div class="math-block">$1</div>')
+          // LaTeX inline math
+          .replace(/\$([^$]+)\$/g, '<span class="math-inline">$1</span>')
+          // Common mathematical symbols and functions
+          .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="math-inline">($1)/($2)</span>')
+          .replace(/\\sqrt\{([^}]+)\}/g, '<span class="math-inline">√($1)</span>')
+          .replace(/\\sum_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">Σ<sub>$1</sub><sup>$2</sup></span>')
+          .replace(/\\sum/g, '<span class="math-inline">Σ</span>')
+          .replace(/\\int_\{([^}]+)\}\^\{([^}]+)\}/g, '<span class="math-inline">∫<sub>$1</sub><sup>$2</sup></span>')
+          .replace(/\\int/g, '<span class="math-inline">∫</span>')
+          .replace(/\\infty/g, '<span class="math-inline">∞</span>')
+          .replace(/\\pi/g, '<span class="math-inline">π</span>')
+          .replace(/\\alpha/g, '<span class="math-inline">α</span>')
+          .replace(/\\beta/g, '<span class="math-inline">β</span>')
+          .replace(/\\gamma/g, '<span class="math-inline">γ</span>')
+          .replace(/\\delta/g, '<span class="math-inline">δ</span>')
+          .replace(/\\epsilon/g, '<span class="math-inline">ε</span>')
+          .replace(/\\theta/g, '<span class="math-inline">θ</span>')
+          .replace(/\\lambda/g, '<span class="math-inline">λ</span>')
+          .replace(/\\mu/g, '<span class="math-inline">μ</span>')
+          .replace(/\\sigma/g, '<span class="math-inline">σ</span>')
+          .replace(/\\omega/g, '<span class="math-inline">ω</span>')
+          .replace(/\\Omega/g, '<span class="math-inline">Ω</span>')
+          // Subscripts and superscripts
+          .replace(/_\{([^}]+)\}/g, '<sub>$1</sub>')
+          .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
+          .replace(/_([0-9a-zA-Z])/g, '<sub>$1</sub>')
+          .replace(/\^([0-9a-zA-Z])/g, '<sup>$1</sup>')
+          // Clean up LaTeX commands
+          .replace(/\\text\{([^}]+)\}/g, '$1')
+          .replace(/\\\\/g, '<br>')
+          .replace(/\{([^}]+)\}/g, '$1')
+          .replace(/\\\w+\s*/g, '')
           // Convert markdown formatting
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -2460,130 +2484,6 @@ Return only the new content without any additional comments, explanations, or he
     } catch (error) {
       console.error('Homework mode error:', error);
       res.status(500).json({ error: 'Failed to process homework' });
-    }
-  });
-
-  // Text to Math conversion endpoint - converts markup to perfect mathematical notation
-  app.post('/api/text-to-math', async (req: Request, res: Response) => {
-    try {
-      const { content, instructions, model, chatContext, chunkIndex, totalChunks } = req.body;
-      
-      if (!content) {
-        return res.status(400).json({ error: 'Content is required' });
-      }
-
-      // Build the prompt for mathematical notation conversion
-      let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Ensure all mathematical expressions, equations, formulas, and symbols are properly formatted with LaTeX markup for perfect rendering.
-
-CRITICAL REQUIREMENTS:
-- MAINTAIN FULL SENTENCE STRUCTURE: Do not strip out context or text around math expressions
-- INSERT RENDERED MATH EXPRESSIONS DIRECTLY into sentences in place of raw descriptions
-- Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
-- Convert all mathematical symbols to LaTeX (e.g., α → \\alpha, π → \\pi, ∞ → \\infty)
-- Preserve all mathematical meaning and context
-- Format fractions with \\frac{numerator}{denominator}
-- Use proper subscripts and superscripts with _ and ^
-- Keep all non-mathematical text unchanged
-- Ensure equations are properly balanced and syntactically correct
-- IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
-- Remove ALL markdown headers, bold text, italic text, and other formatting
-- Present the content as clean, readable plain text with proper LaTeX math notation
-- PRESERVE THE ORIGINAL FORMATTING STRUCTURE: Keep the same line breaks, spacing, and layout as the input
-- If input has one math problem per line, output should have one problem per line
-- Maintain paragraph breaks and spacing exactly as they appear in the original
-- DO NOT display math expressions on separate lines unless the original input had a line break
-- RETAIN phrasing like "is", "equals", "at", "from", "to", etc. — do not drop these during rewriting
-- PRESERVE punctuation (periods, commas, etc.) from the original sentence
-- Ensure LaTeX expressions are wrapped in proper inline math delimiters $...$
-
-EXAMPLE:
-Input: "The derivative of x squared plus 3 x minus 5."
-Output: "The derivative of $x^2 + 3x - 5$ is $2x + 3$."
-
-Content to convert:
-${content}`;
-
-      if (instructions && instructions.trim()) {
-        prompt += `\n\nAdditional instructions: ${instructions}`;
-      }
-
-      if (chatContext) {
-        prompt += `\n\nContext: ${chatContext}`;
-      }
-
-      if (chunkIndex !== undefined && totalChunks !== undefined) {
-        prompt += `\n\n(Processing chunk ${chunkIndex + 1} of ${totalChunks})`;
-      }
-
-      // Use the specified model for conversion
-      let result = '';
-      const selectedModel = model || 'claude';
-
-      if (selectedModel === 'claude') {
-        const { default: Anthropic } = await import('@anthropic-ai/sdk');
-        const anthropic = new Anthropic({
-          apiKey: process.env.ANTHROPIC_API_KEY,
-        });
-
-        const response = await anthropic.messages.create({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4000,
-          temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. MAINTAIN FULL SENTENCE STRUCTURE - do not strip out context or text around math expressions. INSERT rendered math expressions directly into sentences in place of raw descriptions. RETAIN phrasing like 'is', 'equals', 'at', 'from', 'to', etc. PRESERVE punctuation from original sentences. Be precise and accurate with LaTeX syntax using $...$ for inline math. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input.",
-          messages: [{ role: 'user', content: prompt }]
-        });
-
-        result = response.content[0].type === 'text' ? response.content[0].text : '';
-      } else if (selectedModel === 'gpt4') {
-        const OpenAI = await import('openai');
-        const openai = new OpenAI.default({
-          apiKey: process.env.OPENAI_API_KEY,
-        });
-
-        const response = await openai.chat.completions.create({
-          model: 'gpt-4',
-          messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning and ORIGINAL FORMATTING STRUCTURE. MAINTAIN FULL SENTENCE STRUCTURE - do not strip out context or text around math expressions. INSERT rendered math expressions directly into sentences in place of raw descriptions. RETAIN phrasing like "is", "equals", "at", "from", "to", etc. PRESERVE punctuation from original sentences. Be precise and accurate with LaTeX syntax using $...$ for inline math. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. PRESERVE line breaks, spacing, and layout exactly as they appear in the input.' },
-            { role: 'user', content: prompt }
-          ],
-          max_tokens: 4000,
-          temperature: 0.1
-        });
-
-        result = response.choices[0]?.message?.content || '';
-      } else {
-        // Fallback to Claude for other models
-        const { default: Anthropic } = await import('@anthropic-ai/sdk');
-        const anthropic = new Anthropic({
-          apiKey: process.env.ANTHROPIC_API_KEY,
-        });
-
-        const response = await anthropic.messages.create({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4000,
-          temperature: 0.1,
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax.",
-          messages: [{ role: 'user', content: prompt }]
-        });
-
-        result = response.content[0].type === 'text' ? response.content[0].text : '';
-      }
-
-      // Clean up any remaining markdown formatting
-      const cleanResult = result
-        .replace(/^#+ /gm, '') // Remove markdown headers
-        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
-        .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting  
-        .replace(/`(.*?)`/g, '$1') // Remove inline code formatting
-        .replace(/^- /gm, '') // Remove bullet points
-        .replace(/^\* /gm, '') // Remove asterisk bullet points
-        .replace(/^\d+\. /gm, '') // Remove numbered lists
-        .trim();
-
-      res.json({ mathContent: cleanResult });
-    } catch (error) {
-      console.error('Text to Math conversion error:', error);
-      res.status(500).json({ error: 'Failed to convert text to mathematical notation' });
     }
   });
 

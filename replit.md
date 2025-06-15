@@ -94,13 +94,6 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 ```
 Changelog:
 - June 14, 2025. Initial setup
-- June 14, 2025. Added "Text to Math" processing mode with proper LaTeX/MathJax rendering
-- June 14, 2025. Implemented automatic math formatting pipeline - all rewrite/homework output now gets perfect mathematical notation
-- June 14, 2025. Fixed Text to Math API to remove all markdown formatting from downloads - clean plain text output with perfect LaTeX
-- June 15, 2025. Added PDF download functionality with perfect mathematical notation rendering using Puppeteer and MathJax
-- June 15, 2025. Enhanced Text to Math to preserve original formatting structure including line breaks and spacing
-- June 15, 2025. Updated Text to Math to maintain full sentence structure and context - math expressions now render inline with proper sentence flow
-- June 15, 2025. Fixed rewrite mode to use exact formatting logic from homework mode - math expressions now stay within full sentences with proper context preserved
 ```
 
 ## User Preferences

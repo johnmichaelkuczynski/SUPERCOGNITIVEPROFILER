@@ -31,8 +31,7 @@ interface ChunkedRewriterProps {
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
   onAddToChat: (content: string, metadata: any) => void;
   chatHistory?: Array<{role: string; content: string}>;
-  initialProcessingMode?: 'rewrite' | 'homework' | 'text-to-math';
-  documentId?: string;
+  initialProcessingMode?: 'rewrite' | 'homework';
 }
 
 export default function ChunkedRewriter({ 
@@ -40,8 +39,7 @@ export default function ChunkedRewriter({
   onRewriteComplete, 
   onAddToChat,
   chatHistory = [],
-  initialProcessingMode = 'rewrite',
-  documentId
+  initialProcessingMode = 'rewrite'
 }: ChunkedRewriterProps) {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [instructions, setInstructions] = useState('');
@@ -56,7 +54,7 @@ export default function ChunkedRewriter({
   const [senderEmail, setSenderEmail] = useState('');
   
   // Processing mode options - use the passed initial mode
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>(initialProcessingMode);
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>(initialProcessingMode);
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
   const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);
@@ -73,18 +71,7 @@ export default function ChunkedRewriter({
   const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
   const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
   
-  // Dedicated Complete Document Popup
-  const [showCompleteDocumentPopup, setShowCompleteDocumentPopup] = useState(false);
-  const [completeDocumentContent, setCompleteDocumentContent] = useState('');
-  const [completeDocumentMetadata, setCompleteDocumentMetadata] = useState<any>(null);
-  
   const { toast } = useToast();
-
-  const showCompleteDocument = (content: string, metadata: any, title: string = "Complete Rewritten Document") => {
-    setCompleteDocumentContent(content);
-    setCompleteDocumentMetadata({ ...metadata, title });
-    setShowCompleteDocumentPopup(true);
-  };
 
   const cancelRewrite = () => {
     setIsCancelled(true);
@@ -200,48 +187,20 @@ export default function ChunkedRewriter({
 
       const result = await response.json();
       
-      setProgress(75);
-
-      // AUTO-APPLY TEXT TO MATH: Automatically run homework results through math formatting
-      let finalContent = result.response;
-      try {
-        const mathResponse = await fetch('/api/text-to-math', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: finalContent,
-            instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-            model: selectedModel
-          }),
-        });
-
-        if (mathResponse.ok) {
-          const mathResult = await mathResponse.json();
-          finalContent = mathResult.mathContent;
-          console.log('[auto-math] Homework result automatically formatted for math');
-        }
-      } catch (error) {
-        console.warn('[auto-math] Failed to format homework result for math:', error);
-        // Continue with original content if math formatting fails
-      }
-
       setProgress(100);
 
       // Prepare metadata
       const metadata = {
         originalLength: originalText.length,
-        rewrittenLength: finalContent.length,
+        rewrittenLength: result.response.length,
         mode: 'homework',
         model: selectedModel,
         instructions: instructions,
-        includedChatContext: includeChatContext,
-        mathFormatted: true
+        includedChatContext: includeChatContext
       };
 
       // Store results for popup display
-      setFinalRewrittenContent(finalContent);
+      setFinalRewrittenContent(result.response);
       setRewriteMetadata(metadata);
       setShowResultsPopup(true);
 
@@ -252,17 +211,16 @@ export default function ChunkedRewriter({
 
       // Add to chat immediately
       onAddToChat(
-        `**Homework Assignment Completed:**\n\n${finalContent}`,
+        `**Homework Assignment Completed:**\n\n${result.response}`,
         { 
           type: 'homework_completion',
           originalInstructions: originalText,
-          userGuidance: instructions,
-          mathFormatted: true
+          userGuidance: instructions
         }
       );
 
       // Save as document
-      onRewriteComplete(finalContent, metadata);
+      onRewriteComplete(result.response, metadata);
 
     } catch (error) {
       console.error('Homework processing error:', error);
@@ -388,22 +346,6 @@ export default function ChunkedRewriter({
                 chatContext: includeChatContext ? chatContext : undefined,
               }),
             });
-          } else if (processingMode === 'text-to-math') {
-            // Use text-to-math endpoint for mathematical notation conversion
-            response = await fetch('/api/text-to-math', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                content: chunk.content,
-                instructions: instructions || 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-                model: selectedModel,
-                chatContext: includeChatContext ? chatContext : undefined,
-                chunkIndex: i,
-                totalChunks: selectedChunks.length
-              }),
-            });
           } else {
             // Use rewrite endpoint
             response = await fetch('/api/rewrite-chunk', {
@@ -429,39 +371,8 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
 
-          // Store the content immediately (homework returns 'response', text-to-math returns 'mathContent', rewrite returns 'rewrittenContent')
-          let content = processingMode === 'homework' ? result.response : 
-                       processingMode === 'text-to-math' ? result.mathContent : 
-                       result.rewrittenContent;
-
-          // AUTO-APPLY TEXT TO MATH: For rewrite and homework modes, automatically run through math formatting
-          if (processingMode === 'rewrite' || processingMode === 'homework') {
-            try {
-              const mathResponse = await fetch('/api/text-to-math', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  content: content,
-                  instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-                  model: selectedModel,
-                  chunkIndex: i,
-                  totalChunks: selectedChunks.length
-                }),
-              });
-
-              if (mathResponse.ok) {
-                const mathResult = await mathResponse.json();
-                content = mathResult.mathContent; // Use the math-formatted version
-                console.log(`[auto-math] Chunk ${i + 1} automatically formatted for math`);
-              }
-            } catch (error) {
-              console.warn(`[auto-math] Failed to format chunk ${i + 1} for math:`, error);
-              // Continue with original content if math formatting fails
-            }
-          }
-
+          // Store the content immediately (homework returns 'response', rewrite returns 'rewrittenContent')
+          const content = processingMode === 'homework' ? result.response : result.rewrittenContent;
           rewrittenChunks.push(content);
 
           // Update chunk with rewritten content
@@ -527,41 +438,15 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
           
-          // AUTO-APPLY TEXT TO MATH: Format new chunks for math too
-          let newChunkContent = result.newChunkContent;
-          try {
-            const mathResponse = await fetch('/api/text-to-math', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                content: newChunkContent,
-                instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-                model: selectedModel,
-                chunkIndex: i,
-                totalChunks: maxNewChunks
-              }),
-            });
-
-            if (mathResponse.ok) {
-              const mathResult = await mathResponse.json();
-              newChunkContent = mathResult.mathContent;
-              console.log(`[auto-math] New chunk ${i + 1} automatically formatted for math`);
-            }
-          } catch (error) {
-            console.warn(`[auto-math] Failed to format new chunk ${i + 1} for math:`, error);
-          }
-          
           // Add new chunk to final content
-          finalContent += '\n\n' + newChunkContent;
+          finalContent += '\n\n' + result.newChunkContent;
 
           // Update live progress with new chunk
           const selectedCount = chunks.filter(chunk => chunk.selected).length;
           setLiveProgressChunks(prev => prev.map((item, idx) => 
             idx === selectedCount + i ? {
               ...item,
-              content: newChunkContent,
+              content: result.newChunkContent,
               completed: true
             } : item
           ));
@@ -584,11 +469,13 @@ export default function ChunkedRewriter({
         includedChatContext: includeChatContext
       };
 
-      // AUTOMATICALLY show complete unified document after rewriting
-      console.log("Rewrite complete - showing unified document:", finalContent.length, "characters");
-      showCompleteDocument(finalContent, metadata, "Complete Rewritten Document");
-      setShowLiveProgress(false); // Hide progress popup
-      console.log("Dedicated complete document popup activated!");
+      // Store results for popup display - force it to show!
+      console.log("Setting popup content:", finalContent.length, "characters");
+      console.log("Setting popup metadata:", metadata);
+      setFinalRewrittenContent(finalContent);
+      setRewriteMetadata(metadata);
+      setShowResultsPopup(true);
+      console.log("Popup state set to true - should display now!");
 
       toast({
         title: "Rewrite complete!",
@@ -987,7 +874,7 @@ export default function ChunkedRewriter({
         {/* Processing Mode Selection */}
         <div className="space-y-4">
           <Label className="text-lg font-semibold">Processing Mode</Label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
                   onClick={() => setProcessingMode('rewrite')}>
               <CardContent className="p-4 text-center">
@@ -1000,13 +887,6 @@ export default function ChunkedRewriter({
               <CardContent className="p-4 text-center">
                 <h3 className="font-semibold">Homework Mode</h3>
                 <p className="text-sm text-muted-foreground mt-2">Follow instructions, complete assignments, answer questions</p>
-              </CardContent>
-            </Card>
-            <Card className={`cursor-pointer transition-all ${processingMode === 'text-to-math' ? 'ring-2 ring-purple-500 bg-purple-50' : 'hover:bg-gray-50'}`}
-                  onClick={() => setProcessingMode('text-to-math')}>
-              <CardContent className="p-4 text-center">
-                <h3 className="font-semibold">Text to Math</h3>
-                <p className="text-sm text-muted-foreground mt-2">Convert markup to perfect mathematical notation</p>
               </CardContent>
             </Card>
           </div>
@@ -1254,37 +1134,6 @@ export default function ChunkedRewriter({
           </div>
         )}
 
-        {/* URGENT: View Complete Document - Always Available */}
-        {originalText && (
-          <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-lg mb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-800">📄 View Complete Original Document</h3>
-                <p className="text-sm text-blue-700">See your entire document in one unified view before rewriting</p>
-              </div>
-              <Button 
-                onClick={() => {
-                  const metadata = {
-                    originalLength: originalText.length,
-                    rewrittenLength: originalText.length,
-                    chunksProcessed: 0,
-                    newChunksAdded: 0,
-                    model: selectedModel,
-                    instructions: 'Original document view',
-                    rewriteMode: 'view'
-                  };
-
-                  showCompleteDocument(originalText, metadata, "Complete Original Document");
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg"
-                size="lg"
-              >
-                📄 View Complete Document
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {!isProcessing ? (
@@ -1294,9 +1143,7 @@ export default function ChunkedRewriter({
               className="flex items-center space-x-2"
             >
               <Play className="w-4 h-4" />
-              <span>{processingMode === 'homework' ? 'Start Homework' : 
-                     processingMode === 'text-to-math' ? 'Convert to Math' : 
-                     'Start Rewrite'}</span>
+              <span>{processingMode === 'homework' ? 'Start Homework' : 'Start Rewrite'}</span>
             </Button>
           ) : (
             <Button 
@@ -1339,92 +1186,6 @@ export default function ChunkedRewriter({
           </Button>
         </div>
 
-        {/* WORKING: View Complete Document Button - Shows unified rewritten content */}
-        <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-green-800">📄 View Complete Rewritten Document</h3>
-              <p className="text-sm text-green-700">Click to see your entire rewritten document in one unified view</p>
-            </div>
-            <Button 
-              onClick={() => {
-                // Get all rewritten chunks and combine them
-                const rewrittenChunks = chunks.filter(chunk => chunk.rewritten && chunk.rewritten.trim() !== '');
-                
-                if (rewrittenChunks.length === 0) {
-                  toast({
-                    title: "No Content",
-                    description: "No rewritten content available. Please complete the rewrite process first.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-                
-                // Combine all rewritten chunks in order
-                const completeDocument = rewrittenChunks
-                  .sort((a, b) => parseInt(a.id.split('-')[1] || '0') - parseInt(b.id.split('-')[1] || '0'))
-                  .map(chunk => chunk.rewritten)
-                  .join('\n\n');
-                
-                const metadata = {
-                  originalLength: originalText.length,
-                  rewrittenLength: completeDocument.length,
-                  chunksProcessed: rewrittenChunks.length,
-                  newChunksAdded: 0,
-                  model: selectedModel,
-                  instructions: instructions,
-                  rewriteMode: processingMode
-                };
-
-                // Show the complete document in popup
-                setCompleteDocumentContent(completeDocument);
-                setCompleteDocumentMetadata(metadata);
-                setShowCompleteDocumentPopup(true);
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
-              size="lg"
-            >
-              📄 View Complete Document
-            </Button>
-          </div>
-        </div>
-
-        {/* Conditional message for when chunks are available */}
-        {(chunks.some(c => c.rewritten) || chunks.some(c => c.isComplete)) ? null : (
-          <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-green-800">📄 Complete Document Ready</h3>
-                <p className="text-sm text-green-700">View your entire rewritten document in one unified view</p>
-              </div>
-              <Button 
-                onClick={() => {
-                  const completeDocument = chunks
-                    .filter(chunk => chunk.rewritten)
-                    .map(chunk => chunk.rewritten)
-                    .join('\n\n');
-                  
-                  const metadata = {
-                    originalLength: originalText.length,
-                    rewrittenLength: completeDocument.length,
-                    chunksProcessed: chunks.filter(c => c.rewritten).length,
-                    newChunksAdded: 0,
-                    model: selectedModel,
-                    instructions: instructions,
-                    rewriteMode: 'rewrite'
-                  };
-
-                  showCompleteDocument(completeDocument, metadata, "Complete Rewritten Document");
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg"
-                size="lg"
-              >
-                📄 View Complete Document
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* Email Sharing */}
         <div className="space-y-2">
           <div className="flex space-x-2">
@@ -1463,28 +1224,24 @@ export default function ChunkedRewriter({
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            📄 Complete Rewritten Document {rewriteMetadata?.isRerewrite ? '(Re-rewritten)' : ''} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'All Chunks Combined' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
+            {rewriteMetadata?.isRerewrite ? '🔄 Re-rewritten Content' : 'Rewrite Results'} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
           </DialogTitle>
           <DialogDescription>
-            <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
-              <div className="font-medium text-green-800 mb-2">✅ Entire Document Ready - All Chunks Combined into One Unified Text</div>
-              <div className="text-sm text-green-700 mb-2">This popup displays your complete rewritten document in one scrollable view. No need to view individual chunks separately.</div>
-              {rewriteMetadata && (
-                <div className="text-sm space-y-1">
-                  {rewriteMetadata.isRerewrite && (
-                    <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
-                  )}
-                  <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
-                  <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
-                  {rewriteMetadata.chunksProcessed > 0 && <div>Chunks processed: {rewriteMetadata.chunksProcessed} (all combined below)</div>}
-                  {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
-                  <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>
-                  {rewriteMetadata.isRerewrite && (
-                    <div className="text-blue-600">Re-rewrite instructions: {rewriteMetadata.rerewriteInstructions}</div>
-                  )}
-                </div>
-              )}
-            </div>
+            {rewriteMetadata && (
+              <div className="text-sm space-y-1">
+                {rewriteMetadata.isRerewrite && (
+                  <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
+                )}
+                <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
+                <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
+                {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
+                {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
+                <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>
+                {rewriteMetadata.isRerewrite && (
+                  <div className="text-blue-600">Re-rewrite instructions: {rewriteMetadata.rerewriteInstructions}</div>
+                )}
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
         
@@ -1848,12 +1605,8 @@ export default function ChunkedRewriter({
             </div>
           )}
 
-          {/* Content Display - Complete Rewritten Document */}
-          <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white max-h-[60vh]">
-            <div className="mb-4 p-2 bg-blue-50 rounded text-sm text-blue-800">
-              <strong>Complete Rewritten Document</strong> - {finalRewrittenContent.length.toLocaleString()} characters
-              {rewriteMetadata && ` | ${rewriteMetadata.chunksProcessed || 0} chunks processed`}
-            </div>
+          {/* Content Display */}
+          <div className="flex-1 overflow-auto border rounded-lg p-4 bg-white">
             <div id="rewrite-content" className="prose max-w-none">
               {formatContent(finalRewrittenContent)}
             </div>
@@ -1920,152 +1673,6 @@ export default function ChunkedRewriter({
                 width: `${liveProgressChunks.length > 0 ? (liveProgressChunks.filter(c => c.completed).length / liveProgressChunks.length) * 100 : 0}%` 
               }}
             ></div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-    
-    {/* DEDICATED COMPLETE DOCUMENT POPUP */}
-    <Dialog open={showCompleteDocumentPopup} onOpenChange={setShowCompleteDocumentPopup}>
-      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            📄 {completeDocumentMetadata?.title || "Complete Document"}
-          </DialogTitle>
-          <DialogDescription>
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
-              <div className="font-semibold text-green-800 mb-2">✅ Unified Document View - No Chunks, Just Complete Text</div>
-              {completeDocumentMetadata && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div className="text-green-700">
-                    <strong>Length:</strong> {completeDocumentContent.length.toLocaleString()} characters
-                  </div>
-                  <div className="text-green-700">
-                    <strong>Words:</strong> {completeDocumentContent.split(/\s+/).length.toLocaleString()}
-                  </div>
-                  {completeDocumentMetadata.chunksProcessed > 0 && (
-                    <div className="text-green-700">
-                      <strong>Chunks Combined:</strong> {completeDocumentMetadata.chunksProcessed}
-                    </div>
-                  )}
-                  <div className="text-green-700">
-                    <strong>Model:</strong> {completeDocumentMetadata.model?.toUpperCase() || 'N/A'}
-                  </div>
-                </div>
-              )}
-              <div className="text-sm text-green-600 mt-2 italic">Scroll to read the entire document from start to finish</div>
-            </div>
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex flex-col h-[80vh]">
-          {/* Action Bar */}
-          <div className="flex flex-wrap gap-2 mb-4 p-3 bg-gray-50 rounded-lg border">
-            <Button 
-              onClick={() => {
-                // Add to chat
-                onAddToChat(`**${completeDocumentMetadata?.title || 'Complete Document'}:**\n\n${completeDocumentContent}`, completeDocumentMetadata);
-                toast({
-                  title: "Added to chat",
-                  description: "Complete document added to your conversation",
-                });
-              }}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              💬 Add to Chat
-            </Button>
-            
-            <Button 
-              onClick={() => {
-                // PDF Download
-                const printWindow = window.open('', '_blank');
-                if (!printWindow) {
-                  toast({
-                    title: "Pop-up blocked",
-                    description: "Please allow pop-ups and try again.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-
-                const htmlContent = `<!DOCTYPE html>
-<html>
-<head>
-    <title>${completeDocumentMetadata?.title || 'Complete Document'}</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-                processEscapes: true,
-                processEnvironments: true
-            },
-            options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-            }
-        };
-    </script>
-    <style>
-        body { font-family: 'Times New Roman', serif; line-height: 1.6; max-width: 8.5in; margin: 0 auto; padding: 1in; color: black; background: white; }
-        h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
-        p { margin-bottom: 12px; }
-        .MathJax { font-size: 1em !important; }
-        .print-button { text-align: center; margin: 20px 0; }
-        .print-button button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        @media print { .print-button { display: none; } body { margin: 0.5in; } }
-    </style>
-</head>
-<body>
-    <div class="print-button">
-        <button onclick="window.print()">📄 Save as PDF</button>
-        <button onclick="window.close()" style="background: #6c757d; margin-left: 10px;">Close</button>
-    </div>
-    <div id="content">${completeDocumentContent.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>')}</div>
-    <script>
-        if (window.MathJax) {
-            MathJax.typesetPromise([document.getElementById('content')]).then(() => {
-                console.log('MathJax rendering complete');
-            });
-        }
-    </script>
-</body>
-</html>`;
-
-                printWindow.document.write(htmlContent);
-                printWindow.document.close();
-
-                toast({
-                  title: "PDF ready",
-                  description: "Click 'Save as PDF' in the new window",
-                });
-              }}
-              variant="outline"
-            >
-              📄 Save as PDF
-            </Button>
-
-            <Button 
-              onClick={() => setShowCompleteDocumentPopup(false)}
-              variant="outline"
-            >
-              ✕ Close
-            </Button>
-          </div>
-
-          {/* COMPLETE DOCUMENT CONTENT - SCROLLABLE */}
-          <div className="flex-1 overflow-auto border-2 border-blue-200 rounded-lg p-6 bg-white">
-            <div className="mb-4 p-3 bg-blue-50 rounded text-sm text-blue-800 border border-blue-200">
-              <strong>Complete {completeDocumentMetadata?.rewriteMode === 'view' ? 'Original' : 'Rewritten'} Document</strong>
-              <div className="text-xs mt-1">
-                {completeDocumentContent.length.toLocaleString()} characters • {completeDocumentContent.split(/\s+/).length.toLocaleString()} words
-                {completeDocumentMetadata?.chunksProcessed > 0 && ` • ${completeDocumentMetadata.chunksProcessed} chunks combined`}
-              </div>
-            </div>
-            <div id="complete-document-content" className="prose max-w-none text-base leading-relaxed">
-              {formatContent(completeDocumentContent)}
-            </div>
           </div>
         </div>
       </DialogContent>

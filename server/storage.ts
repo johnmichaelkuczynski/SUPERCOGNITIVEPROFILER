@@ -39,7 +39,6 @@ export interface IStorage {
   // Rewrite methods
   getRewrite(id: number): Promise<Rewrite | undefined>;
   getRewritesByUserId(userId: number): Promise<Rewrite[]>;
-  getRewrittenChunks(documentId: string): Promise<any[]>;
   createRewrite(rewrite: InsertRewrite): Promise<Rewrite>;
   deleteRewrite(id: number): Promise<boolean>;
   
@@ -266,23 +265,6 @@ export class MemStorage implements IStorage {
     };
     this.rewrites.set(id, rewrite);
     return rewrite;
-  }
-
-  async getRewrittenChunks(documentId: string): Promise<any[]> {
-    // Filter rewrites by sourceId (which stores the document ID) and return as chunk format
-    const chunks = [];
-    for (const [id, rewrite] of this.rewrites.entries()) {
-      if (rewrite.sourceId === documentId) {
-        chunks.push({
-          id: id,
-          chunkIndex: chunks.length,
-          rewrittenContent: rewrite.rewrittenContent,
-          model: rewrite.model,
-          updatedAt: rewrite.createdAt
-        });
-      }
-    }
-    return chunks;
   }
 
   async deleteRewrite(id: number): Promise<boolean> {
@@ -570,23 +552,6 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Database error in createRewrite, falling back to memory storage:", error);
       return this.memStorage.createRewrite(rewrite);
-    }
-  }
-
-  async getRewrittenChunks(documentId: string): Promise<any[]> {
-    try {
-      // Get all rewrites for this document using sourceId (which stores the document ID)
-      const results = await db.select().from(rewrites).where(eq(rewrites.sourceId, documentId));
-      return results.map((rewrite, index) => ({
-        id: rewrite.id,
-        chunkIndex: index,
-        rewrittenContent: rewrite.rewrittenContent,
-        model: rewrite.model,
-        updatedAt: rewrite.createdAt
-      }));
-    } catch (error) {
-      console.error("Database error in getRewrittenChunks:", error);
-      return [];
     }
   }
 
