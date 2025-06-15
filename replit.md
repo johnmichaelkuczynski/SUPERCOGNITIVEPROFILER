@@ -97,6 +97,7 @@ Changelog:
 - June 14, 2025. Added "Text to Math" processing mode with proper LaTeX/MathJax rendering
 - June 14, 2025. Implemented automatic math formatting pipeline - all rewrite/homework output now gets perfect mathematical notation
 - June 14, 2025. Fixed Text to Math API to remove all markdown formatting from downloads - clean plain text output with perfect LaTeX
+- June 15, 2025. Added PDF download functionality with perfect mathematical notation rendering using Puppeteer and MathJax
 ```
 
 ## User Preferences

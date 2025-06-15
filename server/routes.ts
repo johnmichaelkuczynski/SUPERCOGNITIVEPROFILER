@@ -1135,91 +1135,9 @@ YOUR REWRITTEN DOCUMENT:`;
         
       } else if (format === 'pdf') {
         try {
-          // Generate PDF with perfect mathematical notation using Puppeteer
-          const puppeteer = await import('puppeteer');
-          
-          // Launch browser
-          const browser = await puppeteer.default.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-          });
-          
-          const page = await browser.newPage();
-          
-          // Create HTML with MathJax support
-          const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>${filename}</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            },
-            chtml: {
-                scale: 1.0,
-                minScale: 0.5,
-                matchFontHeight: false
-            }
-        };
-    </script>
-    <style>
-        body { 
-            font-family: 'Times New Roman', serif; 
-            line-height: 1.6; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 40px 20px; 
-            color: #333;
-        }
-        .math { font-family: 'Times New Roman', serif; }
-        h1, h2, h3 { color: #333; margin-top: 1.5em; }
-        p { margin-bottom: 1em; text-align: justify; }
-        @media print {
-            body { padding: 20px; }
-        }
-    </style>
-</head>
-<body>
-    <div>${content.replace(/\n/g, '</p><p>').replace(/^<p>/, '<p>').replace(/<p><\/p>/g, '<br>')}</div>
-    <script>
-        window.addEventListener('load', function() {
-            if (window.MathJax) {
-                MathJax.typesetPromise().then(() => {
-                    console.log('MathJax rendering complete');
-                });
-            }
-        });
-    </script>
-</body>
-</html>`;
-
-          // Set content and wait for MathJax to render
-          await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-          
-          // Wait for MathJax to complete rendering
-          await page.waitForFunction(() => {
-            return window.MathJax && window.MathJax.startup && window.MathJax.startup.document.state() >= 10;
-          }, { timeout: 10000 });
-          
-          // Generate PDF
-          const pdfBuffer = await page.pdf({
-            format: 'A4',
-            margin: {
-              top: '1in',
-              right: '1in',
-              bottom: '1in',
-              left: '1in'
-            },
-            printBackground: true
-          });
-          
-          await browser.close();
+          // Generate PDF with perfect mathematical notation
+          const { generatePDFWithMath } = await import('./services/pdfGenerator');
+          const pdfBuffer = await generatePDFWithMath(content, filename);
           
           // Set headers and send PDF
           res.setHeader('Content-Type', 'application/pdf');
