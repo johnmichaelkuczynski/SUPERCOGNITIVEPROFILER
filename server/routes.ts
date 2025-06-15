@@ -1830,7 +1830,7 @@ Return only the improved text content.`;
         return res.status(400).json({ error: 'Results required' });
       }
 
-      // Create perfectly formatted HTML for browser printing/PDF saving
+      // Create HTML with proper MathJax configuration
       let htmlContent = `<!DOCTYPE html>
 <html>
 <head>
@@ -1884,6 +1884,8 @@ Return only the improved text content.`;
             margin: 10px 0;
             line-height: 1.6;
         }
+        .MathJax { font-size: 1em !important; }
+        mjx-container { display: inline-block !important; }
         @media print {
             body { margin: 0; padding: 15mm; }
             .section { break-inside: avoid; }
@@ -1917,13 +1919,41 @@ Return only the improved text content.`;
 </body>
 </html>`;
 
-      // Return HTML for browser's native print/save as PDF
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(htmlContent);
+      // Use Puppeteer for proper PDF generation with MathJax rendering
+      const puppeteer = await import('puppeteer');
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      
+      const page = await browser.newPage();
+
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
+      // Wait for fonts and MathJax to finish rendering - CRITICAL
+      await page.evaluateHandle('document.fonts.ready');
+      await page.evaluate(async () => {
+        if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+          await MathJax.typesetPromise();
+        }
+      });
+
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '1in', right: '1in', bottom: '1in', left: '1in' }
+      });
+
+      await browser.close();
+
+      // Send PDF as download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${documentName || 'document'}.pdf"`);
+      res.send(pdfBuffer);
 
     } catch (error) {
-      console.error('Print PDF error:', error);
-      res.status(500).json({ error: 'Print function failed' });
+      console.error('PDF generation error:', error);
+      res.status(500).json({ error: 'PDF generation failed' });
     }
   });
 
