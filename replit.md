@@ -102,6 +102,8 @@ Changelog:
 - June 14, 2025. Mathematical rendering system completed and verified working - all modes operational with clean downloads
 - June 15, 2025. Removed all markdown formatting from rewrite and homework mode outputs - no more headers, bold text, or markup symbols
 - June 15, 2025. Fixed PDF download to strip all markdown formatting using cleanMarkdownFormatting function - math-perfect clean PDFs
+- June 15, 2025. Fixed chunked rewriting to treat chunks as unified document sections - no standalone chapter treatment or metadata bloat
+- June 15, 2025. Enhanced system prompts to prevent transitional text, editorial comments, and structural annotations for professional output
 ```
 
 ## User Preferences
