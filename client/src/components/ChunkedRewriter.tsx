@@ -1337,8 +1337,8 @@ export default function ChunkedRewriter({
           </Button>
         </div>
 
-        {/* View Complete Document Button - PROMINENT */}
-        {chunks.some(c => c.rewritten) && (
+        {/* View Complete Document Button - ALWAYS VISIBLE AFTER ANY REWRITE */}
+        {(chunks.some(c => c.rewritten) || chunks.some(c => c.isComplete)) && (
           <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
