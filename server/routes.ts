@@ -1919,37 +1919,9 @@ Return only the improved text content.`;
 </body>
 </html>`;
 
-      // Use Puppeteer for proper PDF generation with MathJax rendering
-      const puppeteer = await import('puppeteer');
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      
-      const page = await browser.newPage();
-
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-
-      // Wait for fonts and MathJax to finish rendering - CRITICAL
-      await page.evaluateHandle('document.fonts.ready');
-      await page.evaluate(async () => {
-        if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
-          await MathJax.typesetPromise();
-        }
-      });
-
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '1in', right: '1in', bottom: '1in', left: '1in' }
-      });
-
-      await browser.close();
-
-      // Send PDF as download
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${documentName || 'document'}.pdf"`);
-      res.send(pdfBuffer);
+      // Return HTML for browser's native print/save as PDF - ONLY way for perfect math
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(htmlContent);
 
     } catch (error) {
       console.error('PDF generation error:', error);

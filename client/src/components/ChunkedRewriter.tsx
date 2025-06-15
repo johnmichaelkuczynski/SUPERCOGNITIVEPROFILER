@@ -1482,8 +1482,8 @@ export default function ChunkedRewriter({
                 printWindow.document.close();
 
                 toast({
-                  title: "PDF ready!",
-                  description: "Click 'Save as PDF' in the new window",
+                  title: "PDF window opened!",
+                  description: "Wait for math to render, then Print → Save as PDF",
                 });
               }}
               className="flex items-center space-x-2"

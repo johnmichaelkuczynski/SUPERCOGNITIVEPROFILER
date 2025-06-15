@@ -104,6 +104,8 @@ Changelog:
 - June 15, 2025. Fixed PDF download to strip all markdown formatting using cleanMarkdownFormatting function - math-perfect clean PDFs
 - June 15, 2025. Fixed chunked rewriting to treat chunks as unified document sections - no standalone chapter treatment or metadata bloat
 - June 15, 2025. Enhanced system prompts to prevent transitional text, editorial comments, and structural annotations for professional output
+- June 15, 2025. Fixed broken PDF math rendering by reverting to browser-based print-to-PDF - only reliable method for perfect mathematical notation
+- June 15, 2025. Server-side Puppeteer PDF generation replaced with browser print workflow for proper MathJax rendering in downloaded PDFs
 ```
 
 ## User Preferences
