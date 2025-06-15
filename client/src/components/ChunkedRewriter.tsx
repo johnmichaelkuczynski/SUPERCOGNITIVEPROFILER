@@ -286,16 +286,8 @@ export default function ChunkedRewriter({
         description: "Successfully completed the assignment.",
       });
 
-      // Add to chat immediately
-      onAddToChat(
-        `**Homework Assignment Completed:**\n\n${finalContent}`,
-        { 
-          type: 'homework_completion',
-          originalInstructions: originalText,
-          userGuidance: instructions,
-          mathFormatted: true
-        }
-      );
+      // Add cleaned content to chat immediately
+      onAddToChat(cleanContentForChat(finalContent), metadata);
 
       // Save as document
       onRewriteComplete(finalContent, metadata);
@@ -313,7 +305,12 @@ export default function ChunkedRewriter({
   };
 
   const startRewrite = async () => {
-    // Validation based on rewrite mode
+    // Handle homework mode differently - it processes the entire text as one unit
+    if (processingMode === 'homework') {
+      return await processHomeworkMode();
+    }
+
+    // Validation for rewrite modes only
     if (rewriteMode === 'rewrite' || rewriteMode === 'both') {
       const selectedChunks = chunks.filter(chunk => chunk.selected);
       if (selectedChunks.length === 0) {
@@ -410,21 +407,7 @@ export default function ChunkedRewriter({
           ));
 
           let response;
-          if (processingMode === 'homework') {
-            // Use homework endpoint with simple instruction
-            response = await fetch('/api/homework-mode', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                instructions: `ANSWER EVERY QUESTION ON HERE\n\n${chunk.content}`,
-                userPrompt: instructions || '',
-                model: selectedModel,
-                chatContext: includeChatContext ? chatContext : undefined,
-              }),
-            });
-          } else if (processingMode === 'text-to-math') {
+          if (processingMode === 'text-to-math') {
             // Use text-to-math endpoint for mathematical notation conversion
             response = await fetch('/api/text-to-math', {
               method: 'POST',
