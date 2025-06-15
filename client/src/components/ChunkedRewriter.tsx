@@ -73,6 +73,55 @@ export default function ChunkedRewriter({
   
   const { toast } = useToast();
 
+  // Clean content for auxiliary chat - remove markdown and fix math notation
+  const cleanContentForChat = (content: string) => {
+    let cleaned = content
+      // Remove markdown headers
+      .replace(/^#{1,6}\s+/gm, '')
+      // Remove bold/italic formatting
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      // Remove code blocks
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`([^`]+)`/g, '$1')
+      // Remove list markers
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .replace(/^\s*\d+\.\s+/gm, '')
+      // Fix mathematical notation - convert common LaTeX to readable format
+      .replace(/\\forall\s+/g, '∀')
+      .replace(/\\exists\s+/g, '∃')
+      .replace(/\\in\s+/g, '∈')
+      .replace(/\\notin\s+/g, '∉')
+      .replace(/\\subset\s+/g, '⊂')
+      .replace(/\\subseteq\s+/g, '⊆')
+      .replace(/\\supset\s+/g, '⊃')
+      .replace(/\\supseteq\s+/g, '⊇')
+      .replace(/\\cup\s+/g, '∪')
+      .replace(/\\cap\s+/g, '∩')
+      .replace(/\\emptyset/g, '∅')
+      .replace(/\\infty/g, '∞')
+      .replace(/\\leq\s+/g, '≤')
+      .replace(/\\geq\s+/g, '≥')
+      .replace(/\\neq\s+/g, '≠')
+      .replace(/\\approx\s+/g, '≈')
+      .replace(/\\equiv\s+/g, '≡')
+      .replace(/\\Rightarrow\s+/g, '⇒')
+      .replace(/\\Leftarrow\s+/g, '⇐')
+      .replace(/\\Leftrightarrow\s+/g, '⇔')
+      .replace(/\\rightarrow\s+/g, '→')
+      .replace(/\\leftarrow\s+/g, '←')
+      .replace(/\\leftrightarrow\s+/g, '↔')
+      .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
+      // Clean up multiple newlines
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    
+    return cleaned;
+  };
+
   const cancelRewrite = () => {
     setIsCancelled(true);
     toast({
@@ -938,7 +987,7 @@ export default function ChunkedRewriter({
         isRerewrite: true
       };
 
-      onAddToChat(`**Re-rewritten Content:**\n\n${rerewrittenContent}`, rerewriteMetadata);
+      onAddToChat(cleanContentForChat(rerewrittenContent), rerewriteMetadata);
 
       setShowRerewriteForm(false);
       setRerewriteInstructions('');
@@ -1388,7 +1437,7 @@ export default function ChunkedRewriter({
             
             <Button 
               onClick={() => {
-                onAddToChat(`**Rewritten Document:**\n\n${finalRewrittenContent}`, rewriteMetadata);
+                onAddToChat(cleanContentForChat(finalRewrittenContent), rewriteMetadata);
                 toast({
                   title: "Added to chat!",
                   description: "The rewritten content has been added to your chat.",
@@ -1406,7 +1455,7 @@ export default function ChunkedRewriter({
                 setShowResultsPopup(false);
                 setFinalRewrittenContent('');
                 setRewriteMetadata(null);
-                onAddToChat(`**Rewritten Document:**\n\n${finalRewrittenContent}`, rewriteMetadata);
+                onAddToChat(cleanContentForChat(finalRewrittenContent), rewriteMetadata);
                 toast({
                   title: "Back to chat!",
                   description: "Content added and returned to main chat.",
