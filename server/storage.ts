@@ -268,6 +268,23 @@ export class MemStorage implements IStorage {
     return rewrite;
   }
 
+  async getRewrittenChunks(documentId: string): Promise<any[]> {
+    // Filter rewrites by sourceId (which stores the document ID) and return as chunk format
+    const chunks = [];
+    for (const [id, rewrite] of this.rewrites.entries()) {
+      if (rewrite.sourceId === documentId) {
+        chunks.push({
+          id: id,
+          chunkIndex: chunks.length,
+          rewrittenContent: rewrite.rewrittenContent,
+          model: rewrite.model,
+          updatedAt: rewrite.createdAt
+        });
+      }
+    }
+    return chunks;
+  }
+
   async deleteRewrite(id: number): Promise<boolean> {
     return this.rewrites.delete(id);
   }
@@ -558,8 +575,8 @@ export class DatabaseStorage implements IStorage {
 
   async getRewrittenChunks(documentId: string): Promise<any[]> {
     try {
-      // Get all rewrites for this document and return them as chunks
-      const results = await db.select().from(rewrites).where(eq(rewrites.documentId, documentId));
+      // Get all rewrites for this document using sourceId (which stores the document ID)
+      const results = await db.select().from(rewrites).where(eq(rewrites.sourceId, documentId));
       return results.map((rewrite, index) => ({
         id: rewrite.id,
         chunkIndex: index,

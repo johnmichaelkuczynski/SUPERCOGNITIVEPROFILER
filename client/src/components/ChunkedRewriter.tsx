@@ -32,6 +32,7 @@ interface ChunkedRewriterProps {
   onAddToChat: (content: string, metadata: any) => void;
   chatHistory?: Array<{role: string; content: string}>;
   initialProcessingMode?: 'rewrite' | 'homework' | 'text-to-math';
+  documentId?: string;
 }
 
 export default function ChunkedRewriter({ 
@@ -39,7 +40,8 @@ export default function ChunkedRewriter({
   onRewriteComplete, 
   onAddToChat,
   chatHistory = [],
-  initialProcessingMode = 'rewrite'
+  initialProcessingMode = 'rewrite',
+  documentId
 }: ChunkedRewriterProps) {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [instructions, setInstructions] = useState('');
@@ -1355,7 +1357,7 @@ export default function ChunkedRewriter({
                     completeDocument = rewrittenChunks.map(chunk => chunk.rewritten).join('\n\n');
                   } else {
                     // Get from database via API
-                    const response = await fetch(`/api/complete-rewrite/${currentDocumentId}`);
+                    const response = await fetch(`/api/complete-rewrite/${documentId || 'default'}`);
                     if (response.ok) {
                       const data = await response.json();
                       completeDocument = data.content;
