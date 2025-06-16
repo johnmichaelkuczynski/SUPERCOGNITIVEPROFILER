@@ -59,9 +59,7 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 ### Core Services
 - **Anthropic API**: Claude LLM integration
 - **OpenAI API**: GPT-4 and Whisper integration
-- **DeepSeek API**: Alternative LLM provider with competitive pricing
 - **Perplexity API**: Alternative LLM provider
-- **Plotly API**: Advanced chart generation and data visualization
 - **GPTZero API**: AI content detection
 - **ElevenLabs API**: Text-to-speech conversion
 - **SendGrid API**: Email functionality
