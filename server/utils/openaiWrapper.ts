@@ -4,7 +4,7 @@ interface OpenAICallOptions {
   model?: string;
   temperature?: number;
   max_tokens?: number;
-  messages: Array<{role: string; content: string}>;
+  messages: Array<{role: 'user' | 'assistant' | 'system'; content: string}>;
 }
 
 export async function callOpenAIWithRateLimit(options: OpenAICallOptions): Promise<string> {
@@ -18,7 +18,10 @@ export async function callOpenAIWithRateLimit(options: OpenAICallOptions): Promi
   const response = await OpenAILimiter.execute(estimatedTokens, async () => {
     return await openai.chat.completions.create({
       model: options.model || "gpt-4o",
-      messages: options.messages,
+      messages: options.messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
       temperature: options.temperature || 0.7,
       max_tokens: options.max_tokens || 4000
     });

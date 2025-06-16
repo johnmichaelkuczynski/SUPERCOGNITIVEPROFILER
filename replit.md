@@ -110,6 +110,7 @@ Changelog:
 - June 15, 2025. Replaced broken PDF download with proper print dialog that automatically opens with "Save as PDF" option for perfect math rendering
 - June 15, 2025. Fixed auxiliary chat content to display clean text with proper mathematical notation instead of broken LaTeX and markdown formatting
 - June 15, 2025. Fixed homework mode processing failure - now correctly processes entire text as single unit instead of attempting chunk-based processing
+- June 15, 2025. Implemented comprehensive RateLimiter system for Claude and OpenAI APIs with token tracking, request throttling, and exponential backoff retry logic
 ```
 
 ## User Preferences
