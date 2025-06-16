@@ -112,6 +112,7 @@ Changelog:
 - June 15, 2025. Fixed homework mode processing failure - now correctly processes entire text as single unit instead of attempting chunk-based processing
 - June 15, 2025. Implemented comprehensive RateLimiter system for Claude and OpenAI APIs with token tracking, request throttling, and exponential backoff retry logic
 - June 16, 2025. Integrated DeepSeek API as third model option across all processing modes (Rewrite, Homework, Text to Math) with full rate limiting support
+- June 16, 2025. Implemented 15-second pauses between all chunked AI requests to prevent rate limiting issues for Claude, OpenAI, Perplexity, and DeepSeek APIs
 ```
 
 ## User Preferences

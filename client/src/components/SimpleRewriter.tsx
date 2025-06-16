@@ -193,7 +193,7 @@ export default function SimpleRewriter({
           body: JSON.stringify({
             content: chunk.content,
             instructions: customInstructions || 'Improve clarity, style, and readability while maintaining the original meaning and tone.',
-            model: 'claude',
+            model: selectedModel,
             chunkIndex: i,
             totalChunks: selectedChunkData.length
           })
@@ -531,20 +531,40 @@ export default function SimpleRewriter({
         </DialogHeader>
 
         <div className="flex flex-col flex-1 space-y-4 overflow-hidden">
-          {/* Instructions Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Custom Instructions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Enter specific instructions for how you want the selected chunks rewritten (optional)"
-                value={customInstructions}
-                onChange={(e) => setCustomInstructions(e.target.value)}
-                rows={3}
-              />
-            </CardContent>
-          </Card>
+          {/* Instructions and Model Selection */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-sm">Custom Instructions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  placeholder="Enter specific instructions for how you want the selected chunks rewritten (optional)"
+                  value={customInstructions}
+                  onChange={(e) => setCustomInstructions(e.target.value)}
+                  rows={3}
+                />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">AI Model</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gpt4' | 'perplexity' | 'deepseek')}
+                  className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
+                >
+                  <option value="claude">Claude (Balanced)</option>
+                  <option value="gpt4">GPT-4 (Most Powerful)</option>
+                  <option value="perplexity">Perplexity (Fast)</option>
+                  <option value="deepseek">DeepSeek (Efficient)</option>
+                </select>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Chunk Selection Controls */}
           <div className="flex items-center justify-between">
