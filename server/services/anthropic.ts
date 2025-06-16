@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { ClaudeLimiter } from '../utils/RateLimiter';
 
 // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
 const MODEL = "claude-3-7-sonnet-20250219";
@@ -52,16 +53,21 @@ export async function processClaude(
     // Add the current message
     messages.push({ role: 'user', content });
     
-    // Always use non-streaming for consistency
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      messages: messages.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      })),
-      temperature,
-      max_tokens: maxTokens,
-      stream: false
+    // Estimate tokens for rate limiting
+    const estimatedTokens = Math.ceil(content.split(" ").length * 1.5) + maxTokens;
+    
+    // Always use non-streaming for consistency with rate limiting
+    const response = await ClaudeLimiter.execute(estimatedTokens, async () => {
+      return await anthropic.messages.create({
+        model: MODEL,
+        messages: messages.map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        })),
+        temperature,
+        max_tokens: maxTokens,
+        stream: false
+      });
     });
     
     // Return the content as string
@@ -173,14 +179,19 @@ async function processWithChunking(
     console.log('Sending messages to Claude API:', 
       formattedMessages.map(msg => ({role: msg.role, contentLength: msg.content.length})));
     
-    // Directly cast the messages to the type expected by Anthropic
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      messages: [
-        {role: 'user', content: prompt}
-      ],
-      temperature,
-      max_tokens: maxTokens || 4000,
+    // Estimate tokens for rate limiting
+    const estimatedTokens = Math.ceil(prompt.split(" ").length * 1.5) + (maxTokens || 4000);
+    
+    // Use rate limiter for chunked processing
+    const response = await ClaudeLimiter.execute(estimatedTokens, async () => {
+      return await anthropic.messages.create({
+        model: MODEL,
+        messages: [
+          {role: 'user', content: prompt}
+        ],
+        temperature,
+        max_tokens: maxTokens || 4000,
+      });
     });
     
     // Get the response content and handle different types
@@ -189,37 +200,45 @@ async function processWithChunking(
     
     // Update context with a summary of what was processed so far
     if (chunks.length > 1 && !isLastChunk) {
-      const contextResponse = await anthropic.messages.create({
-        model: MODEL,
-        messages: [
-          { 
-            role: 'user', 
-            content: `Summarize the following content in 200 words or less to provide context for continuation:\n\n${chunks[i]}\n\n${result}`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1000,
+      const contextTokens = Math.ceil(result.split(" ").length * 1.5) + 1000;
+      
+      const contextResponse = await ClaudeLimiter.execute(contextTokens, async () => {
+        return await anthropic.messages.create({
+          model: MODEL,
+          messages: [
+            { 
+              role: 'user', 
+              content: `Summarize the following content in 200 words or less to provide context for continuation:\n\n${chunks[i]}\n\n${result}`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 1000,
+        });
       });
       
-      context = contextResponse.content[0].text;
+      context = ('text' in contextResponse.content[0]) ? contextResponse.content[0].text : JSON.stringify(contextResponse.content[0]);
     }
   }
   
   // For multiple chunks, ensure proper consolidation
   if (chunks.length > 1) {
-    const consolidationResponse = await anthropic.messages.create({
-      model: MODEL,
-      messages: [
-        { 
-          role: 'user', 
-          content: `You have processed a document in ${chunks.length} chunks. Please combine and revise the following outputs to create a coherent whole:\n\n${results.join("\n\n===CHUNK BOUNDARY===\n\n")}`
-        }
-      ],
-      temperature: 0.3,
-      max_tokens: maxTokens || 4000,
+    const consolidationTokens = Math.ceil(results.join("\n\n").split(" ").length * 1.5) + (maxTokens || 4000);
+    
+    const consolidationResponse = await ClaudeLimiter.execute(consolidationTokens, async () => {
+      return await anthropic.messages.create({
+        model: MODEL,
+        messages: [
+          { 
+            role: 'user', 
+            content: `You have processed a document in ${chunks.length} chunks. Please combine and revise the following outputs to create a coherent whole:\n\n${results.join("\n\n===CHUNK BOUNDARY===\n\n")}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: maxTokens || 4000,
+      });
     });
     
-    return consolidationResponse.content[0].text;
+    return ('text' in consolidationResponse.content[0]) ? consolidationResponse.content[0].text : JSON.stringify(consolidationResponse.content[0]);
   }
   
   return results.join("\n\n");
