@@ -46,6 +46,7 @@ export default function SimpleRewriter({
   const [rewritingIndex, setRewritingIndex] = useState<number | null>(null);
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
   const [showRewriteViewer, setShowRewriteViewer] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('claude');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -183,7 +184,9 @@ export default function SimpleRewriter({
       const selectedChunkData = chunks.filter(chunk => selectedChunks.has(chunk.id));
       const results = [];
 
-      for (const chunk of selectedChunkData) {
+      for (let i = 0; i < selectedChunkData.length; i++) {
+        const chunk = selectedChunkData[i];
+        
         const response = await fetch('/api/rewrite-chunk', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -191,7 +194,7 @@ export default function SimpleRewriter({
             content: chunk.content,
             instructions: customInstructions || 'Improve clarity, style, and readability while maintaining the original meaning and tone.',
             model: 'claude',
-            chunkIndex: selectedChunkData.indexOf(chunk),
+            chunkIndex: i,
             totalChunks: selectedChunkData.length
           })
         });
@@ -205,6 +208,12 @@ export default function SimpleRewriter({
           });
         } else {
           throw new Error(`Failed to rewrite chunk: ${chunk.title}`);
+        }
+
+        // Add 15-second pause between requests to prevent rate limiting (except for last chunk)
+        if (i < selectedChunkData.length - 1) {
+          console.log(`Pausing 15 seconds before processing next chunk to prevent rate limiting...`);
+          await new Promise(resolve => setTimeout(resolve, 15000));
         }
       }
 

@@ -513,6 +513,12 @@ export default function ChunkedRewriter({
 
           processedChunks++;
           setProgress((processedChunks / totalOperations) * 100);
+
+          // Add 15-second pause between requests to prevent rate limiting (except for last chunk)
+          if (i < selectedChunks.length - 1) {
+            console.log(`Pausing 15 seconds before processing chunk ${i + 2} to prevent rate limiting...`);
+            await new Promise(resolve => setTimeout(resolve, 15000));
+          }
         }
 
         // Compile rewritten chunks from our immediate storage
@@ -592,6 +598,12 @@ export default function ChunkedRewriter({
 
           processedChunks++;
           setProgress((processedChunks / totalOperations) * 100);
+
+          // Add 15-second pause between new chunk generation requests to prevent rate limiting (except for last chunk)
+          if (i < maxNewChunks - 1) {
+            console.log(`Pausing 15 seconds before generating new chunk ${i + 2} to prevent rate limiting...`);
+            await new Promise(resolve => setTimeout(resolve, 15000));
+          }
         }
       }
 
