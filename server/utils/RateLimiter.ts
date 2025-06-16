@@ -87,3 +87,9 @@ export const OpenAILimiter = new RateLimiter({
   maxRequestsPerSecond: 10,
   concurrentLimit: 5,
 });
+
+export const DeepSeekLimiter = new RateLimiter({
+  maxTokensPerMinute: 50000,
+  maxRequestsPerSecond: 5,
+  concurrentLimit: 3,
+});

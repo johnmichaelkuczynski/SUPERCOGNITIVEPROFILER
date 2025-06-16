@@ -1,4 +1,5 @@
-import { OpenAILimiter } from './RateLimiter';
+import { OpenAILimiter, DeepSeekLimiter } from './RateLimiter';
+import { processDeepSeek } from '../services/deepseek';
 
 interface OpenAICallOptions {
   model?: string;
@@ -28,4 +29,15 @@ export async function callOpenAIWithRateLimit(options: OpenAICallOptions): Promi
   });
   
   return response.choices[0].message.content || '';
+}
+
+export async function callDeepSeekWithRateLimit(prompt: string, options: {temperature?: number; maxTokens?: number} = {}): Promise<string> {
+  const estimatedTokens = Math.ceil(prompt.split(" ").length * 1.5) + (options.maxTokens || 4000);
+  
+  return await DeepSeekLimiter.execute(estimatedTokens, async () => {
+    return await processDeepSeek(prompt, {
+      temperature: options.temperature || 0.7,
+      maxTokens: options.maxTokens || 4000
+    });
+  });
 }
