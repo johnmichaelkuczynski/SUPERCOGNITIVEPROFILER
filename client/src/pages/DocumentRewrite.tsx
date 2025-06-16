@@ -790,6 +790,7 @@ export default function DocumentRewrite() {
                     <SelectItem value="claude">Claude (Balanced)</SelectItem>
                     <SelectItem value="gpt4">GPT-4 (Most Powerful)</SelectItem>
                     <SelectItem value="perplexity">Perplexity (Fast)</SelectItem>
+                    <SelectItem value="deepseek">DeepSeek (Efficient)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

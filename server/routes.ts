@@ -1515,6 +1515,11 @@ Return only the improved text content.`;
         });
         
         result = response.choices[0].message.content || '';
+      } else if (model === 'deepseek') {
+        result = await callDeepSeekWithRateLimit(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
       } else {
         // Fallback to Claude
         result = await processClaude(prompt, {

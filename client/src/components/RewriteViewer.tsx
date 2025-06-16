@@ -268,6 +268,7 @@ export default function RewriteViewer({
                       >
                         <option value="claude">Claude</option>
                         <option value="gpt4">GPT-4</option>
+                        <option value="deepseek">DeepSeek</option>
                       </select>
                       <Button 
                         onClick={rewriteTheRewrite}
