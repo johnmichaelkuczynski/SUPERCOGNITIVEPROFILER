@@ -1810,46 +1810,100 @@ export default function ChunkedRewriter({
       </DialogContent>
     </Dialog>
 
-    {/* Live Progress Popup */}
-    <Dialog open={showLiveProgress} onOpenChange={setShowLiveProgress}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+    {/* Live Progress Popup - Enhanced with Progress Bar */}
+    <Dialog open={showLiveProgress} onOpenChange={() => {}} modal={true}>
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>🔄 Rewriting in Progress</DialogTitle>
-          <DialogDescription>
-            Watch each chunk being processed in real-time - you're not being strung along!
+          <DialogTitle className="text-2xl font-bold text-blue-600">Processing Multi-Chunk Document</DialogTitle>
+          <DialogDescription className="text-lg">
+            Real-time progress - Each chunk is rewritten with 15-second pauses to prevent rate limiting
           </DialogDescription>
         </DialogHeader>
+
+        {/* Overall Progress Bar */}
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-lg font-semibold text-blue-800">
+              Overall Progress: {liveProgressChunks.filter(c => c.completed).length} of {liveProgressChunks.length} chunks
+            </span>
+            <span className="text-xl font-bold text-blue-600">
+              {liveProgressChunks.length > 0 ? Math.round((liveProgressChunks.filter(c => c.completed).length / liveProgressChunks.length) * 100) : 0}%
+            </span>
+          </div>
+          <div className="w-full bg-blue-200 rounded-full h-4 border border-blue-300">
+            <div 
+              className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 shadow-sm"
+              style={{ 
+                width: `${liveProgressChunks.length > 0 ? (liveProgressChunks.filter(c => c.completed).length / liveProgressChunks.length) * 100 : 0}%` 
+              }}
+            ></div>
+          </div>
+          <div className="text-sm text-blue-700 mt-2">
+            {liveProgressChunks.filter(c => c.completed).length < liveProgressChunks.length 
+              ? "Processing chunks with 15-second intervals to prevent API rate limits..." 
+              : "All chunks completed successfully!"}
+          </div>
+        </div>
         
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+        {/* Individual Chunk Progress */}
+        <div className="space-y-3 max-h-[50vh] overflow-y-auto">
           {liveProgressChunks.map((chunk, index) => (
             <div 
               key={index}
-              className={`p-4 border rounded-lg transition-all ${
-                chunk.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+              className={`p-4 border-2 rounded-lg transition-all duration-300 ${
+                chunk.completed 
+                  ? 'bg-green-50 border-green-300 shadow-md' 
+                  : index === liveProgressChunks.findIndex(c => !c.completed)
+                    ? 'bg-blue-50 border-blue-300 shadow-lg ring-2 ring-blue-200'
+                    : 'bg-gray-50 border-gray-200'
               }`}
             >
-              <div className="flex items-center space-x-2 mb-2">
-                {chunk.completed ? (
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                ) : (
-                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                )}
-                <h3 className="font-medium">{chunk.title}</h3>
-                <span className="text-sm text-gray-500">
-                  {chunk.completed ? '✓ Complete' : '⏳ Processing...'}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  {chunk.completed ? (
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  ) : index === liveProgressChunks.findIndex(c => !c.completed) ? (
+                    <div className="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                      <span className="text-xs text-gray-600">{index + 1}</span>
+                    </div>
+                  )}
+                  <h3 className="font-semibold text-lg">{chunk.title}</h3>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  chunk.completed 
+                    ? 'bg-green-100 text-green-800' 
+                    : index === liveProgressChunks.findIndex(c => !c.completed)
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {chunk.completed ? 'Completed' : index === liveProgressChunks.findIndex(c => !c.completed) ? 'Processing...' : 'Waiting'}
                 </span>
               </div>
               
               {chunk.completed && chunk.content && (
-                <div className="mt-2 p-3 bg-white rounded border text-sm">
-                  <div className="text-gray-600 mb-1">Content preview:</div>
-                  <div className="line-clamp-3">
-                    {chunk.content.substring(0, 200)}
-                    {chunk.content.length > 200 && '...'}
+                <div className="mt-3 p-4 bg-white rounded-lg border border-green-200 shadow-sm">
+                  <div className="text-green-700 font-medium mb-2">Rewritten Content Preview:</div>
+                  <div className="text-sm text-gray-700 leading-relaxed">
+                    {chunk.content.length > 300 
+                      ? chunk.content.substring(0, 300) + '...' 
+                      : chunk.content}
+                  </div>
+                  <div className="mt-2 text-xs text-green-600">
+                    Length: {chunk.content.length.toLocaleString()} characters
+                  </div>
+                </div>
+              )}
+              
+              {!chunk.completed && index === liveProgressChunks.findIndex(c => !c.completed) && (
+                <div className="mt-3 p-3 bg-blue-100 rounded-lg border border-blue-200">
+                  <div className="text-blue-700 text-sm">
+                    Currently processing this chunk with the selected AI model...
                   </div>
                 </div>
               )}
@@ -1857,18 +1911,42 @@ export default function ChunkedRewriter({
           ))}
         </div>
         
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="text-sm text-gray-600">
-            {liveProgressChunks.filter(c => c.completed).length} of {liveProgressChunks.length} chunks completed
+        {/* Bottom Summary */}
+        <div className="pt-4 mt-4 border-t-2 border-gray-200">
+          <div className="flex justify-between items-center mb-3">
+            <div className="text-lg font-semibold text-gray-800">
+              Processing Summary: {liveProgressChunks.filter(c => c.completed).length} of {liveProgressChunks.length} chunks completed
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-600">
+                {liveProgressChunks.filter(c => c.completed).length === liveProgressChunks.length 
+                  ? "Ready to view results!" 
+                  : `${liveProgressChunks.length - liveProgressChunks.filter(c => c.completed).length} remaining`}
+              </div>
+            </div>
           </div>
-          <div className="w-32 bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ 
-                width: `${liveProgressChunks.length > 0 ? (liveProgressChunks.filter(c => c.completed).length / liveProgressChunks.length) * 100 : 0}%` 
-              }}
-            ></div>
-          </div>
+          
+          {/* Completion Actions */}
+          {liveProgressChunks.filter(c => c.completed).length === liveProgressChunks.length && liveProgressChunks.length > 0 && (
+            <div className="mt-4 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-lg font-semibold text-green-800">All chunks completed successfully!</span>
+                </div>
+                <Button 
+                  onClick={() => setShowLiveProgress(false)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Close Progress & View Results
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
