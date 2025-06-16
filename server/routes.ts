@@ -2487,21 +2487,37 @@ Return only the new content without any additional comments, explanations, or he
         prompt += `\n\n${chatContext}`;
       }
 
-      // Direct API call to Claude without any processClaude wrapper interference
-      const { default: Anthropic } = await import('@anthropic-ai/sdk');
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
+      // Process based on selected model
+      let result: string;
+      
+      if (model === 'deepseek') {
+        result = await callDeepSeekWithRateLimit(prompt, {
+          temperature: 0.7,
+          maxTokens: 4000
+        });
+      } else if (model === 'gpt4') {
+        result = await callOpenAIWithRateLimit({
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 4000
+        });
+      } else {
+        // Default to Claude
+        const { default: Anthropic } = await import('@anthropic-ai/sdk');
+        const anthropic = new Anthropic({
+          apiKey: process.env.ANTHROPIC_API_KEY,
+        });
 
-      const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        temperature: 0.7,
-        system: "Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.",
-        messages: [{ role: 'user', content: prompt }]
-      });
+        const response = await anthropic.messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4000,
+          temperature: 0.7,
+          system: "Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.",
+          messages: [{ role: 'user', content: prompt }]
+        });
 
-      let result = response.content[0].type === 'text' ? response.content[0].text : '';
+        result = response.content[0].type === 'text' ? response.content[0].text : '';
+      }
 
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
@@ -2588,6 +2604,11 @@ ${content}`;
         });
 
         result = response.choices[0]?.message?.content || '';
+      } else if (selectedModel === 'deepseek') {
+        result = await callDeepSeekWithRateLimit(prompt, {
+          temperature: 0.1,
+          maxTokens: 4000
+        });
       } else {
         // Fallback to Claude for other models
         const { default: Anthropic } = await import('@anthropic-ai/sdk');

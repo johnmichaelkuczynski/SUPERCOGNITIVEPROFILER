@@ -44,7 +44,7 @@ export default function ChunkedRewriter({
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [instructions, setInstructions] = useState('');
   const [includeChatContext, setIncludeChatContext] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('claude');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
@@ -68,7 +68,7 @@ export default function ChunkedRewriter({
   const [isRerewriting, setIsRerewriting] = useState(false);
   const [showRerewriteForm, setShowRerewriteForm] = useState(false);
   const [rerewriteInstructions, setRerewriteInstructions] = useState('');
-  const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity'>('claude');
+  const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('claude');
   const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
   
   const { toast } = useToast();
@@ -1172,6 +1172,7 @@ export default function ChunkedRewriter({
                   <SelectItem value="claude">Claude</SelectItem>
                   <SelectItem value="gpt4">GPT-4</SelectItem>
                   <SelectItem value="perplexity">Perplexity</SelectItem>
+                  <SelectItem value="deepseek">DeepSeek</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1687,7 +1688,7 @@ export default function ChunkedRewriter({
                 <div className="flex items-center space-x-4">
                   <div>
                     <Label htmlFor="rerewrite-model">AI Model</Label>
-                    <Select value={rerewriteModel} onValueChange={(value: 'claude' | 'gpt4' | 'perplexity') => setRerewriteModel(value)}>
+                    <Select value={rerewriteModel} onValueChange={(value: 'claude' | 'gpt4' | 'perplexity' | 'deepseek') => setRerewriteModel(value)}>
                       <SelectTrigger id="rerewrite-model" className="w-32">
                         <SelectValue />
                       </SelectTrigger>
@@ -1695,6 +1696,7 @@ export default function ChunkedRewriter({
                         <SelectItem value="claude">Claude</SelectItem>
                         <SelectItem value="gpt4">GPT-4</SelectItem>
                         <SelectItem value="perplexity">Perplexity</SelectItem>
+                        <SelectItem value="deepseek">DeepSeek</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
