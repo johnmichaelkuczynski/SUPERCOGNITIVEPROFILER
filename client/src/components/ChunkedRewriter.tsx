@@ -531,7 +531,7 @@ export default function ChunkedRewriter({
               className="min-h-[400px] font-mono text-sm"
             />
             
-            <div className="text-sm text-gray-600">
+            <div className="p-4 bg-gray-50 rounded-lg">
               <MathRenderer content={finalRewrittenContent} />
             </div>
 

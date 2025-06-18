@@ -17,38 +17,81 @@ interface MathRendererProps {
 function autoFormatMath(text: string): string {
   let formatted = text;
 
-  // Convert superscripts (x², x³, etc.)
-  formatted = formatted.replace(/([a-zA-Z0-9)])\s*([²³⁴⁵⁶⁷⁸⁹⁰¹])/g, (match, base, sup) => {
-    const superscripts: { [key: string]: string } = {
-      '²': '^2', '³': '^3', '⁴': '^4', '⁵': '^5', '⁶': '^6', 
-      '⁷': '^7', '⁸': '^8', '⁹': '^9', '⁰': '^0', '¹': '^1'
+  // First, protect existing LaTeX expressions
+  const protectedExpressions: string[] = [];
+  let protectionIndex = 0;
+  
+  formatted = formatted.replace(/\$\$[^$]+\$\$/g, (match) => {
+    const placeholder = `PROTECTED_MATH_${protectionIndex++}`;
+    protectedExpressions.push(match);
+    return placeholder;
+  });
+  
+  formatted = formatted.replace(/\$[^$]+\$/g, (match) => {
+    const placeholder = `PROTECTED_MATH_${protectionIndex++}`;
+    protectedExpressions.push(match);
+    return placeholder;
+  });
+
+  // Convert function definitions with superscripts: f(x) = 2x⁴ + 3x² - 12x
+  formatted = formatted.replace(/([a-zA-Z])\s*\(\s*([a-zA-Z])\s*\)\s*=\s*([^.\n!?\r]+?)(?=\s|$|\n)/g, (match: string, func: string, variable: string, expr: string) => {
+    let formattedExpr = expr.trim();
+    
+    // Convert Unicode superscripts to LaTeX
+    formattedExpr = formattedExpr.replace(/([a-zA-Z0-9)]+)([²³⁴⁵⁶⁷⁸⁹⁰¹]+)/g, (m: string, base: string, sups: string) => {
+      const superscriptMap: { [key: string]: string } = {
+        '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', 
+        '⁷': '7', '⁸': '8', '⁹': '9', '⁰': '0', '¹': '1'
+      };
+      let converted = base;
+      for (const sup of sups) {
+        if (superscriptMap[sup]) {
+          converted += `^{${superscriptMap[sup]}}`;
+        }
+      }
+      return converted;
+    });
+    
+    return `$$${func}(${variable}) = ${formattedExpr}$$`;
+  });
+
+  // Convert coordinate pairs and zeros: (-3,0), (0,0), (2,0)
+  formatted = formatted.replace(/\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/g, '$($1,$2)$');
+
+  // Convert standalone superscripts that weren't caught above
+  formatted = formatted.replace(/([a-zA-Z0-9)]+)([²³⁴⁵⁶⁷⁸⁹⁰¹]+)/g, (match: string, base: string, sups: string) => {
+    const superscriptMap: { [key: string]: string } = {
+      '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', 
+      '⁷': '7', '⁸': '8', '⁹': '9', '⁰': '0', '¹': '1'
     };
-    return `$${base}${superscripts[sup]}$`;
+    let converted = base;
+    for (const sup of sups) {
+      if (superscriptMap[sup]) {
+        converted += `^{${superscriptMap[sup]}}`;
+      }
+    }
+    return `$${converted}$`;
   });
 
-  // Convert function notation: f(x) = expression
-  formatted = formatted.replace(/([a-zA-Z])\s*\(\s*([a-zA-Z])\s*\)\s*=\s*([^.!?\n]+)/g, (match, func, variable, expr) => {
-    return `$${func}(${variable}) = ${expr.trim()}$`;
-  });
+  // Convert mathematical expressions with explicit carets: x^3, e^x
+  formatted = formatted.replace(/([a-zA-Z])\^([a-zA-Z0-9]+)/g, '$$$1^{$2}$$');
 
-  // Convert standalone equations: x = expression (with numbers/operators)
-  formatted = formatted.replace(/\b([a-zA-Z])\s*=\s*([^.!?\n]+)/g, (match, variable, expression) => {
-    if (/[\d\+\-\*\/\^\(\)x]/.test(expression)) {
-      return `$${variable} = ${expression.trim()}$`;
+  // Convert integrals and calculus notation
+  formatted = formatted.replace(/∫/g, '$\\int$');
+  formatted = formatted.replace(/∂/g, '$\\partial$');
+  formatted = formatted.replace(/d\/dx/g, '$\\frac{d}{dx}$');
+
+  // Convert fractions
+  formatted = formatted.replace(/\b(\d+)\s*\/\s*(\d+)\b/g, '$\\frac{$1}{$2}$');
+
+  // Convert mathematical expressions in typical problem format
+  formatted = formatted.replace(/([a-zA-Z])\s*=\s*([^.!?\n\r]+?)(?=\s*$|\s*\n|\s*\.|\s*!|\s*\?)/g, (match: string, variable: string, expression: string) => {
+    const expr = expression.trim();
+    if (/[\d\+\-\*\/\^\(\)x]/.test(expr) && expr.length < 50) {
+      return `$${variable} = ${expr}$`;
     }
     return match;
   });
-
-  // Convert fractions: a/b format (numbers only)
-  formatted = formatted.replace(/\b(\d+)\s*\/\s*(\d+)\b/g, '$\\frac{$1}{$2}$');
-
-  // Convert intervals: [a, b), (a, b], [a, b], (a, b)
-  formatted = formatted.replace(/[\[\(]\s*([0-9\-]+)\s*,\s*([0-9\-]+)\s*[\]\)]/g, (match) => {
-    return `$${match}$`;
-  });
-
-  // Convert inequalities
-  formatted = formatted.replace(/([a-zA-Z0-9\(\)]+)\s*([<>≤≥]|<=|>=)\s*([a-zA-Z0-9\(\)]+)/g, '$$$1 $2 $3$$');
 
   // Convert Greek letters
   const greekLetters: { [key: string]: string } = {
@@ -69,9 +112,14 @@ function autoFormatMath(text: string): string {
   formatted = formatted.replace(/≥/g, '$\\geq$');
   formatted = formatted.replace(/√/g, '$\\sqrt{}$');
 
-  // Clean up double dollar signs
+  // Clean up multiple dollar signs
   formatted = formatted.replace(/\$\$+/g, '$$');
   formatted = formatted.replace(/\$\s*\$/g, '');
+
+  // Restore protected expressions
+  protectedExpressions.forEach((expr, index) => {
+    formatted = formatted.replace(`PROTECTED_MATH_${index}`, expr);
+  });
 
   return formatted;
 }
