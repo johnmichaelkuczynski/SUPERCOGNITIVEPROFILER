@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MathJax } from 'better-react-mathjax';
+import { MathJax, MathJaxContext } from 'better-react-mathjax';
 import GraphGenerator from './GraphGenerator';
 
 interface MathContent {
@@ -33,32 +33,7 @@ function autoFormatMath(text: string): string {
     return placeholder;
   });
 
-  // Convert function definitions with superscripts: f(x) = 2x⁴ + 3x² - 12x
-  formatted = formatted.replace(/([a-zA-Z])\s*\(\s*([a-zA-Z])\s*\)\s*=\s*([^.\n!?\r]+?)(?=\s|$|\n)/g, (match: string, func: string, variable: string, expr: string) => {
-    let formattedExpr = expr.trim();
-    
-    // Convert Unicode superscripts to LaTeX
-    formattedExpr = formattedExpr.replace(/([a-zA-Z0-9)]+)([²³⁴⁵⁶⁷⁸⁹⁰¹]+)/g, (m: string, base: string, sups: string) => {
-      const superscriptMap: { [key: string]: string } = {
-        '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', 
-        '⁷': '7', '⁸': '8', '⁹': '9', '⁰': '0', '¹': '1'
-      };
-      let converted = base;
-      for (const sup of sups) {
-        if (superscriptMap[sup]) {
-          converted += `^{${superscriptMap[sup]}}`;
-        }
-      }
-      return converted;
-    });
-    
-    return `$$${func}(${variable}) = ${formattedExpr}$$`;
-  });
-
-  // Convert coordinate pairs and zeros: (-3,0), (0,0), (2,0)
-  formatted = formatted.replace(/\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/g, '$($1,$2)$');
-
-  // Convert standalone superscripts that weren't caught above
+  // Convert Unicode superscripts to LaTeX format ONLY - don't wrap in $ yet
   formatted = formatted.replace(/([a-zA-Z0-9)]+)([²³⁴⁵⁶⁷⁸⁹⁰¹]+)/g, (match: string, base: string, sups: string) => {
     const superscriptMap: { [key: string]: string } = {
       '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', 
@@ -70,51 +45,24 @@ function autoFormatMath(text: string): string {
         converted += `^{${superscriptMap[sup]}}`;
       }
     }
-    return `$${converted}$`;
+    return converted;
   });
 
-  // Convert mathematical expressions with explicit carets: x^3, e^x
-  formatted = formatted.replace(/([a-zA-Z])\^([a-zA-Z0-9]+)/g, '$$$1^{$2}$$');
+  // Now wrap complete mathematical expressions
+  // Function definitions: f(x) = 2x^{4} + 3x^{2} - 12x
+  formatted = formatted.replace(/([a-zA-Z])\s*\(\s*([a-zA-Z])\s*\)\s*=\s*([^.\n!?]+)/g, (match: string, func: string, variable: string, expr: string) => {
+    return `$${func}(${variable}) = ${expr.trim()}$`;
+  });
 
-  // Convert integrals and calculus notation
-  formatted = formatted.replace(/∫/g, '$\\int$');
-  formatted = formatted.replace(/∂/g, '$\\partial$');
-  formatted = formatted.replace(/d\/dx/g, '$\\frac{d}{dx}$');
-
-  // Convert fractions
-  formatted = formatted.replace(/\b(\d+)\s*\/\s*(\d+)\b/g, '$\\frac{$1}{$2}$');
-
-  // Convert mathematical expressions in typical problem format
-  formatted = formatted.replace(/([a-zA-Z])\s*=\s*([^.!?\n\r]+?)(?=\s*$|\s*\n|\s*\.|\s*!|\s*\?)/g, (match: string, variable: string, expression: string) => {
-    const expr = expression.trim();
-    if (/[\d\+\-\*\/\^\(\)x]/.test(expr) && expr.length < 50) {
-      return `$${variable} = ${expr}$`;
+  // Simple equations: y = x^{4}, x = 4x^{3}
+  formatted = formatted.replace(/^([a-zA-Z])\s*=\s*([^.\n!?]+)$/gm, (match: string, variable: string, expr: string) => {
+    const trimmedExpr = expr.trim();
+    // Only wrap if it contains mathematical notation
+    if (/[\d\^\{\}\+\-\*\/\(\)x]/.test(trimmedExpr)) {
+      return `$${variable} = ${trimmedExpr}$`;
     }
     return match;
   });
-
-  // Convert Greek letters
-  const greekLetters: { [key: string]: string } = {
-    'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
-    'π': '\\pi', 'θ': '\\theta', 'λ': '\\lambda', 'μ': '\\mu',
-    'σ': '\\sigma', 'φ': '\\phi', 'ω': '\\omega'
-  };
-
-  Object.entries(greekLetters).forEach(([greek, latex]) => {
-    formatted = formatted.replace(new RegExp(greek, 'g'), `$${latex}$`);
-  });
-
-  // Convert mathematical symbols
-  formatted = formatted.replace(/±/g, '$\\pm$');
-  formatted = formatted.replace(/∞/g, '$\\infty$');
-  formatted = formatted.replace(/≠/g, '$\\neq$');
-  formatted = formatted.replace(/≤/g, '$\\leq$');
-  formatted = formatted.replace(/≥/g, '$\\geq$');
-  formatted = formatted.replace(/√/g, '$\\sqrt{}$');
-
-  // Clean up multiple dollar signs
-  formatted = formatted.replace(/\$\$+/g, '$$');
-  formatted = formatted.replace(/\$\s*\$/g, '');
 
   // Restore protected expressions
   protectedExpressions.forEach((expr, index) => {
