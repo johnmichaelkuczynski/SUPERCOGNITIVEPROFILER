@@ -460,7 +460,36 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
   "mostRevealingQuotation": "The single most diagnostically revealing quotation from the text with explanation of why this quotation reveals the core of their cognitive strengths/weaknesses."
 }
 
-CRITICAL: ONLY return the JSON structure above. Do not include any other fields at the top level.`;
+CRITICAL SCORING INSTRUCTIONS:
+You must analyze THIS SPECIFIC TEXT and assign scores based on actual evidence:
+
+intellectualMaturity (1-10):
+- 1-3: Simple reasoning, basic concepts, no complexity
+- 4-6: Moderate reasoning, some conceptual depth
+- 7-8: Sophisticated reasoning, precise concepts, intellectual discipline
+- 9-10: Exceptional reasoning, masterful conceptual precision
+
+selfAwarenessLevel (1-10):
+- 1-3: No self-reflection, unaware of limitations
+- 4-6: Some self-awareness, occasional reflection
+- 7-8: Good metacognitive awareness, understands limitations
+- 9-10: Exceptional self-awareness, deep metacognitive insight
+
+epistemicHumility (1-10):
+- 1-3: Overconfident, no uncertainty acknowledged
+- 4-6: Some awareness of limits, occasional humility
+- 7-8: Intellectual humility, acknowledges uncertainty
+- 9-10: Profound humility, deeply aware of knowledge limits
+
+reflectiveDepth (1-10):
+- 1-3: Surface-level thinking, no introspection
+- 4-6: Some reflection, basic self-examination
+- 7-8: Deep reflection, serious self-analysis
+- 9-10: Profound introspection, philosophical depth
+
+ANALYZE THE ACTUAL TEXT CONTENT. Different texts MUST receive different scores.
+
+CRITICAL: Return the JSON structure with NUMERIC scores (not strings) based on this specific text.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -831,11 +860,11 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       ]
     }
   },
-  "overallMetacognitiveProfile": "Comprehensive synthesis of intellectual configuration analysis",
-  "intellectualMaturity": 8,
-  "selfAwarenessLevel": 7,
-  "epistemicHumility": 6,
-  "reflectiveDepth": 9
+  "overallMetacognitiveProfile": "Comprehensive synthesis of intellectual configuration analysis based on actual text evidence",
+  "intellectualMaturity": 0,
+  "selfAwarenessLevel": 0, 
+  "epistemicHumility": 0,
+  "reflectiveDepth": 0
 }`;
 
   try {
