@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, BarChart3 } from 'lucide-react';
+import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, BarChart3, Calculator } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import MathRenderer from './MathRenderer';
 import 'katex/dist/katex.min.css';
@@ -38,6 +38,7 @@ export default function RewriteViewer({
   const [isRewriting, setIsRewriting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isEnhancingWithGraphs, setIsEnhancingWithGraphs] = useState(false);
+  const [isConvertingToMath, setIsConvertingToMath] = useState(false);
   const { toast } = useToast();
 
   if (!result) return null;
@@ -141,6 +142,50 @@ export default function RewriteViewer({
     }
   };
 
+  const convertToMath = async () => {
+    if (!result?.rewrittenContent) return;
+    
+    setIsConvertingToMath(true);
+    try {
+      const response = await fetch('/api/text-to-math', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: result.rewrittenContent,
+          model: selectedModel,
+          instructions: 'Convert all mathematical content to proper LaTeX notation'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to convert to mathematical notation');
+      }
+
+      const data = await response.json();
+      
+      const updatedResult = {
+        ...result,
+        rewrittenContent: data.mathContent
+      };
+      
+      onUpdate(updatedResult);
+      
+      toast({
+        title: "Content Converted",
+        description: "Mathematical notation has been properly formatted with LaTeX",
+      });
+    } catch (error) {
+      console.error('Error converting to math:', error);
+      toast({
+        title: "Conversion Failed",
+        description: "Failed to convert content to mathematical notation",
+        variant: "destructive"
+      });
+    } finally {
+      setIsConvertingToMath(false);
+    }
+  };
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(result.rewrittenContent);
@@ -209,6 +254,24 @@ export default function RewriteViewer({
           <DialogTitle className="flex items-center justify-between">
             <span>{result.originalChunk.title} - Rewrite Result</span>
             <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={convertToMath}
+                disabled={isConvertingToMath}
+              >
+                {isConvertingToMath ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    Converting
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="h-4 w-4 mr-1" />
+                    Fix Math
+                  </>
+                )}
+              </Button>
               <Button 
                 size="sm" 
                 variant="outline" 
