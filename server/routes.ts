@@ -2544,21 +2544,17 @@ Return only the new content without any additional comments, explanations, or he
       }
 
       // Build the prompt for mathematical notation conversion
-      let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Ensure all mathematical expressions, equations, formulas, and symbols are properly formatted with LaTeX markup for perfect rendering.
+      let prompt = `Take this text and return it exactly as written, but with mathematical expressions formatted in LaTeX.
 
-CRITICAL REQUIREMENTS:
-- Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
-- Convert all mathematical symbols to LaTeX (e.g., α → \\alpha, π → \\pi, ∞ → \\infty)
-- Preserve all mathematical meaning and context
-- Format fractions with \\frac{numerator}{denominator}
-- Use proper subscripts and superscripts with _ and ^
-- Keep all non-mathematical text unchanged
-- Ensure equations are properly balanced and syntactically correct
-- IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
-- Remove ALL markdown headers, bold text, italic text, and other formatting
-- Present the content as clean, readable plain text with proper LaTeX math notation
+DO NOT solve problems or answer questions. DO NOT add new content. ONLY format existing math.
 
-Content to convert:
+Examples:
+- x² becomes $x^2$
+- f(x) = 3x + 2 becomes $f(x) = 3x + 2$  
+- 3/4 becomes $\\frac{3}{4}$
+- [2, 5) stays as $[2, 5)$
+
+Original text:
 ${content}`;
 
       if (instructions && instructions.trim()) {
@@ -2585,9 +2581,9 @@ ${content}`;
 
         const response = await anthropic.messages.create({
           model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4000,
-          temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.",
+          max_tokens: 1000,
+          temperature: 0.0, // Zero temperature for exact formatting only
+          system: "You are a text formatter that ONLY adds LaTeX math formatting. You must NOT solve problems, calculate answers, or provide solutions. Your job is to take the exact input text and return it with mathematical expressions wrapped in $ signs. Do not solve anything. Do not calculate anything. Do not answer questions. Only format mathematical notation.",
           messages: [{ role: 'user', content: prompt }]
         });
 
