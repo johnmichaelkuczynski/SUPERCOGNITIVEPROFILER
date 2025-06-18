@@ -2858,22 +2858,130 @@ ${content}`;
   // Metacognitive instant profile analysis
   app.post('/api/profile/metacognitive-instant', async (req: Request, res: Response) => {
     try {
+      console.log('🔍 METACOGNITIVE ROUTE DEBUG - REQUEST RECEIVED');
+      console.log('Request body keys:', Object.keys(req.body));
+      console.log('Request timestamp:', new Date().toISOString());
+      
       const { inputText, userId } = req.body;
       
+      // DEBUG LOGGING - Check for request caching/reuse
+      const requestHash = inputText ? inputText.substring(0, 100).replace(/\s/g, '').toLowerCase() : 'no-text';
+      console.log('🔍 REQUEST HASH:', requestHash);
+      
       if (!inputText || !userId) {
+        console.log('🔍 MISSING PARAMETERS - inputText:', !!inputText, 'userId:', !!userId);
         return res.status(400).json({ error: 'Missing required parameters' });
       }
       
       if (inputText.length < 100) {
+        console.log('🔍 TEXT TOO SHORT - Length:', inputText.length);
         return res.status(400).json({ error: 'Text sample too short. Minimum 100 characters required.' });
       }
       
+      console.log('🔍 CALLING generateMetacognitiveProfile with text length:', inputText.length);
+      console.log('🔍 INPUT TEXT PREVIEW:', inputText.substring(0, 200));
+      
       const metacognitiveProfile = await generateMetacognitiveProfile(inputText, false);
+      
+      // DEBUG LOGGING - Check final output before sending
+      console.log('🔍 FINAL RESPONSE SCORES:');
+      console.log('intellectualMaturity:', metacognitiveProfile.intellectualMaturity);
+      console.log('selfAwarenessLevel:', metacognitiveProfile.selfAwarenessLevel);
+      console.log('epistemicHumility:', metacognitiveProfile.epistemicHumility);
+      console.log('reflectiveDepth:', metacognitiveProfile.reflectiveDepth);
+      
+      // Check if we're returning the dreaded default scores
+      const isProblematicScores = (
+        metacognitiveProfile.intellectualMaturity === 8 && 
+        metacognitiveProfile.selfAwarenessLevel === 7 && 
+        metacognitiveProfile.epistemicHumility === 6 && 
+        metacognitiveProfile.reflectiveDepth === 9
+      );
+      
+      if (isProblematicScores) {
+        console.log('🚨 ALERT: RETURNING SUSPECTED DEFAULT SCORES - INVESTIGATE IMMEDIATELY!');
+        console.log('🚨 Request Hash:', requestHash);
+        console.log('🚨 Input Preview:', inputText.substring(0, 100));
+      }
+      
       res.json(metacognitiveProfile);
     } catch (error) {
-      console.error('Error generating instant metacognitive profile:', error);
+      console.error('🔍 METACOGNITIVE ROUTE ERROR:', error);
       res.status(500).json({ 
         error: 'Failed to generate metacognitive profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // DEBUG TEST ENDPOINT - Direct LLM scoring test
+  app.post('/api/debug/test-scoring', async (req: Request, res: Response) => {
+    try {
+      const { inputText } = req.body;
+      
+      console.log('🔬 DEBUG TEST ENDPOINT - Direct LLM Test');
+      console.log('Input text length:', inputText?.length || 0);
+      console.log('Input preview:', inputText?.substring(0, 100) || 'No text');
+      
+      if (!inputText || inputText.length < 50) {
+        return res.status(400).json({ error: 'Need at least 50 characters for test' });
+      }
+
+      // Direct OpenAI call without any processing
+      const openai = new (await import('openai')).default({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const testPrompt = `Analyze this text and return ONLY a JSON object with four numeric scores (1-10):
+
+TEXT: ${inputText}
+
+Return exactly this format:
+{
+  "intellectualMaturity": [score 1-10 based on reasoning sophistication],
+  "selfAwarenessLevel": [score 1-10 based on self-reflection],
+  "epistemicHumility": [score 1-10 based on intellectual humility],
+  "reflectiveDepth": [score 1-10 based on introspective depth]
+}
+
+Analyze the ACTUAL TEXT CONTENT. Different texts must get different scores.`;
+
+      console.log('🔬 Sending direct test prompt to OpenAI...');
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: testPrompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
+
+      const rawResponse = response.choices[0].message.content || "{}";
+      console.log('🔬 RAW OpenAI Response:', rawResponse);
+      
+      const parsedScores = JSON.parse(rawResponse);
+      console.log('🔬 Parsed Scores:', parsedScores);
+      
+      // Check if these are the problematic default scores
+      const isDefaultPattern = (
+        parsedScores.intellectualMaturity === 8 && 
+        parsedScores.selfAwarenessLevel === 7 && 
+        parsedScores.epistemicHumility === 6 && 
+        parsedScores.reflectiveDepth === 9
+      );
+      
+      console.log('🔬 Default pattern detected:', isDefaultPattern);
+      
+      res.json({
+        inputTextPreview: inputText.substring(0, 200),
+        rawLLMResponse: rawResponse,
+        parsedScores: parsedScores,
+        isDefaultPattern: isDefaultPattern,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('🔬 DEBUG TEST ERROR:', error);
+      res.status(500).json({ 
+        error: 'Debug test failed', 
         details: error instanceof Error ? error.message : String(error) 
       });
     }

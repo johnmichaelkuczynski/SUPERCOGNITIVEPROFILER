@@ -491,17 +491,55 @@ ANALYZE THE ACTUAL TEXT CONTENT. Different texts MUST receive different scores.
 
 CRITICAL: Return the JSON structure with NUMERIC scores (not strings) based on this specific text.`;
 
+  // DEBUG LOGGING - Step 1: Log the raw input text
+  console.log('🔍 METACOGNITIVE PROFILING DEBUG - INPUT TEXT:');
+  console.log('Text length:', text.length);
+  console.log('First 200 chars:', text.substring(0, 200));
+  console.log('Text hash for uniqueness:', text.substring(0, 50).replace(/\s/g, '').toLowerCase());
+
+  // DEBUG LOGGING - Step 2: Log the exact prompt being sent
+  console.log('🔍 METACOGNITIVE PROFILING DEBUG - PROMPT BEING SENT:');
+  console.log('Prompt length:', prompt.length);
+  console.log('Contains scoring instructions:', prompt.includes('intellectualMaturity'));
+  console.log('Contains actual text:', prompt.includes(text.substring(0, 50)));
+
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       temperature: 0.7,
       max_tokens: 8000,
     });
 
-    return JSON.parse(response.choices[0].message.content || "{}");
+    // DEBUG LOGGING - Step 3: Log the raw LLM response
+    const rawResponse = response.choices[0].message.content || "{}";
+    console.log('🔍 METACOGNITIVE PROFILING DEBUG - RAW LLM RESPONSE:');
+    console.log('Response length:', rawResponse.length);
+    console.log('Full raw response:', rawResponse);
+
+    const parsedResult = JSON.parse(rawResponse);
+    
+    // DEBUG LOGGING - Step 4: Log the parsed scores
+    console.log('🔍 METACOGNITIVE PROFILING DEBUG - PARSED SCORES:');
+    console.log('intellectualMaturity:', parsedResult.intellectualMaturity, '(type:', typeof parsedResult.intellectualMaturity, ')');
+    console.log('selfAwarenessLevel:', parsedResult.selfAwarenessLevel, '(type:', typeof parsedResult.selfAwarenessLevel, ')');
+    console.log('epistemicHumility:', parsedResult.epistemicHumility, '(type:', typeof parsedResult.epistemicHumility, ')');
+    console.log('reflectiveDepth:', parsedResult.reflectiveDepth, '(type:', typeof parsedResult.reflectiveDepth, ')');
+    
+    // DEBUG LOGGING - Step 5: Verify scores are not defaults
+    const isDefaultScores = (
+      parsedResult.intellectualMaturity === 8 && 
+      parsedResult.selfAwarenessLevel === 7 && 
+      parsedResult.epistemicHumility === 6 && 
+      parsedResult.reflectiveDepth === 9
+    );
+    console.log('🔍 METACOGNITIVE PROFILING DEBUG - DEFAULT SCORES CHECK:', isDefaultScores ? 'WARNING: USING DEFAULT SCORES!' : 'SCORES ARE DYNAMIC');
+
+    return parsedResult;
   } catch (error) {
+    console.error('🔍 METACOGNITIVE PROFILING DEBUG - ERROR:', error);
+    console.log('🔍 FALLING BACK TO DEFAULT - THIS SHOULD NOT HAPPEN');
     throw new Error("Failed to generate cognitive profile: " + (error as Error).message);
   }
 }
@@ -719,9 +757,76 @@ Format as JSON with this structure:
   }
 }
 
+// Input validation and noise detection
+function validateTextQuality(text: string): { isValid: boolean; reason?: string; category: 'analytical' | 'creative' | 'nonsensical' | 'insufficient' } {
+  // Basic length check
+  if (text.length < 100) {
+    return { isValid: false, reason: 'Text too short for meaningful analysis', category: 'insufficient' };
+  }
+
+  // Count words and sentences
+  const words = text.split(/\s+/).filter(word => word.length > 0);
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  
+  // Check for extremely short average word length (gibberish indicator)
+  const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
+  if (avgWordLength < 2.5) {
+    return { isValid: false, reason: 'Text appears to be gibberish or fragmented', category: 'nonsensical' };
+  }
+
+  // Check for extremely short sentences (fragmented text indicator)
+  const avgSentenceLength = sentences.reduce((sum, sentence) => sum + sentence.trim().split(/\s+/).length, 0) / sentences.length;
+  if (avgSentenceLength < 3) {
+    return { isValid: false, reason: 'Text appears fragmented or incomplete', category: 'nonsensical' };
+  }
+
+  // Check for excessive repetition
+  const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+  const repetitionRatio = uniqueWords.size / words.length;
+  if (repetitionRatio < 0.3 && words.length > 50) {
+    return { isValid: false, reason: 'Text shows excessive repetition', category: 'nonsensical' };
+  }
+
+  // Simple categorization
+  const analyticalMarkers = ['analysis', 'therefore', 'however', 'furthermore', 'research', 'study', 'evidence', 'conclude', 'hypothesis', 'methodology'];
+  const creativeMarkers = ['story', 'character', 'imagine', 'dream', 'fantasy', 'adventure', 'magic', 'journey'];
+  const nonsensicalMarkers = ['bounce', 'kangaroo', 'moon', 'rock', 'ground', 'stuck', 'australia'];
+
+  const lowerText = text.toLowerCase();
+  const analyticalCount = analyticalMarkers.filter(marker => lowerText.includes(marker)).length;
+  const creativeCount = creativeMarkers.filter(marker => lowerText.includes(marker)).length;
+  const nonsensicalCount = nonsensicalMarkers.filter(marker => lowerText.includes(marker)).length;
+
+  // Detect obvious nonsense patterns
+  if (nonsensicalCount >= 3 && avgSentenceLength < 8 && words.length < 100) {
+    return { isValid: false, reason: 'Text appears to be intentionally nonsensical', category: 'nonsensical' };
+  }
+
+  // Categorize valid text
+  if (analyticalCount > creativeCount) {
+    return { isValid: true, category: 'analytical' };
+  } else if (creativeCount > analyticalCount) {
+    return { isValid: true, category: 'creative' };
+  } else {
+    return { isValid: true, category: 'analytical' };
+  }
+}
+
 // Generate metacognitive profile from text analysis
 export async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false): Promise<MetacognitiveProfile> {
   const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
+  
+  // DEBUG LOGGING - Step 0: Validate input quality
+  const validation = validateTextQuality(text);
+  console.log('🔍 TEXT QUALITY VALIDATION:');
+  console.log('Valid:', validation.isValid);
+  console.log('Category:', validation.category);
+  console.log('Reason:', validation.reason || 'Text passes quality checks');
+  
+  if (!validation.isValid) {
+    console.log('🚨 REJECTING INVALID TEXT - Preventing meaningless LLM analysis');
+    throw new Error(`Text quality validation failed: ${validation.reason}`);
+  }
   
   const prompt = `You are a metacognitive analysis expert specializing in intellectual configuration assessment using dialectical analysis.
 

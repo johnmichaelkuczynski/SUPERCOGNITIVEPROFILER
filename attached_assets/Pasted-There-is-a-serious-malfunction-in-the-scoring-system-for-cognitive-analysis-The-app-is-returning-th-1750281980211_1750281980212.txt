@@ -1,0 +1,76 @@
+There is a serious malfunction in the scoring system for cognitive analysis. The app is returning the exact same evaluation scores for completely different documents, including one that is obvious nonsense. This cannot be the fault of the LLMs (OpenAI, Anthropic, or Perplexity). It indicates a flaw in how the prompts, responses, or outputs are handled. I need you to debug the app based on the following checklist:
+
+Log the Raw Inputs and Outputs:
+
+Before parsing or formatting anything, log the exact prompt being sent to the LLM and the exact response received.
+
+I need to verify whether the LLM is actually returning these same scores or if the app is defaulting to them.
+
+Check for Reused or Cached Outputs:
+
+Make sure the app isn't accidentally reusing a previous LLM response.
+
+Clear any state or memory that could cause this kind of result recycling between calls.
+
+Check for Hardcoded or Default Scores:
+
+Search the entire codebase for any hardcoded values like:
+
+json
+Copy
+Edit
+{
+  "intellectual_maturity": 8,
+  "self_awareness_level": 7,
+  "epistemic_humility": 6,
+  "reflective_depth": 9
+}
+Remove these defaults unless they're being actively overwritten by new LLM outputs.
+
+Verify Output Overwriting:
+
+Ensure that the app is not silently swallowing or skipping the actual LLM response and falling back to default templates.
+
+For example, look for:
+
+python
+Copy
+Edit
+if not response:
+    return default_profile
+Confirm LLM Is Receiving the Full Text:
+
+Check that the document being analyzed is actually included in the prompt.
+
+Make sure the full text is being passed to the LLM and not truncated or ignored due to token limits.
+
+Test the System with Known Nonsense Input:
+
+Feed in a paragraph of meaningless or structurally broken text.
+
+If the LLM still returns high metacognitive scores, something is wrong in how the prompt is framed or interpreted.
+
+Add Noise Detection:
+
+Implement a simple pre-screening classifier that detects whether input text is:
+
+(a) analytical/expository
+
+(b) creative/fictional
+
+(c) nonsensical/fragmented
+
+Reject or flag (c) as unscorable to prevent meaningless evaluations.
+
+Summarize Fail Conditions in Console Logs:
+
+Every time a score is generated, log whether it came from:
+
+A live LLM call
+
+A fallback/default
+
+A cached previous value
+
+I want you to systematically go through each of these steps and confirm that the scoring logic is dynamically tied to the actual LLM output, and not to a static template or corrupted call chain.
+
