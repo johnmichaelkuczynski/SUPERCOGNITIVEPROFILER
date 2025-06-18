@@ -13,10 +13,76 @@ interface MathRendererProps {
   className?: string;
 }
 
+// Automatically format mathematical expressions in text
+function autoFormatMath(text: string): string {
+  let formatted = text;
+
+  // Convert superscripts (x², x³, etc.)
+  formatted = formatted.replace(/([a-zA-Z0-9)])\s*([²³⁴⁵⁶⁷⁸⁹⁰¹])/g, (match, base, sup) => {
+    const superscripts: { [key: string]: string } = {
+      '²': '^2', '³': '^3', '⁴': '^4', '⁵': '^5', '⁶': '^6', 
+      '⁷': '^7', '⁸': '^8', '⁹': '^9', '⁰': '^0', '¹': '^1'
+    };
+    return `$${base}${superscripts[sup]}$`;
+  });
+
+  // Convert function notation: f(x) = expression
+  formatted = formatted.replace(/([a-zA-Z])\s*\(\s*([a-zA-Z])\s*\)\s*=\s*([^.!?\n]+)/g, (match, func, variable, expr) => {
+    return `$${func}(${variable}) = ${expr.trim()}$`;
+  });
+
+  // Convert standalone equations: x = expression (with numbers/operators)
+  formatted = formatted.replace(/\b([a-zA-Z])\s*=\s*([^.!?\n]+)/g, (match, variable, expression) => {
+    if (/[\d\+\-\*\/\^\(\)x]/.test(expression)) {
+      return `$${variable} = ${expression.trim()}$`;
+    }
+    return match;
+  });
+
+  // Convert fractions: a/b format (numbers only)
+  formatted = formatted.replace(/\b(\d+)\s*\/\s*(\d+)\b/g, '$\\frac{$1}{$2}$');
+
+  // Convert intervals: [a, b), (a, b], [a, b], (a, b)
+  formatted = formatted.replace(/[\[\(]\s*([0-9\-]+)\s*,\s*([0-9\-]+)\s*[\]\)]/g, (match) => {
+    return `$${match}$`;
+  });
+
+  // Convert inequalities
+  formatted = formatted.replace(/([a-zA-Z0-9\(\)]+)\s*([<>≤≥]|<=|>=)\s*([a-zA-Z0-9\(\)]+)/g, '$$$1 $2 $3$$');
+
+  // Convert Greek letters
+  const greekLetters: { [key: string]: string } = {
+    'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta',
+    'π': '\\pi', 'θ': '\\theta', 'λ': '\\lambda', 'μ': '\\mu',
+    'σ': '\\sigma', 'φ': '\\phi', 'ω': '\\omega'
+  };
+
+  Object.entries(greekLetters).forEach(([greek, latex]) => {
+    formatted = formatted.replace(new RegExp(greek, 'g'), `$${latex}$`);
+  });
+
+  // Convert mathematical symbols
+  formatted = formatted.replace(/±/g, '$\\pm$');
+  formatted = formatted.replace(/∞/g, '$\\infty$');
+  formatted = formatted.replace(/≠/g, '$\\neq$');
+  formatted = formatted.replace(/≤/g, '$\\leq$');
+  formatted = formatted.replace(/≥/g, '$\\geq$');
+  formatted = formatted.replace(/√/g, '$\\sqrt{}$');
+
+  // Clean up double dollar signs
+  formatted = formatted.replace(/\$\$+/g, '$$');
+  formatted = formatted.replace(/\$\s*\$/g, '');
+
+  return formatted;
+}
+
 // Parse content to identify math expressions and graph requests
 function parseContentWithMath(content: string): MathContent[] {
   const parts: MathContent[] = [];
   let currentIndex = 0;
+  
+  // First, auto-format mathematical expressions
+  const autoFormatted = autoFormatMath(content);
   
   // Regex patterns for different math notations
   const patterns = [
@@ -25,22 +91,19 @@ function parseContentWithMath(content: string): MathContent[] {
     // LaTeX inline math: \( ... \) or $ ... $
     /\\\((.*?)\\\)|\$([^$\n]+)\$/g,
     // Graph markers: [GRAPH_n] or [GRAPH:description]
-    /\[GRAPH_(\d+)\]|\[GRAPH:([^\]]+)\]/g,
-    // Function definitions: f(x) = ... or y = ...
-    /f\(x\)\s*=\s*[^.!?]+|y\s*=\s*[^.!?]+/g
+    /\[GRAPH_(\d+)\]|\[GRAPH:([^\]]+)\]/g
   ];
 
   // Split content by math expressions
-  const mathMatches: Array<{ match: RegExpMatchArray; type: 'display' | 'inline' | 'graph' | 'function' }> = [];
+  const mathMatches: Array<{ match: RegExpMatchArray; type: 'display' | 'inline' | 'graph' }> = [];
   
   // Find all math expressions
   patterns.forEach((pattern, patternIndex) => {
     let match;
     const tempPattern = new RegExp(pattern.source, pattern.flags);
-    while ((match = tempPattern.exec(content)) !== null) {
+    while ((match = tempPattern.exec(autoFormatted)) !== null) {
       const type = patternIndex === 0 ? 'display' : 
-                   patternIndex === 1 ? 'inline' : 
-                   patternIndex === 2 ? 'graph' : 'function';
+                   patternIndex === 1 ? 'inline' : 'graph';
       mathMatches.push({ match, type });
     }
   });
@@ -56,7 +119,7 @@ function parseContentWithMath(content: string): MathContent[] {
 
     // Add text before this match
     if (start > currentIndex) {
-      const textContent = content.substring(currentIndex, start);
+      const textContent = autoFormatted.substring(currentIndex, start);
       if (textContent.trim()) {
         parts.push({ type: 'text', content: textContent });
       }
@@ -85,16 +148,16 @@ function parseContentWithMath(content: string): MathContent[] {
   });
 
   // Add remaining text
-  if (currentIndex < content.length) {
-    const remainingText = content.substring(currentIndex);
+  if (currentIndex < autoFormatted.length) {
+    const remainingText = autoFormatted.substring(currentIndex);
     if (remainingText.trim()) {
       parts.push({ type: 'text', content: remainingText });
     }
   }
 
-  // If no math was found, return the original content as text
+  // If no math was found, return the auto-formatted content as text
   if (parts.length === 0) {
-    parts.push({ type: 'text', content });
+    parts.push({ type: 'text', content: autoFormatted });
   }
 
   return parts;
