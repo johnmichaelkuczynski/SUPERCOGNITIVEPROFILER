@@ -31,7 +31,7 @@ interface ChunkedRewriterProps {
   onRewriteComplete: (rewrittenText: string, metadata: any) => void;
   onAddToChat: (content: string, metadata: any) => void;
   chatHistory?: Array<{role: string; content: string}>;
-  initialProcessingMode?: 'rewrite' | 'homework' | 'text-to-math';
+  initialProcessingMode?: 'rewrite' | 'homework';
 }
 
 export default function ChunkedRewriter({ 
@@ -54,7 +54,7 @@ export default function ChunkedRewriter({
   const [senderEmail, setSenderEmail] = useState('');
   
   // Processing mode options - use the passed initial mode
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>(initialProcessingMode);
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework'>(initialProcessingMode);
   const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
   const [newChunkInstructions, setNewChunkInstructions] = useState('');
   const [numberOfNewChunks, setNumberOfNewChunks] = useState(3);
@@ -238,30 +238,8 @@ export default function ChunkedRewriter({
       
       setProgress(75);
 
-      // AUTO-APPLY TEXT TO MATH: Automatically run homework results through math formatting
+      // Content is automatically formatted through MathRenderer component
       let finalContent = result.response;
-      try {
-        const mathResponse = await fetch('/api/text-to-math', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: finalContent,
-            instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-            model: selectedModel
-          }),
-        });
-
-        if (mathResponse.ok) {
-          const mathResult = await mathResponse.json();
-          finalContent = mathResult.mathContent;
-          console.log('[auto-math] Homework result automatically formatted for math');
-        }
-      } catch (error) {
-        console.warn('[auto-math] Failed to format homework result for math:', error);
-        // Continue with original content if math formatting fails
-      }
 
       setProgress(100);
 
@@ -406,24 +384,11 @@ export default function ChunkedRewriter({
               : c
           ));
 
-          let response;
-          if (processingMode === 'text-to-math') {
-            // Use text-to-math endpoint for mathematical notation conversion
-            response = await fetch('/api/text-to-math', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                content: chunk.content,
-                instructions: instructions || 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-                model: selectedModel,
-                chatContext: includeChatContext ? chatContext : undefined,
-                chunkIndex: i,
-                totalChunks: selectedChunks.length
-              }),
-            });
-          } else {
+          // Use rewrite endpoint with document context
+          const previousChunks = selectedChunks.slice(0, i).map(c => ({ title: c.preview.substring(0, 50), content: c.content }));
+          const nextChunks = selectedChunks.slice(i + 1).map(c => ({ title: c.preview.substring(0, 50), content: c.content }));
+          
+          const response = await fetch('/api/rewrite-chunk', {
             // Use rewrite endpoint with document context
             const previousChunks = selectedChunks.slice(0, i).map(c => ({ title: c.preview.substring(0, 50), content: c.content }));
             const nextChunks = selectedChunks.slice(i + 1).map(c => ({ title: c.preview.substring(0, 50), content: c.content }));
@@ -454,37 +419,8 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
 
-          // Store the content immediately (text-to-math returns 'mathContent', rewrite returns 'rewrittenContent')
-          let content = processingMode === 'text-to-math' ? result.mathContent : 
-                       result.rewrittenContent;
-
-          // AUTO-APPLY TEXT TO MATH: For rewrite mode, automatically run through math formatting
-          if (processingMode === 'rewrite') {
-            try {
-              const mathResponse = await fetch('/api/text-to-math', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  content: content,
-                  instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-                  model: selectedModel,
-                  chunkIndex: i,
-                  totalChunks: selectedChunks.length
-                }),
-              });
-
-              if (mathResponse.ok) {
-                const mathResult = await mathResponse.json();
-                content = mathResult.mathContent; // Use the math-formatted version
-                console.log(`[auto-math] Chunk ${i + 1} automatically formatted for math`);
-              }
-            } catch (error) {
-              console.warn(`[auto-math] Failed to format chunk ${i + 1} for math:`, error);
-              // Continue with original content if math formatting fails
-            }
-          }
+          // Store the content - automatically formatted through MathRenderer component
+          let content = result.rewrittenContent;
 
           rewrittenChunks.push(content);
 
