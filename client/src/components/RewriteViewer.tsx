@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check } from 'lucide-react';
+import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, Eye, Edit3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -39,6 +39,7 @@ export default function RewriteViewer({
   const [selectedModel, setSelectedModel] = useState('claude');
   const [isRewriting, setIsRewriting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [viewMode, setViewMode] = useState<'edit' | 'math'>('edit');
   const { toast } = useToast();
 
   if (!result) return null;
@@ -207,29 +208,79 @@ export default function RewriteViewer({
             {/* Rewritten Content */}
             <Card className="flex flex-col h-full">
               <CardHeader className="flex-shrink-0">
-                <CardTitle className="text-sm text-green-600">
-                  Rewritten Content
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm text-green-600">
+                    Rewritten Content
+                  </CardTitle>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={viewMode === 'edit' ? 'default' : 'outline'}
+                      onClick={() => setViewMode('edit')}
+                      className="px-3 py-1 text-xs"
+                    >
+                      <Edit3 className="h-3 w-3 mr-1" />
+                      Edit View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={viewMode === 'math' ? 'default' : 'outline'}
+                      onClick={() => setViewMode('math')}
+                      className="px-3 py-1 text-xs"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Math View
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="flex-1 overflow-hidden space-y-4">
                 <div className="h-64 border rounded-lg p-2">
-                  <textarea
-                    value={result.rewrittenContent}
-                    onChange={(e) => {
-                      const updatedResult = {
-                        ...result,
-                        rewrittenContent: e.target.value
-                      };
-                      onUpdate(updatedResult);
-                    }}
-                    className="w-full h-full resize-none border-none outline-none text-sm leading-relaxed"
-                    style={{ 
-                      fontFamily: '"Times New Roman", serif',
-                      fontSize: '14px',
-                      lineHeight: '1.6'
-                    }}
-                    placeholder="Rewritten content will appear here and can be edited..."
-                  />
+                  {viewMode === 'edit' ? (
+                    <textarea
+                      value={result.rewrittenContent}
+                      onChange={(e) => {
+                        const updatedResult = {
+                          ...result,
+                          rewrittenContent: e.target.value
+                        };
+                        onUpdate(updatedResult);
+                      }}
+                      className="w-full h-full resize-none border-none outline-none text-sm leading-relaxed"
+                      style={{ 
+                        fontFamily: '"Times New Roman", serif',
+                        fontSize: '14px',
+                        lineHeight: '1.6'
+                      }}
+                      placeholder="Rewritten content will appear here and can be edited..."
+                    />
+                  ) : (
+                    <div className="w-full h-full overflow-auto text-sm leading-relaxed">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                        className="prose prose-sm max-w-none"
+                        components={{
+                          p: ({ children }) => <p className="mb-4">{children}</p>,
+                          h1: ({ children }) => <h1 className="text-lg font-bold mb-3">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-base font-bold mb-3">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-sm font-bold mb-2">{children}</h3>,
+                          ul: ({ children }) => <ul className="list-disc pl-5 mb-4">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-5 mb-4">{children}</ol>,
+                          li: ({ children }) => <li className="mb-1">{children}</li>,
+                          code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</code>,
+                          pre: ({ children }) => <pre className="bg-gray-100 p-3 rounded mb-4 overflow-x-auto text-xs">{children}</pre>
+                        }}
+                        style={{ 
+                          fontFamily: '"Times New Roman", serif',
+                          fontSize: '14px',
+                          lineHeight: '1.6'
+                        }}
+                      >
+                        {result.rewrittenContent}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
 
                 {result.explanation && (
