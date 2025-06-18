@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 interface Point {
   x: number;
@@ -23,273 +23,176 @@ interface GraphGeneratorProps {
 }
 
 export default function GraphGenerator({ graphData, className = '' }: GraphGeneratorProps) {
-  const {
-    type,
-    title,
-    xLabel,
-    yLabel,
-    data,
-    equation,
-    color = '#2563eb',
-    width = 400,
-    height = 300
-  } = graphData;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const width = graphData.width || 400;
+  const height = graphData.height || 300;
+  const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
 
-  const margin = { top: 40, right: 40, bottom: 60, left: 60 };
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
+  useEffect(() => {
+    if (!svgRef.current || !graphData.data.length) return;
 
-  // Calculate data bounds
-  const xMin = Math.min(...data.map(d => d.x));
-  const xMax = Math.max(...data.map(d => d.x));
-  const yMin = Math.min(...data.map(d => d.y));
-  const yMax = Math.max(...data.map(d => d.y));
-
-  // Add padding to bounds
-  const xPadding = (xMax - xMin) * 0.1;
-  const yPadding = (yMax - yMin) * 0.1;
-  const xDomain = [xMin - xPadding, xMax + xPadding];
-  const yDomain = [yMin - yPadding, yMax + yPadding];
-
-  // Scale functions
-  const scaleX = (x: number) => ((x - xDomain[0]) / (xDomain[1] - xDomain[0])) * innerWidth;
-  const scaleY = (y: number) => innerHeight - ((y - yDomain[0]) / (yDomain[1] - yDomain[0])) * innerHeight;
-
-  // Generate tick marks
-  const xTicks = Array.from({ length: 6 }, (_, i) => 
-    xDomain[0] + (i / 5) * (xDomain[1] - xDomain[0])
-  );
-  const yTicks = Array.from({ length: 6 }, (_, i) => 
-    yDomain[0] + (i / 5) * (yDomain[1] - yDomain[0])
-  );
-
-  const renderLineGraph = () => {
-    const pathData = data
-      .map((point, index) => {
-        const x = scaleX(point.x);
-        const y = scaleY(point.y);
-        return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-      })
-      .join(' ');
-
-    return (
-      <>
-        <path
-          d={pathData}
-          stroke={color}
-          strokeWidth="2"
-          fill="none"
-        />
-        {data.map((point, index) => (
-          <circle
-            key={index}
-            cx={scaleX(point.x)}
-            cy={scaleY(point.y)}
-            r="3"
-            fill={color}
-          />
-        ))}
-      </>
-    );
-  };
-
-  const renderBarGraph = () => {
-    const barWidth = innerWidth / data.length * 0.8;
-    return data.map((point, index) => {
-      const x = (index / data.length) * innerWidth + (innerWidth / data.length - barWidth) / 2;
-      const barHeight = ((point.y - yDomain[0]) / (yDomain[1] - yDomain[0])) * innerHeight;
-      const y = innerHeight - barHeight;
-      
-      return (
-        <rect
-          key={index}
-          x={x}
-          y={y}
-          width={barWidth}
-          height={barHeight}
-          fill={color}
-          opacity="0.8"
-        />
-      );
-    });
-  };
-
-  const renderScatterPlot = () => {
-    return data.map((point, index) => (
-      <circle
-        key={index}
-        cx={scaleX(point.x)}
-        cy={scaleY(point.y)}
-        r="4"
-        fill={color}
-        opacity="0.7"
-      />
-    ));
-  };
-
-  const renderFunctionGraph = () => {
-    // For function graphs, generate more points for smooth curves
-    const points = [];
-    const steps = 100;
-    for (let i = 0; i <= steps; i++) {
-      const x = xDomain[0] + (i / steps) * (xDomain[1] - xDomain[0]);
-      // Find closest data point or interpolate
-      const dataPoint = data.find(d => Math.abs(d.x - x) < 0.1) || 
-                       data.reduce((prev, curr) => 
-                         Math.abs(curr.x - x) < Math.abs(prev.x - x) ? curr : prev
-                       );
-      if (dataPoint) {
-        points.push({ x, y: dataPoint.y });
-      }
+    const svg = svgRef.current;
+    
+    // Clear previous content
+    while (svg.firstChild) {
+      svg.removeChild(svg.firstChild);
     }
 
-    const pathData = points
-      .map((point, index) => {
-        const x = scaleX(point.x);
-        const y = scaleY(point.y);
-        return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-      })
-      .join(' ');
+    const data = graphData.data as Point[];
+    
+    // Calculate scales
+    const xMin = Math.min(...data.map(d => d.x));
+    const xMax = Math.max(...data.map(d => d.x));
+    const yMin = Math.min(...data.map(d => d.y));
+    const yMax = Math.max(...data.map(d => d.y));
+    
+    const xScale = (x: number) => margin.left + ((x - xMin) / (xMax - xMin)) * chartWidth;
+    const yScale = (y: number) => margin.top + chartHeight - ((y - yMin) / (yMax - yMin)) * chartHeight;
 
-    return (
-      <path
-        d={pathData}
-        stroke={color}
-        strokeWidth="2"
-        fill="none"
-      />
-    );
-  };
+    // Create main group
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    svg.appendChild(g);
 
-  const renderGraph = () => {
-    switch (type) {
-      case 'line':
-        return renderLineGraph();
-      case 'bar':
-        return renderBarGraph();
-      case 'scatter':
-        return renderScatterPlot();
-      case 'function':
-        return renderFunctionGraph();
-      default:
-        return renderLineGraph();
+    // Draw axes
+    const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    xAxis.setAttribute('x1', margin.left.toString());
+    xAxis.setAttribute('y1', (height - margin.bottom).toString());
+    xAxis.setAttribute('x2', (width - margin.right).toString());
+    xAxis.setAttribute('y2', (height - margin.bottom).toString());
+    xAxis.setAttribute('stroke', '#374151');
+    xAxis.setAttribute('stroke-width', '1');
+    g.appendChild(xAxis);
+
+    const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    yAxis.setAttribute('x1', margin.left.toString());
+    yAxis.setAttribute('y1', margin.top.toString());
+    yAxis.setAttribute('x2', margin.left.toString());
+    yAxis.setAttribute('y2', (height - margin.bottom).toString());
+    yAxis.setAttribute('stroke', '#374151');
+    yAxis.setAttribute('stroke-width', '1');
+    g.appendChild(yAxis);
+
+    // Add axis labels
+    const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    xLabel.setAttribute('x', (width / 2).toString());
+    xLabel.setAttribute('y', (height - 5).toString());
+    xLabel.setAttribute('text-anchor', 'middle');
+    xLabel.setAttribute('font-size', '12');
+    xLabel.setAttribute('fill', '#374151');
+    xLabel.textContent = graphData.xLabel;
+    g.appendChild(xLabel);
+
+    const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    yLabel.setAttribute('x', '12');
+    yLabel.setAttribute('y', (height / 2).toString());
+    yLabel.setAttribute('text-anchor', 'middle');
+    yLabel.setAttribute('font-size', '12');
+    yLabel.setAttribute('fill', '#374151');
+    yLabel.setAttribute('transform', `rotate(-90, 12, ${height / 2})`);
+    yLabel.textContent = graphData.yLabel;
+    g.appendChild(yLabel);
+
+    // Draw data based on type
+    const color = graphData.color || '#2563eb';
+
+    if (graphData.type === 'line' || graphData.type === 'function') {
+      // Draw line graph
+      const pathData = data.map((d, i) => 
+        `${i === 0 ? 'M' : 'L'} ${xScale(d.x)} ${yScale(d.y)}`
+      ).join(' ');
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', pathData);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2');
+      g.appendChild(path);
+
+      // Add points
+      data.forEach(d => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', xScale(d.x).toString());
+        circle.setAttribute('cy', yScale(d.y).toString());
+        circle.setAttribute('r', '3');
+        circle.setAttribute('fill', color);
+        g.appendChild(circle);
+      });
+    } else if (graphData.type === 'scatter') {
+      // Draw scatter plot
+      data.forEach(d => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', xScale(d.x).toString());
+        circle.setAttribute('cy', yScale(d.y).toString());
+        circle.setAttribute('r', '4');
+        circle.setAttribute('fill', color);
+        circle.setAttribute('opacity', '0.7');
+        g.appendChild(circle);
+      });
+    } else if (graphData.type === 'bar') {
+      // Draw bar chart
+      const barWidth = chartWidth / data.length * 0.8;
+      data.forEach((d, i) => {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', (xScale(d.x) - barWidth / 2).toString());
+        rect.setAttribute('y', yScale(Math.max(0, d.y)).toString());
+        rect.setAttribute('width', barWidth.toString());
+        rect.setAttribute('height', Math.abs(yScale(d.y) - yScale(0)).toString());
+        rect.setAttribute('fill', color);
+        rect.setAttribute('opacity', '0.8');
+        g.appendChild(rect);
+      });
     }
-  };
+
+    // Add grid lines
+    const gridColor = '#e5e7eb';
+    
+    // Vertical grid lines
+    for (let i = 0; i <= 5; i++) {
+      const x = margin.left + (i / 5) * chartWidth;
+      const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      gridLine.setAttribute('x1', x.toString());
+      gridLine.setAttribute('y1', margin.top.toString());
+      gridLine.setAttribute('x2', x.toString());
+      gridLine.setAttribute('y2', (height - margin.bottom).toString());
+      gridLine.setAttribute('stroke', gridColor);
+      gridLine.setAttribute('stroke-width', '0.5');
+      gridLine.setAttribute('opacity', '0.5');
+      g.insertBefore(gridLine, g.firstChild);
+    }
+
+    // Horizontal grid lines
+    for (let i = 0; i <= 5; i++) {
+      const y = margin.top + (i / 5) * chartHeight;
+      const gridLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      gridLine.setAttribute('x1', margin.left.toString());
+      gridLine.setAttribute('y1', y.toString());
+      gridLine.setAttribute('x2', (width - margin.right).toString());
+      gridLine.setAttribute('y2', y.toString());
+      gridLine.setAttribute('stroke', gridColor);
+      gridLine.setAttribute('stroke-width', '0.5');
+      gridLine.setAttribute('opacity', '0.5');
+      g.insertBefore(gridLine, g.firstChild);
+    }
+
+  }, [graphData, width, height, chartWidth, chartHeight, margin]);
 
   return (
-    <div className={`inline-block ${className}`}>
-      <svg width={width} height={height} className="border rounded-lg bg-white">
-        {/* Background */}
-        <rect width={width} height={height} fill="white" />
-        
-        {/* Graph area */}
-        <g transform={`translate(${margin.left}, ${margin.top})`}>
-          {/* Grid lines */}
-          {xTicks.map((tick, index) => (
-            <line
-              key={`x-grid-${index}`}
-              x1={scaleX(tick)}
-              y1={0}
-              x2={scaleX(tick)}
-              y2={innerHeight}
-              stroke="#e5e7eb"
-              strokeWidth="1"
-            />
-          ))}
-          {yTicks.map((tick, index) => (
-            <line
-              key={`y-grid-${index}`}
-              x1={0}
-              y1={scaleY(tick)}
-              x2={innerWidth}
-              y2={scaleY(tick)}
-              stroke="#e5e7eb"
-              strokeWidth="1"
-            />
-          ))}
-          
-          {/* Axes */}
-          <line x1={0} y1={innerHeight} x2={innerWidth} y2={innerHeight} stroke="#374151" strokeWidth="2" />
-          <line x1={0} y1={0} x2={0} y2={innerHeight} stroke="#374151" strokeWidth="2" />
-          
-          {/* X-axis ticks and labels */}
-          {xTicks.map((tick, index) => (
-            <g key={`x-tick-${index}`}>
-              <line
-                x1={scaleX(tick)}
-                y1={innerHeight}
-                x2={scaleX(tick)}
-                y2={innerHeight + 5}
-                stroke="#374151"
-                strokeWidth="1"
-              />
-              <text
-                x={scaleX(tick)}
-                y={innerHeight + 20}
-                textAnchor="middle"
-                fontSize="12"
-                fill="#374151"
-              >
-                {tick.toFixed(1)}
-              </text>
-            </g>
-          ))}
-          
-          {/* Y-axis ticks and labels */}
-          {yTicks.map((tick, index) => (
-            <g key={`y-tick-${index}`}>
-              <line
-                x1={-5}
-                y1={scaleY(tick)}
-                x2={0}
-                y2={scaleY(tick)}
-                stroke="#374151"
-                strokeWidth="1"
-              />
-              <text
-                x={-10}
-                y={scaleY(tick) + 4}
-                textAnchor="end"
-                fontSize="12"
-                fill="#374151"
-              >
-                {tick.toFixed(1)}
-              </text>
-            </g>
-          ))}
-          
-          {/* Graph content */}
-          {renderGraph()}
-        </g>
-        
-        {/* Title */}
-        <text x={width / 2} y={20} textAnchor="middle" fontSize="16" fontWeight="bold" fill="#1f2937">
-          {title}
-        </text>
-        
-        {/* X-axis label */}
-        <text x={width / 2} y={height - 10} textAnchor="middle" fontSize="14" fill="#374151">
-          {xLabel}
-        </text>
-        
-        {/* Y-axis label */}
-        <text
-          x={15}
-          y={height / 2}
-          textAnchor="middle"
-          fontSize="14"
-          fill="#374151"
-          transform={`rotate(-90, 15, ${height / 2})`}
-        >
-          {yLabel}
-        </text>
-        
-        {/* Equation display */}
-        {equation && (
-          <text x={width - 10} y={30} textAnchor="end" fontSize="12" fill="#6b7280">
-            {equation}
-          </text>
-        )}
+    <div className={`graph-container bg-white rounded-lg border p-4 ${className}`}>
+      <h3 className="text-lg font-semibold mb-2 text-center">{graphData.title}</h3>
+      {graphData.equation && (
+        <p className="text-sm text-gray-600 text-center mb-2 font-mono">
+          {graphData.equation}
+        </p>
+      )}
+      <svg
+        ref={svgRef}
+        width={width}
+        height={height}
+        className="border rounded"
+        style={{ backgroundColor: '#fafafa' }}
+      >
       </svg>
     </div>
   );
