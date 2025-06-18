@@ -111,11 +111,8 @@ Changelog:
 - June 15, 2025. Fixed auxiliary chat content to display clean text with proper mathematical notation instead of broken LaTeX and markdown formatting
 - June 15, 2025. Fixed homework mode processing failure - now correctly processes entire text as single unit instead of attempting chunk-based processing
 - June 15, 2025. Implemented comprehensive RateLimiter system for Claude and OpenAI APIs with token tracking, request throttling, and exponential backoff retry logic
-- June 16, 2025. Integrated DeepSeek API as third model option across all processing modes (Rewrite, Homework) with full rate limiting support
+- June 16, 2025. Integrated DeepSeek API as third model option across all processing modes (Rewrite, Homework, Text to Math) with full rate limiting support
 - June 16, 2025. Implemented 15-second pauses between all chunked AI requests to prevent rate limiting issues for Claude, OpenAI, Perplexity, and DeepSeek APIs
-- June 18, 2025. REMOVED broken "Text to Math" function completely - was solving problems instead of formatting notation
-- June 18, 2025. Implemented automatic mathematical rendering throughout entire application - all math displays perfectly without manual conversion
-- June 18, 2025. Enhanced MathRenderer component with intelligent pattern recognition for equations, functions, Greek letters, and mathematical symbols
 ```
 
 ## User Preferences

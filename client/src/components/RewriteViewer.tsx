@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, BarChart3, Calculator } from 'lucide-react';
+import { X, RefreshCw, Loader2, Download, Share2, Copy, Check } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import MathRenderer from './MathRenderer';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
 interface RewriteResult {
@@ -37,8 +39,6 @@ export default function RewriteViewer({
   const [selectedModel, setSelectedModel] = useState('claude');
   const [isRewriting, setIsRewriting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isEnhancingWithGraphs, setIsEnhancingWithGraphs] = useState(false);
-  const [isConvertingToMath, setIsConvertingToMath] = useState(false);
   const { toast } = useToast();
 
   if (!result) return null;
@@ -96,93 +96,6 @@ export default function RewriteViewer({
       });
     } finally {
       setIsRewriting(false);
-    }
-  };
-
-  const enhanceWithGraphs = async () => {
-    if (!result?.rewrittenContent) return;
-    
-    setIsEnhancingWithGraphs(true);
-    try {
-      const response = await fetch('/api/enhance-with-graphs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: result.rewrittenContent,
-          context: 'academic'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to enhance content with graphs');
-      }
-
-      const data = await response.json();
-      
-      const updatedResult = {
-        ...result,
-        rewrittenContent: data.enhancedContent
-      };
-      
-      onUpdate(updatedResult);
-      
-      toast({
-        title: "Content Enhanced",
-        description: "Graphs have been automatically generated and inserted into your content",
-      });
-    } catch (error) {
-      console.error('Error enhancing with graphs:', error);
-      toast({
-        title: "Enhancement Failed",
-        description: "Failed to generate graphs for this content",
-        variant: "destructive"
-      });
-    } finally {
-      setIsEnhancingWithGraphs(false);
-    }
-  };
-
-  const convertToMath = async () => {
-    if (!result?.rewrittenContent) return;
-    
-    setIsConvertingToMath(true);
-    try {
-      const response = await fetch('/api/text-to-math', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: result.rewrittenContent,
-          model: selectedModel,
-          instructions: 'Convert all mathematical content to proper LaTeX notation'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to convert to mathematical notation');
-      }
-
-      const data = await response.json();
-      
-      const updatedResult = {
-        ...result,
-        rewrittenContent: data.mathContent
-      };
-      
-      onUpdate(updatedResult);
-      
-      toast({
-        title: "Content Converted",
-        description: "Mathematical notation has been properly formatted with LaTeX",
-      });
-    } catch (error) {
-      console.error('Error converting to math:', error);
-      toast({
-        title: "Conversion Failed",
-        description: "Failed to convert content to mathematical notation",
-        variant: "destructive"
-      });
-    } finally {
-      setIsConvertingToMath(false);
     }
   };
 
@@ -254,42 +167,6 @@ export default function RewriteViewer({
           <DialogTitle className="flex items-center justify-between">
             <span>{result.originalChunk.title} - Rewrite Result</span>
             <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={convertToMath}
-                disabled={isConvertingToMath}
-              >
-                {isConvertingToMath ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    Converting
-                  </>
-                ) : (
-                  <>
-                    <Calculator className="h-4 w-4 mr-1" />
-                    Fix Math
-                  </>
-                )}
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={enhanceWithGraphs}
-                disabled={isEnhancingWithGraphs}
-              >
-                {isEnhancingWithGraphs ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    Adding Graphs
-                  </>
-                ) : (
-                  <>
-                    <BarChart3 className="h-4 w-4 mr-1" />
-                    Add Graphs
-                  </>
-                )}
-              </Button>
               <Button size="sm" variant="outline" onClick={handleDownload}>
                 <Download className="h-4 w-4 mr-1" />
                 Download
@@ -335,38 +212,24 @@ export default function RewriteViewer({
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 overflow-hidden space-y-4">
-                <div className="h-64 border rounded-lg p-4 overflow-y-auto">
-                  <MathRenderer 
-                    content={result.rewrittenContent}
-                    className="w-full text-sm leading-relaxed"
+                <div className="h-64 border rounded-lg p-2">
+                  <textarea
+                    value={result.rewrittenContent}
+                    onChange={(e) => {
+                      const updatedResult = {
+                        ...result,
+                        rewrittenContent: e.target.value
+                      };
+                      onUpdate(updatedResult);
+                    }}
+                    className="w-full h-full resize-none border-none outline-none text-sm leading-relaxed"
+                    style={{ 
+                      fontFamily: '"Times New Roman", serif',
+                      fontSize: '14px',
+                      lineHeight: '1.6'
+                    }}
+                    placeholder="Rewritten content will appear here and can be edited..."
                   />
-                </div>
-                
-                <div className="mt-2">
-                  <details className="bg-gray-50 rounded-lg">
-                    <summary className="cursor-pointer p-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
-                      Edit Content
-                    </summary>
-                    <div className="p-2 border-t">
-                      <textarea
-                        value={result.rewrittenContent}
-                        onChange={(e) => {
-                          const updatedResult = {
-                            ...result,
-                            rewrittenContent: e.target.value
-                          };
-                          onUpdate(updatedResult);
-                        }}
-                        className="w-full h-32 resize-none border rounded p-2 text-sm leading-relaxed"
-                        style={{ 
-                          fontFamily: '"Times New Roman", serif',
-                          fontSize: '14px',
-                          lineHeight: '1.6'
-                        }}
-                        placeholder="Edit content here..."
-                      />
-                    </div>
-                  </details>
                 </div>
 
                 {result.explanation && (
