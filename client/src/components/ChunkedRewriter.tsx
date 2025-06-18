@@ -2055,24 +2055,53 @@ export default function ChunkedRewriter({
             </div>
           )}
 
-          {/* Content Display - Fully Editable Textarea */}
+          {/* Content Display - Toggle between Edit View and Math View */}
           <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
-            <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
-              ✏️ Content is editable - click to modify text directly
+            <div className="p-2 bg-gray-50 border-b flex justify-between items-center">
+              <span className="text-xs text-gray-600">
+                {showMathView ? '📐 Math View - Beautiful notation' : '✏️ Edit View - Click to modify text directly'}
+              </span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  size="sm"
+                  variant={!showMathView ? "default" : "outline"}
+                  onClick={() => setShowMathView(false)}
+                  className="text-xs h-6 px-2"
+                >
+                  Edit View
+                </Button>
+                <Button
+                  size="sm"
+                  variant={showMathView ? "default" : "outline"}
+                  onClick={() => setShowMathView(true)}
+                  className="text-xs h-6 px-2"
+                >
+                  Math View
+                </Button>
+              </div>
             </div>
-            <textarea
-              value={finalRewrittenContent}
-              onChange={(e) => setFinalRewrittenContent(e.target.value)}
-              className="flex-1 w-full resize-none border-none outline-none p-4"
-              style={{ 
-                fontFamily: '"Times New Roman", serif',
-                fontSize: '14px',
-                lineHeight: '1.6',
-                minHeight: '400px'
-              }}
-              placeholder="Processed content will appear here and can be edited directly..."
-              spellCheck={false}
-            />
+            
+            {showMathView ? (
+              /* Math View - Rendered Mathematical Notation */
+              <div className="flex-1 overflow-y-auto p-4 bg-white">
+                {formatContent(finalRewrittenContent)}
+              </div>
+            ) : (
+              /* Edit View - Editable Textarea */
+              <textarea
+                value={finalRewrittenContent}
+                onChange={(e) => setFinalRewrittenContent(e.target.value)}
+                className="flex-1 w-full resize-none border-none outline-none p-4"
+                style={{ 
+                  fontFamily: '"Times New Roman", serif',
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  minHeight: '400px'
+                }}
+                placeholder="Processed content will appear here and can be edited directly..."
+                spellCheck={false}
+              />
+            )}
           </div>
         </div>
       </DialogContent>

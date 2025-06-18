@@ -116,6 +116,7 @@ Changelog:
 - June 18, 2025. Fixed homework mode progress bar - now displays immediately when "Start Homework" clicked with prominent visual feedback and stage-based progress updates
 - June 18, 2025. Enhanced mathematical rendering system - raw LaTeX expressions now render properly as formatted mathematics using improved MathJax/KaTeX integration
 - June 18, 2025. Implemented professional print/save-as-PDF functionality with KaTeX rendering for publication-quality mathematical documents and perfect math notation preservation
+- June 18, 2025. Added Math View toggle to results popup - users can now switch between Edit View (editable raw text) and Math View (beautiful rendered mathematical notation) for optimal user experience
 ```
 
 ## User Preferences
