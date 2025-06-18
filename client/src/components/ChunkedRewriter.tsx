@@ -1281,21 +1281,67 @@ export default function ChunkedRewriter({
           </div>
         </div>
 
-        {/* Progress Section */}
+        {/* Enhanced Progress Section - Prominent for Homework Mode */}
         {isProcessing && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>
-                {rewriteMode === 'add' 
-                  ? `Generating new chunk ${currentChunkIndex + 1} of ${numberOfNewChunks}`
-                  : rewriteMode === 'rewrite' 
-                    ? `Rewriting chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length}`
-                    : `Processing chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length + numberOfNewChunks}`
-                }
-              </span>
-              <span>{Math.round(progress)}%</span>
+          <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent mr-3"></div>
+                {processingMode === 'homework' ? 'Processing Homework Assignment' : 
+                 processingMode === 'text-to-math' ? 'Converting to Mathematical Notation' : 
+                 'Rewriting Document Chunks'}
+              </h3>
+              <p className="text-blue-700 text-sm">
+                {processingMode === 'homework' ? 
+                  'AI is analyzing and completing your assignment. This typically takes 1-3 minutes for complex tasks.' :
+                  processingMode === 'text-to-math' ? 
+                  'Converting all mathematical expressions to proper LaTeX formatting for clean rendering.' :
+                  `Processing chunks with 15-second intervals between requests to prevent API rate limits.`}
+              </p>
             </div>
-            <Progress value={progress} className="w-full" />
+            
+            <div className="space-y-3">
+              {/* Main Progress Bar */}
+              <div className="w-full bg-blue-200 rounded-full h-4 border border-blue-300 shadow-inner">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 flex items-center justify-center text-white text-xs font-medium shadow-sm"
+                  style={{ width: `${Math.max(progress, 5)}%` }}
+                >
+                  {Math.round(progress)}%
+                </div>
+              </div>
+              
+              {/* Status Text */}
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-blue-700 font-medium">
+                  {processingMode === 'homework' && progress <= 25 && 'Analyzing assignment requirements...'}
+                  {processingMode === 'homework' && progress > 25 && progress <= 50 && `Processing with ${selectedModel.toUpperCase()} model...`}
+                  {processingMode === 'homework' && progress > 50 && progress <= 75 && 'Formatting mathematical notation...'}
+                  {processingMode === 'homework' && progress > 75 && 'Finalizing results...'}
+                  {processingMode === 'text-to-math' && 'Converting mathematical expressions...'}
+                  {processingMode === 'rewrite' && rewriteMode === 'add' && `Generating new chunk ${currentChunkIndex + 1} of ${numberOfNewChunks}`}
+                  {processingMode === 'rewrite' && rewriteMode === 'rewrite' && `Rewriting chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length}`}
+                  {processingMode === 'rewrite' && rewriteMode === 'both' && `Processing chunk ${currentChunkIndex + 1} of ${chunks.filter(c => c.selected).length + numberOfNewChunks}`}
+                </span>
+                <span className="text-blue-600 font-semibold">
+                  {processingMode === 'homework' || processingMode === 'text-to-math' ? 
+                    `${Math.round(progress)}% Complete` :
+                    `${chunks.filter(c => c.rewritten).length} / ${chunks.filter(c => c.selected).length + (rewriteMode === 'add' || rewriteMode === 'both' ? numberOfNewChunks : 0)} done`}
+                </span>
+              </div>
+              
+              {/* Homework Mode Specific Status */}
+              {processingMode === 'homework' && (
+                <div className="flex items-center justify-center space-x-2 pt-2 border-t border-blue-200">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  </div>
+                  <span className="text-blue-600 text-sm font-medium">Working on your assignment...</span>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
