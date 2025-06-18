@@ -667,8 +667,8 @@ export default function ChunkedRewriter({
       return;
     }
 
-    // Create proper PDF with MathJax
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    // Create print window with enhanced KaTeX support for perfect math rendering
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
     if (!printWindow) {
       toast({
         title: "Pop-up blocked",
@@ -678,82 +678,160 @@ export default function ChunkedRewriter({
       return;
     }
 
-    // Clean content but preserve LaTeX math
-    let cleanContent = rewrittenText
+    // Process content for better LaTeX rendering
+    let processedContent = rewrittenText
+      // Convert markdown formatting to HTML
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*([^$*]*)\*/g, '<em>$1</em>')
-      .replace(/\(\*([^)]*)\*\)/g, '($1)')
-      .replace(/\n\n/g, '</p><p>')
+      .replace(/\*([^$*]*?)\*/g, '<em>$1</em>')
+      .replace(/^#{1,6}\s+(.*)$/gm, '<h2>$1</h2>')
+      // Ensure proper LaTeX delimiters
+      .replace(/\$\$([^$]+)\$\$/g, '\\[$1\\]') // Display math
+      .replace(/(?<!\$)\$([^$\n]+)\$(?!\$)/g, '\\($1\\)') // Inline math
+      // Format paragraphs
+      .replace(/\n\n+/g, '</p><p>')
       .replace(/\n/g, '<br>');
 
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Rewritten Chunks</title>
-          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-          <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-          <script>
-            window.MathJax = {
-              tex: {
-                inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-                displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-                processEscapes: true,
-                processEnvironments: true
-              },
-              options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-              },
-              startup: {
-                ready: () => {
-                  MathJax.startup.defaultReady();
-                  setTimeout(() => {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('content').style.display = 'block';
-                  }, 1000);
-                }
-              }
-            };
-          </script>
+          <title>Mathematical Document - Print/Save as PDF</title>
+          <meta charset="utf-8">
+          <!-- KaTeX CSS for perfect math rendering -->
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+          <!-- KaTeX JavaScript -->
+          <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
           <style>
+            @import url('https://fonts.googleapis.com/css2?family=Computer+Modern+Serif:wght@400;700&display=swap');
+            
             body { 
-              font-family: 'Times New Roman', serif; 
+              font-family: 'Computer Modern Serif', 'Times New Roman', serif;
+              font-size: 12pt;
               line-height: 1.6; 
               max-width: 8.5in; 
               margin: 0 auto; 
-              padding: 1in;
-              color: black;
+              padding: 1in; 
+              color: #000;
               background: white;
             }
-            h1, h2, h3 { margin-top: 24px; margin-bottom: 12px; }
-            p { margin-bottom: 12px; }
-            .MathJax { font-size: 1em !important; }
-            #loading { text-align: center; padding: 50px; }
-            #content { display: none; }
-            .controls { text-align: center; margin: 20px 0; }
+            
+            h2 { 
+              color: #1a365d; 
+              font-size: 16pt;
+              margin: 24pt 0 12pt 0;
+              page-break-after: avoid;
+            }
+            
+            p { 
+              margin: 12pt 0; 
+              text-align: justify; 
+              orphans: 2;
+              widows: 2;
+            }
+            
+            strong { font-weight: 700; }
+            em { font-style: italic; }
+            
+            /* KaTeX math styling */
+            .katex { font-size: 1.1em; }
+            .katex-display { 
+              margin: 16pt 0; 
+              text-align: center;
+              page-break-inside: avoid;
+            }
+            
+            /* Control buttons */
+            .controls { 
+              text-align: center; 
+              margin: 20px 0; 
+              background: #f8f9fa;
+              padding: 15px;
+              border-radius: 8px;
+              border: 2px solid #e9ecef;
+            }
             .controls button { 
-              margin: 0 10px; padding: 10px 20px; 
-              background: #007bff; color: white; 
-              border: none; border-radius: 4px; cursor: pointer; 
+              margin: 0 10px; 
+              padding: 12px 24px; 
+              background: #007bff; 
+              color: white; 
+              border: none; 
+              border-radius: 6px; 
+              cursor: pointer;
+              font-size: 14px;
+              font-weight: 500;
             }
             .controls button:hover { background: #0056b3; }
             .controls .close { background: #6c757d; }
             .controls .close:hover { background: #545b62; }
-            @media print {
+            
+            #loading {
+              text-align: center;
+              padding: 50px;
+              font-size: 18px;
+              color: #666;
+            }
+            
+            #content { display: none; }
+            
+            /* Print-specific styles */
+            @media print { 
               .controls { display: none; }
-              body { margin: 0.5in; }
+              body { 
+                margin: 0; 
+                padding: 0.75in; 
+                font-size: 11pt;
+              }
+              @page { 
+                margin: 0.75in;
+                size: A4;
+              }
+              h2 { 
+                page-break-after: avoid;
+                margin-top: 18pt;
+              }
+              .katex-display {
+                page-break-inside: avoid;
+              }
             }
           </style>
         </head>
         <body>
-          <div id="loading">Loading math notation...</div>
+          <div id="loading">⚡ Loading mathematical notation...</div>
           <div id="content">
             <div class="controls">
-              <button onclick="window.print()">📄 Save as PDF</button>
-              <button class="close" onclick="window.close()">Close</button>
+              <button onclick="window.print()" title="Use your browser's print dialog to save as PDF">
+                📄 Print / Save as PDF
+              </button>
+              <button class="close" onclick="window.close()">Close Window</button>
             </div>
-            <div id="text-content"><p>${cleanContent}</p></div>
+            <div id="text-content">
+              <p>${processedContent}</p>
+            </div>
           </div>
+          
+          <script>
+            // Render LaTeX math with KaTeX for perfect display
+            document.addEventListener("DOMContentLoaded", function() {
+              renderMathInElement(document.getElementById('text-content'), {
+                delimiters: [
+                  {left: "\\\\[", right: "\\\\]", display: true},
+                  {left: "\\\\(", right: "\\\\)", display: false},
+                  {left: "$$", right: "$$", display: true},
+                  {left: "$", right: "$", display: false}
+                ],
+                throwOnError: false,
+                strict: false,
+                trust: true
+              });
+              
+              // Show content after math rendering
+              setTimeout(function() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+              }, 800);
+            });
+          </script>
         </body>
       </html>
     `;
@@ -762,8 +840,8 @@ export default function ChunkedRewriter({
     printWindow.document.close();
 
     toast({
-      title: "PDF window opened!",
-      description: "Math notation will render in a moment, then click 'Save as PDF'",
+      title: "Print window opened",
+      description: "Math notation will render perfectly. Use the Print/Save as PDF button when ready.",
     });
   };
 
@@ -1009,10 +1087,22 @@ export default function ChunkedRewriter({
   const formatContent = (content: string) => {
     return (
       <div className="prose dark:prose-invert prose-sm max-w-none">
-        <MathJax>
+        <MathJax hideUntilTypeset="first">
           <ReactMarkdown
             rehypePlugins={[rehypeKatex]}
             remarkPlugins={[remarkMath]}
+            components={{
+              // Custom renderer for paragraphs to handle inline math better
+              p: ({children}) => <p className="mb-4">{children}</p>,
+              // Custom renderer for math blocks
+              code: ({className, children, ...props}) => {
+                const match = /language-(\w+)/.exec(className || '');
+                if (match && match[1] === 'math') {
+                  return <div className="math-display">$$${String(children)}$$</div>;
+                }
+                return <code className={className} {...props}>{children}</code>;
+              }
+            }}
           >
             {content}
           </ReactMarkdown>
@@ -1513,62 +1603,188 @@ export default function ChunkedRewriter({
             </Button>
 
             <Button 
-              onClick={async () => {
-                try {
-                  // Create structured data for the print endpoint
-                  const response = await fetch('/api/print-pdf', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      results: [{ 
-                        rewrittenContent: finalRewrittenContent,
-                        originalChunk: { title: 'Document Content' }
-                      }],
-                      documentName: 'Rewritten Document'
-                    }),
-                  });
-
-                  if (response.ok) {
-                    const htmlContent = await response.text();
-                    
-                    // Open formatted document in print window
-                    const printWindow = window.open('', '_blank');
-                    if (printWindow) {
-                      printWindow.document.write(htmlContent);
-                      printWindow.document.close();
-                      
-                      // Automatically trigger print dialog after MathJax loads
-                      printWindow.onload = () => {
-                        setTimeout(() => {
-                          printWindow.print(); // This opens the print dialog with "Save as PDF" option
-                        }, 1500); // Give MathJax time to render
-                      };
-                      
-                      toast({
-                        title: "Print dialog opening",
-                        description: "Choose 'Save as PDF' from the print dialog for perfect math",
-                      });
-                    } else {
-                      throw new Error('Please allow popups to print');
-                    }
-                  } else {
-                    throw new Error('Failed to prepare print document');
-                  }
-                } catch (error) {
-                  console.error('Print error:', error);
+              onClick={() => {
+                // Create print window with perfect KaTeX math rendering
+                const printWindow = window.open('', '_blank', 'width=900,height=700');
+                if (!printWindow) {
                   toast({
-                    title: "Print failed",
-                    description: "Please allow popups and try again",
+                    title: "Pop-up blocked",
+                    description: "Please allow pop-ups and try again.",
                     variant: "destructive"
                   });
+                  return;
                 }
+
+                // Process content for perfect LaTeX rendering
+                let processedContent = finalRewrittenContent
+                  // Convert markdown formatting to HTML
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*([^$*]*?)\*/g, '<em>$1</em>')
+                  .replace(/^#{1,6}\s+(.*)$/gm, '<h2>$1</h2>')
+                  // Ensure proper LaTeX delimiters for KaTeX
+                  .replace(/\$\$([^$]+)\$\$/g, '\\[$1\\]') // Display math
+                  .replace(/(?<!\$)\$([^$\n]+)\$(?!\$)/g, '\\($1\\)') // Inline math
+                  // Format paragraphs
+                  .replace(/\n\n+/g, '</p><p>')
+                  .replace(/\n/g, '<br>');
+
+                const htmlContent = `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <title>Homework Assignment - Mathematical Document</title>
+                      <meta charset="utf-8">
+                      <!-- KaTeX CSS for perfect math rendering -->
+                      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+                      <!-- KaTeX JavaScript -->
+                      <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+                      <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+                      <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Computer+Modern+Serif:wght@400;700&display=swap');
+                        
+                        body { 
+                          font-family: 'Computer Modern Serif', 'Times New Roman', serif;
+                          font-size: 12pt;
+                          line-height: 1.6; 
+                          max-width: 8.5in; 
+                          margin: 0 auto; 
+                          padding: 1in; 
+                          color: #000;
+                          background: white;
+                        }
+                        
+                        h2 { 
+                          color: #1a365d; 
+                          font-size: 16pt;
+                          margin: 24pt 0 12pt 0;
+                          page-break-after: avoid;
+                        }
+                        
+                        p { 
+                          margin: 12pt 0; 
+                          text-align: justify; 
+                          orphans: 2;
+                          widows: 2;
+                        }
+                        
+                        strong { font-weight: 700; }
+                        em { font-style: italic; }
+                        
+                        /* Perfect KaTeX math styling */
+                        .katex { font-size: 1.1em; }
+                        .katex-display { 
+                          margin: 16pt 0; 
+                          text-align: center;
+                          page-break-inside: avoid;
+                        }
+                        
+                        /* Control buttons */
+                        .controls { 
+                          text-align: center; 
+                          margin: 20px 0; 
+                          background: #f8f9fa;
+                          padding: 15px;
+                          border-radius: 8px;
+                          border: 2px solid #e9ecef;
+                        }
+                        .controls button { 
+                          margin: 0 10px; 
+                          padding: 12px 24px; 
+                          background: #28a745; 
+                          color: white; 
+                          border: none; 
+                          border-radius: 6px; 
+                          cursor: pointer;
+                          font-size: 14px;
+                          font-weight: 500;
+                        }
+                        .controls button:hover { background: #218838; }
+                        .controls .close { background: #6c757d; }
+                        .controls .close:hover { background: #545b62; }
+                        
+                        #loading {
+                          text-align: center;
+                          padding: 50px;
+                          font-size: 18px;
+                          color: #666;
+                        }
+                        
+                        #content { display: none; }
+                        
+                        /* Print-specific styles for perfect PDFs */
+                        @media print { 
+                          .controls { display: none; }
+                          body { 
+                            margin: 0; 
+                            padding: 0.75in; 
+                            font-size: 11pt;
+                          }
+                          @page { 
+                            margin: 0.75in;
+                            size: A4;
+                          }
+                          h2 { 
+                            page-break-after: avoid;
+                            margin-top: 18pt;
+                          }
+                          .katex-display {
+                            page-break-inside: avoid;
+                          }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <div id="loading">⚡ Rendering mathematical notation...</div>
+                      <div id="content">
+                        <div class="controls">
+                          <button onclick="window.print()" title="Save as PDF using your browser's print dialog">
+                            📄 Save as PDF (Perfect Math Rendering)
+                          </button>
+                          <button class="close" onclick="window.close()">Close Window</button>
+                        </div>
+                        <div id="text-content">
+                          <p>${processedContent}</p>
+                        </div>
+                      </div>
+                      
+                      <script>
+                        // Render LaTeX math with KaTeX for perfect display
+                        document.addEventListener("DOMContentLoaded", function() {
+                          renderMathInElement(document.getElementById('text-content'), {
+                            delimiters: [
+                              {left: "\\\\[", right: "\\\\]", display: true},
+                              {left: "\\\\(", right: "\\\\)", display: false},
+                              {left: "$$", right: "$$", display: true},
+                              {left: "$", right: "$", display: false}
+                            ],
+                            throwOnError: false,
+                            strict: false,
+                            trust: true
+                          });
+                          
+                          // Show content after math rendering
+                          setTimeout(function() {
+                            document.getElementById('loading').style.display = 'none';
+                            document.getElementById('content').style.display = 'block';
+                          }, 800);
+                        });
+                      </script>
+                    </body>
+                  </html>
+                `;
+
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+
+                toast({
+                  title: "Print window opened",
+                  description: "Mathematical notation will render perfectly. Click Save as PDF when ready.",
+                });
               }}
               className="flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
-              <span>Print as PDF</span>
+              <span>Save as PDF</span>
             </Button>
             
             <Button 

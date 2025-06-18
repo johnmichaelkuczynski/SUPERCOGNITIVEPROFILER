@@ -113,6 +113,9 @@ Changelog:
 - June 15, 2025. Implemented comprehensive RateLimiter system for Claude and OpenAI APIs with token tracking, request throttling, and exponential backoff retry logic
 - June 16, 2025. Integrated DeepSeek API as third model option across all processing modes (Rewrite, Homework, Text to Math) with full rate limiting support
 - June 16, 2025. Implemented 15-second pauses between all chunked AI requests to prevent rate limiting issues for Claude, OpenAI, Perplexity, and DeepSeek APIs
+- June 18, 2025. Fixed homework mode progress bar - now displays immediately when "Start Homework" clicked with prominent visual feedback and stage-based progress updates
+- June 18, 2025. Enhanced mathematical rendering system - raw LaTeX expressions now render properly as formatted mathematics using improved MathJax/KaTeX integration
+- June 18, 2025. Implemented professional print/save-as-PDF functionality with KaTeX rendering for publication-quality mathematical documents and perfect math notation preservation
 ```
 
 ## User Preferences
