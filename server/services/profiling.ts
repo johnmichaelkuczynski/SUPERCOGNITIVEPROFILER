@@ -536,6 +536,37 @@ CRITICAL: Return the JSON structure with NUMERIC scores (not strings) based on t
     );
     console.log('🔍 METACOGNITIVE PROFILING DEBUG - DEFAULT SCORES CHECK:', isDefaultScores ? 'WARNING: USING DEFAULT SCORES!' : 'SCORES ARE DYNAMIC');
 
+    // DEBUG LOGGING - Step 6: Additional validation checks
+    const hasValidScores = (
+      typeof parsedResult.intellectualMaturity === 'number' &&
+      typeof parsedResult.selfAwarenessLevel === 'number' &&
+      typeof parsedResult.epistemicHumility === 'number' &&
+      typeof parsedResult.reflectiveDepth === 'number' &&
+      parsedResult.intellectualMaturity >= 1 && parsedResult.intellectualMaturity <= 10 &&
+      parsedResult.selfAwarenessLevel >= 1 && parsedResult.selfAwarenessLevel <= 10 &&
+      parsedResult.epistemicHumility >= 1 && parsedResult.epistemicHumility <= 10 &&
+      parsedResult.reflectiveDepth >= 1 && parsedResult.reflectiveDepth <= 10
+    );
+    
+    console.log('🔍 SCORES VALIDATION:', hasValidScores ? 'VALID NUMERIC SCORES' : 'INVALID SCORES DETECTED');
+    
+    if (!hasValidScores) {
+      console.log('🚨 CRITICAL: Invalid scores detected, LLM did not return proper numeric values');
+      console.log('🚨 Raw response content:', rawResponse);
+    }
+
+    // DEBUG LOGGING - Step 7: Create execution fingerprint
+    const executionFingerprint = {
+      textHash: text.substring(0, 50).replace(/\s/g, '').toLowerCase(),
+      timestamp: new Date().toISOString(),
+      scores: [parsedResult.intellectualMaturity, parsedResult.selfAwarenessLevel, parsedResult.epistemicHumility, parsedResult.reflectiveDepth],
+      isDefaultPattern: isDefaultScores,
+      promptLength: prompt.length,
+      responseLength: rawResponse.length
+    };
+    
+    console.log('🔍 EXECUTION FINGERPRINT:', JSON.stringify(executionFingerprint, null, 2));
+
     return parsedResult;
   } catch (error) {
     console.error('🔍 METACOGNITIVE PROFILING DEBUG - ERROR:', error);
