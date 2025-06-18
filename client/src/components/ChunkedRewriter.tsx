@@ -209,6 +209,9 @@ export default function ChunkedRewriter({
 
   const processHomeworkMode = async () => {
     try {
+      setIsProcessing(true);
+      setProgress(25);
+
       let chatContext = '';
       if (includeChatContext && chatHistory.length > 0) {
         chatContext = '\n\nChat Context (for reference):\n' + 
