@@ -5440,6 +5440,50 @@ Analyze the ACTUAL TEXT CONTENT. Different texts must get different scores.`;
     }
   });
 
+  // Graph generation API
+  app.post('/api/generate-graphs', async (req: Request, res: Response) => {
+    try {
+      const { text, context = 'academic' } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text content is required' });
+      }
+
+      const { generateGraphsFromText } = await import('./services/graphGeneration');
+      const result = await generateGraphsFromText(text, context);
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating graphs:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate graphs',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Enhanced content with graphs API
+  app.post('/api/enhance-with-graphs', async (req: Request, res: Response) => {
+    try {
+      const { content, context = 'academic' } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      const { enhanceContentWithGraphs } = await import('./services/graphGeneration');
+      const enhancedContent = await enhanceContentWithGraphs(content, context);
+      
+      res.json({ enhancedContent });
+    } catch (error) {
+      console.error('Error enhancing content with graphs:', error);
+      res.status(500).json({ 
+        error: 'Failed to enhance content',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   return httpServer;
 }
 
