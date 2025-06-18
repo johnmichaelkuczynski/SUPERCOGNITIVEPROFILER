@@ -188,7 +188,7 @@ Generate realistic, meaningful data - no placeholder values.`;
     const result = JSON.parse(response.choices[0].message.content || "{}");
     
     // Also check for mathematical equations in the text and generate function graphs
-    const mathEquationRegex = /f\(x\)\s*=\s*[^.]+|y\s*=\s*[^.]+|\$[^$]+\$|\\[([^]]+)\\]/g;
+    const mathEquationRegex = /f\(x\)\s*=\s*[^.]+|y\s*=\s*[^.]+|\$[^$]+\$/g;
     const equations = text.match(mathEquationRegex) || [];
     
     for (const equation of equations) {
