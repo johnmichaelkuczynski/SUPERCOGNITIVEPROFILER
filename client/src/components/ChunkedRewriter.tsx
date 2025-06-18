@@ -71,6 +71,9 @@ export default function ChunkedRewriter({
   const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('claude');
   const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
   
+  // Math View toggle state
+  const [showMathView, setShowMathView] = useState(false);
+  
   const { toast } = useToast();
 
   // Clean content for auxiliary chat - remove markdown and fix math notation
