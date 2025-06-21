@@ -128,24 +128,26 @@ export default function ChatWindow({
   };
 
   const MathContent = ({ content, messageId }: { content: string; messageId: number }) => {
-    const isMathView = mathViewStates[messageId] || false;
+    const isMathView = mathViewStates[messageId] !== false;
     
     if (isMathView) {
       return (
-        <ReactMarkdown
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-          components={{
-            p: ({ children }) => <p className="mb-2">{children}</p>,
-            code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</code>
-          }}
-        >
-          {content}
-        </ReactMarkdown>
+        <div className="prose dark:prose-invert prose-sm max-w-none">
+          <ReactMarkdown
+            remarkPlugins={[remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+            components={{
+              p: ({ children }) => <p className="mb-2">{children}</p>,
+              code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</code>
+            }}
+          >
+            {content}
+          </ReactMarkdown>
+        </div>
       );
     } else {
       return (
-        <div className="whitespace-pre-wrap font-mono text-sm">
+        <div className="whitespace-pre-wrap text-sm">
           {content}
         </div>
       );
@@ -314,7 +316,7 @@ export default function ChatWindow({
                       <div className="flex justify-end mb-2">
                         <div className="flex space-x-1">
                           <Button
-                            variant={mathViewStates[message.id] ? "outline" : "default"}
+                            variant={mathViewStates[message.id] === false ? "default" : "outline"}
                             size="sm"
                             onClick={() => toggleMathView(message.id)}
                             className="h-6 px-2 text-xs"
@@ -323,7 +325,7 @@ export default function ChatWindow({
                             Text
                           </Button>
                           <Button
-                            variant={mathViewStates[message.id] ? "default" : "outline"}
+                            variant={mathViewStates[message.id] !== false ? "default" : "outline"}
                             size="sm"
                             onClick={() => toggleMathView(message.id)}
                             className="h-6 px-2 text-xs"
@@ -360,7 +362,7 @@ export default function ChatWindow({
                   <div className="flex justify-end mb-2">
                     <div className="flex space-x-1">
                       <Button
-                        variant={mathViewStates[-1] ? "outline" : "default"}
+                        variant={mathViewStates[-1] === false ? "default" : "outline"}
                         size="sm"
                         onClick={() => toggleMathView(-1)}
                         className="h-6 px-2 text-xs"
@@ -369,7 +371,7 @@ export default function ChatWindow({
                         Text
                       </Button>
                       <Button
-                        variant={mathViewStates[-1] ? "default" : "outline"}
+                        variant={mathViewStates[-1] !== false ? "default" : "outline"}
                         size="sm"
                         onClick={() => toggleMathView(-1)}
                         className="h-6 px-2 text-xs"
