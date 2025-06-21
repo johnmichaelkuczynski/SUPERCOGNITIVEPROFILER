@@ -616,18 +616,25 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                           </div>
                         )}
                         {showMathView ? (
-                          <MathJax>
-                            <ReactMarkdown
-                              remarkPlugins={[
-                                [remarkMath, {
-                                  singleDollarTextMath: false, // Disable single $ delimiters
-                                }]
-                              ]}
-                              rehypePlugins={[rehypeKatex]}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
-                          </MathJax>
+                          <div>
+                            {message.content.split(/(\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$)/g).map((part, index) => {
+                              // Check if this part is a math expression
+                              if (part.match(/^\\\(.*\\\)$|^\\\[.*\\\]$|^\$\$.*\$\$$/) && part.trim()) {
+                                return (
+                                  <MathJax key={index} inline={part.startsWith('\\(')}>
+                                    {part}
+                                  </MathJax>
+                                );
+                              } else {
+                                // Regular text content - render as markdown without math processing
+                                return (
+                                  <ReactMarkdown key={index}>
+                                    {part}
+                                  </ReactMarkdown>
+                                );
+                              }
+                            })}
+                          </div>
                         ) : (
                           formatMessage(message.content)
                         )}
