@@ -265,6 +265,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case 'perplexity':
             result = await processPerplexity(processedContent, options);
             break;
+          case 'deepseek':
+            result = await processDeepSeek(processedContent, options);
+            break;
           default:
             return res.status(400).json({ message: 'Invalid model' });
         }
