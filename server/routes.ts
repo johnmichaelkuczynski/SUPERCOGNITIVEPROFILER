@@ -26,6 +26,7 @@ import sgMail from '@sendgrid/mail';
 import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
+import { parseGraphRequirements, parseMathExpression, generateEssayWithGraphs, generateSVG } from "./services/graphGenerator";
 
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
@@ -144,6 +145,9 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register document chunk summarization route
   app.use('/api/llm/summarize-chunk', summarizeRoutes);
+  
+  // Register graph generation routes
+  setupGraphRoutes(app);
   // LLM prompt processing route
   app.post('/api/llm/prompt', upload.array('files'), async (req: Request, res: Response) => {
     try {
@@ -5581,4 +5585,66 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
   console.log('Chunk word counts:', chunkStats.map(s => `${s.title}: ${s.words} words`).join(', '));
   
   return balancedChunks;
+}
+
+// Graph Generation API Endpoints
+export function setupGraphRoutes(app: Express) {
+  // Generate graphs from text analysis
+  app.post('/api/generate-graphs', async (req: Request, res: Response) => {
+    try {
+      const { mode, text, mathExpression, model = 'claude', style = 'academic' } = req.body;
+      
+      if (!mode) {
+        return res.status(400).json({ error: 'Mode is required' });
+      }
+      
+      let graphs = [];
+      
+      if (mode === 'math' && mathExpression) {
+        // Generate mathematical function graph
+        const graphData = await parseMathExpression(mathExpression, { model, style });
+        if (graphData) {
+          const svg = generateSVG(graphData);
+          graphs.push({ svg, data: graphData, position: 0 });
+        }
+      } else if (mode === 'text' && text) {
+        // Generate graphs from text analysis
+        const graphRequirements = await parseGraphRequirements(text, { model, style });
+        graphs = graphRequirements.map((data, index) => ({
+          svg: generateSVG(data),
+          data,
+          position: index
+        }));
+      }
+      
+      res.json({ graphs });
+    } catch (error) {
+      console.error('Error generating graphs:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate graphs', 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Generate complete essay with embedded graphs
+  app.post('/api/generate-essay-with-graphs', async (req: Request, res: Response) => {
+    try {
+      const { text, model = 'claude', style = 'academic' } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: 'Text prompt is required' });
+      }
+      
+      const result = await generateEssayWithGraphs(text, { model, style });
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error generating essay with graphs:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate essay with graphs', 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 }

@@ -60,7 +60,7 @@ export async function processGPT4(
       max_tokens: maxTokens,
     });
 
-    return response.choices[0].message.content;
+    return response.choices[0].message.content || '';
   } catch (error) {
     console.error('Error calling OpenAI API:', error);
     throw error;

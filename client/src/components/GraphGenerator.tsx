@@ -57,10 +57,19 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
       style: string;
     }) => {
       const endpoint = data.mode === 'essay' ? '/api/generate-essay-with-graphs' : '/api/generate-graphs';
-      return apiRequest(endpoint, {
+      const response = await fetch(endpoint, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate graphs');
+      }
+      
+      return response.json();
     },
     onSuccess: (response) => {
       if (mode === 'essay') {
