@@ -81,8 +81,8 @@ function Router() {
 const mathJaxConfig = {
   loader: { load: ["input/tex", "output/chtml"] },
   tex: {
-    inlineMath: [['\\(', '\\)'], ['$', '$']],
-    displayMath: [['\\[', '\\]'], ['$$', '$$']],
+    inlineMath: [['\\(', '\\)']],  // Only use \( \) for inline math
+    displayMath: [['\\[', '\\]'], ['$$', '$$']],  // Use \[ \] and $$ $$ for display math
     processEscapes: true,
     processEnvironments: true
   },

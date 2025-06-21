@@ -1854,8 +1854,8 @@ export default function ChunkedRewriter({
                             delimiters: [
                               {left: "\\\\[", right: "\\\\]", display: true},
                               {left: "\\\\(", right: "\\\\)", display: false},
-                              {left: "$$", right: "$$", display: true},
-                              {left: "$", right: "$", display: false}
+                              {left: "$$", right: "$$", display: true}
+                              // Removed single $ delimiters to prevent currency symbols from being treated as math
                             ],
                             throwOnError: false,
                             strict: false,
@@ -1867,8 +1867,8 @@ export default function ChunkedRewriter({
                           graphTitles.forEach(function(title) {
                             renderMathInElement(title, {
                               delimiters: [
-                                {left: "$", right: "$", display: false},
                                 {left: "\\\\(", right: "\\\\)", display: false}
+                                // Removed single $ delimiters to prevent currency symbols from being treated as math
                               ],
                               throwOnError: false,
                               strict: false,

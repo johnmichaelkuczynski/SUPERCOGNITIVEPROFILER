@@ -618,7 +618,11 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                         {showMathView ? (
                           <MathJax>
                             <ReactMarkdown
-                              remarkPlugins={[remarkMath]}
+                              remarkPlugins={[
+                                [remarkMath, {
+                                  singleDollarTextMath: false, // Disable single $ delimiters
+                                }]
+                              ]}
                               rehypePlugins={[rehypeKatex]}
                             >
                               {message.content}

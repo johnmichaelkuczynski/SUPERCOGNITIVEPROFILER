@@ -128,6 +128,7 @@ Changelog:
 - June 21, 2025. Fixed PDF graph truncation issue - added print-specific CSS styles and reduced graph dimensions (600x400) to ensure complete graph visibility in PDF downloads
 - June 21, 2025. Fixed graph titles to display proper mathematical notation - updated UI Math View to use MathJax rendering and enhanced PDF generation with KaTeX auto-rendering for perfect mathematical formatting in both display and print
 - June 21, 2025. Added Math View toggle to auxiliary AI chat - users can now switch between Text view (plain text) and Math view (rendered mathematical notation with MathJax) for proper display of mathematical expressions in chat messages
+- June 21, 2025. Fixed currency symbol issue - removed single dollar sign ($) delimiters from MathJax and KaTeX configurations to prevent currency symbols from being incorrectly interpreted as mathematical expressions
 ```
 
 ## User Preferences
