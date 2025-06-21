@@ -14,27 +14,30 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
     <script>
-      // Global KaTeX auto-rendering function
-      window.renderMathInElement = function(element) {
-        if (typeof renderMathInElement !== 'undefined') {
-          renderMathInElement(element, {
-            delimiters: [
-              {left: '$$', right: '$$', display: true},
-              {left: '$', right: '$', display: false},
-              {left: '\\(', right: '\\)', display: false},
-              {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError: false,
-            strict: false
-          });
-        }
-      };
-      
-      // Auto-render on load
+      // Set up KaTeX auto-rendering once loaded
       document.addEventListener("DOMContentLoaded", function() {
-        if (window.renderMathInElement) {
-          window.renderMathInElement(document.body);
-        }
+        // Store the original KaTeX function
+        const originalRender = renderMathInElement;
+        
+        // Create our wrapper function
+        window.renderMathInElement = function(element) {
+          if (originalRender && typeof originalRender === 'function') {
+            try {
+              originalRender(element, {
+                delimiters: [
+                  {left: '$$', right: '$$', display: true},
+                  {left: '$', right: '$', display: false},
+                  {left: '\\(', right: '\\)', display: false},
+                  {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false,
+                strict: false
+              });
+            } catch (e) {
+              console.warn('KaTeX rendering failed:', e);
+            }
+          }
+        };
       });
     </script>
     
