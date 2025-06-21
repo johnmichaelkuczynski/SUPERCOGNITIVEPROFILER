@@ -106,7 +106,7 @@ export default function Home() {
   const [selectedLibraryDocumentId, setSelectedLibraryDocumentId] = useState<string>('');
   
   // Use documents hook for library functionality
-  const { documents: documentsData, isLoading: documentsLoading } = useDocuments();
+  const { documents: documentsData, isLoading: documentsLoading, deleteDocument, isDeleting } = useDocuments();
 
   // NUKE function to clear all data - no confirmation popup
   const handleNuke = async () => {
@@ -893,28 +893,54 @@ Document text: ${extractedText}`;
                     {documentsData.map((doc: any) => (
                       <div 
                         key={doc.id} 
-                        className={`border rounded-lg p-3 cursor-pointer transition-all hover:shadow-md ${
+                        className={`border rounded-lg p-3 transition-all hover:shadow-md ${
                           selectedLibraryDocumentId === doc.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => {
-                          setSelectedLibraryDocumentId(doc.id);
-                          // Set the document content to the text area
-                          setDirectInputText(doc.content || '');
-                        }}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
+                          <div 
+                            className="flex items-center space-x-3 flex-1 cursor-pointer"
+                            onClick={() => {
+                              setSelectedLibraryDocumentId(doc.id);
+                              // Set the document content to the text area
+                              setDirectInputText(doc.content || '');
+                            }}
+                          >
                             <FileText className="h-5 w-5 text-gray-500" />
-                            <div>
+                            <div className="flex-1">
                               <p className="font-medium text-sm">{doc.title}</p>
                               <p className="text-xs text-gray-500">
-                                {doc.content ? `${doc.content.length} characters` : 'No content'}
+                                {doc.content ? `${Math.round(doc.content.length / 1000)}k chars` : 'No content'}
                               </p>
+                              {doc.content && (
+                                <p className="text-xs text-gray-400 mt-1 line-clamp-1">
+                                  {doc.content.substring(0, 60)}...
+                                </p>
+                              )}
                             </div>
                           </div>
-                          {selectedLibraryDocumentId === doc.id && (
-                            <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
-                          )}
+                          
+                          <div className="flex items-center space-x-2">
+                            {selectedLibraryDocumentId === doc.id && (
+                              <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
+                            )}
+                            
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) {
+                                  deleteDocument(doc.id);
+                                }
+                              }}
+                              disabled={isDeleting}
+                              title="Delete document"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}

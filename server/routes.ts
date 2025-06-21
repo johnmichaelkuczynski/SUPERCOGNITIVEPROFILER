@@ -475,6 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: documents.id,
         title: documents.title,
         excerpt: documents.excerpt,
+        content: documents.content,
         date: documents.date,
         model: documents.model
       }).from(documents)
@@ -502,6 +503,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching document:', error);
       res.status(500).json({ error: 'Failed to fetch document' });
+    }
+  });
+
+  // Delete document endpoint
+  app.delete('/api/documents/:id', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      // First check if document exists
+      const [document] = await db.select().from(documents).where(eq(documents.id, id));
+      
+      if (!document) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+
+      // Delete the document
+      await db.delete(documents).where(eq(documents.id, id));
+      
+      res.json({ message: 'Document deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      res.status(500).json({ error: 'Failed to delete document' });
     }
   });
   
