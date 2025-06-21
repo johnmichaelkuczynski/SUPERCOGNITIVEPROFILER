@@ -33,45 +33,47 @@ export async function parseGraphRequirements(
 ): Promise<GraphData[]> {
   const { model, context = '', style = 'academic' } = options;
 
-  const prompt = `You are an expert data visualization specialist. Analyze the following text and identify what graphs would best support the content.
+  const prompt = `You are an expert data visualization specialist. Analyze the following assignment/problem and create ONLY the graphs that are specifically needed for the mathematical, scientific, or academic content.
 
-TEXT TO ANALYZE:
+ASSIGNMENT/PROBLEM:
 ${text}
 
-CONTEXT: ${context}
-STYLE: ${style}
+CRITICAL INSTRUCTIONS:
+1. Look for SPECIFIC mathematical functions, equations, or data mentioned in the assignment
+2. If it's a calculus problem, create graphs of the actual functions being analyzed
+3. If it's a physics problem, graph the physical relationships described
+4. If it's economics, graph the specific economic relationships mentioned
+5. DO NOT create generic or unrelated graphs
+6. ONLY create graphs that directly illustrate the problem being solved
 
-INSTRUCTIONS:
-1. Identify sections that would benefit from visual representation
-2. Determine appropriate graph types for each concept
-3. Generate realistic data that supports the arguments
-4. Create clear titles and labels
-5. Provide mathematical expressions for any function-based graphs
+GRAPH CREATION RULES:
+- For mathematical functions: Use the exact functions from the problem
+- For data analysis: Use the actual data mentioned
+- For word problems: Graph the relationships described
+- For comparisons: Show the specific comparisons mentioned
 
-For each graph needed, provide:
-- type: Choose from 'line', 'bar', 'scatter', 'pie', 'area', 'function', 'histogram'
-- title: Descriptive title
-- xLabel: X-axis label
-- yLabel: Y-axis label  
-- data: Array of data points with x, y values (and optional labels)
-- description: Brief explanation of what the graph shows
-- mathExpression: For mathematical functions (optional)
-- domain: For function plots, specify [min, max] range (optional)
-- color: Hex color code (optional)
+For each relevant graph, provide:
+- type: 'function' for math equations, 'line' for trends, 'bar' for comparisons, 'scatter' for data points
+- title: Exact title based on the problem content
+- xLabel: Variable from the problem
+- yLabel: Variable from the problem
+- data: Accurate data points that match the problem
+- mathExpression: Exact mathematical expression from the problem (if applicable)
+- domain: Appropriate range for the problem
+- description: How this graph relates to solving the problem
 
-Return ONLY valid JSON array of GraphData objects. Example:
+Return ONLY valid JSON array. If no specific graphs are needed for the problem, return [].
+
+Example for calculus problem "Find the derivative of f(x) = x² + 3x":
 [
   {
-    "type": "line",
-    "title": "GDP Growth Over Time",
-    "xLabel": "Year",
-    "yLabel": "GDP Growth (%)",
-    "data": [
-      {"x": 2020, "y": -3.1},
-      {"x": 2021, "y": 5.7},
-      {"x": 2022, "y": 2.1}
-    ],
-    "description": "Shows economic recovery following the pandemic",
+    "type": "function",
+    "title": "f(x) = x² + 3x",
+    "xLabel": "x",
+    "yLabel": "f(x)",
+    "mathExpression": "x^2 + 3*x",
+    "domain": [-5, 5],
+    "description": "Original function to be differentiated",
     "color": "#2563eb"
   }
 ]`;

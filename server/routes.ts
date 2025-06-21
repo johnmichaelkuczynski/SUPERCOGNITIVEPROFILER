@@ -2556,9 +2556,9 @@ Your job is to solve problems correctly and write clear, student-friendly explan
         try {
           console.log('Detected graph requirement, generating visualizations...');
           
-          // Generate graphs based on the content
+          // Generate graphs based on ONLY the original problem/assignment
           const graphRequirements = await parseGraphRequirements(
-            `${instructions}\n\nGenerated content: ${result}`, 
+            instructions, 
             { model: model === 'gpt4' ? 'gpt4' : 'claude', style: 'academic' }
           );
           

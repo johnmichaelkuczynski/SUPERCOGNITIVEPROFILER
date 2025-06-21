@@ -123,6 +123,7 @@ Changelog:
 - June 21, 2025. Created complete essay-with-graphs functionality - generates academic papers with embedded charts for economics, science, and analytical writing
 - June 21, 2025. Fixed PDF download to include generated graphs - visualizations now appear in both UI display and PDF exports with proper formatting and styling
 - June 21, 2025. Fixed ASCII art graph problem - updated system prompts across all models (Claude, GPT-4, DeepSeek) to prevent text-based visualizations and ensure proper graph placeholder references like "[See Graph 1 above]"
+- June 21, 2025. Fixed graph relevance issue - improved graph generation to analyze only the original problem/assignment content rather than generated solutions, ensuring graphs match the actual mathematical/scientific content being solved
 ```
 
 ## User Preferences
