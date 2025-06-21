@@ -1839,11 +1839,32 @@ Document text: ${extractedText}`;
               {/* File Upload UI */}
               <div>
                 <div 
-                  className="border-2 border-dashed rounded-lg p-3 text-center cursor-pointer hover:bg-slate-50"
+                  className={`border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition-colors ${
+                    isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:bg-slate-50'
+                  }`}
                   onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const droppedFiles = Array.from(e.dataTransfer.files);
+                    if (droppedFiles.length > 0) {
+                      setFiles(droppedFiles);
+                      droppedFiles.forEach(file => processUploadedFile(file));
+                    }
+                  }}
                 >
                   <Upload className="h-4 w-4 mx-auto text-slate-400 mb-1" />
-                  <p className="text-xs text-slate-600">Upload files for automatic analysis</p>
+                  <p className="text-xs text-slate-600">
+                    {isDragging ? 'Drop files here' : 'Upload files for automatic analysis'}
+                  </p>
                   <p className="text-xs text-slate-500">PDF, DOCX, TXT, JPG, PNG</p>
                 </div>
               </div>
