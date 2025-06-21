@@ -602,9 +602,9 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
 
                           {/* Send to Input button */}
                           <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6"
+                            variant="default" 
+                            size="sm" 
+                            className="h-7 px-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
                             onClick={() => {
                               if (onSendToInput) {
                                 // Strip markdown formatting before sending to input
@@ -624,7 +624,8 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                             }}
                             title="Send to Input"
                           >
-                            <Upload className="h-3 w-3" />
+                            <Upload className="h-3 w-3 mr-1" />
+                            Send
                           </Button>
                         </div>
                       </div>
