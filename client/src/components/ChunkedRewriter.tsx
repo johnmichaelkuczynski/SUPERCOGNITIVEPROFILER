@@ -2225,8 +2225,18 @@ export default function ChunkedRewriter({
     </Dialog>
 
     {/* Live Progress Popup - Enhanced with Progress Bar */}
-    <Dialog open={showLiveProgress} onOpenChange={() => {}} modal={true}>
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={showLiveProgress} onOpenChange={(open) => {
+      if (!open) {
+        // Allow closing the dialog
+        setShowLiveProgress(false);
+        // If processing is still happening, also cancel it
+        if (isProcessing) {
+          setIsCancelled(true);
+          setIsProcessing(false);
+        }
+      }
+    }} modal={true}>
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-blue-600">Processing Multi-Chunk Document</DialogTitle>
           <DialogDescription className="text-lg">
