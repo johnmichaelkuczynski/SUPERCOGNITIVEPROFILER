@@ -1041,60 +1041,59 @@ Document text: ${extractedText}`;
       </Card>
 
       {/* Main Chat Interface */}
-
       <div className="flex">
         {/* Document Sidebar */}
         {allDocuments.length > 0 && (
-        <div className="w-16 bg-slate-50 rounded-lg flex flex-col items-center py-4 mr-4 h-[calc(100vh-3rem)] overflow-y-auto sticky top-6">
-          {allDocuments.map((doc, index) => (
-            <div 
-              key={index}
-              className="relative group mb-4"
-            >
-              <div className="flex flex-col space-y-1">
-                <div 
-                  className="w-10 h-10 flex items-center justify-center bg-white rounded-lg border-2 border-slate-200 hover:border-blue-500 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setViewingDocumentContent(doc.content);
-                    setViewingDocumentName(doc.name);
-                    setIsDocumentViewerOpen(true);
-                  }}
-                >
-                  <FileText className="h-5 w-5 text-slate-700" />
+          <div className="w-16 bg-slate-50 rounded-lg flex flex-col items-center py-4 mr-4 h-[calc(100vh-3rem)] overflow-y-auto sticky top-6">
+            {allDocuments.map((doc, index) => (
+              <div 
+                key={index}
+                className="relative group mb-4"
+              >
+                <div className="flex flex-col space-y-1">
+                  <div 
+                    className="w-10 h-10 flex items-center justify-center bg-white rounded-lg border-2 border-slate-200 hover:border-blue-500 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setViewingDocumentContent(doc.content);
+                      setViewingDocumentName(doc.name);
+                      setIsDocumentViewerOpen(true);
+                    }}
+                  >
+                    <FileText className="h-5 w-5 text-slate-700" />
+                  </div>
+                  <button
+                    className="w-10 h-6 flex items-center justify-center bg-blue-50 rounded border border-blue-200 hover:bg-blue-100 transition-colors"
+                    onClick={() => openChunkedRewriter(doc.content, doc.name)}
+                    title="Smart Rewrite"
+                  >
+                    <Edit3 className="h-3 w-3 text-blue-600" />
+                  </button>
+                  <button
+                    className="w-10 h-6 flex items-center justify-center bg-green-50 rounded border border-green-200 hover:bg-green-100 transition-colors"
+                    onClick={() => {
+                      if (chatDialogueRef.current) {
+                        chatDialogueRef.current.addMessage(
+                          `Document "${doc.name}" content:\n\n${doc.content.substring(0, 2000)}${doc.content.length > 2000 ? '...\n\n[Document truncated for chat - click to view full content]' : ''}`,
+                          { type: 'document_content', documentName: doc.name, fullContent: doc.content }
+                        );
+                      }
+                    }}
+                    title="Send to Chat"
+                  >
+                    <Send className="h-3 w-3 text-green-600" />
+                  </button>
                 </div>
-                <button
-                  className="w-10 h-6 flex items-center justify-center bg-blue-50 rounded border border-blue-200 hover:bg-blue-100 transition-colors"
-                  onClick={() => openChunkedRewriter(doc.content, doc.name)}
-                  title="Smart Rewrite"
-                >
-                  <Edit3 className="h-3 w-3 text-blue-600" />
-                </button>
-                <button
-                  className="w-10 h-6 flex items-center justify-center bg-green-50 rounded border border-green-200 hover:bg-green-100 transition-colors"
-                  onClick={() => {
-                    if (chatDialogueRef.current) {
-                      chatDialogueRef.current.addMessage(
-                        `Document "${doc.name}" content:\n\n${doc.content.substring(0, 2000)}${doc.content.length > 2000 ? '...\n\n[Document truncated for chat - click to view full content]' : ''}`,
-                        { type: 'document_content', documentName: doc.name, fullContent: doc.content }
-                      );
-                    }
-                  }}
-                  title="Send to Chat"
-                >
-                  <Send className="h-3 w-3 text-green-600" />
-                </button>
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
+                  {doc.name}
+                  <br />
+                  <span className="text-blue-200">Click icon to view • Click rewrite to edit</span>
+                </div>
               </div>
-              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
-                {doc.name}
-                <br />
-                <span className="text-blue-200">Click icon to view • Click rewrite to edit</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      
-      <div className="flex-1">
+            ))}
+          </div>
+        )}
+        
+        <div className="flex-1">
         <h1 className="text-2xl font-bold mb-6">TextMind Chat</h1>
         
         <Card className="shadow-sm flex flex-col mb-6">
