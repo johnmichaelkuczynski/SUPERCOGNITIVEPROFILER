@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Send, Loader2, Settings2 } from "lucide-react";
+import { Send, Loader2, Settings2, Eye, Edit3 } from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
@@ -75,6 +75,7 @@ export default function ChatWindow({
   const [chunkSize, setChunkSize] = useState("auto");
   const [maxTokens, setMaxTokens] = useState(2048);
   const [stream, setStream] = useState(true);
+  const [mathViewStates, setMathViewStates] = useState<{[key: number]: boolean}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -119,24 +120,43 @@ export default function ChatWindow({
     }
   };
   
-  const MathContent = ({ content }: { content: string }) => {
-    return (
-      <ReactMarkdown
-        remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        className="prose dark:prose-invert prose-sm max-w-none"
-        components={{
-          p: ({ children }) => <p className="mb-2">{children}</p>,
-          code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</code>
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    );
+  const toggleMathView = (messageId: number) => {
+    setMathViewStates(prev => ({
+      ...prev,
+      [messageId]: !prev[messageId]
+    }));
   };
 
-  const renderMessageContent = (content: string) => {
-    return <MathContent content={content} />;
+  const MathContent = ({ content, messageId }: { content: string; messageId: number }) => {
+    const isMathView = mathViewStates[messageId] || false;
+    
+    if (isMathView) {
+      return (
+        <ReactMarkdown
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+          components={{
+            p: ({ children }) => <p className="mb-2">{children}</p>,
+            code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</code>
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      );
+    } else {
+      return (
+        <div className="whitespace-pre-wrap font-mono text-sm">
+          {content}
+        </div>
+      );
+    }
+  };
+
+  const renderMessageContent = (content: string, messageId?: number) => {
+    if (messageId !== undefined) {
+      return <MathContent content={content} messageId={messageId} />;
+    }
+    return <MathContent content={content} messageId={0} />;
   };
   
   if (!conversation) {
@@ -290,7 +310,31 @@ export default function ChatWindow({
                     : "bg-card"
                 }`}>
                   <CardContent className="p-4">
-                    {renderMessageContent(message.content)}
+                    {message.role === "assistant" && (
+                      <div className="flex justify-end mb-2">
+                        <div className="flex space-x-1">
+                          <Button
+                            variant={mathViewStates[message.id] ? "outline" : "default"}
+                            size="sm"
+                            onClick={() => toggleMathView(message.id)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            <Edit3 className="h-3 w-3 mr-1" />
+                            Text
+                          </Button>
+                          <Button
+                            variant={mathViewStates[message.id] ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => toggleMathView(message.id)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Math
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {renderMessageContent(message.content, message.id)}
                   </CardContent>
                 </Card>
               </div>
@@ -313,7 +357,29 @@ export default function ChatWindow({
               
               <Card>
                 <CardContent className="p-4">
-                  {renderMessageContent(streamingMessage)}
+                  <div className="flex justify-end mb-2">
+                    <div className="flex space-x-1">
+                      <Button
+                        variant={mathViewStates[-1] ? "outline" : "default"}
+                        size="sm"
+                        onClick={() => toggleMathView(-1)}
+                        className="h-6 px-2 text-xs"
+                      >
+                        <Edit3 className="h-3 w-3 mr-1" />
+                        Text
+                      </Button>
+                      <Button
+                        variant={mathViewStates[-1] ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleMathView(-1)}
+                        className="h-6 px-2 text-xs"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Math
+                      </Button>
+                    </div>
+                  </div>
+                  {renderMessageContent(streamingMessage, -1)}
                 </CardContent>
               </Card>
             </div>
