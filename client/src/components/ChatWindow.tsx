@@ -10,6 +10,12 @@ import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import "katex/dist/katex.min.css";
+
+declare global {
+  interface Window {
+    MathJax: any;
+  }
+}
 import {
   Sheet,
   SheetContent,
@@ -113,16 +119,30 @@ export default function ChatWindow({
     }
   };
   
-  const renderMessageContent = (content: string) => {
+  const MathContent = ({ content }: { content: string }) => {
+    const contentRef = useRef<HTMLDivElement>(null);
+    
+    useEffect(() => {
+      if (contentRef.current && window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([contentRef.current]).catch((err: any) => {
+          console.warn('MathJax rendering error:', err);
+        });
+      }
+    }, [content]);
+
     return (
-      <ReactMarkdown
-        rehypePlugins={[rehypeKatex]}
-        remarkPlugins={[remarkMath]}
+      <div 
+        ref={contentRef}
         className="prose dark:prose-invert prose-sm max-w-none"
-      >
-        {content}
-      </ReactMarkdown>
+        dangerouslySetInnerHTML={{
+          __html: content.replace(/\n/g, '<br>')
+        }}
+      />
     );
+  };
+
+  const renderMessageContent = (content: string) => {
+    return <MathContent content={content} />;
   };
   
   if (!conversation) {
