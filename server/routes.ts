@@ -5598,7 +5598,7 @@ export function setupGraphRoutes(app: Express) {
         return res.status(400).json({ error: 'Mode is required' });
       }
       
-      let graphs = [];
+      let graphs: Array<{ svg: string; data: any; position: number }> = [];
       
       if (mode === 'math' && mathExpression) {
         // Generate mathematical function graph
