@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { LLMModel, formatBytes } from '@/lib/utils';
-import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3, Mail, AlertTriangle, Play } from 'lucide-react';
+import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3, Mail, AlertTriangle, Play, Library } from 'lucide-react';
 import { downloadOutput } from '@/lib/llm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReactMarkdown from 'react-markdown';
 import { MathJaxContext, MathJax } from 'better-react-mathjax';
 import rehypeKatex from 'rehype-katex';
@@ -21,6 +22,7 @@ import ChatDialogue, { ChatDialogueRef } from '@/components/ChatDialogue';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import MindProfiler from '@/components/MindProfiler';
 import SimpleRewriter from '@/components/SimpleRewriter';
+import { useDocuments } from '@/hooks/use-documents';
 
 interface Message {
   id: number;
@@ -96,6 +98,11 @@ export default function Home() {
   const [directInputText, setDirectInputText] = useState<string>('');
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Document library state for AI Text Processor
+  const [availableDocuments, setAvailableDocuments] = useState<any[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState<boolean>(false);
+  const [documentSelectionMode, setDocumentSelectionMode] = useState<'text' | 'library' | 'upload'>('text');
 
   // NUKE function to clear all data - no confirmation popup
   const handleNuke = async () => {
