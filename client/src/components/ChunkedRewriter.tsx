@@ -1546,7 +1546,7 @@ export default function ChunkedRewriter({
                   <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
                 )}
                 <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
-                <div>Original: {rewriteMetadata.originalLength.toLocaleString()} characters | Final: {rewriteMetadata.rewrittenLength.toLocaleString()} characters</div>
+                <div>Original: {Math.round(rewriteMetadata.originalLength / 5)} words ({rewriteMetadata.originalLength.toLocaleString()} chars) | Final: {Math.round(rewriteMetadata.rewrittenLength / 5)} words ({rewriteMetadata.rewrittenLength.toLocaleString()} chars)</div>
                 {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
                 {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
                 <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>

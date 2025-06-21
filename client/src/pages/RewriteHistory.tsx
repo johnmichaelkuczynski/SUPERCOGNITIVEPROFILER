@@ -210,8 +210,8 @@ export default function RewriteHistory() {
                     )}
 
                     <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                      <div>Original: {rewrite.originalContent.length} chars</div>
-                      <div>Rewritten: {rewrite.rewrittenContent.length} chars</div>
+                      <div>Original: {rewrite.originalContent.trim().split(/\s+/).filter(word => word.length > 0).length} words ({rewrite.originalContent.length} chars)</div>
+                      <div>Rewritten: {rewrite.rewrittenContent.trim().split(/\s+/).filter(word => word.length > 0).length} words ({rewrite.rewrittenContent.length} chars)</div>
                     </div>
 
                     <div className="flex space-x-2 pt-2">
