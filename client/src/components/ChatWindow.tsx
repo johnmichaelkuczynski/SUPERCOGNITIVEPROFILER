@@ -120,36 +120,18 @@ export default function ChatWindow({
   };
   
   const MathContent = ({ content }: { content: string }) => {
-    const contentRef = useRef<HTMLDivElement>(null);
-    
-    useEffect(() => {
-      if (contentRef.current && window.renderMathInElement) {
-        // Clear any existing rendered math first
-        const mathElements = contentRef.current.querySelectorAll('.katex');
-        mathElements.forEach(elem => elem.remove());
-        
-        // Force KaTeX rendering with proper timing
-        setTimeout(() => {
-          try {
-            window.renderMathInElement(contentRef.current!);
-          } catch (e) {
-            console.warn('KaTeX rendering failed:', e);
-          }
-        }, 100);
-      }
-    }, [content]);
-
     return (
-      <div 
-        ref={contentRef}
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
         className="prose dark:prose-invert prose-sm max-w-none"
-        dangerouslySetInnerHTML={{
-          __html: content
-            .replace(/\n/g, '<br>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        components={{
+          p: ({ children }) => <p className="mb-2">{children}</p>,
+          code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</code>
         }}
-      />
+      >
+        {content}
+      </ReactMarkdown>
     );
   };
 
