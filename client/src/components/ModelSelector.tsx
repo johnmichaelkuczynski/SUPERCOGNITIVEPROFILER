@@ -7,18 +7,19 @@ interface ModelSelectorProps {
 }
 
 export default function ModelSelector({ selectedModel, onModelChange }: ModelSelectorProps) {
-  const models: LLMModel[] = ['claude', 'gpt4', 'perplexity'];
+  const models: LLMModel[] = ['claude', 'gpt4', 'perplexity', 'deepseek'];
   
   const modelNames: Record<LLMModel, string> = {
     'claude': 'Claude',
     'gpt4': 'GPT-4',
-    'perplexity': 'Perplexity'
+    'perplexity': 'Perplexity',
+    'deepseek': 'DeepSeek'
   };
 
   return (
     <div className="mb-6">
       <label className="block text-sm font-medium text-slate-700 mb-2">Select Language Model</label>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {models.map((model) => (
           <button
             key={model}

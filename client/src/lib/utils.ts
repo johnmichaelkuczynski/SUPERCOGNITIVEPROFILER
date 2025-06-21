@@ -8,16 +8,18 @@ export function cn(...inputs: ClassValue[]) {
 export const modelIconMap = {
   'claude': 'ri-ai-generate',
   'gpt4': 'ri-openai-fill',
-  'perplexity': 'ri-bubble-chart-fill'
+  'perplexity': 'ri-bubble-chart-fill',
+  'deepseek': 'ri-brain-fill'
 };
 
 export const modelColorMap = {
   'claude': 'bg-primary-100 text-primary-800',
   'gpt4': 'bg-green-100 text-green-800',
-  'perplexity': 'bg-accent-100 text-accent-800'
+  'perplexity': 'bg-accent-100 text-accent-800',
+  'deepseek': 'bg-blue-100 text-blue-800'
 };
 
-export type LLMModel = 'claude' | 'gpt4' | 'perplexity';
+export type LLMModel = 'claude' | 'gpt4' | 'perplexity' | 'deepseek';
 
 export type OutputFormat = 'txt' | 'pdf' | 'docx';
 
