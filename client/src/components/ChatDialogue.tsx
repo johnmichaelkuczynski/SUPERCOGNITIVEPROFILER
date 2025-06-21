@@ -42,7 +42,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<File[]>([]);
-  const [selectedModel, setSelectedModel] = useState<LLMModel>('claude');
+  const [selectedModel, setSelectedModel] = useState<LLMModel>('deepseek');
   const [isLoading, setIsLoading] = useState(false);
   const [shareEmail, setShareEmail] = useState('');
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -363,10 +363,10 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="claude">Claude</SelectItem>
-                  <SelectItem value="gpt-4">GPT-4</SelectItem>
-                  <SelectItem value="perplexity">Perplexity</SelectItem>
                   <SelectItem value="deepseek">DeepSeek</SelectItem>
+                  <SelectItem value="claude">Claude</SelectItem>
+                  <SelectItem value="gpt4">GPT-4</SelectItem>
+                  <SelectItem value="perplexity">Perplexity</SelectItem>
                 </SelectContent>
               </Select>
               <Dialog>

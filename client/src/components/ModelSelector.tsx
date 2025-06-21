@@ -7,7 +7,7 @@ interface ModelSelectorProps {
 }
 
 export default function ModelSelector({ selectedModel, onModelChange }: ModelSelectorProps) {
-  const models: LLMModel[] = ['claude', 'gpt4', 'perplexity', 'deepseek'];
+  const models: LLMModel[] = ['deepseek', 'claude', 'gpt4', 'perplexity'];
   
   const modelNames: Record<LLMModel, string> = {
     'claude': 'Claude',

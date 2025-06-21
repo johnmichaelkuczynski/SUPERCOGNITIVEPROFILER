@@ -45,6 +45,35 @@ export function useDocuments() {
     },
   });
 
+  const { mutate: deleteDocument, isPending: isDeleting } = useMutation({
+    mutationFn: async (documentId: string) => {
+      const response = await fetch(`/api/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete document');
+      }
+      
+      return documentId;
+    },
+    onSuccess: (deletedId) => {
+      // Invalidate and refetch documents
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      toast({
+        title: 'Document deleted',
+        description: 'Document has been permanently removed from your library',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error deleting document',
+        description: error.message || 'Failed to delete document',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const getRecentDocuments = (limit: number = 3): Document[] => {
     // Sort by date (newest first) and limit
     return [...documents]
@@ -64,6 +93,8 @@ export function useDocuments() {
     isProcessing,
     processedContent,
     getRecentDocuments,
+    deleteDocument,
+    isDeleting,
     refetch: () => queryClient.invalidateQueries({queryKey: ['/api/documents']}),
   };
 }

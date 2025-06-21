@@ -34,7 +34,7 @@ interface Message {
 
 export default function Home() {
   // Basic state
-  const [selectedModel, setSelectedModel] = useState<LLMModel>('claude');
+  const [selectedModel, setSelectedModel] = useState<LLMModel>('deepseek');
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
