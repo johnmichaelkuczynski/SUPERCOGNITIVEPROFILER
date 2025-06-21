@@ -999,6 +999,8 @@ ${instructions}
 
 IMPORTANT: Format the output as plain text only. DO NOT use markdown headings, bold formatting, italics, bullet points or any special formatting. Write in plain text with regular paragraphs.
 
+CRITICAL: NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators. NEVER add commentary about mathematical notation or formatting. Provide the COMPLETE rewritten content without any placeholder text or meta-commentary.
+
 ${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
 
 DOCUMENT TO REWRITE:
@@ -1007,7 +1009,7 @@ ${processableContent}
 INSTRUCTIONS AGAIN:
 ${instructions}
 
-YOUR REWRITTEN DOCUMENT:`;
+YOUR COMPLETE REWRITTEN DOCUMENT (no placeholder text):`;
 
         // Process with selected model
         let response;
@@ -1519,9 +1521,11 @@ YOUR REWRITTEN DOCUMENT:`;
 3. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
 4. Do NOT add headers, titles, introductions, conclusions, or any structural elements
 5. Do NOT add editorial comments, explanations, or metadata
-6. Return ONLY the rewritten content with no additions whatsoever
+6. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
+7. NEVER add commentary about mathematical notation or formatting
+8. Return ONLY the rewritten content with no additions whatsoever
 
-Return only the improved text content.`;
+Return only the improved text content without any placeholder text or truncation indicators.`;
 
       let result: string;
       
@@ -2525,15 +2529,19 @@ Return only the new content without any additional comments, explanations, or he
       // Define the system prompt for all models
       const systemPrompt = `Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.
 
-CRITICAL GRAPH RULES:
+CRITICAL RULES:
+- NEVER add placeholder text like "Rest of text continues..." or similar placeholders
+- NEVER add editorial comments about mathematical notation or formatting
+- NEVER include meta-commentary about the content structure
 - NEVER create ASCII-art graphs, charts, or visual approximations using slashes, underscores, bars, or any text characters
 - NEVER attempt to draw or simulate graphs within the text body
 - NEVER include visual representations made of text characters
 - When a graph would be helpful, simply write: "[See Graph 1 above]" or "[See Graph 2 above]" and nothing more
 - The app will automatically generate professional SVG graphs and place them at the top of the output
 - Focus only on solving the problem and providing clear explanations - graphs will be handled separately
+- Provide COMPLETE content without any truncation indicators or continuation placeholders
 
-Your job is to solve problems correctly and write clear, student-friendly explanations without any visual elements.`;
+Your job is to solve problems correctly and write clear, student-friendly explanations without any visual elements or placeholder text.`;
 
       if (model === 'deepseek') {
         result = await callDeepSeekWithRateLimit(`${systemPrompt}\n\n${prompt}`, {
