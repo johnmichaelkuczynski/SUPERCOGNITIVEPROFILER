@@ -2531,7 +2531,40 @@ Return only the new content without any additional comments, explanations, or he
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
 
-      res.json({ response: result });
+      // Check if the assignment request mentions graphs, charts, or visualizations
+      const needsGraphs = /graph|chart|plot|diagram|visualiz|visual|data.*show|trend|statistic|econom.*paper|inflation.*effect|supply.*demand/i.test(instructions + (userPrompt || ''));
+      
+      let graphs = [];
+      
+      if (needsGraphs) {
+        try {
+          console.log('Detected graph requirement, generating visualizations...');
+          
+          // Generate graphs based on the content
+          const graphRequirements = await parseGraphRequirements(
+            `${instructions}\n\nGenerated content: ${result}`, 
+            { model: model === 'gpt4' ? 'gpt4' : 'claude', style: 'academic' }
+          );
+          
+          graphs = graphRequirements.map((data, index) => ({
+            svg: generateSVG(data, 800, 500), // Larger graphs for essays
+            data,
+            position: index,
+            title: data.title,
+            description: data.description
+          }));
+          
+          console.log(`Generated ${graphs.length} graphs for assignment`);
+        } catch (error) {
+          console.error('Error generating graphs:', error);
+          // Continue without graphs if generation fails
+        }
+      }
+
+      res.json({ 
+        response: result,
+        graphs: graphs.length > 0 ? graphs : undefined
+      });
     } catch (error) {
       console.error('Homework mode error:', error);
       res.status(500).json({ error: 'Failed to process homework' });

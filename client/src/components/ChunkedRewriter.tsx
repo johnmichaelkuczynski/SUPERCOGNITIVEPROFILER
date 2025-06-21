@@ -243,6 +243,9 @@ export default function ChunkedRewriter({
       const result = await response.json();
       
       setProgress(75);
+      
+      // Store any generated graphs
+      const generatedGraphs = result.graphs || [];
 
       // AUTO-APPLY TEXT TO MATH: Automatically run homework results through math formatting
       let finalContent = result.response;
@@ -279,7 +282,8 @@ export default function ChunkedRewriter({
         model: selectedModel,
         instructions: instructions,
         includedChatContext: includeChatContext,
-        mathFormatted: true
+        mathFormatted: true,
+        graphs: generatedGraphs
       };
 
       // Store results for popup display
@@ -2082,8 +2086,34 @@ export default function ChunkedRewriter({
             </div>
             
             {showMathView ? (
-              /* Math View - Rendered Mathematical Notation */
-              <div className="flex-1 overflow-y-auto p-4 bg-white">
+              /* Math View - Rendered Mathematical Notation with Graphs */
+              <div className="flex-1 overflow-y-auto p-4 bg-white space-y-6">
+                {/* Display generated graphs first if they exist */}
+                {rewriteMetadata?.graphs && rewriteMetadata.graphs.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="border-b border-gray-200 pb-2">
+                      <h3 className="text-lg font-semibold text-gray-800">Generated Visualizations</h3>
+                      <p className="text-sm text-gray-600">Charts and graphs to support the assignment content</p>
+                    </div>
+                    {rewriteMetadata.graphs.map((graph: any, index: number) => (
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg border">
+                        <div className="mb-3">
+                          <h4 className="font-medium text-gray-800">{graph.title || `Graph ${index + 1}`}</h4>
+                          {graph.description && (
+                            <p className="text-sm text-gray-600 mt-1">{graph.description}</p>
+                          )}
+                        </div>
+                        <div 
+                          className="flex justify-center bg-white p-4 rounded border"
+                          dangerouslySetInnerHTML={{ __html: graph.svg }}
+                        />
+                      </div>
+                    ))}
+                    <div className="border-b border-gray-200 pb-2">
+                      <h3 className="text-lg font-semibold text-gray-800">Assignment Content</h3>
+                    </div>
+                  </div>
+                )}
                 {formatContent(finalRewrittenContent)}
               </div>
             ) : (
