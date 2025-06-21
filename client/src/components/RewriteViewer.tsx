@@ -11,6 +11,12 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
+declare global {
+  interface Window {
+    renderMathInElement: any;
+  }
+}
+
 interface RewriteResult {
   originalChunk: {
     id: number;
@@ -256,28 +262,36 @@ export default function RewriteViewer({
                     />
                   ) : (
                     <div className="w-full h-full overflow-auto text-sm leading-relaxed prose prose-sm max-w-none">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
-                        components={{
-                          p: ({ children }) => <p className="mb-4">{children}</p>,
-                          h1: ({ children }) => <h1 className="text-lg font-bold mb-3">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-base font-bold mb-3">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-sm font-bold mb-2">{children}</h3>,
-                          ul: ({ children }) => <ul className="list-disc pl-5 mb-4">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal pl-5 mb-4">{children}</ol>,
-                          li: ({ children }) => <li className="mb-1">{children}</li>,
-                          code: ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">{children}</code>,
-                          pre: ({ children }) => <pre className="bg-gray-100 p-3 rounded mb-4 overflow-x-auto text-xs">{children}</pre>
-                        }}
+                      <div 
+                        className="prose"
                         style={{ 
                           fontFamily: '"Times New Roman", serif',
                           fontSize: '14px',
                           lineHeight: '1.6'
                         }}
-                      >
-                        {result.rewrittenContent}
-                      </ReactMarkdown>
+                        dangerouslySetInnerHTML={{
+                          __html: result.rewrittenContent
+                            .replace(/\n/g, '<br>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        }}
+                        ref={(el) => {
+                          if (el && window.renderMathInElement) {
+                            // Clear any existing rendered math first
+                            const mathElements = el.querySelectorAll('.katex');
+                            mathElements.forEach(elem => elem.remove());
+                            
+                            // Force KaTeX rendering with proper timing
+                            setTimeout(() => {
+                              try {
+                                window.renderMathInElement(el);
+                              } catch (e) {
+                                console.warn('KaTeX rendering failed:', e);
+                              }
+                            }, 200);
+                          }
+                        }}
+                      />
                     </div>
                   )}
                 </div>

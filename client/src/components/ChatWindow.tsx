@@ -124,15 +124,18 @@ export default function ChatWindow({
     
     useEffect(() => {
       if (contentRef.current && window.renderMathInElement) {
-        window.renderMathInElement(contentRef.current, {
-          delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '$', right: '$', display: false},
-            {left: '\\(', right: '\\)', display: false},
-            {left: '\\[', right: '\\]', display: true}
-          ],
-          throwOnError: false
-        });
+        // Clear any existing rendered math first
+        const mathElements = contentRef.current.querySelectorAll('.katex');
+        mathElements.forEach(elem => elem.remove());
+        
+        // Force KaTeX rendering with proper timing
+        setTimeout(() => {
+          try {
+            window.renderMathInElement(contentRef.current!);
+          } catch (e) {
+            console.warn('KaTeX rendering failed:', e);
+          }
+        }, 100);
       }
     }, [content]);
 
@@ -141,7 +144,10 @@ export default function ChatWindow({
         ref={contentRef}
         className="prose dark:prose-invert prose-sm max-w-none"
         dangerouslySetInnerHTML={{
-          __html: content.replace(/\n/g, '<br>')
+          __html: content
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*([^*]+)\*/g, '<em>$1</em>')
         }}
       />
     );
