@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dollar Sign Test</title>
+</head>
+<body>
+    <h1>Testing Dollar Sign Processing</h1>
+    
+    <h2>Original Content:</h2>
+    <div id="original">
+        When a person willingly pays $200 for dinner at an exclusive restaurant, the Veblen function would include not just the taste of the food but also the prestige of being seen at the establishment. The Instagram feed value, or status signal preferences, gained from consuming at the trendy locale may push utility maximization significantly higher. Veblen Rationality, in contrast, named for Thorstein Veblen's theory of conspicuous consumption, seeks to maximize status position, prioritizing visibility, exclusivity, and symbolic value. We observe this when someone pays $5 for a coffee.
+    </div>
+    
+    <h2>Processed with replace(/(?&lt;!\$)\$(?!\$)/g, '&amp;#36;'):</h2>
+    <div id="processed"></div>
+    
+    <script>
+        const original = document.getElementById('original').textContent;
+        const processed = original.replace(/(?<!\$)\$(?!\$)/g, '&#36;');
+        document.getElementById('processed').innerHTML = processed;
+        
+        console.log('Original:', original);
+        console.log('Processed:', processed);
+        console.log('Test passed:', processed.includes('&#36;200') && processed.includes('&#36;5'));
+    </script>
+</body>
+</html>

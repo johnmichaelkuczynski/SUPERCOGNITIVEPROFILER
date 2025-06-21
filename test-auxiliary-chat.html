@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auxiliary Chat Dollar Sign Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-markdown@8.0.7/react-markdown.min.js"></script>
+</head>
+<body>
+    <div id="test-container"></div>
+    
+    <script>
+        // Test the exact logic from ChatDialogue.tsx
+        const testContent = "When a person willingly pays $200 for dinner at an exclusive restaurant, the Veblen function would include not just the taste of the food but also the prestige of being seen at the establishment. Similarly, when someone pays $5 for a coffee.";
+        
+        console.log('ORIGINAL CONTENT:');
+        console.log(testContent);
+        
+        // Apply the replacement logic from our fix
+        const processedContent = testContent.replace(/(?<!\$)\$(?!\$)/g, '&#36;');
+        
+        console.log('\nPROCESSED CONTENT:');
+        console.log(processedContent);
+        
+        // Verify the transformation
+        const verification = {
+            'Contains &#36;200': processedContent.includes('&#36;200'),
+            'Contains &#36;5': processedContent.includes('&#36;5'),
+            'No raw $200 remains': !processedContent.includes('$200'),
+            'No raw $5 remains': !processedContent.includes('$5'),
+            'Overall test': processedContent.includes('&#36;200') && processedContent.includes('&#36;5') && !processedContent.includes('$200') && !processedContent.includes('$5')
+        };
+        
+        console.log('\nVERIFICATION RESULTS:');
+        Object.entries(verification).forEach(([test, result]) => {
+            console.log(`${test}: ${result ? 'PASS' : 'FAIL'}`);
+        });
+        
+        // Test HTML entity rendering
+        const testDiv = document.createElement('div');
+        testDiv.innerHTML = processedContent;
+        
+        console.log('\nHTML ENTITY RENDERING TEST:');
+        console.log('Raw HTML:', processedContent);
+        console.log('Rendered text:', testDiv.textContent);
+        console.log('Dollar signs render correctly:', testDiv.textContent.includes('$200') && testDiv.textContent.includes('$5'));
+        
+        // Final verdict
+        const finalTest = verification['Overall test'] && testDiv.textContent.includes('$200') && testDiv.textContent.includes('$5');
+        console.log('\nFINAL TEST RESULT:', finalTest ? 'PASS - Fix is working correctly' : 'FAIL - Fix is not working');
+        
+        document.body.innerHTML = `
+            <h1>Auxiliary Chat Dollar Sign Fix Test</h1>
+            <h2>Original:</h2>
+            <p>${testContent}</p>
+            <h2>Processed (with HTML entities):</h2>
+            <p>${processedContent}</p>
+            <h2>Rendered (how user sees it):</h2>
+            <p>${testDiv.textContent}</p>
+            <h2>Result: ${finalTest ? 'PASS ✓' : 'FAIL ✗'}</h2>
+        `;
+    </script>
+</body>
+</html>
