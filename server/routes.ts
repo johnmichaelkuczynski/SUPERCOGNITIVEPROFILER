@@ -2499,14 +2499,30 @@ Return only the new content without any additional comments, explanations, or he
       // Process based on selected model
       let result: string;
       
+      // Define the system prompt for all models
+      const systemPrompt = `Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.
+
+CRITICAL GRAPH RULES:
+- NEVER create ASCII-art graphs, charts, or visual approximations using slashes, underscores, bars, or any text characters
+- NEVER attempt to draw or simulate graphs within the text body
+- NEVER include visual representations made of text characters
+- When a graph would be helpful, simply write: "[See Graph 1 above]" or "[See Graph 2 above]" and nothing more
+- The app will automatically generate professional SVG graphs and place them at the top of the output
+- Focus only on solving the problem and providing clear explanations - graphs will be handled separately
+
+Your job is to solve problems correctly and write clear, student-friendly explanations without any visual elements.`;
+
       if (model === 'deepseek') {
-        result = await callDeepSeekWithRateLimit(prompt, {
+        result = await callDeepSeekWithRateLimit(`${systemPrompt}\n\n${prompt}`, {
           temperature: 0.7,
           maxTokens: 4000
         });
       } else if (model === 'gpt4') {
         result = await callOpenAIWithRateLimit({
-          messages: [{ role: 'user', content: prompt }],
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ],
           temperature: 0.7,
           max_tokens: 4000
         });
@@ -2521,7 +2537,7 @@ Return only the new content without any additional comments, explanations, or he
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.7,
-          system: "Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.",
+          system: systemPrompt,
           messages: [{ role: 'user', content: prompt }]
         });
 
