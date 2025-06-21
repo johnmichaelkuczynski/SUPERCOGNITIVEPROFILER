@@ -1728,11 +1728,13 @@ export default function ChunkedRewriter({
                         .graph-svg {
                           text-align: center;
                           margin: 12pt 0;
+                          overflow: visible;
                         }
                         
                         .graph-svg svg {
                           max-width: 100%;
                           height: auto;
+                          max-height: 300pt;
                         }
                         
                         /* Perfect KaTeX math styling */
@@ -1794,6 +1796,29 @@ export default function ChunkedRewriter({
                           }
                           .katex-display {
                             page-break-inside: avoid;
+                          }
+                          
+                          /* Graph-specific print styles */
+                          .graph-container {
+                            page-break-inside: avoid;
+                            margin: 12pt 0;
+                            max-width: 100%;
+                          }
+                          
+                          .graph-svg {
+                            overflow: visible;
+                            text-align: center;
+                            max-width: 100%;
+                            display: block;
+                          }
+                          
+                          .graph-svg svg {
+                            max-width: 6in !important;
+                            max-height: 4in !important;
+                            width: auto !important;
+                            height: auto !important;
+                            display: block;
+                            margin: 0 auto;
                           }
                         }
                       </style>

@@ -2583,7 +2583,7 @@ Your job is to solve problems correctly and write clear, student-friendly explan
           }
           
           graphs = finalGraphRequirements.map((data, index) => ({
-            svg: generateSVG(data, 800, 500),
+            svg: generateSVG(data, 600, 400), // Smaller size for better PDF fit
             data,
             position: index,
             title: data.title,
@@ -2610,7 +2610,7 @@ Your job is to solve problems correctly and write clear, student-friendly explan
           };
           
           graphs = [{
-            svg: generateSVG(fallbackData, 800, 500),
+            svg: generateSVG(fallbackData, 600, 400), // Smaller size for better PDF fit
             data: fallbackData,
             position: 0,
             title: fallbackData.title,
