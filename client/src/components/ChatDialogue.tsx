@@ -134,9 +134,30 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   }));
 
   const formatMessage = (content: string) => {
+    // Clean up markdown formatting for text view
+    const cleanContent = content
+      .replace(/#{1,6}\s+/g, '') // Remove headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italics
+      .replace(/`(.*?)`/g, '$1') // Remove inline code
+      .replace(/```[\s\S]*?```/g, (match) => {
+        // Extract code from code blocks and format simply
+        return match.replace(/```\w*\n?/g, '').replace(/```/g, '');
+      })
+      .replace(/>\s+/g, '') // Remove blockquotes
+      .replace(/^\s*[-*+]\s+/gm, '• ') // Convert list markers to bullets
+      .replace(/^\s*\d+\.\s+/gm, (match, offset, string) => {
+        // Convert numbered lists to simple numbers
+        const lineStart = string.lastIndexOf('\n', offset) + 1;
+        const lineNum = string.substring(lineStart, offset).match(/^\s*(\d+)\./)?.[1] || '1';
+        return `${lineNum}. `;
+      })
+      .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+      .trim();
+
     return (
       <div className="whitespace-pre-wrap">
-        {content}
+        {cleanContent}
       </div>
     );
   };
@@ -616,25 +637,27 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                           </div>
                         )}
                         {showMathView ? (
-                          <div>
-                            {message.content.split(/(\\\(.*?\\\)|\\\[.*?\\\]|\$\$.*?\$\$)/g).map((part, index) => {
-                              // Check if this part is a math expression
-                              if (part.match(/^\\\(.*\\\)$|^\\\[.*\\\]$|^\$\$.*\$\$$/) && part.trim()) {
-                                return (
-                                  <MathJax key={index} inline={part.startsWith('\\(')}>
-                                    {part}
-                                  </MathJax>
-                                );
-                              } else {
-                                // Regular text content - render as markdown without math processing
-                                return (
-                                  <ReactMarkdown key={index}>
-                                    {part}
-                                  </ReactMarkdown>
-                                );
-                              }
-                            })}
-                          </div>
+                          <MathJax>
+                            <ReactMarkdown
+                              remarkPlugins={[remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
+                              components={{
+                                // Custom component to handle math properly
+                                p: ({ children }) => <div className="whitespace-pre-wrap">{children}</div>,
+                                h1: ({ children }) => <div className="text-lg font-bold mb-2">{children}</div>,
+                                h2: ({ children }) => <div className="text-base font-bold mb-2">{children}</div>,
+                                h3: ({ children }) => <div className="text-sm font-bold mb-1">{children}</div>,
+                                strong: ({ children }) => <span className="font-semibold">{children}</span>,
+                                em: ({ children }) => <span className="italic">{children}</span>,
+                                code: ({ children }) => <span className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</span>,
+                                ul: ({ children }) => <div className="ml-4">{children}</div>,
+                                ol: ({ children }) => <div className="ml-4">{children}</div>,
+                                li: ({ children }) => <div className="mb-1">• {children}</div>
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </MathJax>
                         ) : (
                           formatMessage(message.content)
                         )}
