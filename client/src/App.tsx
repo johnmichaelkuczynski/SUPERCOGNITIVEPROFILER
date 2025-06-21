@@ -77,11 +77,11 @@ function Router() {
   );
 }
 
-// MathJax configuration for LaTeX rendering
+// MathJax configuration for LaTeX rendering - SINGLE DOLLAR SIGNS DISABLED
 const mathJaxConfig = {
   loader: { load: ["input/tex", "output/chtml"] },
   tex: {
-    inlineMath: [['\\(', '\\)']],  // Only use \( \) for inline math
+    inlineMath: [['\\(', '\\)']],  // Only use \( \) for inline math - NO SINGLE $ ALLOWED
     displayMath: [['\\[', '\\]'], ['$$', '$$']],  // Use \[ \] and $$ $$ for display math
     processEscapes: true,
     processEnvironments: true

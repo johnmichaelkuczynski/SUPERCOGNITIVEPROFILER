@@ -640,25 +640,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                         {showMathView ? (
                           <div className="whitespace-pre-wrap">
                             <MathJax>
-                              {(() => {
-                                // Protect currency symbols from math interpretation
-                                let content = message.content;
-                                
-                                // Replace currency patterns with placeholders
-                                const currencyMatches: { placeholder: string; original: string }[] = [];
-                                content = content.replace(/\$([0-9]+(?:\.[0-9]{1,2})?)/g, (match, amount) => {
-                                  const placeholder = `__CURRENCY_${currencyMatches.length}__`;
-                                  currencyMatches.push({ placeholder, original: `$${amount}` });
-                                  return placeholder;
-                                });
-                                
-                                // Restore currency symbols after math processing
-                                currencyMatches.forEach(({ placeholder, original }) => {
-                                  content = content.replace(placeholder, original);
-                                });
-                                
-                                return content;
-                              })()}
+                              {message.content}
                             </MathJax>
                           </div>
                         ) : (
