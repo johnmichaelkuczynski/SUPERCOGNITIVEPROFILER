@@ -857,6 +857,9 @@ Document text: ${extractedText}`;
               value={directInputText}
               onChange={(e) => setDirectInputText(e.target.value)}
             />
+            <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+              <span>{directInputText.trim().split(/\s+/).filter(word => word.length > 0).length} words | {directInputText.length} characters</span>
+            </div>
             <div className="flex justify-between items-center">
               <input 
                 type="file" 

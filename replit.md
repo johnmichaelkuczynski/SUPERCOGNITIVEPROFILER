@@ -4,7 +4,7 @@
 
 TextMind is a comprehensive full-stack application that provides advanced writing, analysis, and AI-powered features for serious writers and thinkers. The application combines a React frontend with a Node.js/Express backend, offering document processing, LLM integration, AI detection, and advanced analytics capabilities.
 
-**Current Status (June 21, 2025):** Complete graph generation system implemented with natural language and mathematical expression parsing. All processing modes (Rewrite, Homework, Text to Math) working perfectly with clean plain text downloads and integrated SVG graph creation capabilities.
+**Current Status (June 21, 2025):** Complete graph generation system implemented with natural language and mathematical expression parsing. All processing modes (Rewrite, Homework, Text to Math) working perfectly with clean plain text downloads and integrated SVG graph creation capabilities. Comprehensive word count display system implemented across all text input areas, prioritizing word counts over character counts throughout the interface.
 
 ## System Architecture
 
@@ -130,6 +130,7 @@ Changelog:
 - June 21, 2025. Added Math View toggle to auxiliary AI chat - users can now switch between Text view (plain text) and Math view (rendered mathematical notation with MathJax) for proper display of mathematical expressions in chat messages
 - June 21, 2025. Fixed currency symbol issue - completely disabled single dollar sign ($) delimiters in MathJax configuration to prevent currency symbols from being incorrectly interpreted as mathematical expressions
 - June 21, 2025. Updated MathJax configuration to only use \( \) for inline math and \[ \] or $$ $$ for display math - single dollar signs now display as regular text
+- June 21, 2025. Implemented comprehensive word counting system across all text input areas - Home page direct text processor, Editor component, MindProfiler analysis input, GraphGenerator text analysis, and RewriteHistory statistics now prioritize word counts over character counts with "X words | Y characters" format
 ```
 
 ## User Preferences

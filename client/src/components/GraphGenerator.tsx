@@ -178,12 +178,17 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
             onChange={(e) => setMathExpression(e.target.value)}
           />
         ) : (
-          <Textarea
-            placeholder="Enter text to analyze for graph opportunities..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            rows={3}
-          />
+          <div className="space-y-2">
+            <Textarea
+              placeholder="Enter text to analyze for graph opportunities..."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              rows={3}
+            />
+            <div className="text-xs text-gray-500">
+              {inputText.trim().split(/\s+/).filter(word => word.length > 0).length} words | {inputText.length} characters
+            </div>
+          </div>
         )}
       </div>
     );

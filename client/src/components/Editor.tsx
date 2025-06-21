@@ -116,6 +116,9 @@ export default function Editor({ value, onChange, contextDocuments, onSubmit }: 
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={handleKeyDown}
             />
+            <div className="text-xs text-gray-500 mt-2">
+              {value.trim().split(/\s+/).filter(word => word.length > 0).length} words | {value.length} characters
+            </div>
           </div>
           
           <div className="flex justify-between items-center px-5 py-3 border-t border-slate-200 bg-slate-50">
