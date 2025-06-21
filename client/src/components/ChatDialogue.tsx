@@ -652,7 +652,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                               li: ({ children }) => <div className="mb-1">• {children}</div>
                             }}
                           >
-                            {message.content}
+                            {message.content.replace(/\$/g, '\\$')}
                           </ReactMarkdown>
                         ) : (
                           formatMessage(message.content)
