@@ -638,22 +638,11 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                           </div>
                         )}
                         {showMathView ? (
-                          <ReactMarkdown
-                            components={{
-                              p: ({ children }) => <div className="whitespace-pre-wrap">{children}</div>,
-                              h1: ({ children }) => <div className="text-lg font-bold mb-2">{children}</div>,
-                              h2: ({ children }) => <div className="text-base font-bold mb-2">{children}</div>,
-                              h3: ({ children }) => <div className="text-sm font-bold mb-1">{children}</div>,
-                              strong: ({ children }) => <span className="font-semibold">{children}</span>,
-                              em: ({ children }) => <span className="italic">{children}</span>,
-                              code: ({ children }) => <span className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">{children}</span>,
-                              ul: ({ children }) => <div className="ml-4">{children}</div>,
-                              ol: ({ children }) => <div className="ml-4">{children}</div>,
-                              li: ({ children }) => <div className="mb-1">• {children}</div>
-                            }}
-                          >
-                            {message.content.replace(/(?<!\$)\$(?!\$)/g, '&#36;')}
-                          </ReactMarkdown>
+                          <div className="whitespace-pre-wrap">
+                            <MathJax>
+                              {message.content.replace(/\$([0-9]+(?:\.[0-9]{1,2})?)/g, '\\$$1')}
+                            </MathJax>
+                          </div>
                         ) : (
                           formatMessage(message.content)
                         )}
