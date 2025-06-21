@@ -121,6 +121,7 @@ Changelog:
 - June 21, 2025. Implemented comprehensive graph generation system with natural language parsing and mathematical expression plotting capabilities
 - June 21, 2025. Added intelligent SVG graph creation from text analysis - automatically identifies where visualizations would strengthen arguments in essays and papers
 - June 21, 2025. Created complete essay-with-graphs functionality - generates academic papers with embedded charts for economics, science, and analytical writing
+- June 21, 2025. Fixed PDF download to include generated graphs - visualizations now appear in both UI display and PDF exports with proper formatting and styling
 ```
 
 ## User Preferences

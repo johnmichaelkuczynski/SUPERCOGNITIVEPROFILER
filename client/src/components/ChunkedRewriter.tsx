@@ -1635,6 +1635,26 @@ export default function ChunkedRewriter({
                   .replace(/\n\n+/g, '</p><p>')
                   .replace(/\n/g, '<br>');
 
+                // Generate graphs HTML if they exist
+                let graphsHTML = '';
+                if (rewriteMetadata?.graphs && rewriteMetadata.graphs.length > 0) {
+                  graphsHTML = `
+                    <div class="graphs-section">
+                      <h2>Supporting Visualizations</h2>
+                      ${rewriteMetadata.graphs.map((graph: any, index: number) => `
+                        <div class="graph-container">
+                          <h3>${graph.title || `Graph ${index + 1}`}</h3>
+                          ${graph.description ? `<p class="graph-description">${graph.description}</p>` : ''}
+                          <div class="graph-svg">
+                            ${graph.svg}
+                          </div>
+                        </div>
+                      `).join('')}
+                      <h2>Assignment Content</h2>
+                    </div>
+                  `;
+                }
+
                 const htmlContent = `
                   <!DOCTYPE html>
                   <html>
@@ -1676,6 +1696,44 @@ export default function ChunkedRewriter({
                         
                         strong { font-weight: 700; }
                         em { font-style: italic; }
+                        
+                        /* Graph styling for PDF */
+                        .graphs-section {
+                          margin-bottom: 24pt;
+                        }
+                        
+                        .graph-container {
+                          margin: 18pt 0;
+                          page-break-inside: avoid;
+                          border: 1px solid #ddd;
+                          padding: 12pt;
+                          background: #fafafa;
+                        }
+                        
+                        .graph-container h3 {
+                          font-size: 14pt;
+                          margin: 0 0 6pt 0;
+                          color: #1a365d;
+                          text-align: center;
+                        }
+                        
+                        .graph-description {
+                          font-size: 10pt;
+                          color: #666;
+                          text-align: center;
+                          margin: 0 0 12pt 0;
+                          font-style: italic;
+                        }
+                        
+                        .graph-svg {
+                          text-align: center;
+                          margin: 12pt 0;
+                        }
+                        
+                        .graph-svg svg {
+                          max-width: 100%;
+                          height: auto;
+                        }
                         
                         /* Perfect KaTeX math styling */
                         .katex { font-size: 1.1em; }
@@ -1750,6 +1808,7 @@ export default function ChunkedRewriter({
                           <button class="close" onclick="window.close()">Close Window</button>
                         </div>
                         <div id="text-content">
+                          ${graphsHTML}
                           <p>${processedContent}</p>
                         </div>
                       </div>
