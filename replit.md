@@ -45,6 +45,7 @@ TextMind is a comprehensive full-stack application that provides advanced writin
 - **Text-to-Speech**: ElevenLabs integration for voice synthesis
 - **OCR**: Tesseract integration for image text extraction
 - **Analytics**: Cognitive profiling and writing analysis
+- **Graph Generation**: Natural language to SVG graph conversion with mathematical function plotting
 
 ## Data Flow
 
@@ -117,6 +118,9 @@ Changelog:
 - June 18, 2025. Enhanced mathematical rendering system - raw LaTeX expressions now render properly as formatted mathematics using improved MathJax/KaTeX integration
 - June 18, 2025. Implemented professional print/save-as-PDF functionality with KaTeX rendering for publication-quality mathematical documents and perfect math notation preservation
 - June 18, 2025. Added Math View toggle to results popup - users can now switch between Edit View (editable raw text) and Math View (beautiful rendered mathematical notation) for optimal user experience
+- June 21, 2025. Implemented comprehensive graph generation system with natural language parsing and mathematical expression plotting capabilities
+- June 21, 2025. Added intelligent SVG graph creation from text analysis - automatically identifies where visualizations would strengthen arguments in essays and papers
+- June 21, 2025. Created complete essay-with-graphs functionality - generates academic papers with embedded charts for economics, science, and analytical writing
 ```
 
 ## User Preferences
