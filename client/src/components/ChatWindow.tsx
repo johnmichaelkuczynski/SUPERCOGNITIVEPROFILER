@@ -13,7 +13,7 @@ import "katex/dist/katex.min.css";
 
 declare global {
   interface Window {
-    MathJax: any;
+    renderMathInElement: any;
   }
 }
 import {
@@ -123,9 +123,15 @@ export default function ChatWindow({
     const contentRef = useRef<HTMLDivElement>(null);
     
     useEffect(() => {
-      if (contentRef.current && window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([contentRef.current]).catch((err: any) => {
-          console.warn('MathJax rendering error:', err);
+      if (contentRef.current && window.renderMathInElement) {
+        window.renderMathInElement(contentRef.current, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true}
+          ],
+          throwOnError: false
         });
       }
     }, [content]);
