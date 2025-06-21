@@ -103,6 +103,10 @@ export default function Home() {
   const [availableDocuments, setAvailableDocuments] = useState<any[]>([]);
   const [loadingDocuments, setLoadingDocuments] = useState<boolean>(false);
   const [documentSelectionMode, setDocumentSelectionMode] = useState<'text' | 'library' | 'upload'>('text');
+  const [selectedLibraryDocumentId, setSelectedLibraryDocumentId] = useState<string>('');
+  
+  // Use documents hook for library functionality
+  const { documents: documentsData, isLoading: documentsLoading } = useDocuments();
 
   // NUKE function to clear all data - no confirmation popup
   const handleNuke = async () => {
@@ -847,87 +851,196 @@ Document text: ${extractedText}`;
             </Card>
           </div>
           
-          {/* Text Input */}
-          <div 
-            className={`space-y-2 ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-2' : ''}`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDirectDrop}
-          >
-            <textarea 
-              placeholder={isDragging ? "Drop files here to upload..." : 
-                (processingMode === 'homework' 
-                  ? "Paste exam questions, homework assignments, or instructions here..." 
-                  : "Paste your text to rewrite, improve, or transform here...")
-              }
-              className="w-full h-40 p-4 border rounded-lg resize-none"
-              value={directInputText}
-              onChange={(e) => setDirectInputText(e.target.value)}
-            />
-            <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
-              <span>{directInputText.trim().split(/\s+/).filter(word => word.length > 0).length} words | {directInputText.length} characters</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <input 
-                type="file" 
-                className="hidden" 
-                ref={directFileInputRef}
-                accept=".pdf,.docx,.txt,.jpg,.png"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  await handleDirectFileUpload([file]);
-                }}
-              />
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setDirectInputText('')}
-                  className="flex items-center space-x-1"
-                >
-                  <X className="h-4 w-4" />
-                  Clear
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="flex items-center space-x-2"
-                  onClick={() => directFileInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4" />
-                  <span>Upload File</span>
-                </Button>
-                <DirectSpeechButton className="h-10 w-10" />
-              </div>
-              <Button 
-                className="flex items-center space-x-2"
-                disabled={!directInputText.trim() || isDirectProcessing}
-                onClick={async () => {
-                  if (!directInputText.trim()) return;
-                  setIsDirectProcessing(true);
-                  
-                  const title = processingMode === 'homework' 
-                    ? 'Direct Input - Homework Mode' 
-                    : processingMode === 'text-to-math'
-                    ? 'Direct Input - Text to Math Mode'
-                    : 'Direct Input - Rewrite Mode';
-                  
-                  // Open chunked rewriter for both modes
-                  setRewriterText(directInputText);
-                  setRewriterTitle(title);
-                  setRewriterProcessingMode(processingMode);
-                  setIsChunkedRewriterOpen(true);
-                  
-                  setIsDirectProcessing(false);
-                }}
+          {/* Input Method Selection */}
+          <Tabs value={documentSelectionMode} onValueChange={(value) => setDocumentSelectionMode(value as 'text' | 'library' | 'upload')}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="text">Direct Text</TabsTrigger>
+              <TabsTrigger value="library">Document Library</TabsTrigger>
+              <TabsTrigger value="upload">Upload New</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="text">
+              {/* Text Input */}
+              <div 
+                className={`space-y-2 ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-2' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDirectDrop}
               >
-                <Play className="h-4 w-4" />
-                <span>{isDirectProcessing ? 'Processing...' : (processingMode === 'homework' ? 'Complete Assignment' : processingMode === 'text-to-math' ? 'Convert to Math' : 'Rewrite Text')}</span>
+                <textarea 
+                  placeholder={isDragging ? "Drop files here to upload..." : 
+                    (processingMode === 'homework' 
+                      ? "Paste exam questions, homework assignments, or instructions here..." 
+                      : "Paste your text to rewrite, improve, or transform here...")
+                  }
+                  className="w-full h-40 p-4 border rounded-lg resize-none"
+                  value={directInputText}
+                  onChange={(e) => setDirectInputText(e.target.value)}
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="library">
+              {/* Document Library Selection */}
+              <div className="space-y-4">
+                {documentsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-sm text-gray-500 mt-2">Loading documents...</p>
+                  </div>
+                ) : documentsData && documentsData.length > 0 ? (
+                  <div className="grid gap-3 max-h-60 overflow-y-auto">
+                    {documentsData.map((doc: any) => (
+                      <div 
+                        key={doc.id} 
+                        className={`border rounded-lg p-3 cursor-pointer transition-all hover:shadow-md ${
+                          selectedLibraryDocumentId === doc.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => {
+                          setSelectedLibraryDocumentId(doc.id);
+                          // Set the document content to the text area
+                          setDirectInputText(doc.content || '');
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-gray-500" />
+                            <div>
+                              <p className="font-medium text-sm">{doc.title}</p>
+                              <p className="text-xs text-gray-500">
+                                {doc.content ? `${doc.content.length} characters` : 'No content'}
+                              </p>
+                            </div>
+                          </div>
+                          {selectedLibraryDocumentId === doc.id && (
+                            <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Library className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500">No documents found</p>
+                    <p className="text-xs text-gray-400 mt-1">Upload documents first to use this feature</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="upload">
+              {/* File Upload Interface */}
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors"
+                onClick={() => directFileInputRef.current?.click()}
+              >
+                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Click to upload or drag files here</p>
+                <p className="text-xs text-gray-400 mt-1">Supports PDF, DOCX, TXT files</p>
+                <input
+                  type="file"
+                  ref={directFileInputRef}
+                  className="hidden"
+                  multiple
+                  accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      const newFiles = Array.from(e.target.files);
+                      
+                      // Process files and extract text
+                      for (const file of newFiles) {
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          
+                          const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData,
+                          });
+                          
+                          if (response.ok) {
+                            const result = await response.json();
+                            setDirectInputText(result.extractedText || '');
+                          }
+                        } catch (error) {
+                          console.error('Error processing file:', error);
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          {/* Word Count Display */}
+          <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+            <span>{directInputText.trim().split(/\s+/).filter(word => word.length > 0).length} words | {directInputText.length} characters</span>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex justify-between items-center">
+            <input 
+              type="file" 
+              className="hidden" 
+              ref={directFileInputRef}
+              accept=".pdf,.docx,.txt,.jpg,.png"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                await handleDirectFileUpload([file]);
+              }}
+            />
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setDirectInputText('')}
+                className="flex items-center space-x-1"
+              >
+                <X className="h-4 w-4" />
+                Clear
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex items-center space-x-2"
+                onClick={() => directFileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4" />
+                <span>Upload File</span>
               </Button>
             </div>
+            <Button 
+              className="flex items-center space-x-2"
+              disabled={!directInputText.trim() || isDirectProcessing}
+              onClick={async () => {
+                if (!directInputText.trim()) return;
+                setIsDirectProcessing(true);
+                
+                const title = processingMode === 'homework' 
+                  ? 'Direct Input - Homework Mode' 
+                  : processingMode === 'text-to-math'
+                  ? 'Direct Input - Text to Math Mode'
+                  : 'Direct Input - Rewrite Mode';
+                
+                // Open chunked rewriter for both modes
+                setRewriterText(directInputText);
+                setRewriterTitle(title);
+                setRewriterProcessingMode(processingMode);
+                setIsChunkedRewriterOpen(true);
+                
+                setIsDirectProcessing(false);
+              }}
+            >
+              <Play className="h-4 w-4" />
+              <span>{isDirectProcessing ? 'Processing...' : (processingMode === 'homework' ? 'Complete Assignment' : processingMode === 'text-to-math' ? 'Convert to Math' : 'Rewrite Text')}</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Main Chat Interface */}
 
       <div className="flex">
         {/* Document Sidebar */}
