@@ -142,6 +142,7 @@ export default function ConversationList({
                           <SelectItem value="claude">Claude (Anthropic)</SelectItem>
                           <SelectItem value="gpt4">GPT-4 (OpenAI)</SelectItem>
                           <SelectItem value="perplexity">Perplexity</SelectItem>
+                          <SelectItem value="deepseek">DeepSeek</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>

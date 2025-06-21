@@ -366,6 +366,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                   <SelectItem value="claude">Claude</SelectItem>
                   <SelectItem value="gpt-4">GPT-4</SelectItem>
                   <SelectItem value="perplexity">Perplexity</SelectItem>
+                  <SelectItem value="deepseek">DeepSeek</SelectItem>
                 </SelectContent>
               </Select>
               <Dialog>

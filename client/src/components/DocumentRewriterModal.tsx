@@ -1005,6 +1005,7 @@ export default function DocumentRewriterModal({
                             <SelectItem value="claude">Claude (Recommended)</SelectItem>
                             <SelectItem value="gpt4">GPT-4</SelectItem>
                             <SelectItem value="perplexity">Perplexity</SelectItem>
+                            <SelectItem value="deepseek">DeepSeek</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
