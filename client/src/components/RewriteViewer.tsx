@@ -255,11 +255,10 @@ export default function RewriteViewer({
                       placeholder="Rewritten content will appear here and can be edited..."
                     />
                   ) : (
-                    <div className="w-full h-full overflow-auto text-sm leading-relaxed">
+                    <div className="w-full h-full overflow-auto text-sm leading-relaxed prose prose-sm max-w-none">
                       <ReactMarkdown
                         remarkPlugins={[remarkMath]}
                         rehypePlugins={[rehypeKatex]}
-                        className="prose prose-sm max-w-none"
                         components={{
                           p: ({ children }) => <p className="mb-4">{children}</p>,
                           h1: ({ children }) => <h1 className="text-lg font-bold mb-3">{children}</h1>,
