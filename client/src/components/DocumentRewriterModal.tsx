@@ -65,7 +65,7 @@ interface DocumentChunk {
 
 // Define settings interface
 interface RewriteSettings {
-  model: 'claude' | 'gpt4' | 'perplexity';
+  model: 'claude' | 'gpt4' | 'perplexity' | 'deepseek';
   instructions: string;
   detectionProtection: boolean;
 }
@@ -80,6 +80,9 @@ export default function DocumentRewriterModal({
   const [documentData, setDocumentData] = useState<DocumentData | null>(null);
   const [originalDocument, setOriginalDocument] = useState<DocumentData | null>(null);
   const [rewrittenContent, setRewrittenContent] = useState<string>('');
+  const [availableDocuments, setAvailableDocuments] = useState<any[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState<boolean>(false);
+  const [documentSelectionMode, setDocumentSelectionMode] = useState<'upload' | 'library'>('library');
   
   // State for processing
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -129,6 +132,85 @@ export default function DocumentRewriterModal({
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  };
+
+  // Load available documents when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadAvailableDocuments();
+    }
+  }, [isOpen]);
+
+  // Function to load all available documents from the server
+  const loadAvailableDocuments = async () => {
+    setLoadingDocuments(true);
+    try {
+      const response = await fetch('/api/documents');
+      if (response.ok) {
+        const documents = await response.json();
+        setAvailableDocuments(documents);
+        console.log(`Loaded ${documents.length} available documents`);
+      } else {
+        console.error('Failed to load documents');
+        toast({
+          title: "Error",
+          description: "Failed to load your documents. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load your documents. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
+  // Function to select a document from the library
+  const selectDocumentFromLibrary = async (document: any) => {
+    try {
+      console.log(`Loading document: ${document.title}`);
+      
+      // Create document data from the selected library document
+      const newDoc: DocumentData = {
+        id: document.id,
+        name: document.title,
+        content: document.content,
+        size: document.content.length
+      };
+      
+      setDocumentData(newDoc);
+      setOriginalDocument(newDoc);
+      setChunkMode(true);
+      
+      // Pre-populate with a default instruction
+      setSettings(prev => ({
+        ...prev,
+        instructions: "Rewrite this content to make it more professional while keeping the same meaning."
+      }));
+      
+      // Split into chunks
+      const chunks = splitIntoChunks(document.content, chunkSize);
+      setDocumentChunks(chunks);
+      setSelectedChunkIds(chunks.map(chunk => chunk.id));
+      
+      toast({
+        title: "Document Loaded",
+        description: `${document.title} has been loaded and split into ${chunks.length} sections.`,
+      });
+      
+    } catch (error) {
+      console.error('Error loading document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load the selected document. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // When modal opens, check if we have initial content to use
@@ -810,43 +892,124 @@ export default function DocumentRewriterModal({
         <div className="flex-grow overflow-auto">
           {viewMode === 'rewrite' ? (
             <div className="space-y-4">
-              {/* Document Upload Section */}
+              {/* Document Selection Section */}
               {!documentData ? (
-                <div className="flex flex-col items-center justify-center p-8 bg-slate-50 rounded-md">
-                  <div className="mb-4">
-                    <FilePlus className="h-10 w-10 text-slate-400" />
+                <div className="space-y-4">
+                  {/* Document Selection Mode Toggle */}
+                  <div className="flex justify-center">
+                    <div className="bg-gray-100 p-1 rounded-lg">
+                      <Button
+                        variant={documentSelectionMode === 'library' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setDocumentSelectionMode('library')}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Document Library
+                      </Button>
+                      <Button
+                        variant={documentSelectionMode === 'upload' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setDocumentSelectionMode('upload')}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload New
+                      </Button>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">Upload Document</h3>
-                  <p className="text-slate-500 text-center mb-4">
-                    {initialContent ? 
-                      "Using content from chat. You can also upload a different document." :
-                      "Upload a document to rewrite, or create a new document directly in the editor."}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                    >
-                      {isUploading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
+
+                  {documentSelectionMode === 'library' ? (
+                    /* Document Library */
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <h3 className="text-lg font-medium mb-2">Select a Document</h3>
+                        <p className="text-slate-500 mb-4">
+                          Choose from your previously uploaded documents
+                        </p>
+                      </div>
+                      
+                      {loadingDocuments ? (
+                        <div className="flex justify-center py-8">
+                          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                        </div>
+                      ) : availableDocuments.length > 0 ? (
+                        <div className="grid gap-3 max-h-96 overflow-y-auto">
+                          {availableDocuments.map((doc) => (
+                            <Card key={doc.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer border-2 hover:border-blue-300" onClick={() => selectDocumentFromLibrary(doc)}>
+                              <CardContent className="p-0">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-lg mb-1">{doc.title}</h4>
+                                    <p className="text-sm text-slate-500 mb-2">
+                                      {formatBytes(doc.content?.length || 0)} • {new Date(doc.createdAt).toLocaleDateString()}
+                                    </p>
+                                    <p className="text-xs text-slate-400 line-clamp-2">
+                                      {doc.content?.substring(0, 100) || 'No preview available'}...
+                                    </p>
+                                  </div>
+                                  <div className="ml-4">
+                                    <Button size="sm" variant="outline">
+                                      Select
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       ) : (
-                        <>
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload File
-                        </>
+                        <div className="text-center py-8">
+                          <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                          <p className="text-slate-500">No documents found. Upload your first document to get started.</p>
+                          <Button 
+                            variant="outline" 
+                            className="mt-4"
+                            onClick={() => setDocumentSelectionMode('upload')}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Document
+                          </Button>
+                        </div>
                       )}
-                    </Button>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept=".txt,.doc,.docx,.pdf"
-                      onChange={handleFileUpload}
-                    />
-                  </div>
+                    </div>
+                  ) : (
+                    /* Upload New Document */
+                    <div className="flex flex-col items-center justify-center p-8 bg-slate-50 rounded-md">
+                      <div className="mb-4">
+                        <FilePlus className="h-10 w-10 text-slate-400" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">Upload New Document</h3>
+                      <p className="text-slate-500 text-center mb-4">
+                        {initialContent ? 
+                          "Using content from chat. You can also upload a different document." :
+                          "Upload a document to rewrite, or create a new document directly in the editor."}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          {isUploading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload File
+                            </>
+                          )}
+                        </Button>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept=".txt,.doc,.docx,.pdf"
+                          onChange={handleFileUpload}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
@@ -994,7 +1157,7 @@ export default function DocumentRewriterModal({
                         <Label htmlFor="model">AI Model</Label>
                         <Select 
                           value={settings.model} 
-                          onValueChange={(value: 'claude' | 'gpt4' | 'perplexity') => 
+                          onValueChange={(value: 'claude' | 'gpt4' | 'perplexity' | 'deepseek') => 
                             setSettings(prev => ({ ...prev, model: value }))
                           }
                         >
