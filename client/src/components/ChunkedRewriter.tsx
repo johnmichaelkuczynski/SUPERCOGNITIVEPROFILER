@@ -247,30 +247,8 @@ export default function ChunkedRewriter({
       // Store any generated graphs
       const generatedGraphs = result.graphs || [];
 
-      // AUTO-APPLY TEXT TO MATH: Automatically run homework results through math formatting
+      // Use original content without automatic math formatting
       let finalContent = result.response;
-      try {
-        const mathResponse = await fetch('/api/text-to-math', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: finalContent,
-            instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-            model: selectedModel
-          }),
-        });
-
-        if (mathResponse.ok) {
-          const mathResult = await mathResponse.json();
-          finalContent = mathResult.mathContent;
-          console.log('[auto-math] Homework result automatically formatted for math');
-        }
-      } catch (error) {
-        console.warn('[auto-math] Failed to format homework result for math:', error);
-        // Continue with original content if math formatting fails
-      }
 
       setProgress(100);
 
