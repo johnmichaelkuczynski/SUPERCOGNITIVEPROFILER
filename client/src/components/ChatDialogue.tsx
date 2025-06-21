@@ -48,6 +48,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [messageToShare, setMessageToShare] = useState<ChatMessage | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [showMathView, setShowMathView] = useState(false);
   const [conversationId, setConversationId] = useState<number | null>(1); // Default ID for auxiliary chat
   const [conversationShareEmail, setConversationShareEmail] = useState('');
   
@@ -318,6 +319,24 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold">Auxiliary AI Chat</CardTitle>
             <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
+                <Button
+                  size="sm"
+                  variant={!showMathView ? "default" : "outline"}
+                  onClick={() => setShowMathView(false)}
+                  className="text-xs h-7 px-2"
+                >
+                  Text
+                </Button>
+                <Button
+                  size="sm"
+                  variant={showMathView ? "default" : "outline"}
+                  onClick={() => setShowMathView(true)}
+                  className="text-xs h-7 px-2"
+                >
+                  Math
+                </Button>
+              </div>
               <Select value={selectedModel} onValueChange={(value) => setSelectedModel(value as LLMModel)}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
@@ -596,7 +615,18 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                             Rewrite Progress: {message.chunkIndex! + 1}/{message.totalChunks}
                           </div>
                         )}
-                        {formatMessage(message.content)}
+                        {showMathView ? (
+                          <MathJax>
+                            <ReactMarkdown
+                              remarkPlugins={[remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </MathJax>
+                        ) : (
+                          formatMessage(message.content)
+                        )}
                       </div>
 
                       {/* File attachments */}
