@@ -1643,7 +1643,7 @@ export default function ChunkedRewriter({
                       <h2>Supporting Visualizations</h2>
                       ${rewriteMetadata.graphs.map((graph: any, index: number) => `
                         <div class="graph-container">
-                          <h3>${graph.title || `Graph ${index + 1}`}</h3>
+                          <h3 class="graph-title">${graph.title || `Graph ${index + 1}`}</h3>
                           ${graph.description ? `<p class="graph-description">${graph.description}</p>` : ''}
                           <div class="graph-svg">
                             ${graph.svg}
@@ -1745,6 +1745,14 @@ export default function ChunkedRewriter({
                           page-break-inside: avoid;
                         }
                         
+                        /* Graph title math styling */
+                        .graph-title {
+                          font-size: 14pt;
+                          font-weight: bold;
+                          margin: 12pt 0 8pt 0;
+                          text-align: center;
+                        }
+                        
                         /* Control buttons */
                         .controls { 
                           text-align: center; 
@@ -1841,6 +1849,7 @@ export default function ChunkedRewriter({
                       <script>
                         // Render LaTeX math with KaTeX for perfect display
                         document.addEventListener("DOMContentLoaded", function() {
+                          // Render math in main content
                           renderMathInElement(document.getElementById('text-content'), {
                             delimiters: [
                               {left: "\\\\[", right: "\\\\]", display: true},
@@ -1851,6 +1860,20 @@ export default function ChunkedRewriter({
                             throwOnError: false,
                             strict: false,
                             trust: true
+                          });
+                          
+                          // Render math in graph titles specifically
+                          const graphTitles = document.querySelectorAll('.graph-title');
+                          graphTitles.forEach(function(title) {
+                            renderMathInElement(title, {
+                              delimiters: [
+                                {left: "$", right: "$", display: false},
+                                {left: "\\\\(", right: "\\\\)", display: false}
+                              ],
+                              throwOnError: false,
+                              strict: false,
+                              trust: true
+                            });
                           });
                           
                           // Show content after math rendering
@@ -2182,7 +2205,9 @@ export default function ChunkedRewriter({
                     {rewriteMetadata.graphs.map((graph: any, index: number) => (
                       <div key={index} className="bg-gray-50 p-4 rounded-lg border">
                         <div className="mb-3">
-                          <h4 className="font-medium text-gray-800">{graph.title || `Graph ${index + 1}`}</h4>
+                          <h4 className="font-medium text-gray-800">
+                            <MathJax>{graph.title || `Graph ${index + 1}`}</MathJax>
+                          </h4>
                           {graph.description && (
                             <p className="text-sm text-gray-600 mt-1">{graph.description}</p>
                           )}
