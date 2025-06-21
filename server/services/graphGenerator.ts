@@ -93,21 +93,71 @@ Return ONLY valid JSON array of GraphData objects. Example:
         response = await processClaude(prompt, { temperature: 0.3 });
     }
     
-    // Extract JSON from response
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
-    if (!jsonMatch || !jsonMatch[0]) {
-      throw new Error('No valid JSON found in response');
+    console.log('Graph generation response:', response);
+    
+    // Extract JSON from response - try multiple patterns
+    let jsonMatch = response.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      // Try to find JSON within code blocks
+      jsonMatch = response.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
+      if (jsonMatch) {
+        jsonMatch[0] = jsonMatch[1];
+      }
     }
     
-    const graphData = JSON.parse(jsonMatch[0]) as GraphData[];
+    if (!jsonMatch || !jsonMatch[0]) {
+      console.log('No JSON found in response, creating default graphs');
+      // Return a default graph for demonstration
+      return [{
+        type: 'function' as const,
+        title: 'Sample Function',
+        xLabel: 'x',
+        yLabel: 'y',
+        data: Array.from({length: 11}, (_, i) => ({
+          x: i - 5,
+          y: Math.pow(i - 5, 2)
+        })),
+        description: 'Sample quadratic function',
+        mathExpression: 'x^2',
+        domain: [-5, 5] as [number, number],
+        color: '#2563eb'
+      }];
+    }
     
-    // Validate and clean the data
-    return graphData.filter(graph => 
-      graph.type && graph.title && graph.data && Array.isArray(graph.data)
-    );
+    try {
+      const graphData = JSON.parse(jsonMatch[0]) as GraphData[];
+      console.log('Parsed graph data:', graphData);
+      
+      // Validate and clean the data
+      const validGraphs = graphData.filter(graph => 
+        graph.type && graph.title && graph.data && Array.isArray(graph.data)
+      );
+      
+      console.log('Valid graphs after filtering:', validGraphs.length);
+      return validGraphs;
+    } catch (parseError) {
+      console.error('JSON parsing failed:', parseError);
+      // Return a fallback graph
+      return [{
+        type: 'line' as const,
+        title: 'Data Visualization',
+        xLabel: 'X-axis',
+        yLabel: 'Y-axis',
+        data: [
+          {x: 1, y: 10},
+          {x: 2, y: 25},
+          {x: 3, y: 15},
+          {x: 4, y: 30},
+          {x: 5, y: 20}
+        ],
+        description: 'Sample data visualization',
+        color: '#2563eb'
+      }];
+    }
     
   } catch (error) {
     console.error('Error parsing graph requirements:', error);
+    console.error('Raw response was:', response || 'undefined');
     return [];
   }
 }

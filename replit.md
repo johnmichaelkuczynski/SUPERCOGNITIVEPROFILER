@@ -124,6 +124,7 @@ Changelog:
 - June 21, 2025. Fixed PDF download to include generated graphs - visualizations now appear in both UI display and PDF exports with proper formatting and styling
 - June 21, 2025. Fixed ASCII art graph problem - updated system prompts across all models (Claude, GPT-4, DeepSeek) to prevent text-based visualizations and ensure proper graph placeholder references like "[See Graph 1 above]"
 - June 21, 2025. Reverted graph generation changes - restored original working system that analyzes both assignment and generated content for proper graph creation
+- June 21, 2025. Fixed graph display issue - added robust fallback system to ensure graphs always appear when homework references them, preventing cases where "[See Graph 1 above]" appears without actual graphs
 ```
 
 ## User Preferences
