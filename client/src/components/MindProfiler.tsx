@@ -161,6 +161,7 @@ interface MindProfilerProps {
 export default function MindProfiler({ userId }: MindProfilerProps) {
   const [profileType, setProfileType] = useState<'psychological' | 'synthesis' | 'metacognitive'>('metacognitive');
   const [analysisMode, setAnalysisMode] = useState<'instant' | 'comprehensive'>('instant');
+  const [selectedModel, setSelectedModel] = useState<'deepseek' | 'claude' | 'gpt4' | 'perplexity'>('deepseek');
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState<ProfileResults | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -199,6 +200,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       profileType: string;
       analysisMode: string;
       inputText?: string;
+      model?: string;
     }) => {
       let endpoint;
       if (data.profileType === 'metacognitive') {
@@ -214,6 +216,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       const response = await apiRequest('POST', endpoint, {
         profileType: data.profileType,
         inputText: data.inputText,
+        model: data.model,
         userId
       });
       return await response.json();
@@ -403,6 +406,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
     analyzeProfile.mutate({
       profileType,
       analysisMode,
+      model: selectedModel,
       inputText: analysisMode === 'instant' ? inputText : undefined
     });
   };

@@ -576,22 +576,56 @@ CRITICAL: Return JSON with NUMERIC scores (1-100) based on population-normed par
     );
     console.log('🔍 METACOGNITIVE PROFILING DEBUG - DEFAULT SCORES CHECK:', isDefaultScores ? 'WARNING: USING DEFAULT SCORES!' : 'SCORES ARE DYNAMIC');
 
-    // DEBUG LOGGING - Step 6: Additional validation checks
-    const hasValidScores = (
-      typeof parsedResult.intellectualMaturity === 'number' &&
-      typeof parsedResult.selfAwarenessLevel === 'number' &&
-      typeof parsedResult.epistemicHumility === 'number' &&
-      typeof parsedResult.reflectiveDepth === 'number' &&
+    // DEBUG LOGGING - Step 6: Check if scores are in old 1-10 scale or new 1-100 scale
+    const isOldScale = (
       parsedResult.intellectualMaturity >= 1 && parsedResult.intellectualMaturity <= 10 &&
       parsedResult.selfAwarenessLevel >= 1 && parsedResult.selfAwarenessLevel <= 10 &&
       parsedResult.epistemicHumility >= 1 && parsedResult.epistemicHumility <= 10 &&
       parsedResult.reflectiveDepth >= 1 && parsedResult.reflectiveDepth <= 10
     );
     
-    console.log('🔍 SCORES VALIDATION:', hasValidScores ? 'VALID NUMERIC SCORES' : 'INVALID SCORES DETECTED');
+    console.log('🔍 SCALE DETECTION:', isOldScale ? 'OLD 1-10 SCALE DETECTED - CONVERTING TO 100-POINT' : 'NEW 100-POINT SCALE DETECTED');
+    
+    // Convert from 1-10 scale to 1-100 scale if needed
+    if (isOldScale) {
+      console.log('🔧 CONVERTING SCORES FROM 1-10 TO 1-100 SCALE...');
+      console.log('🔧 BEFORE CONVERSION:', {
+        intellectualMaturity: parsedResult.intellectualMaturity,
+        selfAwarenessLevel: parsedResult.selfAwarenessLevel,
+        epistemicHumility: parsedResult.epistemicHumility,
+        reflectiveDepth: parsedResult.reflectiveDepth
+      });
+      
+      // Convert 1-10 to 1-100 scale using proper mapping
+      parsedResult.intellectualMaturity = Math.round(parsedResult.intellectualMaturity * 10);
+      parsedResult.selfAwarenessLevel = Math.round(parsedResult.selfAwarenessLevel * 10);
+      parsedResult.epistemicHumility = Math.round(parsedResult.epistemicHumility * 10);
+      parsedResult.reflectiveDepth = Math.round(parsedResult.reflectiveDepth * 10);
+      
+      console.log('🔧 AFTER CONVERSION:', {
+        intellectualMaturity: parsedResult.intellectualMaturity,
+        selfAwarenessLevel: parsedResult.selfAwarenessLevel,
+        epistemicHumility: parsedResult.epistemicHumility,
+        reflectiveDepth: parsedResult.reflectiveDepth
+      });
+    }
+    
+    // Validate converted scores
+    const hasValidScores = (
+      typeof parsedResult.intellectualMaturity === 'number' &&
+      typeof parsedResult.selfAwarenessLevel === 'number' &&
+      typeof parsedResult.epistemicHumility === 'number' &&
+      typeof parsedResult.reflectiveDepth === 'number' &&
+      parsedResult.intellectualMaturity >= 1 && parsedResult.intellectualMaturity <= 100 &&
+      parsedResult.selfAwarenessLevel >= 1 && parsedResult.selfAwarenessLevel <= 100 &&
+      parsedResult.epistemicHumility >= 1 && parsedResult.epistemicHumility <= 100 &&
+      parsedResult.reflectiveDepth >= 1 && parsedResult.reflectiveDepth <= 100
+    );
+    
+    console.log('🔍 FINAL SCORES VALIDATION:', hasValidScores ? 'VALID 100-POINT SCORES' : 'INVALID SCORES DETECTED');
     
     if (!hasValidScores) {
-      console.log('🚨 CRITICAL: Invalid scores detected, LLM did not return proper numeric values');
+      console.log('🚨 CRITICAL: Invalid scores detected after conversion');
       console.log('🚨 Raw response content:', rawResponse);
     }
 
