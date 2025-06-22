@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Edit3, Eye, RefreshCw, Loader2, Highlighter } from 'lucide-react';
+import { Edit3, Eye, RefreshCw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 declare global {
@@ -41,20 +41,9 @@ export default function RewriteViewer({
   const [customInstructions, setCustomInstructions] = useState('');
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'deepseek'>('deepseek');
   const [isRewriting, setIsRewriting] = useState(false);
-
   const { toast } = useToast();
 
   if (!result) return null;
-
-  const handleDirectEdit = () => {
-    setViewMode('edit');
-    toast({
-      title: "Edit Mode Enabled",
-      description: "You can now directly edit the content in the text area."
-    });
-  };
-
-
 
   const rewriteTheRewrite = async () => {
     if (!customInstructions.trim()) {
@@ -148,7 +137,7 @@ export default function RewriteViewer({
                       className="px-3 py-1 text-xs"
                     >
                       <Edit3 className="h-3 w-3 mr-1" />
-                      Edit View
+                      Edit
                     </Button>
                     <Button
                       size="sm"
@@ -158,15 +147,6 @@ export default function RewriteViewer({
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       Math View
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleDirectEdit}
-                      className="px-3 py-1 text-xs"
-                    >
-                      <Edit3 className="h-3 w-3 mr-1" />
-                      Edit
                     </Button>
                   </div>
                 </div>
@@ -189,7 +169,7 @@ export default function RewriteViewer({
                         fontSize: '14px',
                         lineHeight: '1.6'
                       }}
-                      placeholder="Click 'Edit' button above to start editing your content directly..."
+                      placeholder="Your content is fully editable here. Just click and type to make changes..."
                     />
                   ) : (
                     <div 
@@ -201,7 +181,9 @@ export default function RewriteViewer({
                       }}
                       dangerouslySetInnerHTML={{
                         __html: result.rewrittenContent
-                          .replace(/\n/g, '<br>')
+                          .replace(/\n\n/g, '</p><p>')
+                          .replace(/^/, '<p>')
+                          .replace(/$/, '</p>')
                           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                           .replace(/\*(.*?)\*/g, '<em>$1</em>')
                       }}
@@ -240,72 +222,6 @@ export default function RewriteViewer({
                       </h5>
                       <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded">
                         {result.explanation}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Text Selection Rewrite Section */}
-                {showSelectionRewrite && (
-                  <>
-                    <Separator />
-                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                      <h5 className="text-sm font-medium text-yellow-800 mb-3">
-                        🎯 Rewrite Selected Text
-                      </h5>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-xs font-medium text-yellow-700">Selected Text:</label>
-                          <div className="text-xs bg-white p-2 rounded border border-yellow-300 max-h-20 overflow-y-auto">
-                            "{selectedText}"
-                          </div>
-                        </div>
-                        <Textarea
-                          placeholder="How should this selected text be rewritten? (e.g., 'render this with proper LaTeX math notation', 'make this more formal', 'fix the grammar')"
-                          value={selectionInstructions}
-                          onChange={(e) => setSelectionInstructions(e.target.value)}
-                          rows={3}
-                          className="text-sm"
-                        />
-                        <div className="flex items-center justify-between">
-                          <select 
-                            value={selectedModel}
-                            onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gpt4' | 'deepseek')}
-                            className="text-xs px-2 py-1 border rounded"
-                          >
-                            <option value="deepseek">DeepSeek</option>
-                            <option value="claude">Claude</option>
-                            <option value="gpt4">GPT-4</option>
-                          </select>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setShowSelectionRewrite(false)}
-                              className="px-3 py-1 text-xs"
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={rewriteSelectedText}
-                              disabled={isRewriting || !selectionInstructions.trim()}
-                              className="px-3 py-1 text-xs"
-                            >
-                              {isRewriting ? (
-                                <>
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                  Rewriting...
-                                </>
-                              ) : (
-                                <>
-                                  <RefreshCw className="h-3 w-3 mr-1" />
-                                  Rewrite Selection
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </>
