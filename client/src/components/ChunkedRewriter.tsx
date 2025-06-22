@@ -74,7 +74,86 @@ export default function ChunkedRewriter({
   // Math View toggle state
   const [showMathView, setShowMathView] = useState(false);
   
+  // Text selection and custom rewrite state
+  const [selectedText, setSelectedText] = useState('');
+  const [selectionInstructions, setSelectionInstructions] = useState('');
+  const [showSelectionRewrite, setShowSelectionRewrite] = useState(false);
+  
   const { toast } = useToast();
+
+  // Handle text selection for custom rewrite
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      setSelectedText(selection.toString().trim());
+      setShowSelectionRewrite(true);
+      toast({
+        title: "Text Selected",
+        description: `Selected: "${selection.toString().substring(0, 50)}${selection.toString().length > 50 ? '...' : ''}"`
+      });
+    } else {
+      toast({
+        title: "No Text Selected",
+        description: "Please select some text first to rewrite it.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Rewrite selected text with custom instructions
+  const rewriteSelectedText = async () => {
+    if (!selectedText || !selectionInstructions.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please select text and provide instructions.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      const response = await fetch('/api/rewrite-selection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          selectedText,
+          instructions: selectionInstructions,
+          model: selectedModel,
+          fullContext: finalRewrittenContent
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to rewrite selected text');
+      }
+
+      const data = await response.json();
+      
+      // Replace the selected text in the full content
+      const updatedContent = finalRewrittenContent.replace(selectedText, data.rewrittenText);
+      setFinalRewrittenContent(updatedContent);
+      
+      setShowSelectionRewrite(false);
+      setSelectedText('');
+      setSelectionInstructions('');
+      
+      toast({
+        title: "Text Rewritten!",
+        description: "Selected text has been rewritten with your instructions."
+      });
+    } catch (error) {
+      console.error('Error rewriting selected text:', error);
+      toast({
+        title: "Rewrite Failed",
+        description: "Failed to rewrite selected text. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Clean content for auxiliary chat - remove markdown and fix math notation
   const cleanContentForChat = (content: string) => {
@@ -2189,6 +2268,14 @@ export default function ChunkedRewriter({
                   className="text-xs h-6 px-2"
                 >
                   Math View
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleTextSelection}
+                  className="text-xs h-6 px-2"
+                >
+                  🎯 Select Text
                 </Button>
               </div>
             </div>

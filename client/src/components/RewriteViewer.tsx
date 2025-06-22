@@ -1,15 +1,11 @@
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { X, RefreshCw, Loader2, Download, Share2, Copy, Check, Eye, Edit3 } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { Edit3, Eye, RefreshCw, Loader2, Highlighter } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 declare global {
   interface Window {
@@ -41,27 +37,106 @@ export default function RewriteViewer({
   result, 
   onUpdate 
 }: RewriteViewerProps) {
-  const [customInstructions, setCustomInstructions] = useState('');
-  const [selectedModel, setSelectedModel] = useState('claude');
-  const [isRewriting, setIsRewriting] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'edit' | 'math'>('edit');
+  const [customInstructions, setCustomInstructions] = useState('');
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'deepseek'>('deepseek');
+  const [isRewriting, setIsRewriting] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [selectionInstructions, setSelectionInstructions] = useState('');
+  const [showSelectionRewrite, setShowSelectionRewrite] = useState(false);
   const { toast } = useToast();
 
   if (!result) return null;
 
-  const rewriteTheRewrite = async () => {
-    if (!customInstructions.trim()) {
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      setSelectedText(selection.toString().trim());
+      setShowSelectionRewrite(true);
       toast({
-        title: "Instructions Required",
-        description: "Please provide specific instructions for how you want to rewrite this content",
+        title: "Text Selected",
+        description: `Selected: "${selection.toString().substring(0, 50)}${selection.toString().length > 50 ? '...' : ''}"`
+      });
+    } else {
+      toast({
+        title: "No Text Selected",
+        description: "Please select some text first to rewrite it.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const rewriteSelectedText = async () => {
+    if (!selectedText || !selectionInstructions.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please select text and provide instructions.",
         variant: "destructive"
       });
       return;
     }
 
     setIsRewriting(true);
+    
+    try {
+      const response = await fetch('/api/rewrite-selection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          selectedText,
+          instructions: selectionInstructions,
+          model: selectedModel,
+          fullContext: result.rewrittenContent
+        })
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to rewrite selected text');
+      }
+
+      const data = await response.json();
+      
+      // Replace the selected text in the full content
+      const updatedContent = result.rewrittenContent.replace(selectedText, data.rewrittenText);
+      
+      const updatedResult = {
+        ...result,
+        rewrittenContent: updatedContent
+      };
+      
+      onUpdate(updatedResult);
+      setShowSelectionRewrite(false);
+      setSelectedText('');
+      setSelectionInstructions('');
+      
+      toast({
+        title: "Text Rewritten!",
+        description: "Selected text has been rewritten with your instructions."
+      });
+    } catch (error) {
+      console.error('Error rewriting selected text:', error);
+      toast({
+        title: "Rewrite Failed",
+        description: "Failed to rewrite selected text. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRewriting(false);
+    }
+  };
+
+  const rewriteTheRewrite = async () => {
+    if (!customInstructions.trim()) {
+      toast({
+        title: "Instructions Required",
+        description: "Please provide specific instructions for the rewrite.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsRewriting(true);
+    
     try {
       const response = await fetch('/api/rewrite-chunk', {
         method: 'POST',
@@ -70,35 +145,33 @@ export default function RewriteViewer({
           content: result.rewrittenContent,
           instructions: customInstructions,
           model: selectedModel,
-          chunkIndex: 0,
-          totalChunks: 1
+          isRerewrite: true
         })
       });
 
-      if (response.ok) {
-        const newResult = await response.json();
-        
-        const updatedResult = {
-          ...result,
-          rewrittenContent: newResult.rewrittenContent,
-          explanation: newResult.explanation || undefined
-        };
-        
-        onUpdate(updatedResult);
-        setCustomInstructions('');
-        
-        toast({
-          title: "Re-rewrite Complete",
-          description: "Content has been successfully rewritten with your custom instructions"
-        });
-      } else {
+      if (!response.ok) {
         throw new Error('Failed to rewrite content');
       }
-    } catch (error) {
-      console.error('Error in rewrite-the-rewrite:', error);
+
+      const data = await response.json();
+      
+      const updatedResult = {
+        ...result,
+        rewrittenContent: data.rewrittenContent
+      };
+      
+      onUpdate(updatedResult);
+      setCustomInstructions('');
+      
       toast({
-        title: "Re-rewrite Failed",
-        description: error instanceof Error ? error.message : "Failed to rewrite content",
+        title: "Content Rewritten!",
+        description: "Your content has been rewritten with the new instructions."
+      });
+    } catch (error) {
+      console.error('Error rewriting content:', error);
+      toast({
+        title: "Rewrite Failed",
+        description: "Failed to rewrite content. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -106,97 +179,15 @@ export default function RewriteViewer({
     }
   };
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(result.rewrittenContent);
-      setIsCopied(true);
-      
-      setTimeout(() => {
-        setIsCopied(false);
-      }, 2000);
-      
-      toast({
-        title: "Copied to clipboard",
-        description: "The rewritten content has been copied to your clipboard",
-      });
-    } catch (err) {
-      toast({
-        title: "Failed to copy",
-        description: "Could not copy text to clipboard",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDownload = async () => {
-    try {
-      const response = await fetch('/api/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: result.rewrittenContent,
-          format: 'docx',
-          filename: `${result.originalChunk.title}_rewritten`
-        })
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${result.originalChunk.title}_rewritten.docx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        toast({
-          title: "Download Complete",
-          description: "Document downloaded successfully"
-        });
-      } else {
-        throw new Error('Failed to download');
-      }
-    } catch (error) {
-      toast({
-        title: "Download Failed",
-        description: "Failed to download document",
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center justify-between">
-            <span>{result.originalChunk.title} - Rewrite Result</span>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleCopy}>
-                {isCopied ? (
-                  <>
-                    <Check className="h-4 w-4 mr-1" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-1" />
-                    Copy
-                  </>
-                )}
-              </Button>
-            </div>
-          </DialogTitle>
+        <DialogHeader>
+          <DialogTitle>Rewrite Results - Chunk {result.originalChunk.id}</DialogTitle>
         </DialogHeader>
-
+        
         <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
             {/* Original Content */}
             <Card className="flex flex-col h-full">
               <CardHeader className="flex-shrink-0">
@@ -237,6 +228,15 @@ export default function RewriteViewer({
                       <Eye className="h-3 w-3 mr-1" />
                       Math View
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleTextSelection}
+                      className="px-3 py-1 text-xs"
+                    >
+                      <Highlighter className="h-3 w-3 mr-1" />
+                      Select Text
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -266,7 +266,6 @@ export default function RewriteViewer({
                       contentEditable={true}
                       suppressContentEditableWarning={true}
                       onInput={(e) => {
-                        // Extract plain text content from the contentEditable div
                         const element = e.target as HTMLElement;
                         const textContent = element.innerText || element.textContent || '';
                         
@@ -277,7 +276,6 @@ export default function RewriteViewer({
                         onUpdate(updatedResult);
                       }}
                       onBlur={(e) => {
-                        // Re-render math after editing
                         const element = e.target as HTMLElement;
                         if (window.renderMathInElement) {
                           setTimeout(() => {
@@ -311,11 +309,9 @@ export default function RewriteViewer({
                       }}
                       ref={(el) => {
                         if (el && window.renderMathInElement) {
-                          // Clear any existing rendered math first
                           const mathElements = el.querySelectorAll('.katex');
                           mathElements.forEach(elem => elem.remove());
                           
-                          // Force KaTeX rendering with proper timing
                           setTimeout(() => {
                             try {
                               window.renderMathInElement(el, {
@@ -334,7 +330,6 @@ export default function RewriteViewer({
                         }
                       }}
                     />
-                  </div>
                   )}
                 </div>
 
@@ -347,6 +342,72 @@ export default function RewriteViewer({
                       </h5>
                       <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded">
                         {result.explanation}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Text Selection Rewrite Section */}
+                {showSelectionRewrite && (
+                  <>
+                    <Separator />
+                    <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                      <h5 className="text-sm font-medium text-yellow-800 mb-3">
+                        🎯 Rewrite Selected Text
+                      </h5>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs font-medium text-yellow-700">Selected Text:</label>
+                          <div className="text-xs bg-white p-2 rounded border border-yellow-300 max-h-20 overflow-y-auto">
+                            "{selectedText}"
+                          </div>
+                        </div>
+                        <Textarea
+                          placeholder="How should this selected text be rewritten? (e.g., 'render this with proper LaTeX math notation', 'make this more formal', 'fix the grammar')"
+                          value={selectionInstructions}
+                          onChange={(e) => setSelectionInstructions(e.target.value)}
+                          rows={3}
+                          className="text-sm"
+                        />
+                        <div className="flex items-center justify-between">
+                          <select 
+                            value={selectedModel}
+                            onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gpt4' | 'deepseek')}
+                            className="text-xs px-2 py-1 border rounded"
+                          >
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="claude">Claude</option>
+                            <option value="gpt4">GPT-4</option>
+                          </select>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowSelectionRewrite(false)}
+                              className="px-3 py-1 text-xs"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={rewriteSelectedText}
+                              disabled={isRewriting || !selectionInstructions.trim()}
+                              className="px-3 py-1 text-xs"
+                            >
+                              {isRewriting ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Rewriting...
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="h-3 w-3 mr-1" />
+                                  Rewrite Selection
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </>
@@ -368,15 +429,16 @@ export default function RewriteViewer({
                     />
                     <div className="flex items-center justify-between">
                       <select 
-                        className="text-sm border rounded px-3 py-2"
                         value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
+                        onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gpt4' | 'deepseek')}
+                        className="text-xs px-2 py-1 border rounded"
                       >
+                        <option value="deepseek">DeepSeek</option>
                         <option value="claude">Claude</option>
                         <option value="gpt4">GPT-4</option>
-                        <option value="deepseek">DeepSeek</option>
                       </select>
-                      <Button 
+                      <Button
+                        size="sm"
                         onClick={rewriteTheRewrite}
                         disabled={isRewriting || !customInstructions.trim()}
                         className="px-4 py-2"

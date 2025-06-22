@@ -1118,6 +1118,116 @@ YOUR COMPLETE REWRITTEN DOCUMENT (no placeholder text):`;
     }
   });
 
+  // Rewrite selected text endpoint
+  app.post('/api/rewrite-selection', async (req: Request, res: Response) => {
+    try {
+      const { selectedText, instructions, model, fullContext } = req.body;
+
+      if (!selectedText || !instructions) {
+        return res.status(400).json({ error: 'Selected text and instructions are required' });
+      }
+
+      const systemPrompt = `You are a precise text rewriter. You will receive:
+1. A selected text fragment that needs rewriting
+2. Specific instructions for how to rewrite it
+3. The full context where this text appears
+
+Your task:
+- Rewrite ONLY the selected text according to the instructions
+- Return ONLY the rewritten text, nothing else
+- Do not add any commentary, explanations, or metadata
+- Maintain the original meaning while following the instructions
+- If the instruction is about math notation, use proper LaTeX formatting with \\( \\) for inline and \\[ \\] for display math
+
+Selected text: "${selectedText}"
+Instructions: ${instructions}
+Full context: ${fullContext}
+
+Rewrite the selected text:`;
+
+      let rewrittenText = '';
+
+      if (model === 'deepseek') {
+        const response = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Rewrite this text: "${selectedText}"` }
+            ],
+            temperature: 0.3,
+            max_tokens: 1000
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`DeepSeek API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        rewrittenText = data.choices[0].message.content.trim();
+      } else if (model === 'claude') {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.ANTHROPIC_API_KEY!,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 1000,
+            temperature: 0.3,
+            messages: [
+              { role: 'user', content: systemPrompt }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Claude API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        rewrittenText = data.content[0].text.trim();
+      } else if (model === 'gpt4') {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `Rewrite this text: "${selectedText}"` }
+            ],
+            temperature: 0.3,
+            max_tokens: 1000
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        rewrittenText = data.choices[0].message.content.trim();
+      }
+
+      res.json({ rewrittenText });
+    } catch (error) {
+      console.error('Error rewriting selected text:', error);
+      res.status(500).json({ error: 'Failed to rewrite selected text' });
+    }
+  });
+
   // Email document sharing endpoint
   app.post('/api/share-document', async (req: Request, res: Response) => {
     try {
