@@ -261,38 +261,80 @@ export default function RewriteViewer({
                       placeholder="Rewritten content will appear here and can be edited..."
                     />
                   ) : (
-                    <div className="w-full h-full overflow-auto text-sm leading-relaxed prose prose-sm max-w-none">
-                      <div 
-                        className="prose"
-                        style={{ 
-                          fontFamily: '"Times New Roman", serif',
-                          fontSize: '14px',
-                          lineHeight: '1.6'
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: result.rewrittenContent
-                            .replace(/\n/g, '<br>')
-                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        }}
-                        ref={(el) => {
-                          if (el && window.renderMathInElement) {
-                            // Clear any existing rendered math first
-                            const mathElements = el.querySelectorAll('.katex');
-                            mathElements.forEach(elem => elem.remove());
-                            
-                            // Force KaTeX rendering with proper timing
-                            setTimeout(() => {
-                              try {
-                                window.renderMathInElement(el);
-                              } catch (e) {
-                                console.warn('KaTeX rendering failed:', e);
-                              }
-                            }, 200);
-                          }
-                        }}
-                      />
-                    </div>
+                    <div 
+                      className="w-full h-full overflow-auto text-sm leading-relaxed prose prose-sm max-w-none"
+                      contentEditable={true}
+                      suppressContentEditableWarning={true}
+                      onInput={(e) => {
+                        // Extract plain text content from the contentEditable div
+                        const element = e.target as HTMLElement;
+                        const textContent = element.innerText || element.textContent || '';
+                        
+                        const updatedResult = {
+                          ...result,
+                          rewrittenContent: textContent
+                        };
+                        onUpdate(updatedResult);
+                      }}
+                      onBlur={(e) => {
+                        // Re-render math after editing
+                        const element = e.target as HTMLElement;
+                        if (window.renderMathInElement) {
+                          setTimeout(() => {
+                            window.renderMathInElement(element, {
+                              delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '\\[', right: '\\]', display: true},
+                                {left: '\\(', right: '\\)', display: false}
+                              ],
+                              throwOnError: false,
+                              strict: false
+                            });
+                          }, 50);
+                        }
+                      }}
+                      style={{ 
+                        fontFamily: '"Times New Roman", serif',
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        minHeight: '100%',
+                        padding: '8px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '4px',
+                        outline: 'none'
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: result.rewrittenContent
+                          .replace(/\n/g, '<br>')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                      }}
+                      ref={(el) => {
+                        if (el && window.renderMathInElement) {
+                          // Clear any existing rendered math first
+                          const mathElements = el.querySelectorAll('.katex');
+                          mathElements.forEach(elem => elem.remove());
+                          
+                          // Force KaTeX rendering with proper timing
+                          setTimeout(() => {
+                            try {
+                              window.renderMathInElement(el, {
+                                delimiters: [
+                                  {left: '$$', right: '$$', display: true},
+                                  {left: '\\[', right: '\\]', display: true},
+                                  {left: '\\(', right: '\\)', display: false}
+                                ],
+                                throwOnError: false,
+                                strict: false
+                              });
+                            } catch (e) {
+                              console.warn('KaTeX rendering failed:', e);
+                            }
+                          }, 200);
+                        }
+                      }}
+                    />
+                  </div>
                   )}
                 </div>
 

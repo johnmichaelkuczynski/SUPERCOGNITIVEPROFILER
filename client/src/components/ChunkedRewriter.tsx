@@ -2194,11 +2194,11 @@ export default function ChunkedRewriter({
             </div>
             
             {showMathView ? (
-              /* Math View - Rendered Mathematical Notation with Graphs */
-              <div className="flex-1 overflow-y-auto p-4 bg-white space-y-6">
+              /* Math View - Editable Rendered Mathematical Notation with Graphs */
+              <div className="flex-1 overflow-y-auto bg-white space-y-6">
                 {/* Display generated graphs first if they exist */}
                 {rewriteMetadata?.graphs && rewriteMetadata.graphs.length > 0 && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 p-4 border-b">
                     <div className="border-b border-gray-200 pb-2">
                       <h3 className="text-lg font-semibold text-gray-800">Generated Visualizations</h3>
                       <p className="text-sm text-gray-600">Charts and graphs to support the assignment content</p>
@@ -2224,7 +2224,68 @@ export default function ChunkedRewriter({
                     </div>
                   </div>
                 )}
-                {formatContent(finalRewrittenContent)}
+                <div 
+                  className="w-full prose prose-sm max-w-none p-4"
+                  contentEditable={true}
+                  suppressContentEditableWarning={true}
+                  onInput={(e) => {
+                    // Extract plain text content from the contentEditable div
+                    const element = e.target as HTMLElement;
+                    const textContent = element.innerText || element.textContent || '';
+                    setFinalRewrittenContent(textContent);
+                  }}
+                  onBlur={(e) => {
+                    // Re-render math after editing
+                    const element = e.target as HTMLElement;
+                    if (window.renderMathInElement) {
+                      setTimeout(() => {
+                        window.renderMathInElement(element, {
+                          delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '\\[', right: '\\]', display: true},
+                            {left: '\\(', right: '\\)', display: false}
+                          ],
+                          throwOnError: false,
+                          strict: false
+                        });
+                      }, 50);
+                    }
+                  }}
+                  style={{ 
+                    fontFamily: '"Times New Roman", serif',
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    minHeight: '400px',
+                    outline: 'none',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '4px',
+                    backgroundColor: '#ffffff'
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html: finalRewrittenContent
+                      .replace(/\n/g, '<br>')
+                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                  }}
+                  ref={(el) => {
+                    if (el && window.renderMathInElement) {
+                      // Clear any existing rendered math first
+                      const mathElements = el.querySelectorAll('.katex');
+                      mathElements.forEach(elem => elem.remove());
+                      
+                      // Render new math
+                      window.renderMathInElement(el, {
+                        delimiters: [
+                          {left: '$$', right: '$$', display: true},
+                          {left: '\\[', right: '\\]', display: true},
+                          {left: '\\(', right: '\\)', display: false}
+                        ],
+                        throwOnError: false,
+                        strict: false
+                      });
+                    }
+                  }}
+                />
               </div>
             ) : (
               /* Edit View - Editable Textarea */
