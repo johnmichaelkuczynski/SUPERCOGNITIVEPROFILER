@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { LLMModel, formatBytes } from '@/lib/utils';
+import { LLMModel, formatBytes, countWords } from '@/lib/utils';
 import { Send, Upload, X, FileText, Trash2, FileUp, RefreshCw, Eye, Download, Plus, Edit3, Mail, AlertTriangle, Play, Library } from 'lucide-react';
 import { downloadOutput } from '@/lib/llm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
@@ -931,9 +931,7 @@ Document text: ${extractedText}`;
                               className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) {
-                                  deleteDocument(doc.id);
-                                }
+                                deleteDocument(doc.id);
                               }}
                               disabled={isDeleting}
                               title="Delete document"
@@ -1002,7 +1000,7 @@ Document text: ${extractedText}`;
           
           {/* Word Count Display */}
           <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
-            <span>{directInputText.trim().split(/\s+/).filter(word => word.length > 0).length} words | {directInputText.length} characters</span>
+            <span className="font-medium">{countWords(directInputText)} words | {directInputText.length} characters</span>
           </div>
           
           {/* Action Buttons */}
@@ -1467,6 +1465,9 @@ Document text: ${extractedText}`;
                     }}
                     disabled={isLoading}
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    <span className="font-medium">{countWords(prompt)} words</span> | {prompt.length} characters
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Button
