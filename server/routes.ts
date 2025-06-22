@@ -2783,8 +2783,12 @@ Your job is to solve problems correctly and write clear, student-friendly explan
         return res.status(400).json({ error: 'Content is required' });
       }
 
+      // Preserve original paragraph structure by storing it with word counts
+      const originalParagraphs = content.split('\n\n').filter(p => p.trim().length > 0);
+      const originalWordCounts = originalParagraphs.map(p => p.trim().split(/\s+/).length);
+      
       // Build the prompt for mathematical notation conversion
-      let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Ensure all mathematical expressions, equations, formulas, and symbols are properly formatted with LaTeX markup for perfect rendering.
+      let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Return the text as a single continuous block with proper LaTeX formatting. DO NOT add paragraph breaks or line breaks - just return the converted text as one continuous stream.
 
 CRITICAL REQUIREMENTS:
 - Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
@@ -2796,13 +2800,7 @@ CRITICAL REQUIREMENTS:
 - Ensure equations are properly balanced and syntactically correct
 - IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
 - Remove ALL markdown headers, bold text, italic text, and other formatting
-- Present the content as clean, readable plain text with proper LaTeX math notation
-
-CRITICAL PARAGRAPH STRUCTURE RULES:
-- PRESERVE ALL PARAGRAPH BREAKS - maintain double line breaks (\\n\\n) between paragraphs
-- PRESERVE ALL SECTION BREAKS - maintain spacing between chapters/sections
-- DO NOT combine paragraphs into single blocks of text
-- MAINTAIN the original text structure and formatting
+- Present the content as one continuous block of text with proper LaTeX math notation
 
 CRITICAL RULES TO PREVENT META-TEXT:
 - NEVER add meta-comments like "[Remaining text continues as is...]" or "[content continues...]" or "[text truncated]"
@@ -2900,17 +2898,49 @@ ${content}`;
       // CRITICAL: Remove any meta-text that slipped through
       cleanResult = cleanMetaText(cleanResult);
       
-      // CRITICAL: Fix paragraph structure completely
-      // First, normalize line breaks and preserve intentional paragraph structure
+      // CRITICAL: Reconstruct paragraph structure using original paragraphs
+      // Since AI models break up paragraphs, we need to reconstruct based on the original structure
       cleanResult = cleanResult
         .replace(/\r\n/g, '\n') // Normalize Windows line breaks
         .replace(/\r/g, '\n') // Normalize Mac line breaks
-        .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks
+        .replace(/\n+/g, ' ') // Convert all line breaks to spaces for continuous text
+        .replace(/\s+/g, ' ') // Clean up extra spaces
         .trim();
       
-      // Now split into paragraphs and reconstruct with proper breaks
-      const paragraphs = cleanResult.split('\n\n').filter(p => p.trim().length > 0);
-      cleanResult = paragraphs.join('\n\n');
+      // Now reconstruct paragraphs using original word count proportions
+      if (originalParagraphs.length > 1) {
+        const words = cleanResult.split(' ');
+        const totalOriginalWords = originalWordCounts.reduce((sum, count) => sum + count, 0);
+        
+        const reconstructedParagraphs = [];
+        let wordIndex = 0;
+        
+        for (let i = 0; i < originalWordCounts.length; i++) {
+          // Calculate proportional word count for this paragraph
+          const targetWordCount = Math.round((originalWordCounts[i] / totalOriginalWords) * words.length);
+          const endIndex = Math.min(wordIndex + Math.max(targetWordCount, 5), words.length); // Minimum 5 words per paragraph
+          
+          const paragraphWords = words.slice(wordIndex, endIndex);
+          
+          if (paragraphWords.length > 0) {
+            reconstructedParagraphs.push(paragraphWords.join(' '));
+          }
+          
+          wordIndex = endIndex;
+        }
+        
+        // Add any remaining words to the last paragraph
+        if (wordIndex < words.length) {
+          const remainingWords = words.slice(wordIndex);
+          if (reconstructedParagraphs.length > 0) {
+            reconstructedParagraphs[reconstructedParagraphs.length - 1] += ' ' + remainingWords.join(' ');
+          } else {
+            reconstructedParagraphs.push(remainingWords.join(' '));
+          }
+        }
+        
+        cleanResult = reconstructedParagraphs.join('\n\n');
+      }
 
       res.json({ mathContent: cleanResult });
     } catch (error) {
