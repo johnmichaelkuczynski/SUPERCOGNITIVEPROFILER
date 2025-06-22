@@ -26,9 +26,83 @@ export function sanitizeMathAndCurrency(text: string): string {
   
   console.log(`🔧 Protected ${currencyReplacements.length} currency expressions`);
   
-  // Step 2: Identify and convert legitimate math expressions
-  // Only convert $...$ if it contains mathematical symbols/patterns
-  const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega)\b/;
+  // Step 2: Convert Unicode math symbols to proper LaTeX
+  const unicodeToLatex = {
+    // Set theory symbols
+    '∈': '\\in',
+    '∉': '\\notin', 
+    '∪': '\\cup',
+    '∩': '\\cap',
+    '⊆': '\\subseteq',
+    '⊇': '\\supseteq',
+    '⊂': '\\subset',
+    '⊃': '\\supset',
+    '∅': '\\emptyset',
+    '℘': '\\wp',
+    '∀': '\\forall',
+    '∃': '\\exists',
+    '¬': '\\neg',
+    // Greek letters
+    'α': '\\alpha',
+    'β': '\\beta', 
+    'γ': '\\gamma',
+    'δ': '\\delta',
+    'ε': '\\epsilon',
+    'θ': '\\theta',
+    'λ': '\\lambda',
+    'μ': '\\mu',
+    'π': '\\pi',
+    'σ': '\\sigma',
+    'τ': '\\tau',
+    'φ': '\\phi',
+    'ψ': '\\psi',
+    'ω': '\\omega',
+    'Ω': '\\Omega',
+    // Mathematical operators
+    '∧': '\\wedge',
+    '∨': '\\vee',
+    '→': '\\rightarrow',
+    '←': '\\leftarrow',
+    '↔': '\\leftrightarrow',
+    '⇒': '\\Rightarrow',
+    '⇐': '\\Leftarrow',
+    '⇔': '\\Leftrightarrow',
+    '≤': '\\leq',
+    '≥': '\\geq',
+    '≠': '\\neq',
+    '≡': '\\equiv',
+    '≈': '\\approx',
+    '∞': '\\infty',
+    '∑': '\\sum',
+    '∏': '\\prod',
+    '∫': '\\int',
+    '∂': '\\partial',
+    '∇': '\\nabla',
+    '√': '\\sqrt',
+    '±': '\\pm',
+    '∓': '\\mp',
+    '×': '\\times',
+    '÷': '\\div',
+    // Numbers and superscripts
+    '²': '^2',
+    '³': '^3',
+    '¹': '^1',
+    '₀': '_0',
+    '₁': '_1',
+    '₂': '_2',
+    '₃': '_3',
+    '₄': '_4',
+    '₅': '_5'
+  };
+
+  // Convert Unicode symbols to LaTeX
+  Object.entries(unicodeToLatex).forEach(([unicode, latex]) => {
+    const regex = new RegExp(unicode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    text = text.replace(regex, ` ${latex} `);
+  });
+
+  // Step 3: Identify and convert legitimate math expressions in dollar signs
+  const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega|forall|exists|in|cup|cap|subset|emptyset)\b/;
   
   text = text.replace(/\$([^$\n]+)\$/g, (match, content) => {
     // Check if content contains mathematical indicators
@@ -41,7 +115,20 @@ export function sanitizeMathAndCurrency(text: string): string {
     return match;
   });
   
-  // Step 3: Restore currency symbols
+  // Step 4: Wrap mathematical expressions in proper delimiters
+  // Find sequences of LaTeX commands and wrap them appropriately
+  text = text.replace(/(\s*\\[a-zA-Z]+(?:\s*\\[a-zA-Z]+)*\s*)/g, (match) => {
+    const trimmed = match.trim();
+    if (trimmed.length > 0) {
+      return ` \\(${trimmed}\\) `;
+    }
+    return match;
+  });
+
+  // Clean up multiple spaces
+  text = text.replace(/\s+/g, ' ').trim();
+
+  // Step 5: Restore currency symbols
   currencyReplacements.forEach((currency, index) => {
     const placeholder = `CURRENCY_PLACEHOLDER_${index}`;
     text = text.replace(placeholder, currency);

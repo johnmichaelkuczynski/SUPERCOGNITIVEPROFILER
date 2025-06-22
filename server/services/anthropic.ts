@@ -56,10 +56,30 @@ export async function processClaude(
     // Estimate tokens for rate limiting
     const estimatedTokens = Math.ceil(content.split(" ").length * 1.5) + maxTokens;
     
+    // Create system prompt for proper LaTeX mathematical notation
+    const systemPrompt = `You are a mathematical writing assistant. When generating mathematical content:
+
+CRITICAL MATHEMATICAL NOTATION RULES:
+- Use proper LaTeX notation for ALL mathematical expressions
+- Set theory: \\in, \\cup, \\cap, \\subset, \\emptyset, \\forall, \\exists, \\neg
+- Greek letters: \\alpha, \\beta, \\gamma, \\theta, \\pi, \\sigma, etc.
+- Logical operators: \\wedge, \\vee, \\rightarrow, \\leftrightarrow
+- Wrap inline math in \\(...\\): Example \\(x \\in A\\)
+- Wrap display math in $$...$$ for equations
+- NEVER use Unicode symbols like ∈, ∪, ∩, ∀, ∃, α, β
+- ALWAYS use LaTeX commands like \\in, \\cup, \\cap, \\forall, \\exists, \\alpha, \\beta
+
+EXAMPLES:
+- Wrong: "x ∈ A and y ∀ conditions"
+- Correct: "\\(x \\in A\\) and \\(\\forall y\\) conditions"
+- Wrong: "A ∪ B ∩ C with ∅ set"
+- Correct: "\\(A \\cup B \\cap C\\) with \\(\\emptyset\\) set"`;
+
     // Always use non-streaming for consistency with rate limiting
     const response = await ClaudeLimiter.execute(estimatedTokens, async () => {
       return await anthropic.messages.create({
         model: MODEL,
+        system: systemPrompt,
         messages: messages.map(msg => ({
           role: msg.role === 'user' ? 'user' : 'assistant',
           content: msg.content

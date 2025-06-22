@@ -35,9 +35,29 @@ export async function processDeepSeek(
   });
 
   try {
+    // Create system prompt for proper LaTeX mathematical notation
+    const systemPrompt = `You are a mathematical writing assistant. When generating mathematical content:
+
+CRITICAL MATHEMATICAL NOTATION RULES:
+- Use proper LaTeX notation for ALL mathematical expressions
+- Set theory: \\in, \\cup, \\cap, \\subset, \\emptyset, \\forall, \\exists, \\neg
+- Greek letters: \\alpha, \\beta, \\gamma, \\theta, \\pi, \\sigma, etc.
+- Logical operators: \\wedge, \\vee, \\rightarrow, \\leftrightarrow
+- Wrap inline math in \\(...\\): Example \\(x \\in A\\)
+- Wrap display math in $$...$$ for equations
+- NEVER use Unicode symbols like ∈, ∪, ∩, ∀, ∃, α, β
+- ALWAYS use LaTeX commands like \\in, \\cup, \\cap, \\forall, \\exists, \\alpha, \\beta
+
+EXAMPLES:
+- Wrong: "x ∈ A and y ∀ conditions"
+- Correct: "\\(x \\in A\\) and \\(\\forall y\\) conditions"
+- Wrong: "A ∪ B ∩ C with ∅ set"
+- Correct: "\\(A \\cup B \\cap C\\) with \\(\\emptyset\\) set"`;
+
     const response = await deepseek.chat.completions.create({
       model: model,
       messages: [
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: content }
       ],
       temperature,
