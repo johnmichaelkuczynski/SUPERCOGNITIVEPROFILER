@@ -1107,15 +1107,37 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       response = await processDeepSeek(prompt, { maxTokens: 8000 });
       console.log('🔍 DEEPSEEK RAW RESPONSE:', response);
       
-      // Clean markdown code blocks if present
+      // Clean and extract JSON from response
       let cleanResponse = response.trim();
+      
+      // Remove markdown code blocks
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       } else if (cleanResponse.startsWith('```')) {
         cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
       
-      const parsed = JSON.parse(cleanResponse);
+      // Extract JSON object from response
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      console.log('🧹 CLEANED DEEPSEEK JSON:', cleanResponse.substring(0, 200) + '...');
+      
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanResponse);
+      } catch (parseError) {
+        console.error('❌ DEEPSEEK JSON PARSE ERROR:', parseError);
+        console.error('❌ FAILED JSON STRING:', cleanResponse);
+        throw new Error(`Failed to parse DeepSeek JSON response: ${parseError.message}`);
+      }
+      
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('DeepSeek returned invalid JSON structure');
+      }
       
       // Convert 1-10 scores to 1-100 scale with proper population calibration
       if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
@@ -1140,13 +1162,24 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       response = claudeResponse.content[0].type === 'text' ? claudeResponse.content[0].text : '';
       console.log('🔍 CLAUDE RAW RESPONSE:', response);
       
-      // Clean markdown code blocks if present
+      // Clean and extract JSON from response
       let cleanResponse = response.trim();
+      
+      // Remove markdown code blocks
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       } else if (cleanResponse.startsWith('```')) {
         cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
+      
+      // Extract JSON object from response
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      console.log('🧹 CLEANED CLAUDE JSON:', cleanResponse.substring(0, 200) + '...');
       
       const parsed = JSON.parse(cleanResponse);
       
@@ -1181,13 +1214,24 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       response = perplexityData.choices[0].message.content;
       console.log('🔍 PERPLEXITY RAW RESPONSE:', response);
       
-      // Clean markdown code blocks if present
+      // Clean and extract JSON from response
       let cleanResponse = response.trim();
+      
+      // Remove markdown code blocks
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       } else if (cleanResponse.startsWith('```')) {
         cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
+      
+      // Extract JSON object from response
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      console.log('🧹 CLEANED PERPLEXITY JSON:', cleanResponse.substring(0, 200) + '...');
       
       const parsed = JSON.parse(cleanResponse);
       
@@ -1211,13 +1255,24 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       response = gptResponse.choices[0].message.content || "{}";
       console.log('🔍 GPT-4 RAW RESPONSE:', response);
       
-      // Clean markdown code blocks if present
+      // Clean and extract JSON from response
       let cleanResponse = response.trim();
+      
+      // Remove markdown code blocks
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       } else if (cleanResponse.startsWith('```')) {
         cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
+      
+      // Extract JSON object from response
+      const jsonStart = cleanResponse.indexOf('{');
+      const jsonEnd = cleanResponse.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      console.log('🧹 CLEANED GPT-4 JSON:', cleanResponse.substring(0, 200) + '...');
       
       const parsed = JSON.parse(cleanResponse);
       
