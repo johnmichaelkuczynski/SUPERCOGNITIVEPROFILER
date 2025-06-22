@@ -127,6 +127,12 @@ interface ProfileResults {
   careerFitEcosystem?: string;
   mostRevealingQuotation?: string;
 
+  // Metacognitive scoring fields
+  intellectualMaturity?: number;
+  selfAwarenessLevel?: number;
+  epistemicHumility?: number;
+  reflectiveDepth?: number;
+
   // General fields
   detailedAnalysis?: string;
   supportingEvidence?: {

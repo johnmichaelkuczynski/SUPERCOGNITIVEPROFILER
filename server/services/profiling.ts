@@ -460,36 +460,46 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
   "mostRevealingQuotation": "The single most diagnostically revealing quotation from the text with explanation of why this quotation reveals the core of their cognitive strengths/weaknesses."
 }
 
-CRITICAL SCORING INSTRUCTIONS:
-You must analyze THIS SPECIFIC TEXT and assign scores based on actual evidence:
+CRITICAL SCORING INSTRUCTIONS - PARADIGM-BASED EVALUATION:
+You must analyze THIS SPECIFIC TEXT using paradigm anchors for accurate scoring:
 
-intellectualMaturity (1-10):
-- 1-3: Simple reasoning, basic concepts, no complexity
-- 4-6: Moderate reasoning, some conceptual depth
-- 7-8: Sophisticated reasoning, precise concepts, intellectual discipline
-- 9-10: Exceptional reasoning, masterful conceptual precision
+intellectualMaturity (1-10) - Capacity to generate new conceptual architectures:
+- [10] Paradigm: "Pre-Semantic Implicature" critique, "Counterfactuals as crypto-probability propositions"
+- [7] Paradigm: Davidson's "Mental Events" - sophisticated reasoning with theoretical precision
+- [4] Paradigm: "Transcendental Empiricism" abstract - moderate conceptual depth
+- [1] Paradigm: Generic AI summary - simple reasoning, basic concepts
+SCORING: Measure structural novelty and compression ratio. Prefer theoretical repositioning over technical polish.
 
-selfAwarenessLevel (1-10):
-- 1-3: No self-reflection, unaware of limitations
-- 4-6: Some self-awareness, occasional reflection
-- 7-8: Good metacognitive awareness, understands limitations
-- 9-10: Exceptional self-awareness, deep metacognitive insight
+selfAwarenessLevel (1-10) - Locates author within intellectual field:
+- [10] Paradigm: Dennett's Intentional Systems Theory - embedded models of reasoning strategy
+- [7] Paradigm: Hume on causation - good metacognitive positioning
+- [4] Paradigm: Weak meta qualifiers like "it is important to consider..."
+- [1] Paradigm: AI drivel "Clearly, as we all know, X is very important"
+SCORING: Search for embedded models of author's reasoning strategy. Penalize formal hedging unless it reflects actual positioning.
 
-epistemicHumility (1-10):
-- 1-3: Overconfident, no uncertainty acknowledged
-- 4-6: Some awareness of limits, occasional humility
-- 7-8: Intellectual humility, acknowledges uncertainty
-- 9-10: Profound humility, deeply aware of knowledge limits
+epistemicHumility (1-10) - Clarity about what would falsify theory:
+- [10] Paradigm: System L design "works unless X, at which point it breaks here"
+- [7] Paradigm: Scientific paper with explicit limitations and caveats
+- [4] Paradigm: Philosophy hedging with "possibly/maybe/perhaps" every paragraph
+- [1] Paradigm: Maximalist, theory-first AI output
+SCORING: Prefer explicit revision architecture over rhetorical humility.
 
-reflectiveDepth (1-10):
-- 1-3: Surface-level thinking, no introspection
-- 4-6: Some reflection, basic self-examination
-- 7-8: Deep reflection, serious self-analysis
-- 9-10: Profound introspection, philosophical depth
+reflectiveDepth (1-10) - Models not just objects, but the models themselves:
+- [10] Paradigm: Gödel, Escher, Bach (Hofstadter), "The Will to Project"
+- [7] Paradigm: Kant's "Transcendental Deduction" - recursive insight
+- [4] Paradigm: First-order metacognition "I think about things carefully"
+- [1] Paradigm: LLM preamble "This essay will explore..."
+SCORING: Prefer modeling of system behavior under transformation and error.
 
-ANALYZE THE ACTUAL TEXT CONTENT. Different texts MUST receive different scores.
+PARADIGM EXAMPLES FOR REFERENCE:
+- [10] Sample: "In order to understand a sentence, one must know the relevant semantic rules. Those rules are not learned in a vacuum; they are given to one through one's senses..."
+- [10] Sample: "Ordinarily counterfactuals are seen as making statements about states of affairs, albeit ones that hold in merely possible or alternative worlds..."
+- [7] Sample: "Given that an analysis of disposition ascription cannot be made in terms of a simple subjunctive conditional..."
+- [6] Sample: "In this paper I articulate the question of whether machines can have emotions..."
 
-CRITICAL: Return the JSON structure with NUMERIC scores (not strings) based on this specific text.`;
+CRITICAL: Compare input text against these paradigm anchors. Text demonstrating conceptual architecture generation, epistemic positioning, explicit revision mechanisms, and recursive modeling should score 8-10 across categories.
+
+CRITICAL: Return the JSON structure with NUMERIC scores (not strings) based on paradigm anchor comparison.`;
 
   // DEBUG LOGGING - Step 1: Log the raw input text
   console.log('🔍 METACOGNITIVE PROFILING DEBUG - INPUT TEXT:');

@@ -1,0 +1,94 @@
+METACOGNITIVE SCORING FRAMEWORK — V2 (WITH PARADIGM ANCHORS)
+==============================================================
+
+OVERVIEW:
+This document replaces prior scoring logic with a new paradigm-based evaluation system that grounds intelligence markers in actual sample texts. All categories are now benchmarked against real-world exemplars.
+
+-----------------------------------------
+I. INTELLECTUAL MATURITY
+-----------------------------------------
+Definition:
+- Capacity to generate new conceptual architectures
+- Reframes problems at a systemic level
+- Resists inherited categorizations
+
+Paradigm Anchors:
+- [10] “The Will to Project” (Uploaded)
+- [10] “Pre-Semantic Implicature” critique of Grice
+- [10] “Counterfactuals as crypto-probability propositions”
+- [7] Davidson’s “Mental Events”
+- [4] “Transcendental Empiricism” abstract
+- [1] Generic AI summary of Aristotle
+
+Scoring Logic:
+- Score input by measuring structural novelty and compression ratio relative to 10/7/4/1 anchors.
+- Prefer structural recursion and theoretical repositioning over technical polish.
+
+-----------------------------------------
+II. SELF-AWARENESS LEVEL
+-----------------------------------------
+Definition:
+- Locates the author within the intellectual field
+- Models cognitive positioning
+- Demonstrates epistemic viewpoint self-tracking
+
+Paradigm Anchors:
+- [10] Dennett’s Intentional Systems Theory
+- [7] Hume on causation
+- [4] Weak meta qualifiers like “it is important to consider...”
+- [1] AI drivel: “Clearly, as we all know, X is very important.”
+
+Scoring Logic:
+- Search for embedded models of the author's reasoning strategy.
+- Penalize formal hedging unless it reflects actual positioning.
+
+-----------------------------------------
+III. EPISTEMIC HUMILITY
+-----------------------------------------
+Definition:
+- Clarity about what would falsify or constrain one’s own theory
+- Use of defeasible logic without semantic collapse
+
+Paradigm Anchors:
+- [10] System L design: “works unless X, at which point it breaks here”
+- [7] Scientific paper with limitations and caveats
+- [4] Philosophy that hedges with “possibly/maybe/perhaps” in every paragraph
+- [1] Maximalist, theory-first AI output
+
+Scoring Logic:
+- Prefer explicit revision architecture over rhetorical humility.
+
+-----------------------------------------
+IV. REFLECTIVE DEPTH
+-----------------------------------------
+Definition:
+- Models not just objects, but the models themselves
+- Demonstrates recursive insight and analogical reach
+
+Paradigm Anchors:
+- [10] Gödel, Escher, Bach (Hofstadter)
+- [10] "The Will to Project"
+- [7] Kant’s “Transcendental Deduction”
+- [4] First-order metacognition (“I think about things carefully”)
+- [1] LLM preamble: “This essay will explore…”
+
+Scoring Logic:
+- Prefer modeling of system behavior under transformation and error.
+
+------------------------------------------------------------
+IMPLEMENTATION GUIDANCE
+------------------------------------------------------------
+1. Embed all text candidates using your embedding model of choice.
+2. Embed paradigm anchors.
+3. For each category, compare text vector against paradigm set.
+4. Score by closest cosine match, weighted toward upper anchors unless strong match with lower.
+5. Optionally, train a model to fine-tune scoring based on feature extraction (compression, asymmetry, epistemic modulation).
+
+Include the following as fixed anchors in your app:
+- “The Will to Project” (full)
+- Grice/Pre-semantic implicature passage
+- Counterfactuals = crypto-probability passage
+- “Transcendental Empiricism” abstract
+- AI summary of Aristotle’s Poetics
+
+Ensure dynamic updating of anchors is possible if new gold-standard writing samples are added.
