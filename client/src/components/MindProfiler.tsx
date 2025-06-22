@@ -612,6 +612,51 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             </div>
           </div>
 
+          {/* Model Selection */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">AI Model Selection</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Button
+                variant={selectedModel === 'deepseek' ? 'default' : 'outline'}
+                onClick={() => setSelectedModel('deepseek')}
+                className="flex items-center gap-2 px-4 py-3"
+              >
+                <Cpu className="h-4 w-4" />
+                DeepSeek
+              </Button>
+              <Button
+                variant={selectedModel === 'claude' ? 'default' : 'outline'}
+                onClick={() => setSelectedModel('claude')}
+                className="flex items-center gap-2 px-4 py-3"
+              >
+                <Brain className="h-4 w-4" />
+                Claude
+              </Button>
+              <Button
+                variant={selectedModel === 'gpt4' ? 'default' : 'outline'}
+                onClick={() => setSelectedModel('gpt4')}
+                className="flex items-center gap-2 px-4 py-3"
+              >
+                <Sparkles className="h-4 w-4" />
+                GPT-4
+              </Button>
+              <Button
+                variant={selectedModel === 'perplexity' ? 'default' : 'outline'}
+                onClick={() => setSelectedModel('perplexity')}
+                className="flex items-center gap-2 px-4 py-3"
+              >
+                <Target className="h-4 w-4" />
+                Perplexity
+              </Button>
+            </div>
+            <p className="text-sm text-gray-500">
+              {selectedModel === 'deepseek' && 'DeepSeek - Fast and efficient analysis with strong reasoning capabilities (Default)'}
+              {selectedModel === 'claude' && 'Claude - Advanced reasoning with nuanced psychological insights'}
+              {selectedModel === 'gpt4' && 'GPT-4 - Comprehensive analysis with creative interpretation'}
+              {selectedModel === 'perplexity' && 'Perplexity - Research-enhanced analysis with real-time insights'}
+            </p>
+          </div>
+
           {/* Input Section for Instant Analysis */}
           {analysisMode === 'instant' && (
             <div className="space-y-4">

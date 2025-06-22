@@ -3119,7 +3119,8 @@ ${content}`;
       console.log('Request body keys:', Object.keys(req.body));
       console.log('Request timestamp:', new Date().toISOString());
       
-      const { inputText, userId } = req.body;
+      const { inputText, userId, model = 'deepseek' } = req.body;
+      console.log('🔍 SELECTED MODEL:', model);
       
       // DEBUG LOGGING - Check for request caching/reuse
       const requestHash = inputText ? inputText.substring(0, 100).replace(/\s/g, '').toLowerCase() : 'no-text';
@@ -3138,7 +3139,7 @@ ${content}`;
       console.log('🔍 CALLING generateMetacognitiveProfile with text length:', inputText.length);
       console.log('🔍 INPUT TEXT PREVIEW:', inputText.substring(0, 200));
       
-      const metacognitiveProfile = await generateMetacognitiveProfile(inputText, false);
+      const metacognitiveProfile = await generateMetacognitiveProfile(inputText, false, model);
       
       // DEBUG LOGGING - Check final output before sending
       console.log('🔍 FINAL RESPONSE SCORES:');

@@ -912,7 +912,7 @@ function validateTextQuality(text: string): { isValid: boolean; reason?: string;
 }
 
 // Generate metacognitive profile from text analysis
-export async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false): Promise<MetacognitiveProfile> {
+export async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false, model: string = 'deepseek'): Promise<MetacognitiveProfile> {
   const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
   
   // DEBUG LOGGING - Step 0: Validate input quality
@@ -1072,16 +1072,60 @@ RETURN EXACTLY THIS JSON STRUCTURE:
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-      temperature: 0.7,
-      max_tokens: 8000,
-    });
-
-    return JSON.parse(response.choices[0].message.content || "{}");
+    let response;
+    
+    if (model === 'deepseek') {
+      // Use DeepSeek (default)
+      const { generateDeepSeekResponse } = await import('./deepseek');
+      response = await generateDeepSeekResponse(prompt, 8000);
+      console.log('🔍 DEEPSEEK RAW RESPONSE:', response);
+      return JSON.parse(response);
+    } else if (model === 'claude') {
+      // Use Claude
+      const { generateClaudeResponse } = await import('./claude');
+      response = await generateClaudeResponse(prompt, 8000);
+      console.log('🔍 CLAUDE RAW RESPONSE:', response);
+      return JSON.parse(response);
+    } else if (model === 'perplexity') {
+      // Use Perplexity
+      const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 8000,
+          temperature: 0.7,
+        }),
+      });
+      
+      if (!perplexityResponse.ok) {
+        throw new Error(`Perplexity API error: ${perplexityResponse.statusText}`);
+      }
+      
+      const perplexityData = await perplexityResponse.json();
+      response = perplexityData.choices[0].message.content;
+      console.log('🔍 PERPLEXITY RAW RESPONSE:', response);
+      return JSON.parse(response);
+    } else {
+      // Use GPT-4 (fallback)
+      const gptResponse = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+        max_tokens: 8000,
+      });
+      
+      response = gptResponse.choices[0].message.content || "{}";
+      console.log('🔍 GPT-4 RAW RESPONSE:', response);
+      return JSON.parse(response);
+    }
   } catch (error) {
+    console.error('🔍 MODEL ERROR:', error);
     throw new Error("Failed to generate metacognitive profile: " + (error as Error).message);
   }
 }
