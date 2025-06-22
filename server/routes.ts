@@ -1694,9 +1694,10 @@ Return only the improved text content that is significantly expanded from the or
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
       
-      // CRITICAL FIX: Ensure dollar signs are properly displayed as currency symbols
-      result = result.replace(/\\\$/g, '$');
-      console.log('💰 Fixed currency symbols in chunk rewrite output');
+      // APPLY MATH DELIMITER PROCESSING: Use the rebuilt math notation system
+      const { sanitizeMathAndCurrency } = await import('./services/mathDelimiterFixer.js');
+      result = sanitizeMathAndCurrency(result);
+      console.log('🧮 Applied intelligent math delimiter processing to chunk output');
       
       // Save chunk rewrite to database
       try {

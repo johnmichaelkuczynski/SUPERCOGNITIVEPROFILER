@@ -1450,9 +1450,24 @@ export default function ChunkedRewriter({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {chunk.preview}
-                  </p>
+                  {/* Show rewritten content if available, otherwise show preview */}
+                  <div className="text-sm text-muted-foreground max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border">
+                    {chunk.rewritten ? (
+                      <div className="space-y-2">
+                        <div className="font-medium text-green-700 text-xs mb-1">REWRITTEN CONTENT:</div>
+                        <div className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
+                          {chunk.rewritten}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="font-medium text-gray-600 text-xs mb-1">ORIGINAL CONTENT:</div>
+                        <div className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
+                          {chunk.content}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
                   {/* Word Count Display for Each Chunk */}
                   <div className="mt-2 space-y-1">
