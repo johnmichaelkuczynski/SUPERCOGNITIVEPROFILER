@@ -1106,7 +1106,16 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       const { processDeepSeek } = await import('./deepseek');
       response = await processDeepSeek(prompt, { maxTokens: 8000 });
       console.log('🔍 DEEPSEEK RAW RESPONSE:', response);
-      const parsed = JSON.parse(response);
+      
+      // Clean markdown code blocks if present
+      let cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
       
       // Convert 1-10 scores to 1-100 scale with proper population calibration
       if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
@@ -1130,7 +1139,16 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       
       response = claudeResponse.content[0].type === 'text' ? claudeResponse.content[0].text : '';
       console.log('🔍 CLAUDE RAW RESPONSE:', response);
-      const parsed = JSON.parse(response);
+      
+      // Clean markdown code blocks if present
+      let cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
       
       // Convert 1-10 scores to 1-100 scale
       if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
@@ -1162,7 +1180,16 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       const perplexityData = await perplexityResponse.json();
       response = perplexityData.choices[0].message.content;
       console.log('🔍 PERPLEXITY RAW RESPONSE:', response);
-      const parsed = JSON.parse(response);
+      
+      // Clean markdown code blocks if present
+      let cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
       
       // Convert 1-10 scores to 1-100 scale
       if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
@@ -1183,7 +1210,16 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       
       response = gptResponse.choices[0].message.content || "{}";
       console.log('🔍 GPT-4 RAW RESPONSE:', response);
-      const parsed = JSON.parse(response);
+      
+      // Clean markdown code blocks if present
+      let cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const parsed = JSON.parse(cleanResponse);
       
       // Convert 1-10 scores to 1-100 scale
       if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
