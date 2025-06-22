@@ -28,6 +28,12 @@ import PDFDocument from 'pdfkit';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 import { parseGraphRequirements, parseMathExpression, generateEssayWithGraphs, generateSVG } from "./services/graphGenerator";
 
+// Word counting utility
+function countWords(text: string): number {
+  if (!text || typeof text !== 'string') return 0;
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+}
+
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
   if (!text || typeof text !== 'string') {
@@ -1568,6 +1574,53 @@ Return only the improved text content without any placeholder text or truncation
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
       
+      // MANDATORY: Enforce minimum 1.1x length requirement
+      const originalWordCount = countWords(content);
+      const rewrittenWordCount = countWords(result);
+      const minimumWordCount = Math.ceil(originalWordCount * 1.1);
+      
+      if (rewrittenWordCount < minimumWordCount) {
+        // Expand the content to meet minimum requirements
+        const expansionPrompt = `The following rewritten text needs to be expanded to meet the minimum length requirement of ${minimumWordCount} words (currently ${rewrittenWordCount} words). Expand it by adding more detail, examples, and elaboration while maintaining the same quality and style. Do not add headers, titles, or structural elements - just expand the existing content naturally.
+
+Original word count: ${originalWordCount}
+Current rewritten word count: ${rewrittenWordCount}
+Required minimum word count: ${minimumWordCount}
+
+Text to expand:
+${result}
+
+Return only the expanded text with no additional formatting or commentary.`;
+
+        if (model === 'claude') {
+          result = await processClaude(expansionPrompt, {
+            temperature: 0.7,
+            maxTokens: 6000
+          });
+        } else if (model === 'gpt4') {
+          const { default: OpenAI } = await import('openai');
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+          
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: expansionPrompt }],
+            temperature: 0.7,
+            max_tokens: 6000
+          });
+          
+          result = response.choices[0].message.content || '';
+        } else if (model === 'deepseek') {
+          result = await callDeepSeekWithRateLimit(expansionPrompt, {
+            temperature: 0.7,
+            maxTokens: 6000
+          });
+        }
+        
+        // Clean the expanded result
+        result = ensurePerfectFormatting(result);
+        result = cleanMarkdownFormatting(result);
+      }
+      
       // Save chunk rewrite to database
       try {
         await storage.createRewrite({
@@ -1582,7 +1635,10 @@ Return only the improved text content without any placeholder text or truncation
             totalChunks,
             chatContext: !!chatContext,
             originalLength: content.length,
-            rewrittenLength: result.length
+            rewrittenLength: result.length,
+            originalWordCount: countWords(content),
+            rewrittenWordCount: countWords(result),
+            expansionRatio: (countWords(result) / countWords(content)).toFixed(2)
           }),
           sourceType: 'chunk',
           sourceId: `chunk_${chunkIndex}_of_${totalChunks}`

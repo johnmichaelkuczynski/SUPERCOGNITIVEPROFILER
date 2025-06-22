@@ -43,6 +43,12 @@ export function formatDate(date: Date): string {
   }).format(date);
 }
 
+// Word counting utility for frontend
+export function countWords(text: string): number {
+  if (!text || typeof text !== 'string') return 0;
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+}
+
 export function formatDateTime(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -51,10 +57,6 @@ export function formatDateTime(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
-}
-
-export function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 export function truncateText(text: string, maxLength: number): string {
