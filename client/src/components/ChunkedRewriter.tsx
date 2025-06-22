@@ -78,6 +78,7 @@ export default function ChunkedRewriter({
   const [selectedText, setSelectedText] = useState('');
   const [selectionInstructions, setSelectionInstructions] = useState('');
   const [showSelectionRewrite, setShowSelectionRewrite] = useState(false);
+  const [expandedPreview, setExpandedPreview] = useState<string | null>(null);
   
   const { toast } = useToast();
 
@@ -2595,11 +2596,23 @@ export default function ChunkedRewriter({
               
               {chunk.completed && chunk.content && (
                 <div className="mt-3 p-4 bg-white rounded-lg border border-green-200 shadow-sm">
-                  <div className="text-green-700 font-medium mb-2">Rewritten Content Preview:</div>
-                  <div className="text-sm text-gray-700 leading-relaxed">
-                    {chunk.content.length > 300 
-                      ? chunk.content.substring(0, 300) + '...' 
-                      : chunk.content}
+                  <div className="text-green-700 font-medium mb-2 flex items-center justify-between">
+                    <span>Rewritten Content Preview:</span>
+                    {chunk.content.length > 300 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setExpandedPreview(expandedPreview === chunk.id ? null : chunk.id)}
+                        className="text-xs h-6 px-2"
+                      >
+                        {expandedPreview === chunk.id ? 'Show Less' : 'Show All'}
+                      </Button>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {expandedPreview === chunk.id || chunk.content.length <= 300
+                      ? chunk.content
+                      : chunk.content.substring(0, 300) + '...'}
                   </div>
                   <div className="mt-2 text-xs text-green-600">
                     Length: {chunk.content.length.toLocaleString()} characters
