@@ -137,6 +137,8 @@ Changelog:
 - June 22, 2025. MAJOR FEATURE: Implemented precise text selection and custom rewrite functionality - users can now select any portion of rewritten content and provide specific instructions to rewrite only that selected text using any AI model
 - June 22, 2025. Added "Select Text" button to rewrite results popup with integrated dialog interface for targeted text improvement and mathematical notation correction
 - June 22, 2025. Created comprehensive /api/rewrite-selection backend endpoint supporting DeepSeek, Claude, GPT-4, and Perplexity models for surgical text modifications without affecting surrounding content
+- June 22, 2025. CRITICAL FIX: Enforced minimum 1.2X length expansion requirement across all system prompts in rewrite-chunk and rewrite-selection endpoints to prevent content shrinkage and ensure proper length multiplier compliance
+- June 22, 2025. Updated system prompts to mandate length expansion with specific instructions for following multiplier requirements (like "3X length") and adding substantial detail, examples, and elaboration
 ```
 
 ## User Preferences
