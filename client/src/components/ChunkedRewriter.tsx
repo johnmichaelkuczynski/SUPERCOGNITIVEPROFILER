@@ -1806,17 +1806,23 @@ export default function ChunkedRewriter({
                   return;
                 }
 
-                // Process content for perfect LaTeX rendering
+                // Process content for perfect PDF rendering with proper currency handling
                 let processedContent = finalRewrittenContent
-                  // Fix escaped dollar signs for currency display in PDF
-                  .replace(/\\$/g, '$')
+                  // FIRST: Fix all escaped dollar signs to regular currency symbols
+                  .replace(/\\\$/g, '$')
+                  // SECOND: Apply the rebuilt math delimiter system for proper currency/math distinction
+                  .replace(/\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\b/g, 'CURRENCY_TEMP_$1')  // Protect currency like $300, $1,000.50
+                  .replace(/\$(\d+\.?\d*)\s*(?:USD|dollars?|bucks?)\b/gi, 'CURRENCY_TEMP_$1 $2') // Protect $25 USD
+                  .replace(/(?:USD|dollars?)\s*\$(\d+\.?\d*)\b/gi, '$1 CURRENCY_TEMP_$2') // Protect USD $25
+                  // Convert only legitimate math expressions to LaTeX
+                  .replace(/\$([^$]*[\\^_{}α-ωΑ-Ω∑∏∫∂∇][^$]*)\$/g, '\\($1\\)') // Math with Greek letters, operators, or LaTeX commands
+                  .replace(/\$\$([^$]+)\$\$/g, '\\[$1\\]') // Display math
+                  // Restore currency symbols
+                  .replace(/CURRENCY_TEMP_/g, '$')
                   // Convert markdown formatting to HTML
                   .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                   .replace(/\*([^$*]*?)\*/g, '<em>$1</em>')
                   .replace(/^#{1,6}\s+(.*)$/gm, '<h2>$1</h2>')
-                  // Ensure proper LaTeX delimiters for KaTeX
-                  .replace(/\$\$([^$]+)\$\$/g, '\\[$1\\]') // Display math
-                  .replace(/(?<!\$)\$([^$\n]*[a-zA-Z\\^_{}][^$\n]*)\$(?!\$)/g, '\\($1\\)') // Inline math (only if contains letters, backslashes, or math symbols)
                   // Format paragraphs
                   .replace(/\n\n+/g, '</p><p>')
                   .replace(/\n/g, '<br>');

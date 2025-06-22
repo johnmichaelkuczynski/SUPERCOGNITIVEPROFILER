@@ -1644,7 +1644,7 @@ Rewrite the selected text with significant expansion:`;
 2. MANDATORY EXPANSION: Count the words in the original and ensure your output has significantly more words. Add detail, examples, explanations, and elaboration.
 3. Improve clarity, coherence, and academic quality while expanding content substantially
 4. Preserve LaTeX math formatting: \\(...\\) for inline math, $$...$$ for display math
-5. CRITICAL CURRENCY FORMATTING: Preserve all currency symbols as normal text (e.g., $25, $200, $5) - do NOT escape dollar signs with backslashes
+5. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $200, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
 6. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
 7. Do NOT add headers, titles, introductions, conclusions, or any structural elements
 8. Do NOT add editorial comments, explanations, or metadata
@@ -1688,16 +1688,20 @@ Return only the improved text content that is significantly expanded from the or
         });
       }
       
-      // CRITICAL: Fix formatting issues regardless of AI output
-      result = ensurePerfectFormatting(result);
-      
-      // Remove markdown formatting for clean output
-      result = cleanMarkdownFormatting(result);
-      
-      // APPLY MATH DELIMITER PROCESSING: Use the rebuilt math notation system
+      // FIRST: Apply math delimiter processing BEFORE any formatting that might escape dollar signs
       const { sanitizeMathAndCurrency } = await import('./services/mathDelimiterFixer.js');
       result = sanitizeMathAndCurrency(result);
-      console.log('🧮 Applied intelligent math delimiter processing to chunk output');
+      console.log('🧮 Applied intelligent math delimiter processing FIRST');
+      
+      // SECOND: Fix formatting issues but preserve math delimiters
+      result = ensurePerfectFormatting(result);
+      
+      // THIRD: Remove markdown formatting for clean output (but preserve math)
+      result = cleanMarkdownFormatting(result);
+      
+      // FINAL: Ensure no escaped dollar signs remain in currency
+      result = result.replace(/\\\$(\d)/g, '$$$1');
+      console.log('🔧 Final currency symbol cleanup completed');
       
       // Save chunk rewrite to database
       try {
