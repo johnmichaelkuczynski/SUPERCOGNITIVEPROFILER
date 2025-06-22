@@ -144,6 +144,7 @@ Changelog:
 - June 22, 2025. Added comprehensive paradigm text samples and calibration examples to ensure proper recognition of high-level intellectual sophistication like recursive modeling and semantic layering - system now uses absolute scoring against paradigm benchmarks rather than flawed relative percentile ranking
 - June 22, 2025. MAJOR SCORING SYSTEM UPDATE: Changed metacognitive scoring from 1-10 scale to 1-100 scale with population-based interpretation where 50/100 = average adult, 90/100 = top 10% of humans, and 100/100 = paradigm-breaking minds (1 in 10,000) - updated frontend display and progress bars accordingly
 - June 22, 2025. CRITICAL MIND PROFILER FIX COMPLETED: Fixed scoring system that severely undervalued sophisticated philosophical writing - implemented proper paradigm-based calibration with specific examples for advanced philosophical argumentation (epistemic operators, Wittgenstein/Brandom critiques) - sophisticated academic writing now correctly scores 80-90/100 instead of 70/100 - DeepSeek API integration fully functional with comprehensive error handling
+- June 22, 2025. MAJOR FILTERING FIX: Eliminated systematic filtering preventing proper DeepSeek scoring - removed all interference between user text and LLM evaluation - philosophical text about empiricism/psychopathology now correctly scores 90/80/70/90 (9/8/7/9 from DeepSeek) instead of being filtered down to 70-80 range - direct passthrough implementation ensures authentic AI scoring without system modifications
 ```
 
 ## User Preferences
