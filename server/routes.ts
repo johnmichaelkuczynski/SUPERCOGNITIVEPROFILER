@@ -34,14 +34,43 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(word => word.length > 0).length;
 }
 
+// Function to clean meta-text automatically from all content
+function cleanMetaText(text: string): string {
+  if (!text || typeof text !== 'string') return text;
+  
+  return text
+    // Remove continuation notices
+    .replace(/\[continued in next part due to length[^\]]*\]/gi, '')
+    .replace(/\[continued in next page[^\]]*\]/gi, '')
+    .replace(/\[continued on next page[^\]]*\]/gi, '')
+    .replace(/\[continues in next section[^\]]*\]/gi, '')
+    .replace(/\[content continues[^\]]*\]/gi, '')
+    .replace(/\[to be continued[^\]]*\]/gi, '')
+    // Remove truncation notices
+    .replace(/\[text truncated[^\]]*\]/gi, '')
+    .replace(/\[content truncated[^\]]*\]/gi, '')
+    .replace(/\[document truncated[^\]]*\]/gi, '')
+    // Remove generic meta-text in brackets
+    .replace(/\[Note:[^\]]*\]/gi, '')
+    .replace(/\[Editor's note:[^\]]*\]/gi, '')
+    .replace(/\[Author's note:[^\]]*\]/gi, '')
+    // Remove ellipsis patterns that indicate continuation
+    .replace(/\.\.\.\s*\[continued[^\]]*\]/gi, '')
+    .replace(/\.\.\.\s*$/m, '')
+    // Clean up extra whitespace left by removals
+    .replace(/\n\s*\n\s*\n/g, '\n\n')
+    .replace(/^\s+/gm, '')
+    .trim();
+}
+
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
   if (!text || typeof text !== 'string') {
     return '';
   }
   
-  // Step 1: Clean up any existing formatting issues
-  let cleaned = text.trim();
+  // Step 1: Clean meta-text first
+  let cleaned = cleanMetaText(text);
   
   // Step 2: Fix sentence spacing - ensure single space after periods, exclamation marks, question marks
   cleaned = cleaned.replace(/([.!?])\s+/g, '$1 ');
@@ -1008,7 +1037,16 @@ ${instructions}
 
 IMPORTANT: Format the output as plain text only. DO NOT use markdown headings, bold formatting, italics, bullet points or any special formatting. Write in plain text with regular paragraphs.
 
-CRITICAL: NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators. NEVER add commentary about mathematical notation or formatting. Provide the COMPLETE rewritten content without any placeholder text or meta-commentary.
+CRITICAL RULES - ABSOLUTELY NO EXCEPTIONS:
+- NEVER add meta-text like "[continued in next part due to length...]" or "[text truncated]" or "[Note:]" or ANY bracketed editorial comments
+- NEVER add placeholder text like "Rest of text continues..." or "Content continues..." or ANY continuation indicators
+- NEVER add commentary about mathematical notation, formatting, or document structure
+- NEVER add "[Author's note]" or "[Editor's note]" or "[continued...]" or ANY bracketed meta-text
+- NEVER indicate that content is being truncated, continued, split, or incomplete
+- NEVER write about the content - only write the actual content itself
+- NEVER add explanatory notes about what you're doing or what comes next
+- Provide the COMPLETE content without ANY meta-commentary, annotations, or editorial notes
+- Write ONLY the actual requested content and absolutely nothing else
 
 ${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
 
@@ -1018,7 +1056,7 @@ ${processableContent}
 INSTRUCTIONS AGAIN:
 ${instructions}
 
-YOUR COMPLETE REWRITTEN DOCUMENT (no placeholder text):`;
+YOUR COMPLETE REWRITTEN DOCUMENT (no meta-text, no placeholders, no editorial comments):r text):`;
 
         // Process with selected model
         let response;
@@ -1573,6 +1611,9 @@ Return only the improved text content without any placeholder text or truncation
       
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
+      
+      // CRITICAL: Remove any meta-text that slipped through
+      result = cleanMetaText(result);
       
       // MANDATORY: Enforce minimum 1.1x length requirement
       const originalWordCount = countWords(content);
@@ -2636,6 +2677,9 @@ Your job is to solve problems correctly and write clear, student-friendly explan
 
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
+      
+      // CRITICAL: Remove any meta-text that slipped through
+      result = cleanMetaText(result);
 
       // Check if the assignment request mentions graphs, charts, or visualizations
       const needsGraphs = /graph|chart|plot|diagram|visualiz|visual|data.*show|trend|statistic|econom.*paper|inflation.*effect|supply.*demand/i.test(instructions + (userPrompt || ''));
