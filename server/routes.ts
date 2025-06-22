@@ -28,58 +28,14 @@ import PDFDocument from 'pdfkit';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 import { parseGraphRequirements, parseMathExpression, generateEssayWithGraphs, generateSVG } from "./services/graphGenerator";
 
-// Word counting utility
-function countWords(text: string): number {
-  if (!text || typeof text !== 'string') return 0;
-  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
-}
-
-// Function to clean meta-text automatically from all content
-function cleanMetaText(text: string): string {
-  if (!text || typeof text !== 'string') return text;
-  
-  return text
-    // Remove continuation notices
-    .replace(/\[continued in next part due to length[^\]]*\]/gi, '')
-    .replace(/\[continued in next page[^\]]*\]/gi, '')
-    .replace(/\[continued on next page[^\]]*\]/gi, '')
-    .replace(/\[continues in next section[^\]]*\]/gi, '')
-    .replace(/\[content continues[^\]]*\]/gi, '')
-    .replace(/\[to be continued[^\]]*\]/gi, '')
-    // Remove the specific problematic pattern
-    .replace(/\[Remaining text continues as is[^\]]*\]/gi, '')
-    .replace(/\[remaining text continues as is[^\]]*\]/gi, '')
-    .replace(/\[text continues as is[^\]]*\]/gi, '')
-    .replace(/\[content continues as is[^\]]*\]/gi, '')
-    // Remove mathematical notation conversion meta-text
-    .replace(/\[.*?since it contains no mathematical notation to convert[^\]]*\]/gi, '')
-    .replace(/\[.*?no mathematical notation[^\]]*\]/gi, '')
-    .replace(/\[.*?mathematical notation conversion[^\]]*\]/gi, '')
-    // Remove truncation notices
-    .replace(/\[text truncated[^\]]*\]/gi, '')
-    .replace(/\[content truncated[^\]]*\]/gi, '')
-    .replace(/\[document truncated[^\]]*\]/gi, '')
-    // Remove generic meta-text in brackets
-    .replace(/\[Note:[^\]]*\]/gi, '')
-    .replace(/\[Editor's note:[^\]]*\]/gi, '')
-    .replace(/\[Author's note:[^\]]*\]/gi, '')
-    // Remove ellipsis patterns that indicate continuation
-    .replace(/\.\.\.\s*\[continued[^\]]*\]/gi, '')
-    .replace(/\.\.\.\s*$/m, '')
-    // Clean up extra whitespace left by removals
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
-    .replace(/^\s+/gm, '')
-    .trim();
-}
-
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
   if (!text || typeof text !== 'string') {
     return '';
   }
   
-  // Step 1: Clean meta-text first
-  let cleaned = cleanMetaText(text);
+  // Step 1: Clean up any existing formatting issues
+  let cleaned = text.trim();
   
   // Step 2: Fix sentence spacing - ensure single space after periods, exclamation marks, question marks
   cleaned = cleaned.replace(/([.!?])\s+/g, '$1 ');
@@ -1046,16 +1002,7 @@ ${instructions}
 
 IMPORTANT: Format the output as plain text only. DO NOT use markdown headings, bold formatting, italics, bullet points or any special formatting. Write in plain text with regular paragraphs.
 
-CRITICAL RULES - ABSOLUTELY NO EXCEPTIONS:
-- NEVER add meta-text like "[continued in next part due to length...]" or "[text truncated]" or "[Note:]" or ANY bracketed editorial comments
-- NEVER add placeholder text like "Rest of text continues..." or "Content continues..." or ANY continuation indicators
-- NEVER add commentary about mathematical notation, formatting, or document structure
-- NEVER add "[Author's note]" or "[Editor's note]" or "[continued...]" or ANY bracketed meta-text
-- NEVER indicate that content is being truncated, continued, split, or incomplete
-- NEVER write about the content - only write the actual content itself
-- NEVER add explanatory notes about what you're doing or what comes next
-- Provide the COMPLETE content without ANY meta-commentary, annotations, or editorial notes
-- Write ONLY the actual requested content and absolutely nothing else
+CRITICAL: NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators. NEVER add commentary about mathematical notation or formatting. Provide the COMPLETE rewritten content without any placeholder text or meta-commentary.
 
 ${detectionProtection ? 'IMPORTANT: Make the writing style very human-like to avoid AI detection. Vary sentence structure, use idioms, conversational language, and avoid repetitive patterns.' : ''}
 
@@ -1065,7 +1012,7 @@ ${processableContent}
 INSTRUCTIONS AGAIN:
 ${instructions}
 
-YOUR COMPLETE REWRITTEN DOCUMENT (no meta-text, no placeholders, no editorial comments):r text):`;
+YOUR COMPLETE REWRITTEN DOCUMENT (no placeholder text):`;
 
         // Process with selected model
         let response;
@@ -1621,56 +1568,6 @@ Return only the improved text content without any placeholder text or truncation
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
       
-      // CRITICAL: Remove any meta-text that slipped through
-      result = cleanMetaText(result);
-      
-      // MANDATORY: Enforce minimum 1.1x length requirement
-      const originalWordCount = countWords(content);
-      const rewrittenWordCount = countWords(result);
-      const minimumWordCount = Math.ceil(originalWordCount * 1.1);
-      
-      if (rewrittenWordCount < minimumWordCount) {
-        // Expand the content to meet minimum requirements
-        const expansionPrompt = `The following rewritten text needs to be expanded to meet the minimum length requirement of ${minimumWordCount} words (currently ${rewrittenWordCount} words). Expand it by adding more detail, examples, and elaboration while maintaining the same quality and style. Do not add headers, titles, or structural elements - just expand the existing content naturally.
-
-Original word count: ${originalWordCount}
-Current rewritten word count: ${rewrittenWordCount}
-Required minimum word count: ${minimumWordCount}
-
-Text to expand:
-${result}
-
-Return only the expanded text with no additional formatting or commentary.`;
-
-        if (model === 'claude') {
-          result = await processClaude(expansionPrompt, {
-            temperature: 0.7,
-            maxTokens: 6000
-          });
-        } else if (model === 'gpt4') {
-          const { default: OpenAI } = await import('openai');
-          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-          
-          const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [{ role: "user", content: expansionPrompt }],
-            temperature: 0.7,
-            max_tokens: 6000
-          });
-          
-          result = response.choices[0].message.content || '';
-        } else if (model === 'deepseek') {
-          result = await callDeepSeekWithRateLimit(expansionPrompt, {
-            temperature: 0.7,
-            maxTokens: 6000
-          });
-        }
-        
-        // Clean the expanded result
-        result = ensurePerfectFormatting(result);
-        result = cleanMarkdownFormatting(result);
-      }
-      
       // Save chunk rewrite to database
       try {
         await storage.createRewrite({
@@ -1685,10 +1582,7 @@ Return only the expanded text with no additional formatting or commentary.`;
             totalChunks,
             chatContext: !!chatContext,
             originalLength: content.length,
-            rewrittenLength: result.length,
-            originalWordCount: countWords(content),
-            rewrittenWordCount: countWords(result),
-            expansionRatio: (countWords(result) / countWords(content)).toFixed(2)
+            rewrittenLength: result.length
           }),
           sourceType: 'chunk',
           sourceId: `chunk_${chunkIndex}_of_${totalChunks}`
@@ -2686,9 +2580,6 @@ Your job is to solve problems correctly and write clear, student-friendly explan
 
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
-      
-      // CRITICAL: Remove any meta-text that slipped through
-      result = cleanMetaText(result);
 
       // Check if the assignment request mentions graphs, charts, or visualizations
       const needsGraphs = /graph|chart|plot|diagram|visualiz|visual|data.*show|trend|statistic|econom.*paper|inflation.*effect|supply.*demand/i.test(instructions + (userPrompt || ''));
@@ -2783,12 +2674,8 @@ Your job is to solve problems correctly and write clear, student-friendly explan
         return res.status(400).json({ error: 'Content is required' });
       }
 
-      // Preserve original paragraph structure by storing it with word counts
-      const originalParagraphs = content.split('\n\n').filter(p => p.trim().length > 0);
-      const originalWordCounts = originalParagraphs.map(p => p.trim().split(/\s+/).length);
-      
       // Build the prompt for mathematical notation conversion
-      let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Return the text as a single continuous block with proper LaTeX formatting. DO NOT add paragraph breaks or line breaks - just return the converted text as one continuous stream.
+      let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Ensure all mathematical expressions, equations, formulas, and symbols are properly formatted with LaTeX markup for perfect rendering.
 
 CRITICAL REQUIREMENTS:
 - Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
@@ -2800,15 +2687,7 @@ CRITICAL REQUIREMENTS:
 - Ensure equations are properly balanced and syntactically correct
 - IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
 - Remove ALL markdown headers, bold text, italic text, and other formatting
-- Present the content as one continuous block of text with proper LaTeX math notation
-
-CRITICAL RULES TO PREVENT META-TEXT:
-- NEVER add meta-comments like "[Remaining text continues as is...]" or "[content continues...]" or "[text truncated]"
-- NEVER add editorial notes about mathematical notation conversion
-- NEVER add explanatory brackets about the conversion process
-- DO NOT add any commentary about what you're doing to the text
-- Simply return the converted text cleanly without any processing annotations
-- If text has no mathematical content, return it unchanged without mentioning this fact
+- Present the content as clean, readable plain text with proper LaTeX math notation
 
 Content to convert:
 ${content}`;
@@ -2839,7 +2718,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL: NEVER add meta-comments like '[Remaining text continues as is...]' or '[content continues...]' or '[text truncated]' or any editorial notes. Simply return the converted text cleanly without any processing annotations.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2853,7 +2732,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL: NEVER add meta-comments like "[Remaining text continues as is...]" or "[content continues...]" or "[text truncated]" or any editorial notes. Simply return the converted text cleanly without any processing annotations.' },
+            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
@@ -2884,8 +2763,8 @@ ${content}`;
         result = response.content[0].type === 'text' ? response.content[0].text : '';
       }
 
-      // Clean up any remaining markdown formatting while preserving paragraph structure
-      let cleanResult = result
+      // Clean up any remaining markdown formatting
+      const cleanResult = result
         .replace(/^#+ /gm, '') // Remove markdown headers
         .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
         .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting  
@@ -2894,53 +2773,6 @@ ${content}`;
         .replace(/^\* /gm, '') // Remove asterisk bullet points
         .replace(/^\d+\. /gm, '') // Remove numbered lists
         .trim();
-      
-      // CRITICAL: Remove any meta-text that slipped through
-      cleanResult = cleanMetaText(cleanResult);
-      
-      // CRITICAL: Reconstruct paragraph structure using original paragraphs
-      // Since AI models break up paragraphs, we need to reconstruct based on the original structure
-      cleanResult = cleanResult
-        .replace(/\r\n/g, '\n') // Normalize Windows line breaks
-        .replace(/\r/g, '\n') // Normalize Mac line breaks
-        .replace(/\n+/g, ' ') // Convert all line breaks to spaces for continuous text
-        .replace(/\s+/g, ' ') // Clean up extra spaces
-        .trim();
-      
-      // Now reconstruct paragraphs using original word count proportions
-      if (originalParagraphs.length > 1) {
-        const words = cleanResult.split(' ');
-        const totalOriginalWords = originalWordCounts.reduce((sum, count) => sum + count, 0);
-        
-        const reconstructedParagraphs = [];
-        let wordIndex = 0;
-        
-        for (let i = 0; i < originalWordCounts.length; i++) {
-          // Calculate proportional word count for this paragraph
-          const targetWordCount = Math.round((originalWordCounts[i] / totalOriginalWords) * words.length);
-          const endIndex = Math.min(wordIndex + Math.max(targetWordCount, 5), words.length); // Minimum 5 words per paragraph
-          
-          const paragraphWords = words.slice(wordIndex, endIndex);
-          
-          if (paragraphWords.length > 0) {
-            reconstructedParagraphs.push(paragraphWords.join(' '));
-          }
-          
-          wordIndex = endIndex;
-        }
-        
-        // Add any remaining words to the last paragraph
-        if (wordIndex < words.length) {
-          const remainingWords = words.slice(wordIndex);
-          if (reconstructedParagraphs.length > 0) {
-            reconstructedParagraphs[reconstructedParagraphs.length - 1] += ' ' + remainingWords.join(' ');
-          } else {
-            reconstructedParagraphs.push(remainingWords.join(' '));
-          }
-        }
-        
-        cleanResult = reconstructedParagraphs.join('\n\n');
-      }
 
       res.json({ mathContent: cleanResult });
     } catch (error) {
