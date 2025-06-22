@@ -46,6 +46,15 @@ function cleanMetaText(text: string): string {
     .replace(/\[continues in next section[^\]]*\]/gi, '')
     .replace(/\[content continues[^\]]*\]/gi, '')
     .replace(/\[to be continued[^\]]*\]/gi, '')
+    // Remove the specific problematic pattern
+    .replace(/\[Remaining text continues as is[^\]]*\]/gi, '')
+    .replace(/\[remaining text continues as is[^\]]*\]/gi, '')
+    .replace(/\[text continues as is[^\]]*\]/gi, '')
+    .replace(/\[content continues as is[^\]]*\]/gi, '')
+    // Remove mathematical notation conversion meta-text
+    .replace(/\[.*?since it contains no mathematical notation to convert[^\]]*\]/gi, '')
+    .replace(/\[.*?no mathematical notation[^\]]*\]/gi, '')
+    .replace(/\[.*?mathematical notation conversion[^\]]*\]/gi, '')
     // Remove truncation notices
     .replace(/\[text truncated[^\]]*\]/gi, '')
     .replace(/\[content truncated[^\]]*\]/gi, '')
@@ -2840,7 +2849,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.' },
+            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL: NEVER add meta-comments like "[Remaining text continues as is...]" or "[content continues...]" or "[text truncated]" or any editorial notes. Simply return the converted text cleanly without any processing annotations.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
