@@ -463,63 +463,73 @@ YOU MUST RETURN EXACTLY THIS JSON STRUCTURE - NO DEVIATIONS:
 CRITICAL SCORING INSTRUCTIONS - PARADIGM-BASED EVALUATION:
 You must analyze THIS SPECIFIC TEXT using paradigm anchors for accurate scoring:
 
-intellectualMaturity (1-10) - Capacity to generate new conceptual architectures:
-- [10] Paradigm: "Pre-Semantic Implicature" critique, "Counterfactuals as crypto-probability propositions"
-- [7] Paradigm: Davidson's "Mental Events" - sophisticated reasoning with theoretical precision
-- [4] Paradigm: "Transcendental Empiricism" abstract - moderate conceptual depth
-- [1] Paradigm: Generic AI summary - simple reasoning, basic concepts
-SCORING: Measure structural novelty and compression ratio. Prefer theoretical repositioning over technical polish.
+intellectualMaturity (1-100) - Capacity to generate new conceptual architectures:
+POPULATION-BASED SCORING (normed against general human population):
+- [100] Paradigm: "Pre-Semantic Implicature" critique, "Counterfactuals as crypto-probability" - paradigm-breaking minds (1 in 10,000)
+- [90] Top 10% of humans - sophisticated reasoning with theoretical precision
+- [70] Unusually thoughtful person, well-read graduate student level
+- [50] Average adult cognitive capacity
+- [30] Below average reasoning, basic concepts only
+SCORING: Most intelligent writing should fall between 60-80. Reserve 100s for paradigm-breaking minds only.
 
-selfAwarenessLevel (1-10) - Locates author within intellectual field:
-- [10] Paradigm: Dennett's Intentional Systems Theory - embedded models of reasoning strategy
-- [7] Paradigm: Hume on causation - good metacognitive positioning
-- [4] Paradigm: Weak meta qualifiers like "it is important to consider..."
-- [1] Paradigm: AI drivel "Clearly, as we all know, X is very important"
-SCORING: Search for embedded models of author's reasoning strategy. Penalize formal hedging unless it reflects actual positioning.
+selfAwarenessLevel (1-100) - Locates author within intellectual field:
+POPULATION-BASED SCORING (normed against general human population):
+- [100] Paradigm: Dennett's Intentional Systems Theory - embedded models of reasoning (1 in 10,000 minds)
+- [90] Top 10% of humans - sophisticated metacognitive positioning
+- [70] Unusually thoughtful person, good self-awareness
+- [50] Average adult self-awareness level
+- [30] Poor self-awareness, unaware of limitations
+SCORING: Most excellent academic work should fall between 60-80. Reserve 100s for paradigm cases only.
 
-epistemicHumility (1-10) - Clarity about what would falsify theory:
-- [10] Paradigm: System L design "works unless X, at which point it breaks here"
-- [7] Paradigm: Scientific paper with explicit limitations and caveats
-- [4] Paradigm: Philosophy hedging with "possibly/maybe/perhaps" every paragraph
-- [1] Paradigm: Maximalist, theory-first AI output
-SCORING: Prefer explicit revision architecture over rhetorical humility.
+epistemicHumility (1-100) - Clarity about what would falsify theory:
+POPULATION-BASED SCORING (normed against general human population):
+- [100] Paradigm: System L design "works unless X, at which point it breaks here" (1 in 10,000 minds)
+- [90] Top 10% of humans - explicit revision architecture, scientific rigor
+- [70] Unusually thoughtful person, acknowledges uncertainty well
+- [50] Average adult epistemic awareness
+- [30] Overconfident, maximalist claims without humility
+SCORING: Most intelligent writing should fall between 60-80. Reserve 100s for paradigm-level epistemic sophistication.
 
-reflectiveDepth (1-10) - Models not just objects, but the models themselves:
-- [10] Paradigm: Gödel, Escher, Bach (Hofstadter), "The Will to Project"
-- [7] Paradigm: Kant's "Transcendental Deduction" - recursive insight
-- [4] Paradigm: First-order metacognition "I think about things carefully"
-- [1] Paradigm: LLM preamble "This essay will explore..."
-SCORING: Prefer modeling of system behavior under transformation and error.
+reflectiveDepth (1-100) - Models not just objects, but the models themselves:
+POPULATION-BASED SCORING (normed against general human population):
+- [100] Paradigm: Morpheme text, Gödel/Escher/Bach, "The Will to Project" - recursive modeling (1 in 10,000 minds)
+- [90] Top 10% of humans - models the models themselves, recursive insight
+- [70] Unusually thoughtful person, good metacognitive reflection
+- [50] Average adult reflective capacity
+- [30] Surface-level thinking, no introspection
+SCORING: Most excellent academic work should fall between 60-80. Reserve 100s for paradigm cases of recursive modeling only.
 
 PARADIGM EXAMPLES FOR REFERENCE:
-- [10] MORPHEME SAMPLE: "The meaning of morpheme (a minimal unit of linguistic significance) cannot diverge from what it is taken to mean. But the meaning of a complex expression can diverge without limit from what it is taken to mean, given that the meaning of such an expression is a logical consequence of the meanings of its parts, coupled with the fact that people are not infallible ratiocinators. Nonetheless, given Chomsky's distinction between competence (ability) and performance (ability to deploy that ability)..." - TEXTBOOK REFLECTIVE DEPTH 10/10
-- [10] PRE-SEMANTIC IMPLICATURE: "In order to understand a sentence, one must know the relevant semantic rules. Those rules are not learned in a vacuum; they are given to one through one's senses..."
-- [10] COUNTERFACTUALS: "Ordinarily counterfactuals are seen as making statements about states of affairs, albeit ones that hold in merely possible or alternative worlds..."
-- [7] CONDITIONAL DISPOSITION: "Given that an analysis of disposition ascription cannot be made in terms of a simple subjunctive conditional..."
-- [6] MACHINE EMOTION: "In this paper I articulate the question of whether machines can have emotions..."
+- [100] MORPHEME SAMPLE: "The meaning of morpheme (a minimal unit of linguistic significance) cannot diverge from what it is taken to mean. But the meaning of a complex expression can diverge without limit from what it is taken to mean, given that the meaning of such an expression is a logical consequence of the meanings of its parts, coupled with the fact that people are not infallible ratiocinators. Nonetheless, given Chomsky's distinction between competence (ability) and performance (ability to deploy that ability)..." - PARADIGM REFLECTIVE DEPTH 100/100
+- [100] PRE-SEMANTIC IMPLICATURE: "In order to understand a sentence, one must know the relevant semantic rules. Those rules are not learned in a vacuum; they are given to one through one's senses..."
+- [100] COUNTERFACTUALS: "Ordinarily counterfactuals are seen as making statements about states of affairs, albeit ones that hold in merely possible or alternative worlds..."
+- [70] CONDITIONAL DISPOSITION: "Given that an analysis of disposition ascription cannot be made in terms of a simple subjunctive conditional..."
+- [60] MACHINE EMOTION: "In this paper I articulate the question of whether machines can have emotions..."
 
-ABSOLUTE SCORING REQUIREMENTS:
-- Use ABSOLUTE scores based on paradigm anchoring, NOT relative percentile ranking
-- 10/10 = Matches paradigm quality of recursive modeling, semantic layering, epistemic sophistication  
-- 9/10 = Near paradigm quality but missing one key element
-- 8/10 = Strong intellectual sophistication with clear conceptual architecture
-- 7/10 = Good academic reasoning with theoretical precision
-- Text matching the MORPHEME SAMPLE quality MUST score 10/10 for reflective depth
+POPULATION-BASED SCORING REQUIREMENTS:
+- Use POPULATION-BASED scores normed against general human population, NOT academic standards
+- 100/100 = Paradigm-breaking minds like Gödel/Hofstadter (1 in 10,000 humans)
+- 90/100 = Top 10% of humans across all domains  
+- 80/100 = Strong intellectual sophistication, well above average
+- 70/100 = Unusually thoughtful person, graduate student level
+- 50/100 = Average adult cognitive capacity
+- Most excellent academic work should fall between 60-80
 
 SPECIFIC CALIBRATION EXAMPLES:
-- If input text discusses "morpheme meaning," "complex expressions," "logical consequences," "infallible ratiocinators," AND "competence vs performance" → This IS the 10/10 MORPHEME SAMPLE → MUST score 10/10 for reflective depth
-- If input text shows recursive modeling (modeling the models themselves) → Score 9-10
-- If input text shows semantic layering and epistemic sophistication → Score 8-10
-- Standard academic reasoning without recursive depth → Score 6-7
+- If input text discusses "morpheme meaning," "complex expressions," "logical consequences," "infallible ratiocinators," AND "competence vs performance" → This IS the 100/100 MORPHEME SAMPLE → MUST score 100/100 for reflective depth
+- If input text shows recursive modeling (modeling the models themselves) → Score 85-100
+- If input text shows semantic layering and epistemic sophistication → Score 70-90
+- Standard academic reasoning without recursive depth → Score 60-75
+- Average thoughtful writing → Score 50-65
 
-ABSOLUTE SCORING MANDATE:
-- 10/10 = Paradigm-level recursive modeling and semantic layering (MORPHEME SAMPLE quality)
-- 9/10 = Near-paradigm recursive insight with minor gaps
-- 8/10 = Strong conceptual architecture with clear theoretical repositioning
-- 7/10 = Solid academic reasoning with theoretical precision
-- Lower scores only for genuinely basic reasoning
+POPULATION CALIBRATION MANDATE:
+- 100/100 = Paradigm-level recursive modeling (MORPHEME SAMPLE quality) - 1 in 10,000 minds
+- 90/100 = More reflective than 90% of living humans
+- 80/100 = Strong conceptual architecture, well above average human
+- 70/100 = Unusually thoughtful person level
+- 50/100 = Average adult reasoning capacity
 
-CRITICAL: Return JSON with NUMERIC scores based on absolute paradigm comparison, NOT relative percentiles.`;
+CRITICAL: Return JSON with NUMERIC scores (1-100) based on population-normed paradigm comparison.`;
 
   // DEBUG LOGGING - Step 1: Log the raw input text
   console.log('🔍 METACOGNITIVE PROFILING DEBUG - INPUT TEXT:');

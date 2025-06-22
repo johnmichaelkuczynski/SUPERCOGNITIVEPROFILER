@@ -2817,29 +2817,29 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   {results.intellectualMaturity && (
                     <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
                       <div className="text-sm font-medium text-indigo-600 mb-2">Intellectual Maturity</div>
-                      <div className="text-2xl font-bold text-indigo-800">{results.intellectualMaturity}/10</div>
-                      <Progress value={results.intellectualMaturity * 10} className="mt-2" />
+                      <div className="text-2xl font-bold text-indigo-800">{results.intellectualMaturity}/100</div>
+                      <Progress value={results.intellectualMaturity} className="mt-2" />
                     </div>
                   )}
                   {results.selfAwarenessLevel && (
                     <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
                       <div className="text-sm font-medium text-indigo-600 mb-2">Self-Awareness Level</div>
-                      <div className="text-2xl font-bold text-indigo-800">{results.selfAwarenessLevel}/10</div>
-                      <Progress value={results.selfAwarenessLevel * 10} className="mt-2" />
+                      <div className="text-2xl font-bold text-indigo-800">{results.selfAwarenessLevel}/100</div>
+                      <Progress value={results.selfAwarenessLevel} className="mt-2" />
                     </div>
                   )}
                   {results.epistemicHumility && (
                     <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
                       <div className="text-sm font-medium text-indigo-600 mb-2">Epistemic Humility</div>
-                      <div className="text-2xl font-bold text-indigo-800">{results.epistemicHumility}/10</div>
-                      <Progress value={results.epistemicHumility * 10} className="mt-2" />
+                      <div className="text-2xl font-bold text-indigo-800">{results.epistemicHumility}/100</div>
+                      <Progress value={results.epistemicHumility} className="mt-2" />
                     </div>
                   )}
                   {results.reflectiveDepth && (
                     <div className="p-4 bg-white rounded-lg border-2 border-indigo-200 text-center">
                       <div className="text-sm font-medium text-indigo-600 mb-2">Reflective Depth</div>
-                      <div className="text-2xl font-bold text-indigo-800">{results.reflectiveDepth}/10</div>
-                      <Progress value={results.reflectiveDepth * 10} className="mt-2" />
+                      <div className="text-2xl font-bold text-indigo-800">{results.reflectiveDepth}/100</div>
+                      <Progress value={results.reflectiveDepth} className="mt-2" />
                     </div>
                   )}
                 </div>

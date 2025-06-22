@@ -142,6 +142,7 @@ Changelog:
 - June 22, 2025. MAJOR SYSTEM UPDATE: Made DeepSeek the default LLM across the entire application - updated DocumentRewriterModal, GraphGenerator, SimpleRewriter, RewriteViewer, Home page model selection buttons, and all component interfaces to prioritize DeepSeek as the primary model choice
 - June 22, 2025. CRITICAL MIND PROFILER FIX: Implemented new paradigm-based metacognitive scoring framework to replace broken system that severely undervalued sophisticated academic writing - updated scoring logic with absolute paradigm anchors for intellectual maturity, self-awareness, epistemic humility, and reflective depth
 - June 22, 2025. Added comprehensive paradigm text samples and calibration examples to ensure proper recognition of high-level intellectual sophistication like recursive modeling and semantic layering - system now uses absolute scoring against paradigm benchmarks rather than flawed relative percentile ranking
+- June 22, 2025. MAJOR SCORING SYSTEM UPDATE: Changed metacognitive scoring from 1-10 scale to 1-100 scale with population-based interpretation where 50/100 = average adult, 90/100 = top 10% of humans, and 100/100 = paradigm-breaking minds (1 in 10,000) - updated frontend display and progress bars accordingly
 ```
 
 ## User Preferences
