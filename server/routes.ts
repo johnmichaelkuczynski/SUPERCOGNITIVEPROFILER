@@ -1683,8 +1683,7 @@ Return only the improved text content that is significantly expanded from the or
       // CRITICAL: Fix formatting issues regardless of AI output
       result = ensurePerfectFormatting(result);
       
-      // Fix escaped dollar signs for currency display
-      result = result.replace(/\\\$/g, '$');
+
       
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
@@ -2892,7 +2891,6 @@ ${content}`;
 
       // Clean up any remaining markdown formatting and fix escaped dollar signs
       const cleanResult = result
-        .replace(/\\\$/g, '$') // Fix escaped dollar signs for currency display
         .replace(/^#+ /gm, '') // Remove markdown headers
         .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
         .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting  
