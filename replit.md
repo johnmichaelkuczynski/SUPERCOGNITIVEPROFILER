@@ -134,6 +134,9 @@ Changelog:
 - June 22, 2025. CRITICAL FIX: Eliminated destructive bracketed metadata expressions from all LLM system prompts across Claude, GPT-4, and DeepSeek models - removed all "[Content continues...]", "[remaining text unchanged]", and similar editorial insertions that were corrupting professional documents
 - June 22, 2025. Enhanced comprehensive word count tracking in chunked rewriter - now provides detailed per-chunk word counts, expansion ratios, and total word change statistics for precise content analysis and professional documentation
 - June 22, 2025. Fixed DeepSeek text-to-math API system prompts to prevent metadata insertions and ensure clean mathematical notation output without any editorial commentary or bracketed expressions
+- June 22, 2025. MAJOR FEATURE: Implemented precise text selection and custom rewrite functionality - users can now select any portion of rewritten content and provide specific instructions to rewrite only that selected text using any AI model
+- June 22, 2025. Added "Select Text" button to rewrite results popup with integrated dialog interface for targeted text improvement and mathematical notation correction
+- June 22, 2025. Created comprehensive /api/rewrite-selection backend endpoint supporting DeepSeek, Claude, GPT-4, and Perplexity models for surgical text modifications without affecting surrounding content
 ```
 
 ## User Preferences

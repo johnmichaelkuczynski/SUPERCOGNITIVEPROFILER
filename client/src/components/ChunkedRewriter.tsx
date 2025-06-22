@@ -1445,6 +1445,40 @@ export default function ChunkedRewriter({
                   <p className="text-sm text-muted-foreground line-clamp-3">
                     {chunk.preview}
                   </p>
+                  
+                  {/* Word Count Display for Each Chunk */}
+                  <div className="mt-2 space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500">Original:</span>
+                      <span className="font-medium text-gray-700">
+                        {chunk.content.trim().split(/\s+/).filter(word => word.length > 0).length} words
+                      </span>
+                    </div>
+                    {chunk.rewritten && (
+                      <>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-blue-500">Rewritten:</span>
+                          <span className="font-medium text-blue-700">
+                            {chunk.rewritten.trim().split(/\s+/).filter(word => word.length > 0).length} words
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-purple-500">Change:</span>
+                          <span className={`font-medium ${
+                            chunk.rewritten.trim().split(/\s+/).filter(word => word.length > 0).length - 
+                            chunk.content.trim().split(/\s+/).filter(word => word.length > 0).length >= 0 
+                            ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {chunk.rewritten.trim().split(/\s+/).filter(word => word.length > 0).length - 
+                             chunk.content.trim().split(/\s+/).filter(word => word.length > 0).length > 0 ? '+' : ''}
+                            {chunk.rewritten.trim().split(/\s+/).filter(word => word.length > 0).length - 
+                             chunk.content.trim().split(/\s+/).filter(word => word.length > 0).length} words
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
                   {chunk.isProcessing && (
                     <div className="mt-2 text-xs text-yellow-600 dark:text-yellow-400">
                       Processing...
@@ -1621,12 +1655,66 @@ export default function ChunkedRewriter({
           </DialogTitle>
           <DialogDescription>
             {rewriteMetadata && (
-              <div className="text-sm space-y-1">
+              <div className="text-sm space-y-3">
                 {rewriteMetadata.isRerewrite && (
                   <div className="text-blue-600 font-medium">✨ This content has been re-rewritten with custom instructions</div>
                 )}
+                
+                {/* Comprehensive Word Count Display */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-800">{rewriteMetadata.originalWords?.toLocaleString() || 'N/A'}</div>
+                    <div className="text-xs text-gray-600">Original Words</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-600">{rewriteMetadata.rewrittenWords?.toLocaleString() || 'N/A'}</div>
+                    <div className="text-xs text-gray-600">Rewritten Words</div>
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-lg font-bold ${(rewriteMetadata.wordChange || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {(rewriteMetadata.wordChange || 0) > 0 ? '+' : ''}{rewriteMetadata.wordChange?.toLocaleString() || '0'}
+                    </div>
+                    <div className="text-xs text-gray-600">Word Change</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-purple-600">{rewriteMetadata.expansionRatio || '1.00'}x</div>
+                    <div className="text-xs text-gray-600">Expansion Ratio</div>
+                  </div>
+                </div>
+
+                {/* Per-Chunk Word Count Details */}
+                {rewriteMetadata.chunkWordCounts && rewriteMetadata.chunkWordCounts.length > 0 && (
+                  <div className="mt-3">
+                    <div className="text-xs font-semibold text-gray-700 mb-2">Individual Chunk Word Counts:</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                      {rewriteMetadata.chunkWordCounts.map((chunk: any, index: number) => (
+                        <div key={index} className="text-xs bg-white p-2 rounded border">
+                          <div className="font-medium text-gray-700">Chunk {chunk.chunkNumber}</div>
+                          <div className="flex justify-between">
+                            <span>Original:</span>
+                            <span className="font-medium">{chunk.originalWords}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Rewritten:</span>
+                            <span className="font-medium text-blue-600">{chunk.rewrittenWords}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Change:</span>
+                            <span className={`font-medium ${chunk.wordChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {chunk.wordChange > 0 ? '+' : ''}{chunk.wordChange}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Ratio:</span>
+                            <span className="font-medium text-purple-600">{chunk.expansionRatio}x</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div>Mode: {rewriteMetadata.rewriteMode === 'rewrite' ? 'Rewrite Existing Only' : rewriteMetadata.rewriteMode === 'add' ? 'Add New Content Only' : 'Both Rewrite & Add'}</div>
-                <div>Original: {Math.round(rewriteMetadata.originalLength / 5)} words ({rewriteMetadata.originalLength.toLocaleString()} chars) | Final: {Math.round(rewriteMetadata.rewrittenLength / 5)} words ({rewriteMetadata.rewrittenLength.toLocaleString()} chars)</div>
                 {rewriteMetadata.chunksProcessed > 0 && <div>Chunks rewritten: {rewriteMetadata.chunksProcessed}</div>}
                 {rewriteMetadata.newChunksAdded > 0 && <div>New chunks added: {rewriteMetadata.newChunksAdded}</div>}
                 <div>Model: {(rewriteMetadata.isRerewrite ? rewriteMetadata.rerewriteModel : rewriteMetadata.model).toUpperCase()}</div>
