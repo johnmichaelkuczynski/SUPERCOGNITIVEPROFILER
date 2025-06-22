@@ -43,6 +43,41 @@ export function formatDate(date: Date): string {
   }).format(date);
 }
 
+// Word counting utility for frontend
+export function countWords(text: string): number {
+  if (!text || typeof text !== 'string') return 0;
+  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+}
+
+// Automatically remove meta-text patterns from content
+export function cleanMetaText(text: string): string {
+  if (!text || typeof text !== 'string') return text;
+  
+  return text
+    // Remove continuation notices
+    .replace(/\[continued in next part due to length[^\]]*\]/gi, '')
+    .replace(/\[continued in next page[^\]]*\]/gi, '')
+    .replace(/\[continued on next page[^\]]*\]/gi, '')
+    .replace(/\[continues in next section[^\]]*\]/gi, '')
+    .replace(/\[content continues[^\]]*\]/gi, '')
+    .replace(/\[to be continued[^\]]*\]/gi, '')
+    // Remove truncation notices
+    .replace(/\[text truncated[^\]]*\]/gi, '')
+    .replace(/\[content truncated[^\]]*\]/gi, '')
+    .replace(/\[document truncated[^\]]*\]/gi, '')
+    // Remove generic meta-text in brackets
+    .replace(/\[Note:[^\]]*\]/gi, '')
+    .replace(/\[Editor's note:[^\]]*\]/gi, '')
+    .replace(/\[Author's note:[^\]]*\]/gi, '')
+    // Remove ellipsis patterns that indicate continuation
+    .replace(/\.\.\.\s*\[continued[^\]]*\]/gi, '')
+    .replace(/\.\.\.\s*$/m, '')
+    // Clean up extra whitespace left by removals
+    .replace(/\n\s*\n\s*\n/g, '\n\n')
+    .replace(/^\s+/gm, '')
+    .trim();
+}
+
 export function formatDateTime(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -51,10 +86,6 @@ export function formatDateTime(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
-}
-
-export function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 export function truncateText(text: string, maxLength: number): string {

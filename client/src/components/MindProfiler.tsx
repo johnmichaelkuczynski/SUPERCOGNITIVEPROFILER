@@ -621,11 +621,11 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               </div>
 
               <div className="flex gap-2 text-sm text-gray-500">
-                <span>{inputText.trim().split(/\s+/).filter(word => word.length > 0).length} words</span>
+                <span className="font-medium">{inputText.trim().split(/\s+/).filter(word => word.length > 0).length} words</span>
                 <span className="text-gray-300">|</span>
                 <span>{inputText.length} characters</span>
                 <span className="text-gray-300">|</span>
-                <span>Minimum: 100 characters</span>
+                <span>Minimum: 50 words</span>
               </div>
 
               {/* File Upload and Paste Options */}
