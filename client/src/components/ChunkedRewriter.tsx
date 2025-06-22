@@ -1588,14 +1588,7 @@ export default function ChunkedRewriter({
             </Button>
           )}
 
-          <Button 
-            onClick={nukeEverything} 
-            variant="destructive"
-            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700"
-          >
-            <Bomb className="w-4 h-4" />
-            <span>🧨 NUKE</span>
-          </Button>
+
 
           <Button 
             variant="outline" 
@@ -1653,7 +1646,7 @@ export default function ChunkedRewriter({
 
     {/* Persistent Results Popup */}
     <Dialog open={showResultsPopup} onOpenChange={setShowResultsPopup}>
-      <DialogContent className="max-w-6xl overflow-hidden h-[95vh] flex flex-col">
+      <DialogContent className="max-w-[95vw] w-[95vw] overflow-hidden h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl">
             {rewriteMetadata?.isRerewrite ? '🔄 Re-rewritten Content' : 'Rewrite Results'} - {rewriteMetadata?.rewriteMode === 'rewrite' ? 'Rewritten Content' : rewriteMetadata?.rewriteMode === 'add' ? 'Original + New Content' : 'Rewritten + New Content'}
