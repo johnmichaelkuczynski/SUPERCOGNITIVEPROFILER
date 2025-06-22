@@ -1113,9 +1113,21 @@ RETURN EXACTLY THIS JSON STRUCTURE:
     
     if (model === 'deepseek') {
       // Use DeepSeek (default)
-      const { processDeepSeek } = await import('./deepseek');
-      response = await processDeepSeek(prompt, { maxTokens: 8000 });
-      console.log('🔍 DEEPSEEK RAW RESPONSE:', response);
+      console.log('🔍 CALLING DEEPSEEK API...');
+      try {
+        const { processDeepSeek } = await import('./deepseek');
+        response = await processDeepSeek(prompt, { maxTokens: 8000 });
+        console.log('🔍 DEEPSEEK RAW RESPONSE LENGTH:', response?.length || 0);
+        console.log('🔍 DEEPSEEK RAW RESPONSE:', response?.substring(0, 500) + '...');
+      } catch (deepseekError) {
+        console.error('❌ DEEPSEEK API ERROR:', deepseekError);
+        console.error('❌ DEEPSEEK ERROR DETAILS:', {
+          message: deepseekError.message,
+          status: deepseekError.status,
+          response: deepseekError.response?.data
+        });
+        throw new Error(`DeepSeek API failed: ${deepseekError.message}`);
+      }
       
       // Clean and extract JSON from response
       let cleanResponse = response.trim();

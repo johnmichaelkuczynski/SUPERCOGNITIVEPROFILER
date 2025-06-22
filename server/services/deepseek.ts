@@ -26,6 +26,14 @@ export async function processDeepSeek(
     model = 'deepseek-chat'
   } = options;
 
+  console.log('🔍 DeepSeek API Call Details:', {
+    contentLength: content.length,
+    temperature,
+    maxTokens,
+    model,
+    hasApiKey: !!process.env.DEEPSEEK_API_KEY
+  });
+
   try {
     const response = await deepseek.chat.completions.create({
       model: model,
@@ -36,9 +44,31 @@ export async function processDeepSeek(
       max_tokens: maxTokens,
     });
 
+    console.log('✅ DeepSeek API Response:', {
+      choices: response.choices?.length || 0,
+      hasContent: !!response.choices?.[0]?.message?.content,
+      contentLength: response.choices?.[0]?.message?.content?.length || 0
+    });
+
     return response.choices[0].message.content || '';
-  } catch (error) {
-    console.error("Error calling DeepSeek API:", error);
-    throw new Error(`DeepSeek processing failed: ${(error as Error).message}`);
+  } catch (error: any) {
+    console.error("❌ DeepSeek API Error Details:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type,
+      response: error.response?.data || error.response,
+      stack: error.stack
+    });
+    
+    if (error.status === 401) {
+      throw new Error('DeepSeek API authentication failed - please check your API key');
+    } else if (error.status === 429) {
+      throw new Error('DeepSeek API rate limit exceeded - please try again later');
+    } else if (error.status >= 500) {
+      throw new Error('DeepSeek API server error - please try again later');
+    }
+    
+    throw new Error(`DeepSeek processing failed: ${error.message}`);
   }
 }
