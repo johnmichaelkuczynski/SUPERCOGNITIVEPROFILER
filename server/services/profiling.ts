@@ -813,12 +813,9 @@ function validateTextQuality(text: string): { isValid: boolean; reason?: string;
     }
   }
 
-  // More lenient repetition check
-  const uniqueWords = new Set(words.map(w => w.toLowerCase()));
-  const repetitionRatio = uniqueWords.size / words.length;
-  if (repetitionRatio < 0.1 && words.length > 100) {
-    return { isValid: false, reason: 'Text shows excessive repetition', category: 'nonsensical' };
-  }
+  // Repetition check disabled - was causing too many false positives
+  // const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+  // const repetitionRatio = uniqueWords.size / words.length;
 
   // Simple categorization - removed nonsensical markers that were too restrictive
   const analyticalMarkers = ['analysis', 'therefore', 'however', 'furthermore', 'research', 'study', 'evidence', 'conclude', 'hypothesis', 'methodology'];
