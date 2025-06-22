@@ -131,6 +131,9 @@ Changelog:
 - June 21, 2025. Fixed currency symbol issue - completely disabled single dollar sign ($) delimiters in MathJax configuration to prevent currency symbols from being incorrectly interpreted as mathematical expressions
 - June 21, 2025. Updated MathJax configuration to only use \( \) for inline math and \[ \] or $$ $$ for display math - single dollar signs now display as regular text
 - June 21, 2025. Implemented comprehensive word counting system across all text input areas - Home page direct text processor, Editor component, MindProfiler analysis input, GraphGenerator text analysis, and RewriteHistory statistics now prioritize word counts over character counts with "X words | Y characters" format
+- June 22, 2025. CRITICAL FIX: Eliminated destructive bracketed metadata expressions from all LLM system prompts across Claude, GPT-4, and DeepSeek models - removed all "[Content continues...]", "[remaining text unchanged]", and similar editorial insertions that were corrupting professional documents
+- June 22, 2025. Enhanced comprehensive word count tracking in chunked rewriter - now provides detailed per-chunk word counts, expansion ratios, and total word change statistics for precise content analysis and professional documentation
+- June 22, 2025. Fixed DeepSeek text-to-math API system prompts to prevent metadata insertions and ensure clean mathematical notation output without any editorial commentary or bracketed expressions
 ```
 
 ## User Preferences

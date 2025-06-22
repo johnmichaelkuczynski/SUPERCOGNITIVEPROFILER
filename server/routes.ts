@@ -2744,7 +2744,10 @@ ${content}`;
 
         result = response.choices[0]?.message?.content || '';
       } else if (selectedModel === 'deepseek') {
-        result = await callDeepSeekWithRateLimit(prompt, {
+        // Create system prompt for DeepSeek to prevent metadata insertions
+        const systemPrompt = 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]". NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.';
+        
+        result = await callDeepSeekWithRateLimit(`${systemPrompt}\n\n${prompt}`, {
           temperature: 0.1,
           maxTokens: 4000
         });
