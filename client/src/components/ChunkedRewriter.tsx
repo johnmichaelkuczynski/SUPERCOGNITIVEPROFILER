@@ -1797,6 +1797,8 @@ export default function ChunkedRewriter({
 
                 // Process content for perfect LaTeX rendering
                 let processedContent = finalRewrittenContent
+                  // Fix escaped dollar signs for currency display in PDF
+                  .replace(/\\$/g, '$')
                   // Convert markdown formatting to HTML
                   .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                   .replace(/\*([^$*]*?)\*/g, '<em>$1</em>')
