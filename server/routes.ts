@@ -2864,7 +2864,7 @@ ${content}`;
       }
 
       // Clean up any remaining markdown formatting
-      const cleanResult = result
+      let cleanResult = result
         .replace(/^#+ /gm, '') // Remove markdown headers
         .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
         .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting  
@@ -2873,6 +2873,9 @@ ${content}`;
         .replace(/^\* /gm, '') // Remove asterisk bullet points
         .replace(/^\d+\. /gm, '') // Remove numbered lists
         .trim();
+      
+      // CRITICAL: Remove any meta-text that slipped through
+      cleanResult = cleanMetaText(cleanResult);
 
       res.json({ mathContent: cleanResult });
     } catch (error) {

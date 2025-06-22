@@ -134,6 +134,7 @@ Changelog:
 - June 22, 2025. Completed mandatory word counter implementation across ALL text input areas including ChunkedRewriter instructions, new chunk instructions, re-rewrite instructions, main chat input, and direct text processor - all areas now display word counts prominently as primary metric
 - June 22, 2025. Verified and confirmed 1.1x minimum length requirement is properly enforced in server-side rewrite API - all rewrites automatically expand content if under 110% of original word count to ensure substantial improvement and prevent shortened outputs
 - June 22, 2025. Added manual "Proof Document" button to fix malformed inline math expressions and remove meta-text - converts broken $\beta$, $t$, $N(t)$ patterns to proper LaTeX \\(\beta\\), \\(t\\), \\(N(t)\\) format and eliminates unwanted meta-text like "[continued in next part due to length...]" with before/after comparison interface
+- June 22, 2025. CRITICAL FIX: Updated all AI model system prompts across rewrite, homework, and text-to-math modes to explicitly prevent generation of meta-text like "[continued in next part due to length...]" or "[text truncated]" - added comprehensive rules and automatic meta-text cleaning as backup safety measure to ensure clean professional output
 ```
 
 ## User Preferences
