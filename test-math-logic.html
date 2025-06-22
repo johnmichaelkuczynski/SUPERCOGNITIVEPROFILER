@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logic and Set Theory Math Test</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['\\(', '\\)']],
+            displayMath: [['\\[', '\\]'], ['$$', '$$']],
+            processEscapes: true,
+            processEnvironments: true,
+            packages: {'[+]': ['noerrors']}
+        },
+        options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+    };
+    </script>
+</head>
+<body>
+    <h1>Testing Logic and Set Theory Mathematical Notation</h1>
+    
+    <h2>Logical Connectives and Operators</h2>
+    <p>Conjunction: \(P \land Q\) (interpreted as \(P\) AND \(Q\))</p>
+    <p>Disjunction: \(P \lor Q\) (interpreted as \(P\) OR \(Q\))</p>
+    <p>Negation: \(\neg P\) (interpreted as NOT \(P\))</p>
+    <p>Implication: \(P \to Q\) (interpreted as \(P\) implies \(Q\))</p>
+    
+    <h2>Set Theory Notation</h2>
+    <p>Set membership: \(x \in A\) and \(x \notin A\)</p>
+    <p>Subset relations: \(A \subseteq B\) and \(A \subset B\)</p>
+    <p>Set operations: \(A \cup B\), \(A \cap B\), \(A \setminus B\)</p>
+    <p>Cartesian product: \(A \times B\)</p>
+    
+    <h2>Quantifiers</h2>
+    <p>Universal quantifier: \(\forall x \in \mathbb{R}\)</p>
+    <p>Existential quantifier: \(\exists x \in \mathbb{N}\)</p>
+    <p>Unique existence: \(\exists! x\)</p>
+    
+    <h2>Real Number System</h2>
+    <p>Natural numbers: \(\mathbb{N} = \{1, 2, 3, ...\}\)</p>
+    <p>Integers: \(\mathbb{Z} = \{..., -2, -1, 0, 1, 2, ...\}\)</p>
+    <p>Rational numbers: \(\mathbb{Q} = \{\frac{p}{q} : p, q \in \mathbb{Z}, q \neq 0\}\)</p>
+    <p>Real numbers: \(\mathbb{R}\)</p>
+    
+    <h2>Complex Expressions from Document</h2>
+    <p>De Morgan's Laws: \(\neg(P \lor Q) \leftrightarrow (\neg P \land \neg Q)\)</p>
+    <p>Modus Ponens: \((P \to Q) \land P \vdash Q\)</p>
+    <p>Modus Tollens: \((P \to Q) \land \neg Q \vdash \neg P\)</p>
+    
+    <h2>Advanced Set Theory</h2>
+    <p>Power set: \(\mathcal{P}(A) = \{B : B \subseteq A\}\)</p>
+    <p>Cardinality: \(|A|\)</p>
+    <p>Infinite sets: \(|\mathbb{N}| = \aleph_0\)</p>
+    
+    <h2>Functions and Relations</h2>
+    <p>Function definition: \(f: A \to B\)</p>
+    <p>Injective: \(\forall x_1, x_2 \in A, f(x_1) = f(x_2) \Rightarrow x_1 = x_2\)</p>
+    <p>Surjective: \(\forall y \in B, \exists x \in A, f(x) = y\)</p>
+    
+    <h2>Logical Equivalences</h2>
+    <p>Absorption Laws: \(P \lor (P \land Q) \equiv P\)</p>
+    <p>Distributive Laws: \(P \land (Q \lor R) \equiv (P \land Q) \lor (P \land R)\)</p>
+    
+    <h2>Complex Mathematical Statements</h2>
+    <p>Completeness of Real Numbers: Every non-empty set of real numbers that is bounded above has a least upper bound (supremum).</p>
+    <p>Formally: \(\forall S \subseteq \mathbb{R}, S \neq \emptyset \land (\exists M \in \mathbb{R}, \forall x \in S, x \leq M) \Rightarrow \exists \sup S \in \mathbb{R}\)</p>
+    
+    <h2>Currency Test (Should NOT be rendered as math)</h2>
+    <p>This costs $25 and that costs $1,000. The total is $1,025.</p>
+    <p>But this should be math: \(\alpha + \beta = \gamma\)</p>
+</body>
+</html>
