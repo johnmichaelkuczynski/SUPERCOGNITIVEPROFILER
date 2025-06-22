@@ -27,16 +27,16 @@ export function sanitizeMathAndCurrency(text: string): string {
   console.log(`🔧 Protected ${currencyReplacements.length} currency expressions`);
   
   // Step 2: Identify and convert legitimate math expressions
-  // Only convert $...$ if it contains mathematical symbols/patterns
-  const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega)\b/;
+  // Only convert $...$ if it contains EXPLICIT LaTeX commands (backslash required)
+  const mathIndicators = /\\(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega|partial|infty|rightarrow|leftarrow|text|mathrm|mathbf|mathit|over|cdot|times|div|pm|mp|leq|geq|neq|approx|equiv|subset|supset|in|notin|cup|cap|sin|cos|tan|log|ln|exp)/;
   
   text = text.replace(/\$([^$\n]+)\$/g, (match, content) => {
-    // Check if content contains mathematical indicators
+    // Check if content contains clear LaTeX mathematical indicators
     if (mathIndicators.test(content)) {
       console.log(`🔧 Converting math expression: $${content}$`);
       return `\\(${content}\\)`;
     }
-    // If no math indicators, leave as regular text
+    // If no clear LaTeX indicators, leave as regular text
     console.log(`🔧 Keeping as regular text: ${match}`);
     return match;
   });
