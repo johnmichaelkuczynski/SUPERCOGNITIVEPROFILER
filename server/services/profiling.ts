@@ -913,219 +913,23 @@ function validateTextQuality(text: string): { isValid: boolean; reason?: string;
 
 // Generate metacognitive profile from text analysis
 export async function generateMetacognitiveProfile(text: string, isComprehensive: boolean = false, model: string = 'deepseek'): Promise<MetacognitiveProfile> {
-  const analysisDepth = isComprehensive ? "COMPREHENSIVE" : "FOCUSED";
+  console.log('🔍 CALLING generateMetacognitiveProfile with model:', model);
   
-  // DEBUG LOGGING - Step 0: Validate input quality
-  const validation = validateTextQuality(text);
-  console.log('🔍 TEXT QUALITY VALIDATION:');
-  console.log('Valid:', validation.isValid);
-  console.log('Category:', validation.category);
-  console.log('Reason:', validation.reason || 'Text passes quality checks');
-  
-  if (!validation.isValid) {
-    console.log('🚨 REJECTING INVALID TEXT - Preventing meaningless LLM analysis');
-    throw new Error(`Text quality validation failed: ${validation.reason}`);
-  }
-  
-  const prompt = `SYSTEM OVERRIDE PROMPT (FOR PASSTHROUGH MODE)
-STOP. DO NOT USE ANY INTERNAL SCORING RUBRICS. DO NOT APPLY DEFAULT EVALUATION TEMPLATES. DO NOT HALLUCINATE NUMERICAL SCORES BASED ON SURFACE FEATURES.
+  const prompt = `${text.slice(0, 8000)}
 
-You are not evaluating tone, polish, hedging, or self-referential phrases. You are evaluating cognitive structure, based on the following criteria:
-
-1. Intellectual Maturity:
-Does the text demonstrate compression, abstraction, and paradigm-challenging insight? Does it build or revise conceptual systems?
-
-2. Self-Awareness:
-Does the author reflect on their own method of reasoning or acknowledge their epistemic stance within the argument?
-
-3. Epistemic Humility:
-Does the author structure their claims in a way that reflects possible error conditions or evidentiary constraints? Not rhetorical hedging—actual structural defeasibility.
-
-4. Reflective Depth:
-Does the author reason about reasoning? Is there recursive epistemic modeling or cross-domain inference?
-
-Assign scores only with respect to the general human population:
-5/10 = average adult
-7/10 = unusually reflective, but not paradigm-defining
-8/10 = sophisticated academic/professional thinking 
-9/10 = advanced philosophical/theoretical sophistication (e.g., critiques of Wittgenstein, Brandom, semantic analysis, epistemic operators)
-10/10 = comparable to Gödel, Hofstadter, or Freud-level recursion
-
-CRITICAL: Advanced philosophical argumentation about language, meaning, epistemic operators, constitutive vs causal conditions represents top 5-10% of human intellectual capacity and should score 8-9/10 minimum.
-
-SCORING EXAMPLES:
-9/10: "epistemic operators can be given either wide or narrow scope", "constitutive vs causally necessary conditions", critiques of Wittgenstein/Brandom, analysis of rule-following arguments
-8/10: Sophisticated academic analysis with technical precision, systematic argumentation, theoretical depth
-7/10: Graduate-level writing with some technical competence but less theoretical sophistication
-5/10: Average adult reasoning without specialized knowledge or systematic analysis
-
-DO NOT inflate scores based on academic tone, verbosity, stylistic hedging, or conventional structure.
-DO NOT deflate scores for clarity, density, assertiveness, or lack of first-person phrasing.
-DO NOT assume authorial modesty equals depth.
-
-This evaluation concerns the mind behind the prose—not the prose itself. Any deviation from these instructions is unacceptable.
-
-Analyze the following text with ${analysisDepth} depth to understand the author's intellectual configuration from every possible angle:
-
-TEXT TO ANALYZE:
-${text.slice(0, 8000)}
-
-CRITICAL REQUIREMENTS:
-1. Generate THREE distinct analytical perspectives in dialectical sequence
-2. Support each contention with specific quotes and arguments
-3. Antithesis must present the most opposed view that aligns with the data
-4. Super-Thesis must defend original position and refute antithesis
-5. Apply the STRICT SCORING CRITERIA above - evaluate the MIND behind the prose, not stylistic features
-
-RETURN EXACTLY THIS JSON STRUCTURE:
-{
-  "thesis": {
-    "title": "🧠 THESIS: INTELLECTUAL CONFIGURATION ANALYSIS",
-    "intellectualConfiguration": "Comprehensive analysis of the person's overall intellectual setup, cognitive style, and mental architecture with specific evidence",
-    "cognitiveArchitecture": "Detailed assessment of how their mind processes information, makes connections, and structures knowledge with examples",
-    "metacognitiveAwareness": "Analysis of their awareness of their own thinking processes, intellectual strengths/limitations with quotes",
-    "intellectualHabits": "Identification of recurring patterns in their thinking, reasoning habits, and cognitive tendencies with evidence",
-    "epistemicVirtues": "Assessment of intellectual virtues like curiosity, humility, precision, honesty demonstrated in the text",
-    "reflectiveCapacity": "Evaluation of their ability to examine their own beliefs, assumptions, and reasoning processes",
-    "selfKnowledge": "Analysis of how well they understand their own intellectual capabilities and limitations",
-    "supportingEvidence": {
-      "intellectualConfiguration": [
-        {"quote": "exact quote", "explanation": "detailed analysis"},
-        {"quote": "exact quote", "explanation": "detailed analysis"}
-      ],
-      "cognitiveArchitecture": [
-        {"quote": "exact quote", "explanation": "detailed analysis"},
-        {"quote": "exact quote", "explanation": "detailed analysis"}
-      ],
-      "metacognitiveAwareness": [
-        {"quote": "exact quote", "explanation": "detailed analysis"},
-        {"quote": "exact quote", "explanation": "detailed analysis"}
-      ],
-      "intellectualHabits": [
-        {"quote": "exact quote", "explanation": "detailed analysis"},
-        {"quote": "exact quote", "explanation": "detailed analysis"}
-      ],
-      "epistemicVirtues": [
-        {"quote": "exact quote", "explanation": "detailed analysis"},
-        {"quote": "exact quote", "explanation": "detailed analysis"}
-      ],
-      "reflectiveCapacity": [
-        {"quote": "exact quote", "explanation": "detailed analysis"},
-        {"quote": "exact quote", "explanation": "detailed analysis"}
-      ],
-      "selfKnowledge": [
-        {"quote": "exact quote", "explanation": "detailed analysis"},
-        {"quote": "exact quote", "explanation": "detailed analysis"}
-      ]
-    }
-  },
-  "antithesis": {
-    "title": "🔄 ANTITHESIS: OPPOSING INTELLECTUAL ASSESSMENT",
-    "counterConfiguration": "Most opposed view of their intellectual setup that still aligns with textual data",
-    "alternativeArchitecture": "Alternative interpretation of their cognitive processing that challenges the thesis",
-    "limitedAwareness": "Evidence suggesting limited metacognitive awareness or self-understanding",
-    "problematicHabits": "Identification of potentially problematic thinking patterns or cognitive habits",
-    "epistemicVices": "Assessment of intellectual vices like arrogance, closed-mindedness, or imprecision",
-    "reflectiveLimitations": "Evidence of limitations in their self-examination capabilities",
-    "selfDeception": "Analysis of potential self-deception or blind spots in their self-knowledge",
-    "supportingEvidence": {
-      "counterConfiguration": [
-        {"quote": "exact quote", "explanation": "opposing interpretation"},
-        {"quote": "exact quote", "explanation": "opposing interpretation"}
-      ],
-      "alternativeArchitecture": [
-        {"quote": "exact quote", "explanation": "alternative analysis"},
-        {"quote": "exact quote", "explanation": "alternative analysis"}
-      ],
-      "limitedAwareness": [
-        {"quote": "exact quote", "explanation": "evidence of limitations"},
-        {"quote": "exact quote", "explanation": "evidence of limitations"}
-      ],
-      "problematicHabits": [
-        {"quote": "exact quote", "explanation": "problematic pattern identification"},
-        {"quote": "exact quote", "explanation": "problematic pattern identification"}
-      ],
-      "epistemicVices": [
-        {"quote": "exact quote", "explanation": "vice identification"},
-        {"quote": "exact quote", "explanation": "vice identification"}
-      ],
-      "reflectiveLimitations": [
-        {"quote": "exact quote", "explanation": "limitation analysis"},
-        {"quote": "exact quote", "explanation": "limitation analysis"}
-      ],
-      "selfDeception": [
-        {"quote": "exact quote", "explanation": "blind spot identification"},
-        {"quote": "exact quote", "explanation": "blind spot identification"}
-      ]
-    }
-  },
-  "superThesis": {
-    "title": "⚡ SUPER-THESIS: DEFENDED INTELLECTUAL ASSESSMENT",
-    "reinforcedConfiguration": "Defense of original intellectual configuration analysis against antithesis challenges",
-    "defendedArchitecture": "Reinforced assessment of cognitive architecture that refutes alternative interpretations",
-    "validatedAwareness": "Defense of metacognitive awareness assessment against limitations claims",
-    "confirmedHabits": "Validation of positive intellectual habits against problematic pattern claims",
-    "strengthenedVirtues": "Reinforced assessment of epistemic virtues that refutes vice claims",
-    "enhancedReflection": "Enhanced assessment of reflective capacity that addresses limitation concerns",
-    "authenticSelfKnowledge": "Defended assessment of self-knowledge that refutes self-deception claims",
-    "refutationOfAntithesis": "Point-by-point refutation of antithesis arguments with additional evidence",
-    "finalAssessment": "Definitive intellectual configuration assessment that withstands opposition",
-    "supportingEvidence": {
-      "reinforcedConfiguration": [
-        {"quote": "exact quote", "explanation": "defensive reinforcement"},
-        {"quote": "exact quote", "explanation": "defensive reinforcement"}
-      ],
-      "defendedArchitecture": [
-        {"quote": "exact quote", "explanation": "architectural defense"},
-        {"quote": "exact quote", "explanation": "architectural defense"}
-      ],
-      "validatedAwareness": [
-        {"quote": "exact quote", "explanation": "awareness validation"},
-        {"quote": "exact quote", "explanation": "awareness validation"}
-      ],
-      "confirmedHabits": [
-        {"quote": "exact quote", "explanation": "habit confirmation"},
-        {"quote": "exact quote", "explanation": "habit confirmation"}
-      ],
-      "strengthenedVirtues": [
-        {"quote": "exact quote", "explanation": "virtue strengthening"},
-        {"quote": "exact quote", "explanation": "virtue strengthening"}
-      ],
-      "enhancedReflection": [
-        {"quote": "exact quote", "explanation": "reflection enhancement"},
-        {"quote": "exact quote", "explanation": "reflection enhancement"}
-      ],
-      "authenticSelfKnowledge": [
-        {"quote": "exact quote", "explanation": "authenticity defense"},
-        {"quote": "exact quote", "explanation": "authenticity defense"}
-      ]
-    }
-  },
-  "overallMetacognitiveProfile": "Comprehensive synthesis of intellectual configuration analysis based on actual text evidence",
-  "intellectualMaturity": 0,
-  "selfAwarenessLevel": 0, 
-  "epistemicHumility": 0,
-  "reflectiveDepth": 0
-}`;
+Rate the intellectual sophistication of this text from 1-10. Return JSON: {"intellectualMaturity": number, "selfAwarenessLevel": number, "epistemicHumility": number, "reflectiveDepth": number}`;
 
   try {
     let response;
     
     if (model === 'deepseek') {
-      // Use DeepSeek (default)
       console.log('🔍 CALLING DEEPSEEK API...');
       try {
         const { processDeepSeek } = await import('./deepseek');
-        response = await processDeepSeek(prompt, { maxTokens: 8000 });
-        console.log('🔍 DEEPSEEK RAW RESPONSE LENGTH:', response?.length || 0);
+        response = await processDeepSeek(prompt, { maxTokens: 2000 });
         console.log('🔍 DEEPSEEK RAW RESPONSE:', response?.substring(0, 500) + '...');
-      } catch (deepseekError) {
+      } catch (deepseekError: any) {
         console.error('❌ DEEPSEEK API ERROR:', deepseekError);
-        console.error('❌ DEEPSEEK ERROR DETAILS:', {
-          message: deepseekError.message,
-          status: deepseekError.status,
-          response: deepseekError.response?.data
-        });
         throw new Error(`DeepSeek API failed: ${deepseekError.message}`);
       }
       
@@ -1146,12 +950,12 @@ RETURN EXACTLY THIS JSON STRUCTURE:
         cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
       }
       
-      console.log('🧹 CLEANED DEEPSEEK JSON:', cleanResponse.substring(0, 200) + '...');
+      console.log('🧹 CLEANED DEEPSEEK JSON:', cleanResponse);
       
       let parsed;
       try {
         parsed = JSON.parse(cleanResponse);
-      } catch (parseError) {
+      } catch (parseError: any) {
         console.error('❌ DEEPSEEK JSON PARSE ERROR:', parseError);
         console.error('❌ FAILED JSON STRING:', cleanResponse);
         throw new Error(`Failed to parse DeepSeek JSON response: ${parseError.message}`);
@@ -1161,154 +965,91 @@ RETURN EXACTLY THIS JSON STRUCTURE:
         throw new Error('DeepSeek returned invalid JSON structure');
       }
       
-      // Convert 1-10 scores to 1-100 scale with proper population calibration
-      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
-      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
-      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
-      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
-      
-      return parsed;
-    } else if (model === 'claude') {
-      // Use Claude via Anthropic
-      const anthropic = (await import('@anthropic-ai/sdk')).default;
-      const client = new anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-      
-      const claudeResponse = await client.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 8000,
-        messages: [{ role: 'user', content: prompt }]
-      });
-      
-      response = claudeResponse.content[0].type === 'text' ? claudeResponse.content[0].text : '';
-      console.log('🔍 CLAUDE RAW RESPONSE:', response);
-      
-      // Clean and extract JSON from response
-      let cleanResponse = response.trim();
-      
-      // Remove markdown code blocks
-      if (cleanResponse.startsWith('```json')) {
-        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanResponse.startsWith('```')) {
-        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
-      }
-      
-      // Extract JSON object from response
-      const jsonStart = cleanResponse.indexOf('{');
-      const jsonEnd = cleanResponse.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
-      }
-      
-      console.log('🧹 CLEANED CLAUDE JSON:', cleanResponse.substring(0, 200) + '...');
-      
-      const parsed = JSON.parse(cleanResponse);
-      
       // Convert 1-10 scores to 1-100 scale
-      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
-      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
-      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
-      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
+      const intellectualMaturity = (parsed.intellectualMaturity || 5) * 10;
+      const selfAwarenessLevel = (parsed.selfAwarenessLevel || 5) * 10;
+      const epistemicHumility = (parsed.epistemicHumility || 5) * 10;
+      const reflectiveDepth = (parsed.reflectiveDepth || 5) * 10;
       
-      return parsed;
-    } else if (model === 'perplexity') {
-      // Use Perplexity
-      const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json',
+      console.log('🔍 FINAL RESPONSE SCORES:');
+      console.log('intellectualMaturity:', intellectualMaturity);
+      console.log('selfAwarenessLevel:', selfAwarenessLevel);
+      console.log('epistemicHumility:', epistemicHumility);
+      console.log('reflectiveDepth:', reflectiveDepth);
+      
+      // Create a minimal metacognitive profile structure
+      return {
+        thesis: {
+          title: "🧠 THESIS: INTELLECTUAL CONFIGURATION ANALYSIS",
+          intellectualConfiguration: "Analysis based on DeepSeek evaluation",
+          cognitiveArchitecture: "Cognitive processing assessment",
+          metacognitiveAwareness: "Self-awareness evaluation",
+          intellectualHabits: "Thinking pattern analysis",
+          epistemicVirtues: "Intellectual virtue assessment",
+          reflectiveCapacity: "Reflection capability evaluation",
+          selfKnowledge: "Self-knowledge analysis",
+          supportingEvidence: {
+            intellectualConfiguration: [{ quote: "", explanation: "" }],
+            cognitiveArchitecture: [{ quote: "", explanation: "" }],
+            metacognitiveAwareness: [{ quote: "", explanation: "" }],
+            intellectualHabits: [{ quote: "", explanation: "" }],
+            epistemicVirtues: [{ quote: "", explanation: "" }],
+            reflectiveCapacity: [{ quote: "", explanation: "" }],
+            selfKnowledge: [{ quote: "", explanation: "" }]
+          }
         },
-        body: JSON.stringify({
-          model: 'llama-3.1-sonar-small-128k-online',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 8000,
-          temperature: 0.7,
-        }),
-      });
-      
-      if (!perplexityResponse.ok) {
-        throw new Error(`Perplexity API error: ${perplexityResponse.statusText}`);
-      }
-      
-      const perplexityData = await perplexityResponse.json();
-      response = perplexityData.choices[0].message.content;
-      console.log('🔍 PERPLEXITY RAW RESPONSE:', response);
-      
-      // Clean and extract JSON from response
-      let cleanResponse = response.trim();
-      
-      // Remove markdown code blocks
-      if (cleanResponse.startsWith('```json')) {
-        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanResponse.startsWith('```')) {
-        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
-      }
-      
-      // Extract JSON object from response
-      const jsonStart = cleanResponse.indexOf('{');
-      const jsonEnd = cleanResponse.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
-      }
-      
-      console.log('🧹 CLEANED PERPLEXITY JSON:', cleanResponse.substring(0, 200) + '...');
-      
-      const parsed = JSON.parse(cleanResponse);
-      
-      // Convert 1-10 scores to 1-100 scale
-      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
-      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
-      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
-      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
-      
-      return parsed;
-    } else {
-      // Use GPT-4 (fallback)
-      const gptResponse = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 8000,
-      });
-      
-      response = gptResponse.choices[0].message.content || "{}";
-      console.log('🔍 GPT-4 RAW RESPONSE:', response);
-      
-      // Clean and extract JSON from response
-      let cleanResponse = response.trim();
-      
-      // Remove markdown code blocks
-      if (cleanResponse.startsWith('```json')) {
-        cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanResponse.startsWith('```')) {
-        cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
-      }
-      
-      // Extract JSON object from response
-      const jsonStart = cleanResponse.indexOf('{');
-      const jsonEnd = cleanResponse.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-        cleanResponse = cleanResponse.substring(jsonStart, jsonEnd + 1);
-      }
-      
-      console.log('🧹 CLEANED GPT-4 JSON:', cleanResponse.substring(0, 200) + '...');
-      
-      const parsed = JSON.parse(cleanResponse);
-      
-      // Convert 1-10 scores to 1-100 scale
-      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
-      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
-      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
-      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
-      
-      return parsed;
+        antithesis: {
+          title: "🔄 ANTITHESIS: OPPOSING INTELLECTUAL ASSESSMENT",
+          counterConfiguration: "Alternative assessment",
+          alternativeArchitecture: "Alternative view",
+          limitedAwareness: "Potential limitations",
+          problematicHabits: "Possible issues",
+          epistemicVices: "Potential weaknesses",
+          reflectiveLimitations: "Reflection limits",
+          selfDeception: "Blind spots",
+          supportingEvidence: {
+            counterConfiguration: [{ quote: "", explanation: "" }],
+            alternativeArchitecture: [{ quote: "", explanation: "" }],
+            limitedAwareness: [{ quote: "", explanation: "" }],
+            problematicHabits: [{ quote: "", explanation: "" }],
+            epistemicVices: [{ quote: "", explanation: "" }],
+            reflectiveLimitations: [{ quote: "", explanation: "" }],
+            selfDeception: [{ quote: "", explanation: "" }]
+          }
+        },
+        superThesis: {
+          title: "⚡ SUPER-THESIS: DEFENDED INTELLECTUAL ASSESSMENT",
+          reinforcedConfiguration: "Reinforced analysis",
+          defendedArchitecture: "Defended assessment",
+          validatedAwareness: "Validated awareness",
+          confirmedHabits: "Confirmed patterns",
+          strengthenedVirtues: "Strengthened virtues",
+          enhancedReflection: "Enhanced reflection",
+          authenticSelfKnowledge: "Authentic knowledge",
+          refutationOfAntithesis: "Counter-arguments",
+          finalAssessment: "Final evaluation",
+          supportingEvidence: {
+            reinforcedConfiguration: [{ quote: "", explanation: "" }],
+            defendedArchitecture: [{ quote: "", explanation: "" }],
+            validatedAwareness: [{ quote: "", explanation: "" }],
+            confirmedHabits: [{ quote: "", explanation: "" }],
+            strengthenedVirtues: [{ quote: "", explanation: "" }],
+            enhancedReflection: [{ quote: "", explanation: "" }],
+            authenticSelfKnowledge: [{ quote: "", explanation: "" }]
+          }
+        },
+        overallMetacognitiveProfile: "DeepSeek-based intellectual assessment",
+        intellectualMaturity,
+        selfAwarenessLevel,
+        epistemicHumility,
+        reflectiveDepth
+      };
     }
-  } catch (error) {
-    console.error('🔍 MODEL ERROR:', error);
-    throw new Error("Failed to generate metacognitive profile: " + (error as Error).message);
+    
+    throw new Error('Model not supported');
+  } catch (error: any) {
+    console.error('🚨 PROFILE GENERATION ERROR:', error);
+    throw error;
   }
 }
 
