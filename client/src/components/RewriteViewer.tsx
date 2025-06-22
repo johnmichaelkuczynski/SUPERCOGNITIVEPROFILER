@@ -189,24 +189,18 @@ export default function RewriteViewer({
                       }}
                       ref={(el) => {
                         if (el && window.renderMathInElement) {
+                          // Clear any existing KaTeX elements
                           const mathElements = el.querySelectorAll('.katex');
                           mathElements.forEach(elem => elem.remove());
                           
                           setTimeout(() => {
                             try {
-                              window.renderMathInElement(el, {
-                                delimiters: [
-                                  {left: '$$', right: '$$', display: true},
-                                  {left: '\\[', right: '\\]', display: true},
-                                  {left: '\\(', right: '\\)', display: false}
-                                ],
-                                throwOnError: false,
-                                strict: false
-                              });
+                              window.renderMathInElement(el);
+                              console.log('✅ Math rendered in RewriteViewer');
                             } catch (e) {
-                              console.warn('KaTeX rendering failed:', e);
+                              console.error('❌ KaTeX rendering failed in RewriteViewer:', e);
                             }
-                          }, 200);
+                          }, 100);
                         }
                       }}
                     />

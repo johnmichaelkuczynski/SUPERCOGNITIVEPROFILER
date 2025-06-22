@@ -639,11 +639,26 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                           </div>
                         )}
                         {showMathView ? (
-                          <div className="whitespace-pre-wrap">
-                            <MathJax>
-                              {message.content}
-                            </MathJax>
-                          </div>
+                          <div 
+                            className="whitespace-pre-wrap"
+                            dangerouslySetInnerHTML={{
+                              __html: message.content
+                                .replace(/\n\n/g, '</p><p>')
+                                .replace(/^/, '<p>')
+                                .replace(/$/, '</p>')
+                            }}
+                            ref={(el) => {
+                              if (el && window.renderMathInElement) {
+                                setTimeout(() => {
+                                  try {
+                                    window.renderMathInElement(el);
+                                  } catch (e) {
+                                    console.error('KaTeX rendering failed in chat:', e);
+                                  }
+                                }, 100);
+                              }
+                            }}
+                          />
                         ) : (
                           formatMessage(message.content)
                         )}

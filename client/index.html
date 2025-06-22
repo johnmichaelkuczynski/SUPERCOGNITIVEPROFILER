@@ -14,30 +14,54 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
     <script>
-      // Set up KaTeX auto-rendering once loaded
+      // Perfect KaTeX rendering for ALL technical notation
       document.addEventListener("DOMContentLoaded", function() {
-        // Store the original KaTeX function
-        const originalRender = renderMathInElement;
-        
-        // Create our wrapper function
-        window.renderMathInElement = function(element) {
-          if (originalRender && typeof originalRender === 'function') {
+        if (typeof renderMathInElement === 'function') {
+          // Global KaTeX wrapper for perfect technical notation
+          window.renderMathInElement = function(element, options = {}) {
             try {
-              originalRender(element, {
+              renderMathInElement(element, {
                 delimiters: [
-                  {left: '$$', right: '$$', display: true},
-                  {left: '$', right: '$', display: false},
                   {left: '\\(', right: '\\)', display: false},
-                  {left: '\\[', right: '\\]', display: true}
+                  {left: '\\[', right: '\\]', display: true},
+                  {left: '$$', right: '$$', display: true}
                 ],
                 throwOnError: false,
-                strict: false
+                strict: false,
+                trust: true,
+                macros: {
+                  "\\RR": "\\mathbb{R}",
+                  "\\NN": "\\mathbb{N}",
+                  "\\ZZ": "\\mathbb{Z}",
+                  "\\QQ": "\\mathbb{Q}",
+                  "\\CC": "\\mathbb{C}",
+                  "\\forall": "\\forall",
+                  "\\exists": "\\exists",
+                  "\\in": "\\in",
+                  "\\cup": "\\cup",
+                  "\\cap": "\\cap",
+                  "\\subset": "\\subset",
+                  "\\supset": "\\supset",
+                  "\\subseteq": "\\subseteq",
+                  "\\supseteq": "\\supseteq",
+                  "\\emptyset": "\\emptyset",
+                  "\\neg": "\\neg",
+                  "\\wedge": "\\wedge",
+                  "\\vee": "\\vee",
+                  "\\implies": "\\implies",
+                  "\\iff": "\\iff"
+                },
+                ...options
               });
+              console.log('✅ KaTeX rendered successfully for technical notation');
             } catch (e) {
-              console.warn('KaTeX rendering failed:', e);
+              console.error('❌ KaTeX rendering failed:', e);
             }
-          }
-        };
+          };
+          
+          // Auto-render all math on page load
+          window.renderMathInElement(document.body);
+        }
       });
     </script>
     
