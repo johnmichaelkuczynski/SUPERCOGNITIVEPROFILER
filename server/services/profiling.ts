@@ -917,20 +917,56 @@ export async function generateMetacognitiveProfile(text: string, isComprehensive
   
   try {
     if (model === 'deepseek') {
-      // Simple scoring approach for DeepSeek
-      const simplePrompt = `Rate this text on 4 dimensions (1-100 scale): intellectualMaturity, selfAwarenessLevel, epistemicHumility, reflectiveDepth. Return only JSON: {"intellectualMaturity": number, "selfAwarenessLevel": number, "epistemicHumility": number, "reflectiveDepth": number}
+      // Sophisticated scoring approach for DeepSeek with proper epistemic humility recognition
+      const sophisticatedPrompt = `You are evaluating sophisticated philosophical writing. Rate this text on 4 dimensions (1-100 scale):
+
+CRITICAL SCORING GUIDELINES:
+
+intellectualMaturity (1-100): Capacity for paradigm-level reasoning
+- 90-100: Paradigm-breaking insights, novel conceptual architectures
+- 80-89: Sophisticated theoretical precision, advanced reasoning
+- 70-79: Graduate-level analysis, well-developed frameworks
+- 50-69: Competent reasoning, average intellectual capacity
+
+epistemicHumility (1-100): Structural sophistication in managing uncertainty
+- 90-100: Explicit revision architecture, constraint-based reasoning, modal dependencies
+- 80-89: Systematic uncertainty management, conditional claims, analytic rigor
+- 70-79: Good awareness of limitations, appropriate qualifications
+- 50-69: Average epistemic awareness
+DO NOT penalize directness or confident assertions when they are logically grounded. Phrases like "must be false" can indicate HIGH epistemic humility when based on rigorous logical analysis.
+
+selfAwarenessLevel (1-100): Metacognitive positioning within intellectual frameworks
+- 90-100: Sophisticated self-positioning, embedded reasoning models
+- 80-89: Clear intellectual positioning, good metacognitive awareness
+- 70-79: Decent self-awareness, understands own approach
+- 50-69: Average self-awareness
+
+reflectiveDepth (1-100): Recursive modeling and meta-level reasoning
+- 90-100: Models the models themselves, recursive epistemic structures
+- 80-89: Second-order reasoning, systematic reflection
+- 70-79: Good metacognitive capacity, thoughtful analysis
+- 50-69: Average reflective ability
+
+Return only JSON: {"intellectualMaturity": number, "selfAwarenessLevel": number, "epistemicHumility": number, "reflectiveDepth": number}
 
 TEXT: ${text.slice(0, 2000)}`;
       
       const { processDeepSeek } = await import('./deepseek');
-      const response = await processDeepSeek(simplePrompt, { maxTokens: 200 });
+      const response = await processDeepSeek(sophisticatedPrompt, { maxTokens: 200 });
       const cleanResponse = response.replace(/```json|```/g, '').trim();
       
       let scores;
       try {
         scores = JSON.parse(cleanResponse);
+        console.log('🔍 FINAL RESPONSE SCORES:');
+        console.log('intellectualMaturity:', scores.intellectualMaturity);
+        console.log('selfAwarenessLevel:', scores.selfAwarenessLevel);
+        console.log('epistemicHumility:', scores.epistemicHumility);
+        console.log('reflectiveDepth:', scores.reflectiveDepth);
       } catch {
+        // Only use fallbacks if parsing completely fails
         scores = { intellectualMaturity: 70, selfAwarenessLevel: 65, epistemicHumility: 60, reflectiveDepth: 70 };
+        console.log('⚠️ USING FALLBACK SCORES DUE TO PARSE ERROR');
       }
       
       // Create comprehensive profile with actual content
@@ -995,10 +1031,10 @@ TEXT: ${text.slice(0, 2000)}`;
           }
         },
         overallMetacognitiveProfile: "This individual demonstrates sophisticated metacognitive awareness with genuine analytical capabilities, authentic self-reflection, and appropriate epistemic humility. The thinking patterns suggest someone capable of complex reasoning while maintaining awareness of their own cognitive processes and limitations.",
-        intellectualMaturity: scores.intellectualMaturity || 70,
-        selfAwarenessLevel: scores.selfAwarenessLevel || 65,
-        epistemicHumility: scores.epistemicHumility || 60,
-        reflectiveDepth: scores.reflectiveDepth || 70
+        intellectualMaturity: scores.intellectualMaturity,
+        selfAwarenessLevel: scores.selfAwarenessLevel,
+        epistemicHumility: scores.epistemicHumility,
+        reflectiveDepth: scores.reflectiveDepth
       };
     }
     
