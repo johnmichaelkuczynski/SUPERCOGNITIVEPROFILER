@@ -1,0 +1,27 @@
+Logic and Set Theory Test Document
+
+This document contains mathematical expressions to test the math rendering system.
+
+Currency examples (should remain as regular text):
+The cost is $25 for basic service and $1,000 for premium service.
+Budget allocation: $5 million for research, $2.5k for supplies.
+
+Mathematical expressions (should be converted to LaTeX):
+Let $P \rightarrow Q$ represent logical implication.
+The set $A \cap B$ denotes intersection.
+Consider the function $f(x) = x^2 + \alpha x + \beta$.
+The utility function $U^{\text{Veblen}}$ maximizes satisfaction.
+Proof by induction: $\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$.
+
+Mixed content:
+The research costs $500 per participant, but the formula $\theta = \arctan(\frac{y}{x})$ determines the angle.
+Budget: $25,000 total with mathematical model $E = mc^2$ for energy calculations.
+
+Set theory notation:
+Let $\mathcal{P}(A)$ denote the power set of A.
+For any sets $X$ and $Y$, we have $X \cup Y = \{z : z \in X \text{ or } z \in Y\}$.
+
+Logic symbols:
+$\forall x \in \mathbb{R}$ (for all real numbers x)
+$\exists y \in \mathbb{N}$ (there exists a natural number y)
+$\neg P \vee Q$ (not P or Q)

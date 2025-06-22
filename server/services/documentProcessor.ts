@@ -84,7 +84,26 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
     }
     
     // Clean up the extracted text to remove excessive spacing
-    const cleanedText = cleanExtractedText(extractedText);
+    let cleanedText = cleanExtractedText(extractedText);
+    
+    // Apply math delimiter conversion to properly format mathematical expressions
+    try {
+      const { sanitizeMathAndCurrency } = await import('./mathDelimiterFixer');
+      cleanedText = sanitizeMathAndCurrency(cleanedText);
+      
+      // Also apply math conversion to chunks if they exist
+      if (chunks && chunks.length > 0) {
+        chunks = chunks.map(chunk => ({
+          ...chunk,
+          content: sanitizeMathAndCurrency(chunk.content)
+        }));
+      }
+      
+      log('Applied math delimiter conversion to document content and chunks', 'document');
+    } catch (mathError) {
+      log(`Math delimiter conversion failed: ${(mathError as Error).message}`, 'document');
+      // Continue with original text if math conversion fails
+    }
     
     return {
       text: cleanedText,
