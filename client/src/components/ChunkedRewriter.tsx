@@ -1417,8 +1417,12 @@ export default function ChunkedRewriter({
                               {chunk.rewritten ? 'Rewritten version' : 'Original content'}
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm leading-relaxed whitespace-pre-wrap font-mono max-w-none w-full">
-                            {chunk.rewritten || chunk.content}
+                          <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm leading-relaxed max-w-none w-full">
+                            <MathJax hideUntilTypeset="first">
+                              <div className="whitespace-pre-wrap font-mono">
+                                {chunk.rewritten || chunk.content}
+                              </div>
+                            </MathJax>
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -1436,15 +1440,23 @@ export default function ChunkedRewriter({
                     {chunk.rewritten ? (
                       <div className="space-y-2">
                         <div className="font-medium text-green-700 text-xs mb-1">REWRITTEN CONTENT:</div>
-                        <div className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
-                          {chunk.rewritten}
+                        <div className="text-xs leading-relaxed">
+                          <MathJax hideUntilTypeset="first">
+                            <div className="whitespace-pre-wrap font-mono">
+                              {chunk.rewritten}
+                            </div>
+                          </MathJax>
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-2">
                         <div className="font-medium text-gray-600 text-xs mb-1">ORIGINAL CONTENT:</div>
-                        <div className="whitespace-pre-wrap font-mono text-xs leading-relaxed">
-                          {chunk.content}
+                        <div className="text-xs leading-relaxed">
+                          <MathJax hideUntilTypeset="first">
+                            <div className="whitespace-pre-wrap font-mono">
+                              {chunk.content}
+                            </div>
+                          </MathJax>
                         </div>
                       </div>
                     )}
@@ -2589,10 +2601,14 @@ export default function ChunkedRewriter({
                       </Button>
                     )}
                   </div>
-                  <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {expandedPreview === chunk.id || chunk.content.length <= 300
-                      ? chunk.content
-                      : chunk.content.substring(0, 300) + '...'}
+                  <div className="text-sm text-gray-700 leading-relaxed">
+                    <MathJax hideUntilTypeset="first">
+                      <div className="whitespace-pre-wrap">
+                        {expandedPreview === chunk.id || chunk.content.length <= 300
+                          ? chunk.content
+                          : chunk.content.substring(0, 300) + '...'}
+                      </div>
+                    </MathJax>
                   </div>
                   <div className="mt-2 text-xs text-green-600">
                     Length: {chunk.content.length.toLocaleString()} characters
