@@ -54,10 +54,15 @@ export function renderMathInElement(element: HTMLElement): void {
 }
 
 export function processContentForMathRendering(content: string): string {
-  // Fix double-escaping issues and prepare content for KaTeX
+  // Fix double-escaping issues first
   let processed = fixDoubleEscapedMath(content);
   
-  // Ensure proper paragraph structure for HTML rendering
+  // Additional aggressive double-escape fixes
+  processed = processed
+    .replace(/\\\\/g, '\\')  // Replace all double backslashes with single
+    .replace(/\\(\(|\)|\[|\])/g, '$1'); // Remove escaping from delimiters
+  
+  // Ensure proper paragraph structure for HTML rendering without escaping LaTeX
   processed = processed
     .replace(/\n\n+/g, '</p><p>')
     .replace(/^(?!<p>)/, '<p>')

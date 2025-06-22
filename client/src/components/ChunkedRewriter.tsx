@@ -11,10 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { MathJax } from 'better-react-mathjax';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
+import { processContentForMathRendering, renderMathInElement } from '@/utils/mathRenderer';
 
 interface TextChunk {
   id: string;
@@ -2583,22 +2580,21 @@ export default function ChunkedRewriter({
                   <div 
                     className="text-sm text-gray-700 leading-relaxed"
                     dangerouslySetInnerHTML={{
-                      __html: (expandedPreview === chunk.id || chunk.content.length <= 300
-                        ? chunk.content
-                        : chunk.content.substring(0, 300) + '...')
-                        .replace(/\n\n/g, '</p><p>')
-                        .replace(/^/, '<p>')
-                        .replace(/$/, '</p>')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                      __html: processContentForMathRendering(
+                        expandedPreview === chunk.id || chunk.content.length <= 300
+                          ? chunk.content
+                          : chunk.content.substring(0, 300) + '...'
+                      ).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                       .replace(/\*(.*?)\*/g, '<em>$1</em>')
                     }}
                     ref={(el) => {
-                      if (el && window.renderMathInElement) {
+                      if (el) {
                         setTimeout(() => {
                           try {
-                            window.renderMathInElement(el);
+                            renderMathInElement(el);
+                            console.log('✅ Math rendered in progress dialog');
                           } catch (e) {
-                            console.error('KaTeX rendering failed in progress dialog:', e);
+                            console.error('❌ KaTeX rendering failed in progress dialog:', e);
                           }
                         }, 100);
                       }

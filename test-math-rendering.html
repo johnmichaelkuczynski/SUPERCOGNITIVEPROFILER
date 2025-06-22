@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Rendering Test</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .broken { background-color: #ffeeee; }
+        .fixed { background-color: #eeffee; }
+    </style>
+</head>
+<body>
+    <h1>Mathematical Rendering Test</h1>
+    
+    <div class="test-section broken">
+        <h2>❌ Broken (Double-Escaped)</h2>
+        <div id="broken-math">
+            <p>This shows the broken double-escaped LaTeX:</p>
+            <p>\\(e^{\\{1\\}\\#}\\)</p>
+            <p>\\[\\forall x (x \\in \\mathbb{N} \\leftrightarrow x = \\emptyset \\lor \\exists y (y \\in \\mathbb{N} \\land x = S(y)))\\]</p>
+        </div>
+    </div>
+    
+    <div class="test-section fixed">
+        <h2>✅ Fixed (Proper LaTeX)</h2>
+        <div id="fixed-math">
+            <p>This shows the corrected LaTeX that should render properly:</p>
+            <p>\(e^{\{1\}\#}\)</p>
+            <p>\[\forall x (x \in \mathbb{N} \leftrightarrow x = \emptyset \lor \exists y (y \in \mathbb{N} \land x = S(y)))\]</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Test Our Fix Function</h2>
+        <div id="test-fix">
+            <!-- This will be populated by JavaScript -->
+        </div>
+    </div>
+    
+    <script>
+        // Our fix function
+        function fixDoubleEscapedMath(content) {
+            let fixed = content;
+            
+            // Fix common double-escaped delimiters
+            fixed = fixed.replace(/\\\\\(/g, '\\(');
+            fixed = fixed.replace(/\\\\\)/g, '\\)');
+            fixed = fixed.replace(/\\\\\[/g, '\\[');
+            fixed = fixed.replace(/\\\\\]/g, '\\]');
+            
+            // Fix double-escaped common commands
+            fixed = fixed.replace(/\\\\emptyset/g, '\\emptyset');
+            fixed = fixed.replace(/\\\\forall/g, '\\forall');
+            fixed = fixed.replace(/\\\\exists/g, '\\exists');
+            fixed = fixed.replace(/\\\\in/g, '\\in');
+            fixed = fixed.replace(/\\\\mathbb/g, '\\mathbb');
+            fixed = fixed.replace(/\\\\land/g, '\\land');
+            fixed = fixed.replace(/\\\\lor/g, '\\lor');
+            fixed = fixed.replace(/\\\\leftrightarrow/g, '\\leftrightarrow');
+            
+            // Additional aggressive double-escape fixes
+            fixed = fixed.replace(/\\\\/g, '\\');
+            
+            return fixed;
+        }
+        
+        // Test the fix function
+        const brokenContent = `
+            <p>Double-escaped example: \\\\(e^{\\\\{1\\\\}\\\\#}\\\\)</p>
+            <p>Complex formula: \\\\[\\\\forall x (x \\\\in \\\\mathbb{N} \\\\leftrightarrow x = \\\\emptyset \\\\lor \\\\exists y (y \\\\in \\\\mathbb{N} \\\\land x = S(y)))\\\\]</p>
+        `;
+        
+        const fixedContent = fixDoubleEscapedMath(brokenContent);
+        document.getElementById('test-fix').innerHTML = fixedContent;
+        
+        // Render math after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+            
+            console.log('✅ KaTeX rendering completed');
+        });
+    </script>
+</body>
+</html>
