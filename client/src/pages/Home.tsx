@@ -1129,6 +1129,12 @@ Document text: ${extractedText}`;
           <CardContent>
             <div className="grid grid-cols-4 gap-2">
               <Button 
+                variant={selectedModel === 'deepseek' ? 'default' : 'outline'} 
+                onClick={() => setSelectedModel('deepseek')}
+              >
+                DeepSeek
+              </Button>
+              <Button 
                 variant={selectedModel === 'claude' ? 'default' : 'outline'} 
                 onClick={() => setSelectedModel('claude')}
               >
@@ -1145,12 +1151,6 @@ Document text: ${extractedText}`;
                 onClick={() => setSelectedModel('perplexity')}
               >
                 Perplexity
-              </Button>
-              <Button 
-                variant={selectedModel === 'deepseek' ? 'default' : 'outline'} 
-                onClick={() => setSelectedModel('deepseek')}
-              >
-                DeepSeek
               </Button>
             </div>
           </CardContent>
