@@ -2580,15 +2580,30 @@ export default function ChunkedRewriter({
                       </Button>
                     )}
                   </div>
-                  <div className="text-sm text-gray-700 leading-relaxed">
-                    <MathJax hideUntilTypeset="first">
-                      <div className="whitespace-pre-wrap">
-                        {expandedPreview === chunk.id || chunk.content.length <= 300
-                          ? chunk.content
-                          : chunk.content.substring(0, 300) + '...'}
-                      </div>
-                    </MathJax>
-                  </div>
+                  <div 
+                    className="text-sm text-gray-700 leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html: (expandedPreview === chunk.id || chunk.content.length <= 300
+                        ? chunk.content
+                        : chunk.content.substring(0, 300) + '...')
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/^/, '<p>')
+                        .replace(/$/, '</p>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    }}
+                    ref={(el) => {
+                      if (el && window.renderMathInElement) {
+                        setTimeout(() => {
+                          try {
+                            window.renderMathInElement(el);
+                          } catch (e) {
+                            console.error('KaTeX rendering failed in progress dialog:', e);
+                          }
+                        }, 100);
+                      }
+                    }}
+                  />
                   <div className="mt-2 text-xs text-green-600">
                     Length: {chunk.content.length.toLocaleString()} characters
                   </div>
