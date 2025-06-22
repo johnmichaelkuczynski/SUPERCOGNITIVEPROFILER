@@ -44,7 +44,7 @@ export default function ChunkedRewriter({
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [instructions, setInstructions] = useState('');
   const [includeChatContext, setIncludeChatContext] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('claude');
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('deepseek');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
@@ -68,7 +68,7 @@ export default function ChunkedRewriter({
   const [isRerewriting, setIsRerewriting] = useState(false);
   const [showRerewriteForm, setShowRerewriteForm] = useState(false);
   const [rerewriteInstructions, setRerewriteInstructions] = useState('');
-  const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('claude');
+  const [rerewriteModel, setRerewriteModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('deepseek');
   const [rewriteChunks, setRewriteChunks] = useState<Array<{id: string, content: string, selected: boolean}>>([]);
   
   // Math View toggle state
