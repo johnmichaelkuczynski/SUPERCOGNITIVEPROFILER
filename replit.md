@@ -150,6 +150,7 @@ Changelog:
 - June 22, 2025. EXPANDABLE PREVIEW SYSTEM: Fixed truncated preview content in progress dialog by adding "Show All"/"Show Less" toggle buttons - users can now immediately view full rewritten content during processing instead of waiting for completion - enhanced user experience with instant content verification capabilities
 - June 22, 2025. CRITICAL MATH CORRUPTION FIX: Completely disabled fixMathDelimiters function that was destroying legitimate mathematical expressions in documents - mathematical notation like "U = V₁ + text(ingredients)" now displays correctly without corruption - removed all math delimiter conversion from document display to preserve original mathematical content exactly as written
 - June 22, 2025. CRITICAL LATEX CORRUPTION FIX: Fixed text-to-math system prompts across all models (Claude, GPT-4, DeepSeek) that were adding unwanted LaTeX markup to regular words - phrases like "luxury dilution" no longer get corrupted to "\textit{luxury dilution}" in PDF outputs - system now only applies LaTeX formatting to genuine mathematical expressions
+- June 22, 2025. CHECKBOX PRESELECTION FIX: Removed all automatic checkbox preselection from rewrite interfaces - ChunkedRewriter, DocumentRewriterModal, and DocumentRewrite components now default to no chunks selected, giving users full control over their selections without unwanted preselected boxes
 ```
 
 ## User Preferences

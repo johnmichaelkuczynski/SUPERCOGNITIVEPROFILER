@@ -308,7 +308,7 @@ export default function DocumentRewriterModal({
         chunks.push({ 
           id: chunkId++, 
           content: chunkContent, 
-          selected: true 
+          selected: false 
         });
       }
       
@@ -328,7 +328,7 @@ export default function DocumentRewriterModal({
         chunks.push({
           id: i,
           content: content.substring(start, end),
-          selected: true
+          selected: false
         });
       }
       console.log(`Created ${chunks.length} simple chunks as fallback`);

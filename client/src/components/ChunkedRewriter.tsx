@@ -271,7 +271,7 @@ export default function ChunkedRewriter({
         id: `chunk_${i / chunkSize}`,
         content,
         preview,
-        selected: true, // Default to all chunks selected
+        selected: false, // Default to no chunks selected
       });
     }
 

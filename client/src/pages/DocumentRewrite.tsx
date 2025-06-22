@@ -130,7 +130,7 @@ export default function DocumentRewrite() {
   const splitIntoChunks = (content: string, size: number): DocumentChunk[] => {
     // Check if document is large enough to need chunking
     if (content.length < size) {
-      return [{ id: 0, content, selected: true }];
+      return [{ id: 0, content, selected: false }];
     }
     
     // Split by paragraphs first to maintain coherence
@@ -144,7 +144,7 @@ export default function DocumentRewrite() {
       
       // If adding this paragraph would exceed chunk size, create a new chunk
       if (currentChunk.length + paragraph.length + 2 > size && currentChunk.length > 0) {
-        chunks.push({ id: chunkId++, content: currentChunk, selected: true });
+        chunks.push({ id: chunkId++, content: currentChunk, selected: false });
         currentChunk = paragraph;
       } else {
         // Add paragraph to current chunk
@@ -157,7 +157,7 @@ export default function DocumentRewrite() {
     
     // Add the last chunk if it's not empty
     if (currentChunk.length > 0) {
-      chunks.push({ id: chunkId, content: currentChunk, selected: true });
+      chunks.push({ id: chunkId, content: currentChunk, selected: false });
     }
     
     return chunks;
