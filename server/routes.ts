@@ -2900,14 +2900,17 @@ ${content}`;
       // CRITICAL: Remove any meta-text that slipped through
       cleanResult = cleanMetaText(cleanResult);
       
-      // CRITICAL: Preserve and restore paragraph structure
+      // CRITICAL: Fix paragraph structure completely
+      // First, normalize line breaks and preserve intentional paragraph structure
       cleanResult = cleanResult
-        .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks but keep double breaks
-        .replace(/\n\n/g, '|||PARAGRAPH_BREAK|||') // Temporarily mark paragraph breaks
-        .replace(/\n/g, ' ') // Convert single newlines to spaces
-        .replace(/\|\|\|PARAGRAPH_BREAK\|\|\|/g, '\n\n') // Restore paragraph breaks
-        .replace(/([.!?])\s+([A-Z][a-z])/g, '$1\n\n$2') // Add paragraph breaks between sentences
+        .replace(/\r\n/g, '\n') // Normalize Windows line breaks
+        .replace(/\r/g, '\n') // Normalize Mac line breaks
+        .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks
         .trim();
+      
+      // Now split into paragraphs and reconstruct with proper breaks
+      const paragraphs = cleanResult.split('\n\n').filter(p => p.trim().length > 0);
+      cleanResult = paragraphs.join('\n\n');
 
       res.json({ mathContent: cleanResult });
     } catch (error) {

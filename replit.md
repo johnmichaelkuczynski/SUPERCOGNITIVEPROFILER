@@ -137,6 +137,9 @@ Changelog:
 - June 22, 2025. CRITICAL FIX: Updated all AI model system prompts across rewrite, homework, and text-to-math modes to explicitly prevent generation of meta-text like "[continued in next part due to length...]" or "[text truncated]" - added comprehensive rules and automatic meta-text cleaning as backup safety measure to ensure clean professional output
 - June 22, 2025. EMERGENCY FIX: Enhanced meta-text cleaning system to eliminate specific problematic pattern "[Remaining text continues as is, since it contains no mathematical notation to convert...]" that was polluting text-to-math conversion outputs - updated all AI model system prompts with explicit prohibition against meta-commentary and processing annotations
 - June 22, 2025. Removed document deletion confirmation popup from document library - documents now delete immediately when clicking trash icon without requiring user confirmation
+- June 22, 2025. CRITICAL PARAGRAPH STRUCTURE FIX: Completely resolved text-to-math conversion destroying paragraph structure - entire chapters were being converted to single massive paragraph blocks instead of preserving proper document formatting
+- June 22, 2025. Enhanced text-to-math API with comprehensive paragraph preservation system - now maintains proper double line breaks between paragraphs and sections while converting mathematical expressions to LaTeX
+- June 22, 2025. Updated AI model prompts across all processing modes to explicitly preserve paragraph structure and prevent text consolidation into single blocks
 ```
 
 ## User Preferences
