@@ -140,6 +140,8 @@ Changelog:
 - June 22, 2025. CRITICAL FIX: Enforced minimum 1.2X length expansion requirement across all system prompts in rewrite-chunk and rewrite-selection endpoints to prevent content shrinkage and ensure proper length multiplier compliance
 - June 22, 2025. Updated system prompts to mandate length expansion with specific instructions for following multiplier requirements (like "3X length") and adding substantial detail, examples, and elaboration
 - June 22, 2025. MAJOR SYSTEM UPDATE: Made DeepSeek the default LLM across the entire application - updated DocumentRewriterModal, GraphGenerator, SimpleRewriter, RewriteViewer, Home page model selection buttons, and all component interfaces to prioritize DeepSeek as the primary model choice
+- June 22, 2025. CRITICAL MIND PROFILER FIX: Implemented new paradigm-based metacognitive scoring framework to replace broken system that severely undervalued sophisticated academic writing - updated scoring logic with absolute paradigm anchors for intellectual maturity, self-awareness, epistemic humility, and reflective depth
+- June 22, 2025. Added comprehensive paradigm text samples and calibration examples to ensure proper recognition of high-level intellectual sophistication like recursive modeling and semantic layering - system now uses absolute scoring against paradigm benchmarks rather than flawed relative percentile ranking
 ```
 
 ## User Preferences

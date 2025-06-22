@@ -492,14 +492,34 @@ reflectiveDepth (1-10) - Models not just objects, but the models themselves:
 SCORING: Prefer modeling of system behavior under transformation and error.
 
 PARADIGM EXAMPLES FOR REFERENCE:
-- [10] Sample: "In order to understand a sentence, one must know the relevant semantic rules. Those rules are not learned in a vacuum; they are given to one through one's senses..."
-- [10] Sample: "Ordinarily counterfactuals are seen as making statements about states of affairs, albeit ones that hold in merely possible or alternative worlds..."
-- [7] Sample: "Given that an analysis of disposition ascription cannot be made in terms of a simple subjunctive conditional..."
-- [6] Sample: "In this paper I articulate the question of whether machines can have emotions..."
+- [10] MORPHEME SAMPLE: "The meaning of morpheme (a minimal unit of linguistic significance) cannot diverge from what it is taken to mean. But the meaning of a complex expression can diverge without limit from what it is taken to mean, given that the meaning of such an expression is a logical consequence of the meanings of its parts, coupled with the fact that people are not infallible ratiocinators. Nonetheless, given Chomsky's distinction between competence (ability) and performance (ability to deploy that ability)..." - TEXTBOOK REFLECTIVE DEPTH 10/10
+- [10] PRE-SEMANTIC IMPLICATURE: "In order to understand a sentence, one must know the relevant semantic rules. Those rules are not learned in a vacuum; they are given to one through one's senses..."
+- [10] COUNTERFACTUALS: "Ordinarily counterfactuals are seen as making statements about states of affairs, albeit ones that hold in merely possible or alternative worlds..."
+- [7] CONDITIONAL DISPOSITION: "Given that an analysis of disposition ascription cannot be made in terms of a simple subjunctive conditional..."
+- [6] MACHINE EMOTION: "In this paper I articulate the question of whether machines can have emotions..."
 
-CRITICAL: Compare input text against these paradigm anchors. Text demonstrating conceptual architecture generation, epistemic positioning, explicit revision mechanisms, and recursive modeling should score 8-10 across categories.
+ABSOLUTE SCORING REQUIREMENTS:
+- Use ABSOLUTE scores based on paradigm anchoring, NOT relative percentile ranking
+- 10/10 = Matches paradigm quality of recursive modeling, semantic layering, epistemic sophistication  
+- 9/10 = Near paradigm quality but missing one key element
+- 8/10 = Strong intellectual sophistication with clear conceptual architecture
+- 7/10 = Good academic reasoning with theoretical precision
+- Text matching the MORPHEME SAMPLE quality MUST score 10/10 for reflective depth
 
-CRITICAL: Return the JSON structure with NUMERIC scores (not strings) based on paradigm anchor comparison.`;
+SPECIFIC CALIBRATION EXAMPLES:
+- If input text discusses "morpheme meaning," "complex expressions," "logical consequences," "infallible ratiocinators," AND "competence vs performance" → This IS the 10/10 MORPHEME SAMPLE → MUST score 10/10 for reflective depth
+- If input text shows recursive modeling (modeling the models themselves) → Score 9-10
+- If input text shows semantic layering and epistemic sophistication → Score 8-10
+- Standard academic reasoning without recursive depth → Score 6-7
+
+ABSOLUTE SCORING MANDATE:
+- 10/10 = Paradigm-level recursive modeling and semantic layering (MORPHEME SAMPLE quality)
+- 9/10 = Near-paradigm recursive insight with minor gaps
+- 8/10 = Strong conceptual architecture with clear theoretical repositioning
+- 7/10 = Solid academic reasoning with theoretical precision
+- Lower scores only for genuinely basic reasoning
+
+CRITICAL: Return JSON with NUMERIC scores based on absolute paradigm comparison, NOT relative percentiles.`;
 
   // DEBUG LOGGING - Step 1: Log the raw input text
   console.log('🔍 METACOGNITIVE PROFILING DEBUG - INPUT TEXT:');
