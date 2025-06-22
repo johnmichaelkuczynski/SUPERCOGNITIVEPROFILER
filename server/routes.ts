@@ -1132,18 +1132,22 @@ YOUR COMPLETE REWRITTEN DOCUMENT (no placeholder text):`;
 2. Specific instructions for how to rewrite it
 3. The full context where this text appears
 
-Your task:
+CRITICAL REQUIREMENTS:
+- LENGTH EXPANSION: The rewritten content MUST be at least 1.2X the length of the original selected text. If instructions specify a multiplier (like "3X length"), follow that exactly.
+- MANDATORY EXPANSION: Count the words in the original selection and ensure your output has significantly more words. Add detail, examples, explanations, and elaboration.
 - Rewrite ONLY the selected text according to the instructions
 - Return ONLY the rewritten text, nothing else
 - Do not add any commentary, explanations, or metadata
-- Maintain the original meaning while following the instructions
+- Maintain the original meaning while following the instructions and expanding substantially
 - If the instruction is about math notation, use proper LaTeX formatting with \\( \\) for inline and \\[ \\] for display math
+
+IMPORTANT: Your output must be substantially longer than the input. Follow any specific length multiplier instructions exactly.
 
 Selected text: "${selectedText}"
 Instructions: ${instructions}
 Full context: ${fullContext}
 
-Rewrite the selected text:`;
+Rewrite the selected text with significant expansion:`;
 
       let rewrittenText = '';
 
@@ -1628,17 +1632,21 @@ Rewrite the selected text:`;
       }
 
       prompt += `Text to rewrite:\n\n${content}\n\n`;
-      prompt += `REQUIREMENTS:
-1. Improve clarity, coherence, and academic quality
-2. Preserve LaTeX math formatting: \\(...\\) for inline math, $$...$$ for display math
-3. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
-4. Do NOT add headers, titles, introductions, conclusions, or any structural elements
-5. Do NOT add editorial comments, explanations, or metadata
-6. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
-7. NEVER add commentary about mathematical notation or formatting
-8. Return ONLY the rewritten content with no additions whatsoever
+      prompt += `CRITICAL REQUIREMENTS:
+1. LENGTH EXPANSION: The rewritten content MUST be at least 1.2X the length of the original text. If instructions specify a multiplier (like "3X length"), follow that exactly.
+2. MANDATORY EXPANSION: Count the words in the original and ensure your output has significantly more words. Add detail, examples, explanations, and elaboration.
+3. Improve clarity, coherence, and academic quality while expanding content substantially
+4. Preserve LaTeX math formatting: \\(...\\) for inline math, $$...$$ for display math
+5. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
+6. Do NOT add headers, titles, introductions, conclusions, or any structural elements
+7. Do NOT add editorial comments, explanations, or metadata
+8. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
+9. NEVER add commentary about mathematical notation or formatting
+10. Return ONLY the rewritten content with no additions whatsoever
 
-Return only the improved text content without any placeholder text or truncation indicators.`;
+IMPORTANT: Your output must be substantially longer than the input. If the original has 500 words, your output should have at least 600 words (1.2X minimum). Follow any specific length multiplier instructions exactly.
+
+Return only the improved text content that is significantly expanded from the original.`;
 
       let result: string;
       
