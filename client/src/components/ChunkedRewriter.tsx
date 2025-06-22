@@ -41,7 +41,7 @@ export default function ChunkedRewriter({
   onAddToChat,
   chatHistory = [],
   initialProcessingMode = 'rewrite'
-}: ChunkedRewriterProps) {
+}: ChunkedRewriterProps): JSX.Element {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [instructions, setInstructions] = useState('');
   const [includeChatContext, setIncludeChatContext] = useState(false);
@@ -2164,57 +2164,7 @@ export default function ChunkedRewriter({
             </div>
           )}
 
-          {/* Proof Comparison Interface */}
-          {showProofComparison && (
-            <div className="border rounded-lg bg-purple-50 p-4 mb-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-purple-800">Math Formatting Proof Results</h3>
-                <div className="flex space-x-2">
-                  <Button
-                    size="sm"
-                    onClick={applyProofedContent}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    Apply Changes
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={restoreOriginalContent}
-                    className="border-orange-500 text-orange-700 hover:bg-orange-50"
-                  >
-                    Restore Original
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowProofComparison(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border rounded p-3 bg-white">
-                  <h4 className="font-medium text-gray-800 mb-2">Original (Before Proofing)</h4>
-                  <div className="text-sm text-gray-700 max-h-40 overflow-y-auto bg-gray-50 p-2 rounded">
-                    {originalContent.substring(0, 500)}...
-                  </div>
-                </div>
-                <div className="border rounded p-3 bg-white">
-                  <h4 className="font-medium text-gray-800 mb-2">Proofed (After Math Fix)</h4>
-                  <div className="text-sm text-gray-700 max-h-40 overflow-y-auto bg-green-50 p-2 rounded">
-                    {proofedContent.substring(0, 500)}...
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-3 text-sm text-purple-700">
-                <strong>Changes made:</strong> Fixed malformed inline math expressions like $\beta$, $t$, $N(t)$ to proper LaTeX format \\(\beta\\), \\(t\\), \\(N(t)\\) and removed unwanted meta-text like "[continued in next part due to length...]"
-              </div>
-            </div>
-          )}
+
 
           {/* Content Display - Toggle between Edit View and Math View */}
           <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
