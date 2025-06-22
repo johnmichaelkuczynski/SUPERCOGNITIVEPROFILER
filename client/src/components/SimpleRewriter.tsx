@@ -46,7 +46,7 @@ export default function SimpleRewriter({
   const [rewritingIndex, setRewritingIndex] = useState<number | null>(null);
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
   const [showRewriteViewer, setShowRewriteViewer] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('claude');
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'perplexity' | 'deepseek'>('deepseek');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -557,9 +557,10 @@ export default function SimpleRewriter({
                   onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gpt4' | 'perplexity' | 'deepseek')}
                   className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
                 >
-                  <option value="claude">Claude (Balanced)</option>
-                  <option value="gpt4">GPT-4 (Most Powerful)</option>
-                  <option value="perplexity">Perplexity (Fast)</option>
+                  <option value="deepseek">DeepSeek (Default)</option>
+                  <option value="claude">Claude</option>
+                  <option value="gpt4">GPT-4</option>
+                  <option value="perplexity">Perplexity</option>
                   <option value="deepseek">DeepSeek (Efficient)</option>
                 </select>
               </CardContent>
