@@ -134,7 +134,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
   }));
 
   const formatMessage = (content: string) => {
-    // Clean up markdown formatting for text view
+    // Clean up markdown formatting but PRESERVE LaTeX mathematical notation
     const cleanContent = content
       .replace(/#{1,6}\s+/g, '') // Remove headers
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold

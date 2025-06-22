@@ -160,7 +160,7 @@ export default function ChunkedRewriter({
   // REMOVED: fixMathDelimiters function was corrupting mathematical expressions in documents
   // Mathematical content should be preserved exactly as written without delimiter conversion
 
-  // Clean content for auxiliary chat - remove markdown and fix math notation
+  // Clean content for auxiliary chat - remove markdown but PRESERVE LaTeX mathematical notation
   const cleanContentForChat = (content: string) => {
     let cleaned = content
       // Remove markdown headers
@@ -176,29 +176,8 @@ export default function ChunkedRewriter({
       // Remove list markers
       .replace(/^\s*[-*+]\s+/gm, '')
       .replace(/^\s*\d+\.\s+/gm, '')
-      // Fix mathematical notation - convert common LaTeX to readable format
-      .replace(/\\forall\s+/g, '∀')
-      .replace(/\\exists\s+/g, '∃')
-      .replace(/\\in\s+/g, '∈')
-      .replace(/\\notin\s+/g, '∉')
-      .replace(/\\subset\s+/g, '⊂')
-      .replace(/\\subseteq\s+/g, '⊆')
-      .replace(/\\supset\s+/g, '⊃')
-      .replace(/\\supseteq\s+/g, '⊇')
-      .replace(/\\cup\s+/g, '∪')
-      .replace(/\\cap\s+/g, '∩')
-      .replace(/\\emptyset/g, '∅')
-      .replace(/\\infty/g, '∞')
-      .replace(/\\leq\s+/g, '≤')
-      .replace(/\\geq\s+/g, '≥')
-      .replace(/\\neq\s+/g, '≠')
-      .replace(/\\approx\s+/g, '≈')
-      .replace(/\\equiv\s+/g, '≡')
-      .replace(/\\Rightarrow\s+/g, '⇒')
-      .replace(/\\Leftarrow\s+/g, '⇐')
-      .replace(/\\Leftrightarrow\s+/g, '⇔')
-      .replace(/\\rightarrow\s+/g, '→')
-      .replace(/\\leftarrow\s+/g, '←')
+      // PRESERVE LaTeX mathematical notation - DO NOT convert to Unicode
+      // Mathematical expressions should stay as \\(x \\in A\\), not become x ∈ A
       .replace(/\\leftrightarrow\s+/g, '↔')
       .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
       .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
