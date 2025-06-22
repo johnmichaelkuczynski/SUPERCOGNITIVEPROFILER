@@ -83,7 +83,7 @@ export default function ChunkedRewriter({
   
   const { toast } = useToast();
 
-  // Manual proofing function that fixes malformed inline math expressions
+  // Manual proofing function that fixes malformed inline math expressions and removes meta-text
   const proofDocument = () => {
     if (!finalRewrittenContent) {
       toast({
@@ -98,8 +98,33 @@ export default function ChunkedRewriter({
     setOriginalContent(finalRewrittenContent);
 
     try {
-      // Fix malformed inline math expressions while preserving everything else
+      // Fix malformed inline math expressions and remove meta-text
       let proofed = finalRewrittenContent;
+
+      // Remove meta-text patterns first
+      proofed = proofed
+        // Remove continuation notices
+        .replace(/\[continued in next part due to length[^\]]*\]/gi, '')
+        .replace(/\[continued in next page[^\]]*\]/gi, '')
+        .replace(/\[continued on next page[^\]]*\]/gi, '')
+        .replace(/\[continues in next section[^\]]*\]/gi, '')
+        .replace(/\[content continues[^\]]*\]/gi, '')
+        .replace(/\[to be continued[^\]]*\]/gi, '')
+        // Remove truncation notices
+        .replace(/\[text truncated[^\]]*\]/gi, '')
+        .replace(/\[content truncated[^\]]*\]/gi, '')
+        .replace(/\[document truncated[^\]]*\]/gi, '')
+        // Remove generic meta-text in brackets
+        .replace(/\[Note:[^\]]*\]/gi, '')
+        .replace(/\[Editor's note:[^\]]*\]/gi, '')
+        .replace(/\[Author's note:[^\]]*\]/gi, '')
+        // Remove ellipsis patterns that indicate continuation
+        .replace(/\.\.\.\s*\[continued[^\]]*\]/gi, '')
+        .replace(/\.\.\.\s*$/, '')
+        // Clean up extra whitespace left by removals
+        .replace(/\n\s*\n\s*\n/g, '\n\n')
+        .replace(/^\s+/gm, '')
+        .trim();
 
       // Pattern to match malformed single $ expressions like $\beta$, $t$, $N(t)$, etc.
       // This pattern looks for $ followed by LaTeX commands or simple variables and closing $
@@ -132,7 +157,7 @@ export default function ChunkedRewriter({
 
       toast({
         title: "Document proofed",
-        description: "Math formatting has been checked and corrected.",
+        description: "Math formatting and meta-text have been cleaned up.",
       });
 
     } catch (error) {
@@ -2309,7 +2334,7 @@ export default function ChunkedRewriter({
               </div>
               
               <div className="mt-3 text-sm text-purple-700">
-                <strong>Changes made:</strong> Fixed malformed inline math expressions like $\beta$, $t$, $N(t)$ to proper LaTeX format \\(\beta\\), \\(t\\), \\(N(t)\\)
+                <strong>Changes made:</strong> Fixed malformed inline math expressions like $\beta$, $t$, $N(t)$ to proper LaTeX format \\(\beta\\), \\(t\\), \\(N(t)\\) and removed unwanted meta-text like "[continued in next part due to length...]"
               </div>
             </div>
           )}
