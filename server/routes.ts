@@ -2671,6 +2671,7 @@ CRITICAL RULES:
 - NEVER add placeholder text like "Rest of text continues..." or similar placeholders
 - NEVER add editorial comments about mathematical notation or formatting
 - NEVER include meta-commentary about the content structure
+- CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
 - NEVER create ASCII-art graphs, charts, or visual approximations using slashes, underscores, bars, or any text characters
 - NEVER attempt to draw or simulate graphs within the text body
 - NEVER include visual representations made of text characters
@@ -2823,6 +2824,7 @@ CRITICAL REQUIREMENTS:
 - IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
 - Remove ALL markdown headers, bold text, italic text, and other formatting
 - Present the content as clean, readable plain text with proper LaTeX math notation
+- CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
 - NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]"
 - NEVER add any explanatory text about the conversion process
 - Return ONLY the converted content with no additional commentary
@@ -2856,7 +2858,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. NEVER add any editorial comments, metadata, or bracketed expressions like '[Content continues...]'. NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \\$300. This is mandatory. NEVER add any editorial comments, metadata, or bracketed expressions like '[Content continues...]'. NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2870,7 +2872,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]". NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.' },
+            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \\$300. This is mandatory. NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]". NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
@@ -2880,7 +2882,7 @@ ${content}`;
         result = response.choices[0]?.message?.content || '';
       } else if (selectedModel === 'deepseek') {
         // Create system prompt for DeepSeek to prevent metadata insertions
-        const systemPrompt = 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]". NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.';
+        const systemPrompt = 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \\$300. This is mandatory. NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]". NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.';
         
         result = await callDeepSeekWithRateLimit(`${systemPrompt}\n\n${prompt}`, {
           temperature: 0.1,
@@ -2897,7 +2899,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1,
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \\$300. This is mandatory.",
           messages: [{ role: 'user', content: prompt }]
         });
 
