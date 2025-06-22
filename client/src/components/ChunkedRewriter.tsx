@@ -2545,6 +2545,72 @@ export default function ChunkedRewriter({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Text Selection Rewrite Dialog */}
+    {showSelectionRewrite && (
+      <Dialog open={showSelectionRewrite} onOpenChange={setShowSelectionRewrite}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rewrite Selected Text</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label>Selected Text:</Label>
+              <div className="bg-gray-100 p-3 rounded text-sm max-h-32 overflow-y-auto mt-1">
+                {selectedText}
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="selection-instructions">Rewrite Instructions:</Label>
+              <Textarea
+                id="selection-instructions"
+                placeholder="How should this text be rewritten? (e.g., 'Fix math notation', 'Make more formal', 'Simplify language')"
+                value={selectionInstructions}
+                onChange={(e) => setSelectionInstructions(e.target.value)}
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label>AI Model:</Label>
+              <Select value={selectedModel} onValueChange={(value: 'claude' | 'gpt4' | 'perplexity' | 'deepseek') => setSelectedModel(value)}>
+                <SelectTrigger className="w-full mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="deepseek">DeepSeek</SelectItem>
+                  <SelectItem value="claude">Claude</SelectItem>
+                  <SelectItem value="gpt4">GPT-4</SelectItem>
+                  <SelectItem value="perplexity">Perplexity</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSelectionRewrite(false);
+                setSelectedText('');
+                setSelectionInstructions('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={rewriteSelectedText}
+              disabled={isProcessing || !selectionInstructions.trim()}
+            >
+              {isProcessing ? 'Rewriting...' : 'Rewrite Text'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
     </>
   );
 }
