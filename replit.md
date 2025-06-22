@@ -131,15 +131,6 @@ Changelog:
 - June 21, 2025. Fixed currency symbol issue - completely disabled single dollar sign ($) delimiters in MathJax configuration to prevent currency symbols from being incorrectly interpreted as mathematical expressions
 - June 21, 2025. Updated MathJax configuration to only use \( \) for inline math and \[ \] or $$ $$ for display math - single dollar signs now display as regular text
 - June 21, 2025. Implemented comprehensive word counting system across all text input areas - Home page direct text processor, Editor component, MindProfiler analysis input, GraphGenerator text analysis, and RewriteHistory statistics now prioritize word counts over character counts with "X words | Y characters" format
-- June 22, 2025. Completed mandatory word counter implementation across ALL text input areas including ChunkedRewriter instructions, new chunk instructions, re-rewrite instructions, main chat input, and direct text processor - all areas now display word counts prominently as primary metric
-- June 22, 2025. Verified and confirmed 1.1x minimum length requirement is properly enforced in server-side rewrite API - all rewrites automatically expand content if under 110% of original word count to ensure substantial improvement and prevent shortened outputs
-- June 22, 2025. REMOVED: Proof Document functionality completely eliminated due to poor performance and user dissatisfaction - function was causing more problems than it solved
-- June 22, 2025. CRITICAL FIX: Updated all AI model system prompts across rewrite, homework, and text-to-math modes to explicitly prevent generation of meta-text like "[continued in next part due to length...]" or "[text truncated]" - added comprehensive rules and automatic meta-text cleaning as backup safety measure to ensure clean professional output
-- June 22, 2025. EMERGENCY FIX: Enhanced meta-text cleaning system to eliminate specific problematic pattern "[Remaining text continues as is, since it contains no mathematical notation to convert...]" that was polluting text-to-math conversion outputs - updated all AI model system prompts with explicit prohibition against meta-commentary and processing annotations
-- June 22, 2025. Removed document deletion confirmation popup from document library - documents now delete immediately when clicking trash icon without requiring user confirmation
-- June 22, 2025. CRITICAL PARAGRAPH STRUCTURE FIX: Completely resolved text-to-math conversion destroying paragraph structure - entire chapters were being converted to single massive paragraph blocks instead of preserving proper document formatting
-- June 22, 2025. Enhanced text-to-math API with comprehensive paragraph preservation system - now maintains proper double line breaks between paragraphs and sections while converting mathematical expressions to LaTeX
-- June 22, 2025. Updated AI model prompts across all processing modes to explicitly preserve paragraph structure and prevent text consolidation into single blocks
 ```
 
 ## User Preferences

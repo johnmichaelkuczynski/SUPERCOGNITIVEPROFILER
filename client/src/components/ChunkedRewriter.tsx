@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { countWords } from '@/lib/utils';
 import { MathJax } from 'better-react-mathjax';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -41,7 +40,7 @@ export default function ChunkedRewriter({
   onAddToChat,
   chatHistory = [],
   initialProcessingMode = 'rewrite'
-}: ChunkedRewriterProps): JSX.Element {
+}: ChunkedRewriterProps) {
   const [chunks, setChunks] = useState<TextChunk[]>([]);
   const [instructions, setInstructions] = useState('');
   const [includeChatContext, setIncludeChatContext] = useState(false);
@@ -75,15 +74,7 @@ export default function ChunkedRewriter({
   // Math View toggle state
   const [showMathView, setShowMathView] = useState(false);
   
-
-  
   const { toast } = useToast();
-
-
-
-
-
-
 
   // Clean content for auxiliary chat - remove markdown and fix math notation
   const cleanContentForChat = (content: string) => {
@@ -455,7 +446,33 @@ export default function ChunkedRewriter({
           let content = processingMode === 'text-to-math' ? result.mathContent : 
                        result.rewrittenContent;
 
-          // DISABLED AUTO-MATH: Automatic text-to-math conversion disabled to preserve paragraph structure
+          // AUTO-APPLY TEXT TO MATH: For rewrite mode, automatically run through math formatting
+          if (processingMode === 'rewrite') {
+            try {
+              const mathResponse = await fetch('/api/text-to-math', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  content: content,
+                  instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                  model: selectedModel,
+                  chunkIndex: i,
+                  totalChunks: selectedChunks.length
+                }),
+              });
+
+              if (mathResponse.ok) {
+                const mathResult = await mathResponse.json();
+                content = mathResult.mathContent; // Use the math-formatted version
+                console.log(`[auto-math] Chunk ${i + 1} automatically formatted for math`);
+              }
+            } catch (error) {
+              console.warn(`[auto-math] Failed to format chunk ${i + 1} for math:`, error);
+              // Continue with original content if math formatting fails
+            }
+          }
 
           rewrittenChunks.push(content);
 
@@ -528,8 +545,31 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
           
-          // DISABLED AUTO-MATH: Automatic text-to-math conversion disabled to preserve paragraph structure
+          // AUTO-APPLY TEXT TO MATH: Format new chunks for math too
           let newChunkContent = result.newChunkContent;
+          try {
+            const mathResponse = await fetch('/api/text-to-math', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                content: newChunkContent,
+                instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
+                model: selectedModel,
+                chunkIndex: i,
+                totalChunks: maxNewChunks
+              }),
+            });
+
+            if (mathResponse.ok) {
+              const mathResult = await mathResponse.json();
+              newChunkContent = mathResult.mathContent;
+              console.log(`[auto-math] New chunk ${i + 1} automatically formatted for math`);
+            }
+          } catch (error) {
+            console.warn(`[auto-math] Failed to format new chunk ${i + 1} for math:`, error);
+          }
           
           // Add new chunk to final content
           finalContent += '\n\n' + newChunkContent;
@@ -1170,9 +1210,6 @@ export default function ChunkedRewriter({
                   onChange={(e) => setInstructions(e.target.value)}
                   rows={3}
                 />
-                <div className="text-xs text-gray-500">
-                  <span className="font-medium">{countWords(instructions)} words</span> | {instructions.length} characters
-                </div>
               </div>
             )}
             
@@ -1198,9 +1235,6 @@ export default function ChunkedRewriter({
                   rows={6}
                   className="min-h-[120px]"
                 />
-                <div className="text-xs text-gray-500">
-                  <span className="font-medium">{countWords(newChunkInstructions)} words</span> | {newChunkInstructions.length} characters
-                </div>
                 <div className="flex items-center space-x-2 mt-2">
                   <Label htmlFor="numberOfNewChunks" className="text-sm">Number of new chunks:</Label>
                   <input
@@ -1871,8 +1905,6 @@ export default function ChunkedRewriter({
               <Download className="w-4 h-4" />
               <span>Download TXT</span>
             </Button>
-
-
             
             <Button 
               variant="outline" 
@@ -2020,9 +2052,6 @@ export default function ChunkedRewriter({
                     onChange={(e) => setRerewriteInstructions(e.target.value)}
                     rows={3}
                   />
-                  <div className="text-xs text-gray-500">
-                    <span className="font-medium">{countWords(rerewriteInstructions)} words</span> | {rerewriteInstructions.length} characters
-                  </div>
                 </div>
 
                 <div className="flex items-center space-x-4">
@@ -2114,8 +2143,6 @@ export default function ChunkedRewriter({
               </div>
             </div>
           )}
-
-
 
           {/* Content Display - Toggle between Edit View and Math View */}
           <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
