@@ -931,9 +931,7 @@ Document text: ${extractedText}`;
                               className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) {
-                                  deleteDocument(doc.id);
-                                }
+                                deleteDocument(doc.id);
                               }}
                               disabled={isDeleting}
                               title="Delete document"

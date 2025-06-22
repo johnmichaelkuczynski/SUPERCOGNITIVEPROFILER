@@ -135,6 +135,7 @@ Changelog:
 - June 22, 2025. Verified and confirmed 1.1x minimum length requirement is properly enforced in server-side rewrite API - all rewrites automatically expand content if under 110% of original word count to ensure substantial improvement and prevent shortened outputs
 - June 22, 2025. Added manual "Proof Document" button to fix malformed inline math expressions and remove meta-text - converts broken $\beta$, $t$, $N(t)$ patterns to proper LaTeX \\(\beta\\), \\(t\\), \\(N(t)\\) format and eliminates unwanted meta-text like "[continued in next part due to length...]" with before/after comparison interface
 - June 22, 2025. CRITICAL FIX: Updated all AI model system prompts across rewrite, homework, and text-to-math modes to explicitly prevent generation of meta-text like "[continued in next part due to length...]" or "[text truncated]" - added comprehensive rules and automatic meta-text cleaning as backup safety measure to ensure clean professional output
+- June 22, 2025. Removed document deletion confirmation popup from document library - documents now delete immediately when clicking trash icon without requiring user confirmation
 ```
 
 ## User Preferences
