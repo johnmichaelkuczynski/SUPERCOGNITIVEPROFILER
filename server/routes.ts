@@ -46,26 +46,40 @@ function cleanMetaText(text: string): string {
     .replace(/\[continues in next section[^\]]*\]/gi, '')
     .replace(/\[content continues[^\]]*\]/gi, '')
     .replace(/\[to be continued[^\]]*\]/gi, '')
-    // Remove the specific problematic pattern
+    // Remove the specific problematic patterns from screenshot
+    .replace(/\[Rest of text continues without mathematical notation[^\]]*\]/gi, '')
+    .replace(/\[rest of text continues without mathematical notation[^\]]*\]/gi, '')
     .replace(/\[Remaining text continues as is[^\]]*\]/gi, '')
     .replace(/\[remaining text continues as is[^\]]*\]/gi, '')
     .replace(/\[text continues as is[^\]]*\]/gi, '')
     .replace(/\[content continues as is[^\]]*\]/gi, '')
-    // Remove mathematical notation conversion meta-text
+    // Remove mathematical notation conversion meta-text - CRITICAL FIXES
     .replace(/\[.*?since it contains no mathematical notation to convert[^\]]*\]/gi, '')
     .replace(/\[.*?no mathematical notation[^\]]*\]/gi, '')
     .replace(/\[.*?mathematical notation conversion[^\]]*\]/gi, '')
+    .replace(/\[.*?remains unchanged[^\]]*\]/gi, '')
+    .replace(/\[.*?converted only the mathematical expressions[^\]]*\]/gi, '')
+    .replace(/\[.*?I've converted only[^\]]*\]/gi, '')
+    .replace(/\[.*?The remaining text doesn't contain[^\]]*\]/gi, '')
+    .replace(/\[.*?remaining text doesn't contain[^\]]*\]/gi, '')
+    .replace(/\[.*?LaTeX notation[^\]]*\]/gi, '')
+    .replace(/\[.*?mathematical expressions requiring conversion[^\]]*\]/gi, '')
     // Remove truncation notices
     .replace(/\[text truncated[^\]]*\]/gi, '')
     .replace(/\[content truncated[^\]]*\]/gi, '')
     .replace(/\[document truncated[^\]]*\]/gi, '')
-    // Remove generic meta-text in brackets
+    // Remove ALL types of editorial notes and meta-commentary
     .replace(/\[Note:[^\]]*\]/gi, '')
+    .replace(/\[note:[^\]]*\]/gi, '')
     .replace(/\[Editor's note:[^\]]*\]/gi, '')
     .replace(/\[Author's note:[^\]]*\]/gi, '')
+    .replace(/\[System note:[^\]]*\]/gi, '')
+    .replace(/\[Processing note:[^\]]*\]/gi, '')
     // Remove ellipsis patterns that indicate continuation
     .replace(/\.\.\.\s*\[continued[^\]]*\]/gi, '')
     .replace(/\.\.\.\s*$/m, '')
+    // NUCLEAR OPTION: Remove ANY bracketed text that contains conversion-related keywords
+    .replace(/\[[^\]]*(?:convert|conversion|mathematical|notation|LaTeX|remains|unchanged|continue|continues)[^\]]*\]/gi, '')
     // Clean up extra whitespace left by removals
     .replace(/\n\s*\n\s*\n/g, '\n\n')
     .replace(/^\s+/gm, '')
@@ -2839,7 +2853,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL: NEVER add meta-comments like '[Remaining text continues as is...]' or '[content continues...]' or '[text truncated]' or any editorial notes. Simply return the converted text cleanly without any processing annotations.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. ABSOLUTE PROHIBITION: NEVER EVER add ANY bracketed statements, meta-comments, editorial notes, processing annotations, or explanatory text like '[Rest of text continues...]', '[Note: I've converted...]', '[Remaining text...]', '[text continues...]', or ANY similar bracketed commentary. Just return the converted text with no additional commentary whatsoever.",
           messages: [{ role: 'user', content: prompt }]
         });
 
