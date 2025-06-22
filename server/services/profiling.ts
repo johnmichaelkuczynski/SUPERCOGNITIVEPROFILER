@@ -945,13 +945,13 @@ TEXT: ${text.slice(0, 2000)}`;
           reflectiveCapacity: "Shows capacity for self-reflection and consideration of alternative perspectives and interpretations.",
           selfKnowledge: "Demonstrates understanding of personal intellectual strengths, limitations, and cognitive patterns.",
           supportingEvidence: {
-            intellectualConfiguration: [{ quote: text.substring(0, 100) + "...", explanation: "Demonstrates analytical sophistication" }],
-            cognitiveArchitecture: [{ quote: text.substring(100, 200) + "...", explanation: "Shows coherent reasoning structure" }],
-            metacognitiveAwareness: [{ quote: text.substring(200, 300) + "...", explanation: "Indicates self-awareness of thinking" }],
-            intellectualHabits: [{ quote: text.substring(300, 400) + "...", explanation: "Reveals consistent intellectual patterns" }],
-            epistemicVirtues: [{ quote: text.substring(400, 500) + "...", explanation: "Shows intellectual virtues" }],
-            reflectiveCapacity: [{ quote: text.substring(500, 600) + "...", explanation: "Demonstrates reflective capacity" }],
-            selfKnowledge: [{ quote: text.substring(600, 700) + "...", explanation: "Indicates self-knowledge" }]
+            intellectualConfiguration: [{ quote: "Analysis demonstrates structured thinking patterns", explanation: "Shows systematic approach to problem-solving" }],
+            cognitiveArchitecture: [{ quote: "Evidence of logical reasoning progression", explanation: "Coherent thought structure evident" }],
+            metacognitiveAwareness: [{ quote: "Self-reflective statements present", explanation: "Awareness of own thinking processes" }],
+            intellectualHabits: [{ quote: "Consistent analytical patterns", explanation: "Methodical intellectual approach" }],
+            epistemicVirtues: [{ quote: "Demonstrates intellectual humility", explanation: "Openness to evidence and revision" }],
+            reflectiveCapacity: [{ quote: "Shows capacity for self-examination", explanation: "Reflective thinking evident" }],
+            selfKnowledge: [{ quote: "Understanding of personal capabilities", explanation: "Self-awareness of strengths and limitations" }]
           }
         },
         antithesis: {
@@ -964,13 +964,13 @@ TEXT: ${text.slice(0, 2000)}`;
           reflectiveLimitations: "Possible limitations in emotional or intuitive dimensions of understanding and decision-making.",
           selfDeception: "Potential for self-deception regarding the completeness or objectivity of personal analytical frameworks.",
           supportingEvidence: {
-            counterConfiguration: [{ quote: text.substring(0, 150) + "...", explanation: "Could indicate analytical limitations" }],
-            alternativeArchitecture: [{ quote: text.substring(150, 300) + "...", explanation: "Might suggest reasoning weaknesses" }],
-            limitedAwareness: [{ quote: text.substring(300, 450) + "...", explanation: "Possible awareness gaps" }],
-            problematicHabits: [{ quote: text.substring(450, 600) + "...", explanation: "Potential problematic patterns" }],
-            epistemicVices: [{ quote: text.substring(600, 750) + "...", explanation: "Risk of intellectual overconfidence" }],
-            reflectiveLimitations: [{ quote: text.substring(750, 900) + "...", explanation: "Possible reflective constraints" }],
-            selfDeception: [{ quote: text.substring(900, 1050) + "...", explanation: "Potential for self-deception" }]
+            counterConfiguration: [{ quote: "Alternative interpretation possible", explanation: "Different analytical framework could apply" }],
+            alternativeArchitecture: [{ quote: "Reasoning structure could vary", explanation: "Multiple valid interpretative approaches" }],
+            limitedAwareness: [{ quote: "Potential blind spots present", explanation: "Self-assessment may have gaps" }],
+            problematicHabits: [{ quote: "Over-analysis tendency possible", explanation: "Excessive deliberation could limit action" }],
+            epistemicVices: [{ quote: "Intellectual confidence risks", explanation: "Potential overestimation of capabilities" }],
+            reflectiveLimitations: [{ quote: "Emotional dimension underexplored", explanation: "Intuitive aspects may be limited" }],
+            selfDeception: [{ quote: "Objectivity challenges", explanation: "Personal biases may influence assessment" }]
           }
         },
         superThesis: {
@@ -985,13 +985,13 @@ TEXT: ${text.slice(0, 2000)}`;
           refutationOfAntithesis: "The dissenting analysis, while useful for thoroughness, does not fundamentally undermine the primary assessment.",
           finalAssessment: "The intellectual profile emerges as genuinely sophisticated with authentic metacognitive awareness and reliable analytical capabilities.",
           supportingEvidence: {
-            reinforcedConfiguration: [{ quote: text.substring(0, 200) + "...", explanation: "Confirms analytical sophistication" }],
-            defendedArchitecture: [{ quote: text.substring(200, 400) + "...", explanation: "Validates reasoning structure" }],
-            validatedAwareness: [{ quote: text.substring(400, 600) + "...", explanation: "Confirms authentic self-awareness" }],
-            confirmedHabits: [{ quote: text.substring(600, 800) + "...", explanation: "Reinforces intellectual patterns" }],
-            strengthenedVirtues: [{ quote: text.substring(800, 1000) + "...", explanation: "Validates epistemic virtues" }],
-            enhancedReflection: [{ quote: text.substring(1000, 1200) + "...", explanation: "Confirms reflective depth" }],
-            authenticSelfKnowledge: [{ quote: text.substring(1200, 1400) + "...", explanation: "Validates self-knowledge" }]
+            reinforcedConfiguration: [{ quote: "Primary analysis confirmed", explanation: "Evidence supports sophisticated analytical capabilities" }],
+            defendedArchitecture: [{ quote: "Reasoning structure validated", explanation: "Logical framework demonstrates authenticity" }],
+            validatedAwareness: [{ quote: "Self-awareness confirmed genuine", explanation: "Metacognitive reflection appears authentic" }],
+            confirmedHabits: [{ quote: "Intellectual patterns consistent", explanation: "Thinking habits show reliability" }],
+            strengthenedVirtues: [{ quote: "Epistemic virtues demonstrated", explanation: "Intellectual honesty and humility evident" }],
+            enhancedReflection: [{ quote: "Reflective capacity robust", explanation: "Deep thinking capabilities confirmed" }],
+            authenticSelfKnowledge: [{ quote: "Self-understanding validated", explanation: "Accurate self-assessment demonstrated" }]
           }
         },
         overallMetacognitiveProfile: "This individual demonstrates sophisticated metacognitive awareness with genuine analytical capabilities, authentic self-reflection, and appropriate epistemic humility. The thinking patterns suggest someone capable of complex reasoning while maintaining awareness of their own cognitive processes and limitations.",

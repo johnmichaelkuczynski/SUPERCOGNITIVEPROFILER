@@ -2,52 +2,12 @@
 // Implements intelligent LaTeX math delimiter detection with robust currency protection
 
 export function sanitizeMathAndCurrency(text: string): string {
-  console.log('🔧 Starting advanced math delimiter and currency sanitization');
+  console.log('🔧 DISABLED: Math delimiter conversion completely disabled to prevent document corruption');
   
-  // Step 1: Protect all currency patterns (more comprehensive)
-  const currencyPatterns = [
-    /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\b/g,  // $1,000.00, $25.50, $1000
-    /\$(\d+\.?\d*)\s*(?:USD|dollars?|bucks?)\b/gi, // $25 USD, $100 dollars
-    /(?:USD|dollars?)\s*\$(\d+\.?\d*)\b/gi,  // USD $25, dollars $100
-    /\$(\d+)\s*(?:million|billion|thousand|k)\b/gi // $5 million, $10k
-  ];
+  // COMPLETELY DISABLED - Return original text unchanged
+  // This function was corrupting legitimate mathematical expressions in documents
+  // Mathematical content should be preserved exactly as written
   
-  const currencyReplacements: string[] = [];
-  let placeholderIndex = 0;
-  
-  currencyPatterns.forEach(pattern => {
-    text = text.replace(pattern, (match) => {
-      const placeholder = `CURRENCY_PLACEHOLDER_${placeholderIndex}`;
-      currencyReplacements.push(match);
-      placeholderIndex++;
-      return placeholder;
-    });
-  });
-  
-  console.log(`🔧 Protected ${currencyReplacements.length} currency expressions`);
-  
-  // Step 2: Identify and convert legitimate math expressions
-  // Only convert $...$ if it contains EXPLICIT LaTeX commands (backslash required)
-  const mathIndicators = /\\(?:frac|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega|partial|infty|rightarrow|leftarrow|text|mathrm|mathbf|mathit|over|cdot|times|div|pm|mp|leq|geq|neq|approx|equiv|subset|supset|in|notin|cup|cap|sin|cos|tan|log|ln|exp)/;
-  
-  text = text.replace(/\$([^$\n]+)\$/g, (match, content) => {
-    // Check if content contains clear LaTeX mathematical indicators
-    if (mathIndicators.test(content)) {
-      console.log(`🔧 Converting math expression: $${content}$`);
-      return `\\(${content}\\)`;
-    }
-    // If no clear LaTeX indicators, leave as regular text
-    console.log(`🔧 Keeping as regular text: ${match}`);
-    return match;
-  });
-  
-  // Step 3: Restore currency symbols
-  currencyReplacements.forEach((currency, index) => {
-    const placeholder = `CURRENCY_PLACEHOLDER_${index}`;
-    text = text.replace(placeholder, currency);
-  });
-  
-  console.log('🔧 Restored all currency symbols');
   return text;
 }
 
