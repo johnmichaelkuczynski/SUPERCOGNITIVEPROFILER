@@ -81,13 +81,30 @@ function Router() {
 const mathJaxConfig = {
   loader: { load: ["input/tex", "output/chtml"] },
   tex: {
-    inlineMath: [['\\(', '\\)']],  // Only use \( \) for inline math - NO SINGLE $ ALLOWED
-    displayMath: [['\\[', '\\]'], ['$$', '$$']],  // Use \[ \] and $$ $$ for display math
+    // STRICT delimiter configuration - NO single dollar signs to prevent currency confusion
+    inlineMath: [['\\(', '\\)']],  // Only \( \) for inline math
+    displayMath: [['\\[', '\\]'], ['$$', '$$']],  // Only \[ \] and $$ $$ for display math
     processEscapes: true,
-    processEnvironments: true
+    processEnvironments: true,
+    // Disable single $ delimiters completely
+    processRefs: true,
+    packages: {'[+]': ['noerrors']},
+    // Enhanced error handling
+    formatError: (jax: any, err: any) => {
+      console.warn('MathJax rendering error:', err);
+      return jax;
+    }
   },
   options: {
-    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+    // Prevent processing of currency-like patterns
+    ignoreHtmlClass: 'currency|money|price|cost'
+  },
+  startup: {
+    ready: () => {
+      console.log('🧮 MathJax ready with strict delimiter configuration');
+      (window as any).MathJax.startup.defaultReady();
+    }
   }
 };
 

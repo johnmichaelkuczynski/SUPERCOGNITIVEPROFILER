@@ -909,12 +909,15 @@ export default function ChunkedRewriter({
                 delimiters: [
                   {left: "\\\\[", right: "\\\\]", display: true},
                   {left: "\\\\(", right: "\\\\)", display: false},
-                  {left: "$$", right: "$$", display: true},
-                  {left: "$", right: "$", display: false}
+                  {left: "$$", right: "$$", display: true}
+                  // REMOVED single $ delimiters to prevent currency symbols from being treated as math
                 ],
                 throwOnError: false,
                 strict: false,
-                trust: true
+                trust: true,
+                // Enhanced options for currency protection
+                ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                ignoredClasses: ['currency', 'money', 'price', 'cost']
               });
               
               // Show content after math rendering

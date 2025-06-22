@@ -1,23 +1,53 @@
-// Math Delimiter and Currency Protection Service
-// Implements strict LaTeX math delimiter enforcement with currency protection
+// Advanced Math Delimiter and Currency Protection Service
+// Implements intelligent LaTeX math delimiter detection with robust currency protection
 
 export function sanitizeMathAndCurrency(text: string): string {
-  console.log('🔧 Starting math delimiter and currency sanitization');
+  console.log('🔧 Starting advanced math delimiter and currency sanitization');
   
-  // Step 1: Protect currency values from being treated as math
-  // Pattern: $25, $3.50, $1000 etc.
-  text = text.replace(/(?<!\\)\$(\d+\.?\d*\b)/g, 'CURRENCY$1');
-  console.log('🔧 Protected currency values');
+  // Step 1: Protect all currency patterns (more comprehensive)
+  const currencyPatterns = [
+    /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\b/g,  // $1,000.00, $25.50, $1000
+    /\$(\d+\.?\d*)\s*(?:USD|dollars?|bucks?)\b/gi, // $25 USD, $100 dollars
+    /(?:USD|dollars?)\s*\$(\d+\.?\d*)\b/gi,  // USD $25, dollars $100
+    /\$(\d+)\s*(?:million|billion|thousand|k)\b/gi // $5 million, $10k
+  ];
   
-  // Step 2: Convert plaintext $...$ to proper LaTeX \(...\)
-  // This fixes cases like $U^(\text{Veblen})$ → \(U^{\text{Veblen}}\)
-  text = text.replace(/(?<!\\)\$([^$]+)\$/g, '\\($1\\)');
-  console.log('🔧 Converted plaintext math to LaTeX delimiters');
+  const currencyReplacements: string[] = [];
+  let placeholderIndex = 0;
+  
+  currencyPatterns.forEach(pattern => {
+    text = text.replace(pattern, (match) => {
+      const placeholder = `CURRENCY_PLACEHOLDER_${placeholderIndex}`;
+      currencyReplacements.push(match);
+      placeholderIndex++;
+      return placeholder;
+    });
+  });
+  
+  console.log(`🔧 Protected ${currencyReplacements.length} currency expressions`);
+  
+  // Step 2: Identify and convert legitimate math expressions
+  // Only convert $...$ if it contains mathematical symbols/patterns
+  const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega)\b/;
+  
+  text = text.replace(/\$([^$]+)\$/g, (match, content) => {
+    // Check if content contains mathematical indicators
+    if (mathIndicators.test(content)) {
+      console.log(`🔧 Converting math expression: $${content}$`);
+      return `\\(${content}\\)`;
+    }
+    // If no math indicators, leave as regular text
+    console.log(`🔧 Keeping as regular text: ${match}`);
+    return match;
+  });
   
   // Step 3: Restore currency symbols
-  text = text.replace(/CURRENCY/g, '$');
-  console.log('🔧 Restored currency symbols');
+  currencyReplacements.forEach((currency, index) => {
+    const placeholder = `CURRENCY_PLACEHOLDER_${index}`;
+    text = text.replace(placeholder, currency);
+  });
   
+  console.log('🔧 Restored all currency symbols');
   return text;
 }
 
@@ -25,37 +55,63 @@ export function validateMathDelimiters(text: string): {
   isValid: boolean;
   issues: string[];
   suggestions: string[];
+  analysis: {
+    currencyCount: number;
+    mathExpressions: number;
+    ambiguousDollars: number;
+  };
 } {
   const issues: string[] = [];
   const suggestions: string[] = [];
   
-  // Check for potential problematic patterns
-  const problematicDollars = text.match(/(?<!\\)\$[^$\d][^$]*\$/g);
-  if (problematicDollars) {
-    issues.push(`Found ${problematicDollars.length} potential plaintext math expressions using $...$`);
-    suggestions.push('Convert $...$ to \\(...\\) for inline math');
-  }
+  // Analyze currency patterns
+  const currencyPattern = /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\b|\$(\d+\.?\d*)\s*(?:USD|dollars?|bucks?)\b/gi;
+  const currencyMatches = text.match(currencyPattern) || [];
   
-  const currencyPattern = /(?<!\\)\$\d+\.?\d*\b/g;
-  const currencyMatches = text.match(currencyPattern);
-  if (currencyMatches) {
-    console.log(`Found ${currencyMatches.length} currency values that will be protected`);
-  }
+  // Analyze math expressions
+  const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega)\b/;
+  const dollarPairs = text.match(/\$([^$]+)\$/g) || [];
   
-  const properInlineMath = text.match(/\\\\?\([^)]+\\\\?\)/g);
-  const properDisplayMath = text.match(/\\\\?\[[^\]]+\\\\?\]/g);
-  const doubleDollarMath = text.match(/\$\$[^$]+\$\$/g);
+  let mathExpressions = 0;
+  let ambiguousDollars = 0;
   
-  console.log('Math delimiter analysis:', {
-    properInline: properInlineMath?.length || 0,
-    properDisplay: properDisplayMath?.length || 0,
-    doubleDollar: doubleDollarMath?.length || 0
+  dollarPairs.forEach(pair => {
+    const content = pair.slice(1, -1); // Remove the $ delimiters
+    if (mathIndicators.test(content)) {
+      mathExpressions++;
+    } else if (!/^\d+\.?\d*$/.test(content.trim())) {
+      // Not a number, not clearly math - potentially ambiguous
+      ambiguousDollars++;
+      issues.push(`Ambiguous dollar expression: ${pair}`);
+      suggestions.push(`If "${pair}" is math, add LaTeX symbols. If not, consider rewording.`);
+    }
+  });
+  
+  // Check for proper LaTeX delimiters
+  const properInlineMath = text.match(/\\\\?\([^)]+\\\\?\)/g) || [];
+  const properDisplayMath = text.match(/\\\\?\[[^\]]+\\\\?\]/g) || [];
+  const doubleDollarMath = text.match(/\$\$[^$]+\$\$/g) || [];
+  
+  const analysis = {
+    currencyCount: currencyMatches.length,
+    mathExpressions,
+    ambiguousDollars
+  };
+  
+  console.log('Advanced math delimiter analysis:', {
+    currency: analysis.currencyCount,
+    mathExpressions: analysis.mathExpressions,
+    ambiguous: analysis.ambiguousDollars,
+    properInline: properInlineMath.length,
+    properDisplay: properDisplayMath.length,
+    doubleDollar: doubleDollarMath.length
   });
   
   return {
     isValid: issues.length === 0,
     issues,
-    suggestions
+    suggestions,
+    analysis
   };
 }
 
@@ -74,25 +130,31 @@ export function preprocessForMathJax(text: string): string {
   return processedText;
 }
 
-// Example usage patterns for testing
+// Comprehensive test cases for the new intelligent system
 export const testCases = {
-  currency: '$25 pasta, $3.50 coffee, $1000 rent',
-  mixedMath: '$U^(\\text{Veblen})$ utility and $25 price',
-  properLaTeX: '\\[U_{Smith} = \\max \\sum...\\] and \\(x^2\\)',
-  doubleDollar: '$$E = mc^2$$ and $50 fee'
+  pureCurrenty: '$25 pasta, $3.50 coffee, $1,000 rent, $5 million budget',
+  pureMath: '$U^{\\text{Veblen}}$ utility function, $\\alpha + \\beta$ coefficient',
+  mixedContent: '$U^{\\text{Veblen}}$ utility with $25 price and $\\theta$ parameter',
+  properLaTeX: '\\[U_{Smith} = \\max \\sum...\\] and \\(x^2\\) with $50 cost',
+  doubleDollar: '$$E = mc^2$$ physics and $50 fee',
+  ambiguous: '$hello world$ and $25 dollars$',
+  complexCurrency: '$1,250.99 USD, dollars $500, $10k budget, $2.5 billion'
 };
 
-// Test function to verify the implementation
+// Advanced test function with detailed analysis
 export function runTests(): void {
-  console.log('🧪 Testing math delimiter and currency protection:');
+  console.log('🧪 Testing intelligent math delimiter and currency protection:');
   
   Object.entries(testCases).forEach(([name, input]) => {
     console.log(`\n📝 Test: ${name}`);
     console.log(`Input:  ${input}`);
+    
+    const validation = validateMathDelimiters(input);
+    console.log(`Analysis: ${validation.analysis.currencyCount} currency, ${validation.analysis.mathExpressions} math, ${validation.analysis.ambiguousDollars} ambiguous`);
+    
     const output = sanitizeMathAndCurrency(input);
     console.log(`Output: ${output}`);
     
-    const validation = validateMathDelimiters(input);
     if (validation.issues.length > 0) {
       console.log(`Issues: ${validation.issues.join(', ')}`);
     }
