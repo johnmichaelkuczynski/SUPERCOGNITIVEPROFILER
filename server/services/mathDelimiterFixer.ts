@@ -30,7 +30,7 @@ export function sanitizeMathAndCurrency(text: string): string {
   // Only convert $...$ if it contains mathematical symbols/patterns
   const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega)\b/;
   
-  text = text.replace(/\$([^$]+)\$/g, (match, content) => {
+  text = text.replace(/\$([^$\n]+)\$/g, (match, content) => {
     // Check if content contains mathematical indicators
     if (mathIndicators.test(content)) {
       console.log(`🔧 Converting math expression: $${content}$`);

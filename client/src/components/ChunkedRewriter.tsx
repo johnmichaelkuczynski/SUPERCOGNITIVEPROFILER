@@ -156,6 +156,47 @@ export default function ChunkedRewriter({
     }
   };
 
+  // Fix math delimiters in content for proper rendering
+  const fixMathDelimiters = (content: string) => {
+    // Protect currency patterns first
+    const currencyPatterns = [
+      /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\b/g,
+      /\$(\d+\.?\d*)\s*(?:USD|dollars?|bucks?)\b/gi,
+      /(?:USD|dollars?)\s*\$(\d+\.?\d*)\b/gi,
+      /\$(\d+)\s*(?:million|billion|thousand|k)\b/gi
+    ];
+    
+    const currencyReplacements = [];
+    let placeholderIndex = 0;
+    
+    currencyPatterns.forEach(pattern => {
+      content = content.replace(pattern, (match) => {
+        const placeholder = `CURRENCY_PLACEHOLDER_${placeholderIndex}`;
+        currencyReplacements.push(match);
+        placeholderIndex++;
+        return placeholder;
+      });
+    });
+    
+    // Convert math expressions - only if they contain mathematical indicators
+    const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega)\b/;
+    
+    content = content.replace(/\$([^$\n]+)\$/g, (match, mathContent) => {
+      if (mathIndicators.test(mathContent)) {
+        return `\\(${mathContent}\\)`;
+      }
+      return match;
+    });
+    
+    // Restore currency symbols
+    currencyReplacements.forEach((currency, index) => {
+      const placeholder = `CURRENCY_PLACEHOLDER_${index}`;
+      content = content.replace(placeholder, currency);
+    });
+    
+    return content;
+  };
+
   // Clean content for auxiliary chat - remove markdown and fix math notation
   const cleanContentForChat = (content: string) => {
     let cleaned = content
