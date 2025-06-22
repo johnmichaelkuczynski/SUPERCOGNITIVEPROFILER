@@ -1643,7 +1643,7 @@ Rewrite the selected text with significant expansion:`;
 1. LENGTH EXPANSION: The rewritten content MUST be at least 1.2X the length of the original text. If instructions specify a multiplier (like "3X length"), follow that exactly.
 2. MANDATORY EXPANSION: Count the words in the original and ensure your output has significantly more words. Add detail, examples, explanations, and elaboration.
 3. Improve clarity, coherence, and academic quality while expanding content substantially
-4. Preserve LaTeX math formatting: \\(...\\) for inline math, $$...$$ for display math
+4. CRITICAL LATEX RULES: For mathematical expressions, use ONLY simple LaTeX without \\text{} commands. Write math as: \\(x^2 + y^2 = z^2\\) NOT \\(x^2 + y^2 \\text{ equals } z^2\\). Never use \\text{}, \\textit{}, or similar text commands within math expressions
 5. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $200, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
 6. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
 7. Do NOT add headers, titles, introductions, conclusions, or any structural elements
@@ -1697,10 +1697,16 @@ Return only the improved text content that is significantly expanded from the or
       result = sanitizeMathAndCurrency(result);
       console.log('🧮 Applied intelligent math delimiter processing FIRST');
       
-      // SECOND: Fix formatting issues but preserve math delimiters
+      // SECOND: Clean up corrupted LaTeX text commands within math expressions
+      result = result.replace(/\\text\{([^}]*)\}/g, '$1'); // Remove \text{} commands
+      result = result.replace(/\\textit\{([^}]*)\}/g, '$1'); // Remove \textit{} commands
+      result = result.replace(/\\textbf\{([^}]*)\}/g, '$1'); // Remove \textbf{} commands
+      console.log('🔧 Cleaned corrupted LaTeX text commands');
+      
+      // THIRD: Fix formatting issues but preserve math delimiters
       result = ensurePerfectFormatting(result);
       
-      // THIRD: Remove markdown formatting for clean output (but preserve math)
+      // FOURTH: Remove markdown formatting for clean output (but preserve math)
       result = cleanMarkdownFormatting(result);
       
       // FINAL: Ensure no escaped dollar signs remain in currency

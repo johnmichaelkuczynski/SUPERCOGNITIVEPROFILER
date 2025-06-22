@@ -153,6 +153,7 @@ Changelog:
 - June 22, 2025. CHECKBOX PRESELECTION FIX: Removed all automatic checkbox preselection from rewrite interfaces - ChunkedRewriter, DocumentRewriterModal, and DocumentRewrite components now default to no chunks selected, giving users full control over their selections without unwanted preselected boxes
 - June 22, 2025. INSTANT DOCUMENT DELETION: Removed confirmation popup from document library deletion - documents now delete instantly when clicking the delete button without any confirmation dialogs for streamlined user experience
 - June 22, 2025. CRITICAL METADATA ELIMINATION: Completely removed automatic text-to-math processing that was inserting unwanted metadata like "(No mathematical expressions requiring LaTeX conversion were present in the provided text.)" into rewrite outputs - strengthened system prompts with explicit metadata prohibition rules - rewrite outputs now contain only the requested content without any editorial commentary or processing notes
+- June 22, 2025. CRITICAL LATEX CORRUPTION FIX V2: Fixed remaining LaTeX corruption where mathematical expressions contained unwanted \text{} commands like "\(\max_{i=1} U(x1, x2, ..., xn) \text{ subject to } \sum pi xi \leq B\)" - updated system prompts to prohibit \text{}, \textit{}, \textbf{} commands within math expressions - added post-processing cleanup to remove any remaining corrupted LaTeX text commands - mathematical expressions now render cleanly without text command pollution
 ```
 
 ## User Preferences
