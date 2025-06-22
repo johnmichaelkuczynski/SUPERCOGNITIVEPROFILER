@@ -41,7 +41,7 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
   const [mode, setMode] = useState<'text' | 'math' | 'essay'>('text');
   const [inputText, setInputText] = useState('');
   const [mathExpression, setMathExpression] = useState('');
-  const [model, setModel] = useState<'claude' | 'gpt4' | 'deepseek'>('claude');
+  const [model, setModel] = useState<'claude' | 'gpt4' | 'deepseek'>('deepseek');
   const [style, setStyle] = useState<'academic' | 'business' | 'scientific'>('academic');
   const [generatedGraphs, setGeneratedGraphs] = useState<GeneratedGraph[]>([]);
   const [essayContent, setEssayContent] = useState('');
@@ -226,9 +226,9 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="deepseek">DeepSeek</SelectItem>
                   <SelectItem value="claude">Claude</SelectItem>
                   <SelectItem value="gpt4">GPT-4</SelectItem>
-                  <SelectItem value="deepseek">DeepSeek</SelectItem>
                 </SelectContent>
               </Select>
             </div>

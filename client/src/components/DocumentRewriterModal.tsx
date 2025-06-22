@@ -98,7 +98,7 @@ export default function DocumentRewriterModal({
   
   // State for settings
   const [settings, setSettings] = useState<RewriteSettings>({
-    model: 'claude',
+    model: 'deepseek',
     instructions: '',
     detectionProtection: true
   });
@@ -1165,10 +1165,10 @@ export default function DocumentRewriterModal({
                             <SelectValue placeholder="Select a model" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="claude">Claude (Recommended)</SelectItem>
+                            <SelectItem value="deepseek">DeepSeek (Default)</SelectItem>
+                            <SelectItem value="claude">Claude</SelectItem>
                             <SelectItem value="gpt4">GPT-4</SelectItem>
                             <SelectItem value="perplexity">Perplexity</SelectItem>
-                            <SelectItem value="deepseek">DeepSeek</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
