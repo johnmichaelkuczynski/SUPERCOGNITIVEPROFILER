@@ -1647,10 +1647,14 @@ Rewrite the selected text with significant expansion:`;
 5. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $200, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
 6. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
 7. Do NOT add headers, titles, introductions, conclusions, or any structural elements
-8. Do NOT add editorial comments, explanations, or metadata
+8. ABSOLUTELY FORBIDDEN: Do NOT add editorial comments, explanations, or metadata of any kind
 9. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
-10. NEVER add commentary about mathematical notation or formatting
-11. Return ONLY the rewritten content with no additions whatsoever
+10. NEVER add commentary about mathematical notation, formatting, or conversion processes
+11. NEVER add phrases like "(No mathematical expressions requiring LaTeX conversion were present in the provided text.)" or similar metadata
+12. NEVER add bracketed editorial comments like "[Content continues...]" or "[remaining text unchanged]"
+13. Return ONLY the rewritten content with absolutely no additions, commentary, or metadata
+
+METADATA ELIMINATION RULE: Your response must contain ZERO editorial commentary, processing notes, or metadata insertions. Output only the rewritten content itself.
 
 IMPORTANT: Your output must be substantially longer than the input. If the original has 500 words, your output should have at least 600 words (1.2X minimum). Follow any specific length multiplier instructions exactly.
 
