@@ -2591,7 +2591,7 @@ export default function ChunkedRewriter({
                       if (el) {
                         setTimeout(() => {
                           try {
-                            renderMathInElement(el);
+                            renderMathContent(el);
                             console.log('✅ Math rendered in progress dialog');
                           } catch (e) {
                             console.error('❌ KaTeX rendering failed in progress dialog:', e);

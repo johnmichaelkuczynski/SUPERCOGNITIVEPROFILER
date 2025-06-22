@@ -16,11 +16,14 @@
     <script>
       // Perfect KaTeX rendering for ALL technical notation
       document.addEventListener("DOMContentLoaded", function() {
-        if (typeof renderMathInElement === 'function') {
+        // Store original KaTeX function before overriding
+        const originalRenderMathInElement = window.renderMathInElement;
+        
+        if (typeof originalRenderMathInElement === 'function') {
           // Global KaTeX wrapper for perfect technical notation
           window.renderMathInElement = function(element, options = {}) {
             try {
-              renderMathInElement(element, {
+              originalRenderMathInElement(element, {
                 delimiters: [
                   {left: '\\(', right: '\\)', display: false},
                   {left: '\\[', right: '\\]', display: true},
