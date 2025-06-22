@@ -595,10 +595,33 @@ export default function ChunkedRewriter({
         }
       }
 
-      // Prepare metadata
+      // Calculate comprehensive word counts for each chunk
+      const chunkWordCounts = chunks.filter(chunk => chunk.selected).map((chunk, index) => {
+        const originalWords = chunk.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+        const rewrittenWords = chunk.rewritten ? chunk.rewritten.trim().split(/\s+/).filter(word => word.length > 0).length : 0;
+        return {
+          chunkNumber: index + 1,
+          originalWords,
+          rewrittenWords,
+          wordChange: rewrittenWords - originalWords,
+          expansionRatio: originalWords > 0 ? (rewrittenWords / originalWords).toFixed(2) : '0.00'
+        };
+      });
+
+      const totalOriginalWords = originalText.trim().split(/\s+/).filter(word => word.length > 0).length;
+      const totalRewrittenWords = finalContent.trim().split(/\s+/).filter(word => word.length > 0).length;
+      const totalWordChange = totalRewrittenWords - totalOriginalWords;
+      const overallExpansionRatio = totalOriginalWords > 0 ? (totalRewrittenWords / totalOriginalWords).toFixed(2) : '0.00';
+
+      // Prepare metadata with comprehensive word count tracking
       const metadata = {
         originalLength: originalText.length,
         rewrittenLength: finalContent.length,
+        originalWords: totalOriginalWords,
+        rewrittenWords: totalRewrittenWords,
+        wordChange: totalWordChange,
+        expansionRatio: overallExpansionRatio,
+        chunkWordCounts: chunkWordCounts,
         chunksProcessed: chunks.filter(chunk => chunk.selected).length,
         newChunksAdded: rewriteMode === 'add' || rewriteMode === 'both' ? numberOfNewChunks : 0,
         model: selectedModel,
@@ -618,7 +641,7 @@ export default function ChunkedRewriter({
 
       toast({
         title: "Rewrite complete!",
-        description: `Successfully processed content with ${metadata.chunksProcessed} rewritten chunks${metadata.newChunksAdded ? ` and ${metadata.newChunksAdded} new chunks` : ''}.`,
+        description: `Successfully processed ${metadata.chunksProcessed} chunks. ${metadata.originalWords} words → ${metadata.rewrittenWords} words (${metadata.wordChange >= 0 ? '+' : ''}${metadata.wordChange} words, ${metadata.expansionRatio}x expansion)${metadata.newChunksAdded ? ` with ${metadata.newChunksAdded} new chunks added` : ''}.`,
       });
 
       // Don't automatically add rewrite results to chat
