@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { countWords } from '@/lib/utils';
 import { MathJax } from 'better-react-mathjax';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -1210,6 +1211,9 @@ export default function ChunkedRewriter({
                   onChange={(e) => setInstructions(e.target.value)}
                   rows={3}
                 />
+                <div className="text-xs text-gray-500">
+                  <span className="font-medium">{countWords(instructions)} words</span> | {instructions.length} characters
+                </div>
               </div>
             )}
             
