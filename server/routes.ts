@@ -2789,6 +2789,14 @@ CRITICAL REQUIREMENTS:
 - Remove ALL markdown headers, bold text, italic text, and other formatting
 - Present the content as clean, readable plain text with proper LaTeX math notation
 
+CRITICAL RULES TO PREVENT META-TEXT:
+- NEVER add meta-comments like "[Remaining text continues as is...]" or "[content continues...]" or "[text truncated]"
+- NEVER add editorial notes about mathematical notation conversion
+- NEVER add explanatory brackets about the conversion process
+- DO NOT add any commentary about what you're doing to the text
+- Simply return the converted text cleanly without any processing annotations
+- If text has no mathematical content, return it unchanged without mentioning this fact
+
 Content to convert:
 ${content}`;
 
@@ -2818,7 +2826,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL: NEVER add meta-comments like '[Remaining text continues as is...]' or '[content continues...]' or '[text truncated]' or any editorial notes. Simply return the converted text cleanly without any processing annotations.",
           messages: [{ role: 'user', content: prompt }]
         });
 
