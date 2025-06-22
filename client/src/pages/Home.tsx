@@ -1467,6 +1467,9 @@ Document text: ${extractedText}`;
                     }}
                     disabled={isLoading}
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    <span className="font-medium">{countWords(prompt)} words</span> | {prompt.length} characters
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Button

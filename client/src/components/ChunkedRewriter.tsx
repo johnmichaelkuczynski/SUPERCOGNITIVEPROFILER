@@ -1239,6 +1239,9 @@ export default function ChunkedRewriter({
                   rows={6}
                   className="min-h-[120px]"
                 />
+                <div className="text-xs text-gray-500">
+                  <span className="font-medium">{countWords(newChunkInstructions)} words</span> | {newChunkInstructions.length} characters
+                </div>
                 <div className="flex items-center space-x-2 mt-2">
                   <Label htmlFor="numberOfNewChunks" className="text-sm">Number of new chunks:</Label>
                   <input
@@ -2056,6 +2059,9 @@ export default function ChunkedRewriter({
                     onChange={(e) => setRerewriteInstructions(e.target.value)}
                     rows={3}
                   />
+                  <div className="text-xs text-gray-500">
+                    <span className="font-medium">{countWords(rerewriteInstructions)} words</span> | {rerewriteInstructions.length} characters
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-4">

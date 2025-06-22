@@ -131,6 +131,8 @@ Changelog:
 - June 21, 2025. Fixed currency symbol issue - completely disabled single dollar sign ($) delimiters in MathJax configuration to prevent currency symbols from being incorrectly interpreted as mathematical expressions
 - June 21, 2025. Updated MathJax configuration to only use \( \) for inline math and \[ \] or $$ $$ for display math - single dollar signs now display as regular text
 - June 21, 2025. Implemented comprehensive word counting system across all text input areas - Home page direct text processor, Editor component, MindProfiler analysis input, GraphGenerator text analysis, and RewriteHistory statistics now prioritize word counts over character counts with "X words | Y characters" format
+- June 22, 2025. Completed mandatory word counter implementation across ALL text input areas including ChunkedRewriter instructions, new chunk instructions, re-rewrite instructions, main chat input, and direct text processor - all areas now display word counts prominently as primary metric
+- June 22, 2025. Verified and confirmed 1.1x minimum length requirement is properly enforced in server-side rewrite API - all rewrites automatically expand content if under 110% of original word count to ensure substantial improvement and prevent shortened outputs
 ```
 
 ## User Preferences
