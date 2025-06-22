@@ -34,8 +34,11 @@ function ensurePerfectFormatting(text: string): string {
     return '';
   }
   
-  // Step 1: Clean up any existing formatting issues
+  // Step 1: Fix escaped dollar signs (currency protection)
   let cleaned = text.trim();
+  // Convert escaped dollar signs back to normal currency symbols
+  cleaned = cleaned.replace(/\\\$/g, '$');
+  console.log('🔧 Fixed escaped dollar signs for currency display');
   
   // Step 2: Fix sentence spacing - ensure single space after periods, exclamation marks, question marks
   cleaned = cleaned.replace(/([.!?])\s+/g, '$1 ');
@@ -90,6 +93,10 @@ function cleanMarkdownFormatting(text: string): string {
   if (!text) return text;
   
   let cleaned = text;
+  
+  // CRITICAL FIX: Convert escaped dollar signs back to normal currency symbols
+  cleaned = cleaned.replace(/\\\$/g, '$');
+  console.log('🔧 Fixed escaped dollar signs in markdown cleaning');
   
   // Remove markdown headers (# ## ### etc.)
   cleaned = cleaned.replace(/^#+\s+/gm, '');
@@ -2891,6 +2898,7 @@ ${content}`;
 
       // Clean up any remaining markdown formatting and fix escaped dollar signs
       const cleanResult = result
+        .replace(/\\\$/g, '$') // CRITICAL FIX: Convert escaped dollar signs to normal currency symbols
         .replace(/^#+ /gm, '') // Remove markdown headers
         .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
         .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting  
@@ -2899,6 +2907,8 @@ ${content}`;
         .replace(/^\* /gm, '') // Remove asterisk bullet points
         .replace(/^\d+\. /gm, '') // Remove numbered lists
         .trim();
+      
+      console.log('🔧 Fixed escaped dollar signs in text-to-math output');
 
       res.json({ mathContent: cleanResult });
     } catch (error) {
