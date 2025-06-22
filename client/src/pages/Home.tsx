@@ -956,12 +956,19 @@ Document text: ${extractedText}`;
             <TabsContent value="upload">
               {/* File Upload Interface */}
               <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors"
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                  isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                }`}
                 onClick={() => directFileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDirectDrop}
               >
                 <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Click to upload or drag files here</p>
-                <p className="text-xs text-gray-400 mt-1">Supports PDF, DOCX, TXT files</p>
+                <p className="text-sm text-gray-600">
+                  {isDragging ? 'Drop files here' : 'Click to upload or drag files here'}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">Supports PDF, DOCX, TXT, JPG, PNG files</p>
                 <input
                   type="file"
                   ref={directFileInputRef}
@@ -971,26 +978,7 @@ Document text: ${extractedText}`;
                   onChange={async (e) => {
                     if (e.target.files && e.target.files.length > 0) {
                       const newFiles = Array.from(e.target.files);
-                      
-                      // Process files and extract text
-                      for (const file of newFiles) {
-                        try {
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          
-                          const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            body: formData,
-                          });
-                          
-                          if (response.ok) {
-                            const result = await response.json();
-                            setDirectInputText(result.extractedText || '');
-                          }
-                        } catch (error) {
-                          console.error('Error processing file:', error);
-                        }
-                      }
+                      await handleDirectFileUpload(newFiles);
                     }
                   }}
                 />

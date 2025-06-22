@@ -47,14 +47,9 @@ export default function FileUpload({ onFilesChange, files }: FileUploadProps) {
     }
 
     if (validFiles.length > 0) {
-      // Process each file individually and immediately
-      validFiles.forEach(file => {
-        // Add the file to the list first
-        onFilesChange([...files, file]);
-        
-        // Automatically trigger processing for this file
-        // This will be handled by the parent component that receives the file
-      });
+      // Add all valid files to the existing files array
+      const updatedFiles = [...files, ...validFiles];
+      onFilesChange(updatedFiles);
     }
   };
 
