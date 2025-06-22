@@ -2798,6 +2798,12 @@ CRITICAL REQUIREMENTS:
 - Remove ALL markdown headers, bold text, italic text, and other formatting
 - Present the content as clean, readable plain text with proper LaTeX math notation
 
+CRITICAL PARAGRAPH STRUCTURE RULES:
+- PRESERVE ALL PARAGRAPH BREAKS - maintain double line breaks (\\n\\n) between paragraphs
+- PRESERVE ALL SECTION BREAKS - maintain spacing between chapters/sections
+- DO NOT combine paragraphs into single blocks of text
+- MAINTAIN the original text structure and formatting
+
 CRITICAL RULES TO PREVENT META-TEXT:
 - NEVER add meta-comments like "[Remaining text continues as is...]" or "[content continues...]" or "[text truncated]"
 - NEVER add editorial notes about mathematical notation conversion
@@ -2880,7 +2886,7 @@ ${content}`;
         result = response.content[0].type === 'text' ? response.content[0].text : '';
       }
 
-      // Clean up any remaining markdown formatting
+      // Clean up any remaining markdown formatting while preserving paragraph structure
       let cleanResult = result
         .replace(/^#+ /gm, '') // Remove markdown headers
         .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
@@ -2893,6 +2899,15 @@ ${content}`;
       
       // CRITICAL: Remove any meta-text that slipped through
       cleanResult = cleanMetaText(cleanResult);
+      
+      // CRITICAL: Preserve and restore paragraph structure
+      cleanResult = cleanResult
+        .replace(/\n{3,}/g, '\n\n') // Clean up excessive line breaks but keep double breaks
+        .replace(/\n\n/g, '|||PARAGRAPH_BREAK|||') // Temporarily mark paragraph breaks
+        .replace(/\n/g, ' ') // Convert single newlines to spaces
+        .replace(/\|\|\|PARAGRAPH_BREAK\|\|\|/g, '\n\n') // Restore paragraph breaks
+        .replace(/([.!?])\s+([A-Z][a-z])/g, '$1\n\n$2') // Add paragraph breaks between sentences
+        .trim();
 
       res.json({ mathContent: cleanResult });
     } catch (error) {
