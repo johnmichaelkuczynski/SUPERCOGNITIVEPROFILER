@@ -46,13 +46,15 @@ function cleanMetaText(text: string): string {
     .replace(/\[continues in next section[^\]]*\]/gi, '')
     .replace(/\[content continues[^\]]*\]/gi, '')
     .replace(/\[to be continued[^\]]*\]/gi, '')
-    // Remove the specific problematic patterns from screenshot
-    .replace(/\[Rest of text continues without mathematical notation[^\]]*\]/gi, '')
-    .replace(/\[rest of text continues without mathematical notation[^\]]*\]/gi, '')
-    .replace(/\[Remaining text continues as is[^\]]*\]/gi, '')
-    .replace(/\[remaining text continues as is[^\]]*\]/gi, '')
-    .replace(/\[text continues as is[^\]]*\]/gi, '')
-    .replace(/\[content continues as is[^\]]*\]/gi, '')
+    // Remove the EXACT problematic patterns from the screenshot
+    .replace(/\[Rest of text continues without mathematical notation, so remains unchanged\.\.\.\]/gi, '')
+    .replace(/\[Note: I've converted only the mathematical expressions to LaTeX notation\. The remaining text doesn't contain mathematical expressions requiring conversion\.\]/gi, '')
+    .replace(/\[Rest of text continues[^\]]*\]/gi, '')
+    .replace(/\[rest of text continues[^\]]*\]/gi, '')
+    .replace(/\[Remaining text continues[^\]]*\]/gi, '')
+    .replace(/\[remaining text continues[^\]]*\]/gi, '')
+    .replace(/\[text continues[^\]]*\]/gi, '')
+    .replace(/\[content continues[^\]]*\]/gi, '')
     // Remove mathematical notation conversion meta-text - CRITICAL FIXES
     .replace(/\[.*?since it contains no mathematical notation to convert[^\]]*\]/gi, '')
     .replace(/\[.*?no mathematical notation[^\]]*\]/gi, '')
@@ -64,6 +66,9 @@ function cleanMetaText(text: string): string {
     .replace(/\[.*?remaining text doesn't contain[^\]]*\]/gi, '')
     .replace(/\[.*?LaTeX notation[^\]]*\]/gi, '')
     .replace(/\[.*?mathematical expressions requiring conversion[^\]]*\]/gi, '')
+    .replace(/\[.*?requiring conversion[^\]]*\]/gi, '')
+    .replace(/\[.*?without mathematical notation[^\]]*\]/gi, '')
+    .replace(/\[.*?so remains unchanged[^\]]*\]/gi, '')
     // Remove truncation notices
     .replace(/\[text truncated[^\]]*\]/gi, '')
     .replace(/\[content truncated[^\]]*\]/gi, '')
@@ -79,7 +84,10 @@ function cleanMetaText(text: string): string {
     .replace(/\.\.\.\s*\[continued[^\]]*\]/gi, '')
     .replace(/\.\.\.\s*$/m, '')
     // NUCLEAR OPTION: Remove ANY bracketed text that contains conversion-related keywords
-    .replace(/\[[^\]]*(?:convert|conversion|mathematical|notation|LaTeX|remains|unchanged|continue|continues)[^\]]*\]/gi, '')
+    .replace(/\[[^\]]*(?:convert|conversion|mathematical|notation|LaTeX|remains|unchanged|continue|continues|requiring|without)[^\]]*\]/gi, '')
+    // FINAL CLEANUP: Remove any remaining bracketed meta-text patterns
+    .replace(/\[[^\]]*(?:text|content|document).*?(?:continues|unchanged|converted|remaining)[^\]]*\]/gi, '')
+    .replace(/\[[^\]]*(?:Note|note).*?\]/gi, '')
     // Clean up extra whitespace left by removals
     .replace(/\n\s*\n\s*\n/g, '\n\n')
     .replace(/^\s+/gm, '')
@@ -2853,7 +2861,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. ABSOLUTE PROHIBITION: NEVER EVER add ANY bracketed statements, meta-comments, editorial notes, processing annotations, or explanatory text like '[Rest of text continues...]', '[Note: I've converted...]', '[Remaining text...]', '[text continues...]', or ANY similar bracketed commentary. Just return the converted text with no additional commentary whatsoever.",
+          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. ABSOLUTE PROHIBITION: NEVER EVER add ANY bracketed statements, meta-comments, editorial notes, processing annotations, or explanatory text. SPECIFICALLY FORBIDDEN: '[Rest of text continues...]', '[Note: I've converted...]', '[Remaining text...]', '[text continues...]', '[without mathematical notation...]', '[so remains unchanged...]', '[requiring conversion...]', '[The remaining text doesn't contain...]', '[I've converted only...]', or ANY similar bracketed commentary. Return ONLY the converted text with absolutely no meta-commentary, explanations, or processing notes. Do not mention what you are doing or what remains unchanged - just return the clean converted text.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2867,7 +2875,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL: NEVER add meta-comments like "[Remaining text continues as is...]" or "[content continues...]" or "[text truncated]" or any editorial notes. Simply return the converted text cleanly without any processing annotations.' },
+            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. ABSOLUTE PROHIBITION: NEVER EVER add ANY bracketed statements, meta-comments, editorial notes, processing annotations, or explanatory text. SPECIFICALLY FORBIDDEN: "[Rest of text continues...]", "[Note: I\'ve converted...]", "[Remaining text...]", "[text continues...]", "[without mathematical notation...]", "[so remains unchanged...]", "[requiring conversion...]", "[The remaining text doesn\'t contain...]", "[I\'ve converted only...]", or ANY similar bracketed commentary. Return ONLY the converted text with absolutely no meta-commentary, explanations, or processing notes. Do not mention what you are doing or what remains unchanged - just return the clean converted text.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
@@ -2876,7 +2884,9 @@ ${content}`;
 
         result = response.choices[0]?.message?.content || '';
       } else if (selectedModel === 'deepseek') {
-        result = await callDeepSeekWithRateLimit(prompt, {
+        const deepseekSystemPrompt = "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. ABSOLUTE PROHIBITION: NEVER EVER add ANY bracketed statements, meta-comments, editorial notes, processing annotations, or explanatory text. SPECIFICALLY FORBIDDEN: '[Rest of text continues...]', '[Note: I've converted...]', '[Remaining text...]', '[text continues...]', '[without mathematical notation...]', '[so remains unchanged...]', '[requiring conversion...]', '[The remaining text doesn't contain...]', '[I've converted only...]', or ANY similar bracketed commentary. Return ONLY the converted text with absolutely no meta-commentary, explanations, or processing notes. Do not mention what you are doing or what remains unchanged - just return the clean converted text.";
+        
+        result = await callDeepSeekWithRateLimit(`${deepseekSystemPrompt}\n\n${prompt}`, {
           temperature: 0.1,
           maxTokens: 4000
         });
