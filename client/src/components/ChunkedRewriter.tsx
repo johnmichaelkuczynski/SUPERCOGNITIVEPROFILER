@@ -62,7 +62,7 @@ export default function ChunkedRewriter({
   const [finalRewrittenContent, setFinalRewrittenContent] = useState('');
   const [rewriteMetadata, setRewriteMetadata] = useState<any>(null);
   const [showLiveProgress, setShowLiveProgress] = useState(false);
-  const [liveProgressChunks, setLiveProgressChunks] = useState<Array<{title: string, content: string, completed: boolean}>>([]);
+  const [liveProgressChunks, setLiveProgressChunks] = useState<Array<{id: string, title: string, content: string, completed: boolean}>>([]);
   
   // Re-rewrite state
   const [isRerewriting, setIsRerewriting] = useState(false);
@@ -166,7 +166,7 @@ export default function ChunkedRewriter({
       /\$(\d+)\s*(?:million|billion|thousand|k)\b/gi
     ];
     
-    const currencyReplacements = [];
+    const currencyReplacements: string[] = [];
     let placeholderIndex = 0;
     
     currencyPatterns.forEach(pattern => {
@@ -480,6 +480,7 @@ export default function ChunkedRewriter({
       setLiveProgressChunks(Array(totalOperations).fill(null).map((_, i) => {
         const selectedChunks = chunks.filter(chunk => chunk.selected);
         return {
+          id: `progress_${i}`,
           title: i < selectedChunks.length ? `Rewriting Chunk ${i + 1}` : `Generating New Chunk ${i - selectedChunks.length + 1}`,
           content: '',
           completed: false
@@ -2503,7 +2504,7 @@ export default function ChunkedRewriter({
                     backgroundColor: '#ffffff'
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: finalRewrittenContent
+                    __html: fixMathDelimiters(finalRewrittenContent)
                       .replace(/\n/g, '<br>')
                       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                       .replace(/\*(.*?)\*/g, '<em>$1</em>')
