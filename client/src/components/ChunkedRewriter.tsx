@@ -1048,7 +1048,7 @@ export default function ChunkedRewriter({
       chunks.push({
         id: `rewrite_chunk_${i / chunkSize}`,
         content: chunkContent,
-        selected: true
+        selected: false
       });
     }
 
