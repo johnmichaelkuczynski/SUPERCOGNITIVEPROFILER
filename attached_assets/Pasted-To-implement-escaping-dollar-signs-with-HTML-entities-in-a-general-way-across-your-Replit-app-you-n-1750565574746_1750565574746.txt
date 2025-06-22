@@ -1,0 +1,65 @@
+To implement escaping dollar signs with HTML entities in a general way across your Replit app, you need to preprocess the output string that gets rendered, replacing any dollar signs meant for currency (like $15) with &#36;, while leaving actual math expressions untouched.
+
+Here’s how to do it reliably:
+
+✅ Goal
+Transform this:
+
+text
+Copy
+Edit
+$15 on a lunch salad that would cost $4, while $x^2 + y^2 = z^2$ is still rendered as math
+Into this:
+
+text
+Copy
+Edit
+&#36;15 on a lunch salad that would cost &#36;4, while $x^2 + y^2 = z^2$ is still rendered as math
+✅ Approach
+Step 1: Identify dollar signs not used for math
+You assume:
+
+Math expressions are enclosed in $...$ with no spaces
+
+Currency amounts like $15 are not in math blocks
+
+Step 2: Use a regular expression to replace only those dollar signs
+Here's sample pseudocode / JavaScript logic:
+
+js
+Copy
+Edit
+function escapeDollarSigns(text) {
+  // Replace dollar amounts (e.g., $15 or $4.99) that are NOT part of math blocks
+  return text.replace(/(?<!\$)\$(\d+(\.\d+)?)(?![\d\w])/g, '&#36;$1');
+}
+Explanation:
+
+(?<!\$) = don’t match if preceded by another dollar sign (to avoid math blocks like $$...$$)
+
+\$(\d+(\.\d+)?) = match dollar followed by digits, optionally with decimals
+
+(?![\d\w]) = don’t match if the dollar is followed by a variable or expression (indicating possible math)
+
+✅ Edge Case Handling
+If your app allows users to write content, and you already know where math expressions are, the best solution is split the text into math and non-math chunks, and apply escaping only to the non-math chunks.
+
+E.g.,
+
+js
+Copy
+Edit
+function safelyEscapeDollars(text) {
+  const parts = text.split(/(\$[^$]*\$)/); // split into math and non-math parts
+  return parts
+    .map(part =>
+      part.startsWith('$') && part.endsWith('$') 
+        ? part 
+        : part.replace(/\$(\d+(\.\d+)?)/g, '&#36;$1')
+    )
+    .join('');
+}
+This keeps $x^2$ unchanged but turns $15 into &#36;15.
+
+✅ Drop-in Instruction for Replit Agent
+Please globally preprocess all text blocks before rendering to replace currency-style dollar signs (like $15 or $4.99) with &#36;, but only when they are not part of math expressions. This avoids triggering KaTeX parsing on literal monetary values. Use a parser that splits content into math and non-math blocks, and only applies escaping to non-math blocks.
