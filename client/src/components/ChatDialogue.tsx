@@ -10,10 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { LLMModel, formatBytes } from '@/lib/utils';
 import { downloadOutput } from '@/lib/llm';
-import ReactMarkdown from 'react-markdown';
-import { MathJaxContext, MathJax } from 'better-react-mathjax';
-import rehypeKatex from 'rehype-katex';
-import remarkMath from 'remark-math';
+import { processContentForMathRendering, renderMathInElement } from '@/utils/mathRenderer';
 import 'katex/dist/katex.min.css';
 
 interface ChatMessage {
@@ -642,16 +639,13 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                           <div 
                             className="whitespace-pre-wrap"
                             dangerouslySetInnerHTML={{
-                              __html: message.content
-                                .replace(/\n\n/g, '</p><p>')
-                                .replace(/^/, '<p>')
-                                .replace(/$/, '</p>')
+                              __html: processContentForMathRendering(message.content)
                             }}
                             ref={(el) => {
-                              if (el && window.renderMathInElement) {
+                              if (el) {
                                 setTimeout(() => {
                                   try {
-                                    window.renderMathInElement(el);
+                                    renderMathInElement(el);
                                   } catch (e) {
                                     console.error('KaTeX rendering failed in chat:', e);
                                   }
