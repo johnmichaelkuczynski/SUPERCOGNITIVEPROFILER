@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { processContentForMathRendering, renderMathInElement } from '@/utils/mathRenderer';
+import { processContentForMathRendering, renderMathContent } from '@/utils/mathRenderer';
 
 interface TextChunk {
   id: string;

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { LLMModel, formatBytes } from '@/lib/utils';
 import { downloadOutput } from '@/lib/llm';
-import { processContentForMathRendering, renderMathInElement } from '@/utils/mathRenderer';
+import { processContentForMathRendering, renderMathContent } from '@/utils/mathRenderer';
 import 'katex/dist/katex.min.css';
 
 interface ChatMessage {
@@ -645,7 +645,7 @@ const ChatDialogue = React.forwardRef<ChatDialogueRef, ChatDialogueProps>(
                               if (el) {
                                 setTimeout(() => {
                                   try {
-                                    renderMathInElement(el);
+                                    renderMathContent(el);
                                   } catch (e) {
                                     console.error('KaTeX rendering failed in chat:', e);
                                   }

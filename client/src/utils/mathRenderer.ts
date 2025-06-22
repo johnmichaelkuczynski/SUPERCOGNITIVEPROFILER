@@ -32,7 +32,7 @@ export function fixDoubleEscapedMath(content: string): string {
   return fixed;
 }
 
-export function renderMathInElement(element: HTMLElement): void {
+export function renderMathContent(element: HTMLElement): void {
   if (!element || typeof window === 'undefined') return;
   
   // Fix any double-escaped content first
@@ -43,10 +43,18 @@ export function renderMathInElement(element: HTMLElement): void {
     element.innerHTML = fixedContent;
   }
   
-  // Use the global KaTeX renderer
+  // Use the global KaTeX renderer with proper configuration
   if (window.renderMathInElement && typeof window.renderMathInElement === 'function') {
     try {
-      window.renderMathInElement(element);
+      window.renderMathInElement(element, {
+        delimiters: [
+          {left: '\\(', right: '\\)', display: false},
+          {left: '\\[', right: '\\]', display: true},
+          {left: '$$', right: '$$', display: true}
+        ],
+        throwOnError: false,
+        strict: false
+      });
     } catch (error) {
       console.error('KaTeX rendering failed:', error);
     }

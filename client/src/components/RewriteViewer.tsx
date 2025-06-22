@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Edit3, Eye, RefreshCw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { processContentForMathRendering, renderMathInElement } from '@/utils/mathRenderer';
+import { processContentForMathRendering, renderMathContent } from '@/utils/mathRenderer';
 
 declare global {
   interface Window {
@@ -187,7 +187,7 @@ export default function RewriteViewer({
                         if (el) {
                           setTimeout(() => {
                             try {
-                              renderMathInElement(el);
+                              renderMathContent(el);
                               console.log('✅ Math rendered in RewriteViewer with double-escape fix');
                             } catch (e) {
                               console.error('❌ KaTeX rendering failed in RewriteViewer:', e);
