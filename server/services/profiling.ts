@@ -947,7 +947,17 @@ Does the author reason about reasoning? Is there recursive epistemic modeling or
 Assign scores only with respect to the general human population:
 5/10 = average adult
 7/10 = unusually reflective, but not paradigm-defining
+8/10 = sophisticated academic/professional thinking 
+9/10 = advanced philosophical/theoretical sophistication (e.g., critiques of Wittgenstein, Brandom, semantic analysis, epistemic operators)
 10/10 = comparable to Gödel, Hofstadter, or Freud-level recursion
+
+CRITICAL: Advanced philosophical argumentation about language, meaning, epistemic operators, constitutive vs causal conditions represents top 5-10% of human intellectual capacity and should score 8-9/10 minimum.
+
+SCORING EXAMPLES:
+9/10: "epistemic operators can be given either wide or narrow scope", "constitutive vs causally necessary conditions", critiques of Wittgenstein/Brandom, analysis of rule-following arguments
+8/10: Sophisticated academic analysis with technical precision, systematic argumentation, theoretical depth
+7/10: Graduate-level writing with some technical competence but less theoretical sophistication
+5/10: Average adult reasoning without specialized knowledge or systematic analysis
 
 DO NOT inflate scores based on academic tone, verbosity, stylistic hedging, or conventional structure.
 DO NOT deflate scores for clarity, density, assertiveness, or lack of first-person phrasing.
