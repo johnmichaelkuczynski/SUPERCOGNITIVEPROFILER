@@ -1644,12 +1644,13 @@ Rewrite the selected text with significant expansion:`;
 2. MANDATORY EXPANSION: Count the words in the original and ensure your output has significantly more words. Add detail, examples, explanations, and elaboration.
 3. Improve clarity, coherence, and academic quality while expanding content substantially
 4. Preserve LaTeX math formatting: \\(...\\) for inline math, $$...$$ for display math
-5. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
-6. Do NOT add headers, titles, introductions, conclusions, or any structural elements
-7. Do NOT add editorial comments, explanations, or metadata
-8. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
-9. NEVER add commentary about mathematical notation or formatting
-10. Return ONLY the rewritten content with no additions whatsoever
+5. CRITICAL CURRENCY FORMATTING: Preserve all currency symbols as normal text (e.g., $25, $200, $5) - do NOT escape dollar signs with backslashes
+6. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
+7. Do NOT add headers, titles, introductions, conclusions, or any structural elements
+8. Do NOT add editorial comments, explanations, or metadata
+9. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
+10. NEVER add commentary about mathematical notation or formatting
+11. Return ONLY the rewritten content with no additions whatsoever
 
 IMPORTANT: Your output must be substantially longer than the input. If the original has 500 words, your output should have at least 600 words (1.2X minimum). Follow any specific length multiplier instructions exactly.
 
@@ -1690,10 +1691,12 @@ Return only the improved text content that is significantly expanded from the or
       // CRITICAL: Fix formatting issues regardless of AI output
       result = ensurePerfectFormatting(result);
       
-
-      
       // Remove markdown formatting for clean output
       result = cleanMarkdownFormatting(result);
+      
+      // CRITICAL FIX: Ensure dollar signs are properly displayed as currency symbols
+      result = result.replace(/\\\$/g, '$');
+      console.log('💰 Fixed currency symbols in chunk rewrite output');
       
       // Save chunk rewrite to database
       try {
