@@ -75,122 +75,15 @@ export default function ChunkedRewriter({
   // Math View toggle state
   const [showMathView, setShowMathView] = useState(false);
   
-  // Proofing state
-  const [isProofing, setIsProofing] = useState(false);
-  const [proofedContent, setProofedContent] = useState('');
-  const [originalContent, setOriginalContent] = useState('');
-  const [showProofComparison, setShowProofComparison] = useState(false);
+
   
   const { toast } = useToast();
 
-  // Manual proofing function that fixes malformed inline math expressions and removes meta-text
-  const proofDocument = () => {
-    if (!finalRewrittenContent) {
-      toast({
-        title: "No content to proof",
-        description: "Please complete a rewrite first.",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    setIsProofing(true);
-    setOriginalContent(finalRewrittenContent);
 
-    try {
-      // Fix malformed inline math expressions and remove meta-text
-      let proofed = finalRewrittenContent;
 
-      // Remove meta-text patterns first
-      proofed = proofed
-        // Remove continuation notices
-        .replace(/\[continued in next part due to length[^\]]*\]/gi, '')
-        .replace(/\[continued in next page[^\]]*\]/gi, '')
-        .replace(/\[continued on next page[^\]]*\]/gi, '')
-        .replace(/\[continues in next section[^\]]*\]/gi, '')
-        .replace(/\[content continues[^\]]*\]/gi, '')
-        .replace(/\[to be continued[^\]]*\]/gi, '')
-        // Remove truncation notices
-        .replace(/\[text truncated[^\]]*\]/gi, '')
-        .replace(/\[content truncated[^\]]*\]/gi, '')
-        .replace(/\[document truncated[^\]]*\]/gi, '')
-        // Remove generic meta-text in brackets
-        .replace(/\[Note:[^\]]*\]/gi, '')
-        .replace(/\[Editor's note:[^\]]*\]/gi, '')
-        .replace(/\[Author's note:[^\]]*\]/gi, '')
-        // Remove ellipsis patterns that indicate continuation
-        .replace(/\.\.\.\s*\[continued[^\]]*\]/gi, '')
-        .replace(/\.\.\.\s*$/, '')
-        // Clean up extra whitespace left by removals
-        .replace(/\n\s*\n\s*\n/g, '\n\n')
-        .replace(/^\s+/gm, '')
-        .trim();
 
-      // Pattern to match malformed single $ expressions like $\beta$, $t$, $N(t)$, etc.
-      // This pattern looks for $ followed by LaTeX commands or simple variables and closing $
-      const malformedInlineMathPattern = /\$([a-zA-Z_][\w]*(?:\([^)]*\))?|\\[a-zA-Z]+(?:\{[^}]*\})*)\$/g;
-      
-      // Convert malformed inline math to proper LaTeX format
-      proofed = proofed.replace(malformedInlineMathPattern, (match, mathContent) => {
-        // Only convert if it's not already properly formatted
-        if (!match.includes('\\(') && !match.includes('\\[')) {
-          return `\\(${mathContent}\\)`;
-        }
-        return match;
-      });
 
-      // Additional specific fixes for common malformed patterns
-      proofed = proofed
-        // Fix single variables in dollars
-        .replace(/\$([a-zA-Z])\$/g, '\\($1\\)')
-        // Fix Greek letters in dollars
-        .replace(/\$\\(alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega)\$/g, '\\(\\$1\\)')
-        // Fix subscripts and superscripts in dollars
-        .replace(/\$([a-zA-Z_]\w*(?:[_^]{[^}]+})*)\$/g, '\\($1\\)')
-        // Fix function calls in dollars like $N(t)$, $f(x)$
-        .replace(/\$([a-zA-Z]\([^)]*\))\$/g, '\\($1\\)')
-        // Fix mathematical expressions with operators in dollars
-        .replace(/\$([a-zA-Z_]\w*\s*[+\-*/=<>]\s*[a-zA-Z_]\w*)\$/g, '\\($1\\)');
-
-      setProofedContent(proofed);
-      setShowProofComparison(true);
-
-      toast({
-        title: "Document proofed",
-        description: "Math formatting and meta-text have been cleaned up.",
-      });
-
-    } catch (error) {
-      console.error('Proofing error:', error);
-      toast({
-        title: "Proofing failed",
-        description: "An error occurred while proofing the document.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProofing(false);
-    }
-  };
-
-  // Apply proofed content as the final version
-  const applyProofedContent = () => {
-    setFinalRewrittenContent(proofedContent);
-    setShowProofComparison(false);
-    toast({
-      title: "Changes applied",
-      description: "Proofed content has been applied to the document.",
-    });
-  };
-
-  // Restore original content
-  const restoreOriginalContent = () => {
-    setFinalRewrittenContent(originalContent);
-    setShowProofComparison(false);
-    toast({
-      title: "Original restored",
-      description: "Document has been restored to the original version.",
-    });
-  };
 
   // Clean content for auxiliary chat - remove markdown and fix math notation
   const cleanContentForChat = (content: string) => {
@@ -2028,23 +1921,7 @@ export default function ChunkedRewriter({
               <span>Download TXT</span>
             </Button>
 
-            <Button 
-              variant="outline" 
-              onClick={proofDocument}
-              disabled={isProofing || !finalRewrittenContent}
-              className="flex items-center space-x-2 border-purple-500 text-purple-700 hover:bg-purple-50"
-            >
-              {isProofing ? (
-                <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                  <path d="m9 12 2 2 4-4"/>
-                  <path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/>
-                  <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
-                </svg>
-              )}
-              <span>{isProofing ? 'Proofing...' : 'Proof Document'}</span>
-            </Button>
+
             
             <Button 
               variant="outline" 
