@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Edit3, Eye, RefreshCw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { processContentForMathRendering, renderMathInElement } from '@/utils/mathRenderer';
 
 declare global {
   interface Window {
@@ -180,23 +181,14 @@ export default function RewriteViewer({
                         lineHeight: '1.6'
                       }}
                       dangerouslySetInnerHTML={{
-                        __html: result.rewrittenContent
-                          .replace(/\n\n/g, '</p><p>')
-                          .replace(/^/, '<p>')
-                          .replace(/$/, '</p>')
-                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        __html: processContentForMathRendering(result.rewrittenContent)
                       }}
                       ref={(el) => {
-                        if (el && window.renderMathInElement) {
-                          // Clear any existing KaTeX elements
-                          const mathElements = el.querySelectorAll('.katex');
-                          mathElements.forEach(elem => elem.remove());
-                          
+                        if (el) {
                           setTimeout(() => {
                             try {
-                              window.renderMathInElement(el);
-                              console.log('✅ Math rendered in RewriteViewer');
+                              renderMathInElement(el);
+                              console.log('✅ Math rendered in RewriteViewer with double-escape fix');
                             } catch (e) {
                               console.error('❌ KaTeX rendering failed in RewriteViewer:', e);
                             }
