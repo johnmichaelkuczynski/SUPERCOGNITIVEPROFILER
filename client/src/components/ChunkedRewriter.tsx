@@ -1805,7 +1805,7 @@ export default function ChunkedRewriter({
                   .replace(/^#{1,6}\s+(.*)$/gm, '<h2>$1</h2>')
                   // Ensure proper LaTeX delimiters for KaTeX
                   .replace(/\$\$([^$]+)\$\$/g, '\\[$1\\]') // Display math
-                  .replace(/(?<!\$)\$([^$\n]+)\$(?!\$)/g, '\\($1\\)') // Inline math
+                  .replace(/(?<!\$)\$([^$\n]*[a-zA-Z\\^_{}][^$\n]*)\$(?!\$)/g, '\\($1\\)') // Inline math (only if contains letters, backslashes, or math symbols)
                   // Format paragraphs
                   .replace(/\n\n+/g, '</p><p>')
                   .replace(/\n/g, '<br>');
