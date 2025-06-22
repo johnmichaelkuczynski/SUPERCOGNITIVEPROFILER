@@ -2942,6 +2942,49 @@ ${content}`;
     }
   });
 
+  // Math Delimiter and Currency Protection Routes
+  app.post('/api/math/sanitize-delimiters', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const { sanitizeMathAndCurrency, validateMathDelimiters } = await import('./services/mathDelimiterFixer');
+      
+      const sanitizedText = sanitizeMathAndCurrency(text);
+      const validation = validateMathDelimiters(text);
+      
+      res.json({
+        originalText: text,
+        sanitizedText,
+        validation,
+        success: true
+      });
+    } catch (error) {
+      console.error('Math delimiter sanitization error:', error);
+      res.status(500).json({ error: 'Failed to sanitize math delimiters' });
+    }
+  });
+
+  app.post('/api/math/test-cases', async (req: Request, res: Response) => {
+    try {
+      const { runTests, testCases } = await import('./services/mathDelimiterFixer');
+      
+      console.log('Running math delimiter tests...');
+      runTests();
+      
+      res.json({
+        testCases,
+        message: 'Test cases executed - check server logs for results',
+        success: true
+      });
+    } catch (error) {
+      console.error('Math delimiter test error:', error);
+      res.status(500).json({ error: 'Failed to run math delimiter tests' });
+    }
+  });
+
   // Text-to-Speech Routes
   
   // Get available ElevenLabs voices
