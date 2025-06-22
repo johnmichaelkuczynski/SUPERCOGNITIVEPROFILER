@@ -1426,14 +1426,14 @@ export default function ChunkedRewriter({
                             <Eye className="w-4 h-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto" style={{ width: '95vw', maxWidth: '95vw' }}>
                           <DialogHeader>
                             <DialogTitle>Chunk {index + 1} Preview</DialogTitle>
                             <DialogDescription>
                               {chunk.rewritten ? 'Rewritten version' : 'Original content'}
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                          <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm leading-relaxed whitespace-pre-wrap font-mono max-w-none w-full">
                             {chunk.rewritten || chunk.content}
                           </div>
                         </DialogContent>
