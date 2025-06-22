@@ -788,10 +788,10 @@ Format as JSON with this structure:
   }
 }
 
-// Input validation and noise detection
+// Input validation and noise detection - Made more permissive to fix analysis failures
 function validateTextQuality(text: string): { isValid: boolean; reason?: string; category: 'analytical' | 'creative' | 'nonsensical' | 'insufficient' } {
-  // Basic length check
-  if (text.length < 100) {
+  // Basic length check - reduced minimum from 100 to 50
+  if (text.length < 50) {
     return { isValid: false, reason: 'Text too short for meaningful analysis', category: 'insufficient' };
   }
 
@@ -799,40 +799,37 @@ function validateTextQuality(text: string): { isValid: boolean; reason?: string;
   const words = text.split(/\s+/).filter(word => word.length > 0);
   const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
   
-  // Check for extremely short average word length (gibberish indicator)
+  // Very lenient gibberish check - reduced threshold
   const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
-  if (avgWordLength < 2.5) {
+  if (avgWordLength < 1.5) {
     return { isValid: false, reason: 'Text appears to be gibberish or fragmented', category: 'nonsensical' };
   }
 
-  // Check for extremely short sentences (fragmented text indicator)
-  const avgSentenceLength = sentences.reduce((sum, sentence) => sum + sentence.trim().split(/\s+/).length, 0) / sentences.length;
-  if (avgSentenceLength < 3) {
-    return { isValid: false, reason: 'Text appears fragmented or incomplete', category: 'nonsensical' };
+  // More lenient sentence length check
+  if (sentences.length > 0) {
+    const avgSentenceLength = sentences.reduce((sum, sentence) => sum + sentence.trim().split(/\s+/).length, 0) / sentences.length;
+    if (avgSentenceLength < 2) {
+      return { isValid: false, reason: 'Text appears fragmented or incomplete', category: 'nonsensical' };
+    }
   }
 
-  // Check for excessive repetition
+  // More lenient repetition check
   const uniqueWords = new Set(words.map(w => w.toLowerCase()));
   const repetitionRatio = uniqueWords.size / words.length;
-  if (repetitionRatio < 0.3 && words.length > 50) {
+  if (repetitionRatio < 0.1 && words.length > 100) {
     return { isValid: false, reason: 'Text shows excessive repetition', category: 'nonsensical' };
   }
 
-  // Simple categorization
+  // Simple categorization - removed nonsensical markers that were too restrictive
   const analyticalMarkers = ['analysis', 'therefore', 'however', 'furthermore', 'research', 'study', 'evidence', 'conclude', 'hypothesis', 'methodology'];
   const creativeMarkers = ['story', 'character', 'imagine', 'dream', 'fantasy', 'adventure', 'magic', 'journey'];
-  const nonsensicalMarkers = ['bounce', 'kangaroo', 'moon', 'rock', 'ground', 'stuck', 'australia'];
 
   const lowerText = text.toLowerCase();
   const analyticalCount = analyticalMarkers.filter(marker => lowerText.includes(marker)).length;
   const creativeCount = creativeMarkers.filter(marker => lowerText.includes(marker)).length;
-  const nonsensicalCount = nonsensicalMarkers.filter(marker => lowerText.includes(marker)).length;
 
-  // Detect obvious nonsense patterns
-  if (nonsensicalCount >= 3 && avgSentenceLength < 8 && words.length < 100) {
-    return { isValid: false, reason: 'Text appears to be intentionally nonsensical', category: 'nonsensical' };
-  }
-
+  // Always return valid for legitimate text - removed overly restrictive nonsense detection
+  
   // Categorize valid text
   if (analyticalCount > creativeCount) {
     return { isValid: true, category: 'analytical' };
