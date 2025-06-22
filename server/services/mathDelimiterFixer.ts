@@ -2,13 +2,49 @@
 // Implements intelligent LaTeX math delimiter detection with robust currency protection
 
 export function sanitizeMathAndCurrency(text: string): string {
-  console.log('🔧 DISABLED: Math delimiter conversion completely disabled to prevent document corruption');
+  console.log('🔧 ACTIVE: Converting mathematical expressions to proper LaTeX delimiters');
   
-  // COMPLETELY DISABLED - Return original text unchanged
-  // This function was corrupting legitimate mathematical expressions in documents
-  // Mathematical content should be preserved exactly as written
+  // Step 1: Protect currency expressions with placeholders
+  const currencyPlaceholders: { [key: string]: string } = {};
+  let placeholderIndex = 0;
   
-  return text;
+  // Protect obvious currency patterns
+  const currencyPatterns = [
+    /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\b/g, // $1,000.00 format
+    /\$(\d+\.?\d*)\s*(?:USD|dollars?|bucks?)\b/gi, // $50 USD, $25 dollars
+    /\$(\d+(?:\.\d+)?[km]?)\b/gi // $50k, $2.5m, etc.
+  ];
+  
+  let protectedText = text;
+  currencyPatterns.forEach(pattern => {
+    protectedText = protectedText.replace(pattern, (match) => {
+      const placeholder = `__CURRENCY_${placeholderIndex++}__`;
+      currencyPlaceholders[placeholder] = match;
+      return placeholder;
+    });
+  });
+  
+  // Step 2: Convert mathematical expressions to proper LaTeX delimiters
+  // Look for expressions with mathematical indicators
+  const mathIndicators = /[\^_{}\\]|\\[a-zA-Z]+|\b(?:sin|cos|tan|log|ln|exp|sqrt|sum|int|lim|alpha|beta|gamma|theta|pi|sigma|mu|lambda|delta|epsilon|omega|phi|psi|chi|rho|tau|zeta|eta|nu|xi|kappa|upsilon)\b/;
+  
+  // Convert single dollar pairs that contain mathematical content
+  protectedText = protectedText.replace(/\$([^$]+)\$/g, (match, content) => {
+    // Check if content has mathematical indicators
+    if (mathIndicators.test(content)) {
+      return `\\(${content}\\)`;
+    }
+    // Otherwise leave as is (might be non-math content)
+    return match;
+  });
+  
+  // Step 3: Restore protected currency expressions
+  Object.entries(currencyPlaceholders).forEach(([placeholder, original]) => {
+    protectedText = protectedText.replace(placeholder, original);
+  });
+  
+  console.log('Math delimiter conversion completed');
+  return protectedText;
 }
 
 export function validateMathDelimiters(text: string): {
