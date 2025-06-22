@@ -528,31 +528,8 @@ export default function ChunkedRewriter({
 
           const result = await response.json();
           
-          // AUTO-APPLY TEXT TO MATH: Format new chunks for math too
+          // DISABLED AUTO-MATH: Automatic text-to-math conversion disabled to preserve paragraph structure
           let newChunkContent = result.newChunkContent;
-          try {
-            const mathResponse = await fetch('/api/text-to-math', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                content: newChunkContent,
-                instructions: 'Convert all mathematical markup and notation to perfect LaTeX format for proper rendering.',
-                model: selectedModel,
-                chunkIndex: i,
-                totalChunks: maxNewChunks
-              }),
-            });
-
-            if (mathResponse.ok) {
-              const mathResult = await mathResponse.json();
-              newChunkContent = mathResult.mathContent;
-              console.log(`[auto-math] New chunk ${i + 1} automatically formatted for math`);
-            }
-          } catch (error) {
-            console.warn(`[auto-math] Failed to format new chunk ${i + 1} for math:`, error);
-          }
           
           // Add new chunk to final content
           finalContent += '\n\n' + newChunkContent;
