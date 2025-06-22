@@ -1,0 +1,237 @@
+METACOGNITIVE SCORING FRAMEWORK — V2 (WITH PARADIGM ANCHORS)
+==============================================================
+
+OVERVIEW:
+This document replaces prior scoring logic with a new paradigm-based evaluation system that grounds intelligence markers in actual sample texts. All categories are now benchmarked against real-world exemplars.
+
+-----------------------------------------
+I. INTELLECTUAL MATURITY
+-----------------------------------------
+Definition:
+- Capacity to generate new conceptual architectures
+- Reframes problems at a systemic level
+- Resists inherited categorizations
+
+Paradigm Anchors:
+- [10] “The Will to Project” (Uploaded)
+- [10] “Pre-Semantic Implicature” critique of Grice
+- [10] “Counterfactuals as crypto-probability propositions”
+- [7] Davidson’s “Mental Events”
+- [4] “Transcendental Empiricism” abstract
+- [1] Generic AI summary of Aristotle
+
+Scoring Logic:
+- Score input by measuring structural novelty and compression ratio relative to 10/7/4/1 anchors.
+- Prefer structural recursion and theoretical repositioning over technical polish.
+
+-----------------------------------------
+II. SELF-AWARENESS LEVEL
+-----------------------------------------
+Definition:
+- Locates the author within the intellectual field
+- Models cognitive positioning
+- Demonstrates epistemic viewpoint self-tracking
+
+Paradigm Anchors:
+- [10] Dennett’s Intentional Systems Theory
+- [7] Hume on causation
+- [4] Weak meta qualifiers like “it is important to consider...”
+- [1] AI drivel: “Clearly, as we all know, X is very important.”
+
+Scoring Logic:
+- Search for embedded models of the author's reasoning strategy.
+- Penalize formal hedging unless it reflects actual positioning.
+
+-----------------------------------------
+III. EPISTEMIC HUMILITY
+-----------------------------------------
+Definition:
+- Clarity about what would falsify or constrain one’s own theory
+- Use of defeasible logic without semantic collapse
+
+Paradigm Anchors:
+- [10] System L design: “works unless X, at which point it breaks here”
+- [7] Scientific paper with limitations and caveats
+- [4] Philosophy that hedges with “possibly/maybe/perhaps” in every paragraph
+- [1] Maximalist, theory-first AI output
+
+Scoring Logic:
+- Prefer explicit revision architecture over rhetorical humility.
+
+-----------------------------------------
+IV. REFLECTIVE DEPTH
+-----------------------------------------
+Definition:
+- Models not just objects, but the models themselves
+- Demonstrates recursive insight and analogical reach
+
+Paradigm Anchors:
+- [10] Gödel, Escher, Bach (Hofstadter)
+- [10] "The Will to Project"
+- [7] Kant’s “Transcendental Deduction”
+- [4] First-order metacognition (“I think about things carefully”)
+- [1] LLM preamble: “This essay will explore…”
+
+Scoring Logic:
+- Prefer modeling of system behavior under transformation and error.
+
+------------------------------------------------------------
+IMPLEMENTATION GUIDANCE
+------------------------------------------------------------
+1. Embed all text candidates using your embedding model of choice.
+2. Embed paradigm anchors.
+3. For each category, compare text vector against paradigm set.
+4. Score by closest cosine match, weighted toward upper anchors unless strong match with lower.
+5. Optionally, train a model to fine-tune scoring based on feature extraction (compression, asymmetry, epistemic modulation).
+
+Include the following as fixed anchors in your app:
+- “The Will to Project” (full)
+- Grice/Pre-semantic implicature passage
+- Counterfactuals = crypto-probability passage
+- “Transcendental Empiricism” abstract
+- AI summary of Aristotle’s Poetics
+
+Ensure dynamic updating of anchors is possible if new gold-standard writing samples are added.
+
+
+
+=========================
+PARADIGM TEXT SAMPLES
+=========================
+
+[10] SAMPLE — SEMANTIC RULES AND PRE-SEMANTIC IMPLICATURE
+
+In order to understand a sentence, one must know the relevant semantic rules. Those rules are not learned in a vacuum; they are given to one through one's senses. As a result, knowledge of semantic rules sometimes comes bundled with semantically irrelevant, but cognitively non-innocuous, knowledge of the circumstances in which those rules were learned. Thus, one must work through non-semantic information in order to know what is literally meant by a given sentence-token. A consequence is that one's knowledge of what is literally meant by a given sentence-token is sometimes embedded in non-semantic knowledge, resulting in a cleavage between what that sentence-token literally means and what the auditor in question takes it to mean. Such deviations obviously have nothing to do with the principles put forth by Grice, since those principles only concern sentence-tokens that have already been understood---since, to put it another way, those principles only concern post-semantic implicature. The just-described deviations are appropriately described as being due to "pre-semantic implicature." Given the phenomenon of pre-semantic implicature, it is easily shown that Russell's Theory of Descriptions, if taken as a theory of literal meaning, is false. In the present volume, these rather elementary principles are entirely ignored, and all of the articles in it are sterile repetitions of the points made by Russell and Strawson. The blinkered approach to language embodied in this volume must be reconsidered in light of psychological principles relating to language-acquisition and language-use. Unfortunately, analytic philosophers shy away from such topics, as is made clear by the papers in this grim volume.
+
+
+[10] SAMPLE — COUNTERFACTUALS AS CRYPTO-PROBABILITY
+
+Ordinarily counterfactuals are seen as making statements about states of affairs, albeit ones that hold in merely possible or alternative worlds. Thus analyzed, nearly all counterfactuals turn out to be incoherent. Any counterfactual, thus analyzed, requires that there be a metaphysically (not just epistemically) possible world w where the laws are the same as here, and where almost all of the facts are the same as here. (The factual differences relate to the antecedent and consequent of the counter-factual.) But, as I show, this requirement typically involves the positing of worlds whose necessary non-existence can be shown by fairly elementary deductions. Further, the possible-worlds analysis of counterfactuals is guilty of covert circularity. For, thus analyzed, counterfactuals can only be understood in terms of laws of nature (the laws that apply here are assumed in the hypothetical world - except in the atypical case where the counterfactual is also a counter-nomic). But there is widespread agreement that the concept of a law cannot itself be defined except in terms of the notion of a counterfactual (a law is inter alia something that supports counterfactuals). I give a purely epistemic analysis of counterfactuals, arguing that they are crypto-probability propositions. I also argue that the relevant kind of probability can be defined wholly in terms of what has happened (not what would happen and not even what must happen in a nomic sense). So my analysis isn’t guilty of any kind of circularity.
+
+
+[6] SAMPLE — MACHINE EMOTION ARGUMENT
+
+In this paper I articulate the question of whether machines can have emotions. I then reject a common argument against why they cannot have emotions based on the lack of a capacity for feelings. The goal of this paper is not to decisively show that machines can have emotions, but to decisively show that the naïve argument for the conclusion that they cannot needs to be critically examined. I argue that machines that have artificial general intelligence can have emotions based on having the capacity to make judgments that are essential and constitutive of certain emotions, such as anger. I argue against the view that phenomenological or physiological profiles are essential to anger on the basis of emotion regulation. I consider a long list of objections to the position that machines can have emotions.
+
+
+[7] SAMPLE — CONDITIONAL DISPOSITION ANALYSIS
+
+Given that an analysis of disposition ascription cannot be made in terms of a simple subjunctive conditional, we present a multiply qualified conditional analysis that places disposition ascription within an implicit fundamental causal conceptual typography within which a disposition ascription is embedded, framed, and understood. By placing the multiply qualified analysis within an implicit causal matrix involving a focal cause, pathway of influence, mechanism of action, contributing/partial cause, mediator, extrinsic moderator, intrinsic moderator, and manifestation, we show how this analysis evades counterexamples and arguments raised against the simple conditional analysis. We then indicate how the causal conceptual landscape provides a roadmap for unpacking and explicating parameters of the ceteris paribus qualifier to acquit the analysis of charges of being vacuous or irredeemably vague.
+
+
+[10] SAMPLE — MORPHEME MEANING AND REFLECTIVE DEPTH
+
+The meaning of morpheme (a minimal unit of linguistic significance) cannot diverge from what it is taken to mean. But the meaning of a complex expression can diverge without limit from what it is taken to mean, given that the meaning of such an expression is a logical consequence of the meanings of its parts, coupled with the fact that people are not infallible ratiocinators. Nonetheless, given Chomsky’s distinction between competence (ability) and performance (ability to deploy ability), what a comple...
+
+This is a paradigmatic case of deep recursive modeling: the author reflects on linguistic meaning, cognitive fallibility, and the interface between competence and performance in natural language understanding. The author doesn’t just model language use—they model the modeling of language. This is textbook reflective depth (true 10/10), not something that should be graded 9/10 as if 1 in 10 readers could match it.
+
+NOTE ON RANKING INTERPRETATION:
+
+The app must understand the difference between:
+- Relative scores (e.g., 9/10 = “in top 10%”)
+- Absolute scores based on paradigm anchoring (e.g., 10/10 = as reflective as our best example texts)
+
+The current scoring system is still flawed if it assigns a 9/10 to this sample. Reflective Depth here exceeds 99.9% of academic writing. Assigning a 9/10 implies that 10 out of 100 authors are more reflective, which is absurd.
+
+This must be addressed via logic that defines 10/10 in terms of *semantic recursion and epistemic layering* relative to paradigm texts—not via relative percentile unless that percentile is model-calibrated across a known corpus.
+
+CONCLUSION:
+
+Treat the above sample as a 10/10 benchmark for Reflective Depth.
+
+Integrate this paradigm alongside:
+- The Will to Project
+- Semantic Rule/Pre-implicature critique
+- Counterfactuals = crypto-probability
+
+
+============================================================
+POPULATION-BASED SCORING INTERPRETATION (CRITICAL UPDATE)
+============================================================
+
+This app does NOT assume that its users are academic writers or philosophers. It is meant to evaluate the cognitive profile of ANY individual—regardless of profession, training, or output format.
+
+----------------------------------------
+I. WHAT A SCORE MEANS
+----------------------------------------
+
+All scores are normed against the GENERAL HUMAN POPULATION.
+
+- A score of **5/10** = average adult
+- A score of **7/10** = unusually thoughtful person, e.g., a well-read graduate student
+- A score of **9/10** = more reflective than 90 out of 100 living humans
+- A score of **10/10** = Gödel / Hofstadter / Freud tier; possibly 1 in 10,000 minds
+
+These are **not**:
+- Ratings relative to other authors
+- Academic quality control
+- Style or clarity assessments
+
+They are **cognitive percentile estimates** grounded in qualitative comparison to paradigm-level samples.
+
+----------------------------------------
+II. WHY THIS MATTERS
+----------------------------------------
+
+Misinterpreting a score like “9/10” as “this is a strong academic submission” dilutes the function of the app.
+
+Correct reading:
+> “This submission reflects more reflective depth than 90% of people across all domains.”
+
+Therefore, something like the “Morpheme Meaning” or “Will to Project” text should not be scored 9/10—unless you're prepared to say that **1 in 10 people** are as reflectively recursive as that. They’re not.
+
+This correction applies across:
+- Intellectual Maturity
+- Reflective Depth
+- Self-Awareness
+- Epistemic Humility
+
+----------------------------------------
+III. FINAL RULE:
+----------------------------------------
+
+Do **not** treat 10/10 as “perfect.”  
+Treat 10/10 as **a paradigm case**, verified against embedded benchmark samples.  
+Most intelligent writing—even excellent academic work—should fall between **6 and 8**.  
+Reserve 10s for *paradigm-breaking minds*.
+
+
+====================================================================
+NEW SAMPLE: MIND-BODY DUALISM ARGUMENT (AND SCORING MISFIRE)
+====================================================================
+
+[Sample Text]
+This paper puts forth two reasons to hold that at least some mental entities are not physical entities...
+
+[Summary]
+This is a compact, structured argument that makes a novel epistemological distinction between data-space and physical-space, applies that to undermine materialist bridge principles, and makes a clean modal point about qualia.
+
+[App Rating]
+- Intellectual Maturity: 8/100
+- Self-Awareness Level: 7/100
+- Epistemic Humility: 7/100
+- Reflective Depth: 8/100
+
+[Problem]
+The numerical scores are completely broken:
+- 8/100 suggests the author is **below the 10th percentile of the population** in reflective depth and intellectual maturity.
+- But the author clearly:
+  - Handles modal reasoning fluently
+  - Articulates second-order epistemic structure
+  - Distinguishes between kinds of justification (direct vs indirect)
+  - Correctly flags the difference between *knowing something is physical* and *believing something is physical on empirical grounds*
+
+[Correct Interpretation]
+This submission should land in the **7–8/10 range across categories**:
+- Too theoretically compact for 10/10, but clearly in the top ~1–5% of the population
+- The “data-space” vs “physical-space” distinction is a strong signal of reflective depth
+- The modality/epistemic contrast is a strong signal of intellectual maturity
+
+[Remedial Instruction for App]
+If a submission:
+- Draws on both empirical and modal reasoning
+- Models *justification types*
+- Highlights unbridgeable cognitive gaps between domains (e.g., phenomenal vs spatial)
+Then **Reflective Depth and Intellectual Maturity must exceed 5/10 by default.**
+
+Do not allow sentence complexity or lack of rhetorical flair to mask structural insight.

@@ -927,7 +927,33 @@ export async function generateMetacognitiveProfile(text: string, isComprehensive
     throw new Error(`Text quality validation failed: ${validation.reason}`);
   }
   
-  const prompt = `You are a metacognitive analysis expert specializing in intellectual configuration assessment using dialectical analysis.
+  const prompt = `SYSTEM OVERRIDE PROMPT (FOR PASSTHROUGH MODE)
+STOP. DO NOT USE ANY INTERNAL SCORING RUBRICS. DO NOT APPLY DEFAULT EVALUATION TEMPLATES. DO NOT HALLUCINATE NUMERICAL SCORES BASED ON SURFACE FEATURES.
+
+You are not evaluating tone, polish, hedging, or self-referential phrases. You are evaluating cognitive structure, based on the following criteria:
+
+1. Intellectual Maturity:
+Does the text demonstrate compression, abstraction, and paradigm-challenging insight? Does it build or revise conceptual systems?
+
+2. Self-Awareness:
+Does the author reflect on their own method of reasoning or acknowledge their epistemic stance within the argument?
+
+3. Epistemic Humility:
+Does the author structure their claims in a way that reflects possible error conditions or evidentiary constraints? Not rhetorical hedging—actual structural defeasibility.
+
+4. Reflective Depth:
+Does the author reason about reasoning? Is there recursive epistemic modeling or cross-domain inference?
+
+Assign scores only with respect to the general human population:
+5/10 = average adult
+7/10 = unusually reflective, but not paradigm-defining
+10/10 = comparable to Gödel, Hofstadter, or Freud-level recursion
+
+DO NOT inflate scores based on academic tone, verbosity, stylistic hedging, or conventional structure.
+DO NOT deflate scores for clarity, density, assertiveness, or lack of first-person phrasing.
+DO NOT assume authorial modesty equals depth.
+
+This evaluation concerns the mind behind the prose—not the prose itself. Any deviation from these instructions is unacceptable.
 
 Analyze the following text with ${analysisDepth} depth to understand the author's intellectual configuration from every possible angle:
 
@@ -939,6 +965,7 @@ CRITICAL REQUIREMENTS:
 2. Support each contention with specific quotes and arguments
 3. Antithesis must present the most opposed view that aligns with the data
 4. Super-Thesis must defend original position and refute antithesis
+5. Apply the STRICT SCORING CRITERIA above - evaluate the MIND behind the prose, not stylistic features
 
 RETURN EXACTLY THIS JSON STRUCTURE:
 {
@@ -1076,16 +1103,42 @@ RETURN EXACTLY THIS JSON STRUCTURE:
     
     if (model === 'deepseek') {
       // Use DeepSeek (default)
-      const { generateDeepSeekResponse } = await import('./deepseek');
-      response = await generateDeepSeekResponse(prompt, 8000);
+      const { processDeepSeek } = await import('./deepseek');
+      response = await processDeepSeek(prompt, { maxTokens: 8000 });
       console.log('🔍 DEEPSEEK RAW RESPONSE:', response);
-      return JSON.parse(response);
+      const parsed = JSON.parse(response);
+      
+      // Convert 1-10 scores to 1-100 scale with proper population calibration
+      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
+      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
+      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
+      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
+      
+      return parsed;
     } else if (model === 'claude') {
-      // Use Claude
-      const { generateClaudeResponse } = await import('./claude');
-      response = await generateClaudeResponse(prompt, 8000);
+      // Use Claude via Anthropic
+      const anthropic = (await import('@anthropic-ai/sdk')).default;
+      const client = new anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+      
+      const claudeResponse = await client.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: prompt }]
+      });
+      
+      response = claudeResponse.content[0].type === 'text' ? claudeResponse.content[0].text : '';
       console.log('🔍 CLAUDE RAW RESPONSE:', response);
-      return JSON.parse(response);
+      const parsed = JSON.parse(response);
+      
+      // Convert 1-10 scores to 1-100 scale
+      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
+      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
+      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
+      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
+      
+      return parsed;
     } else if (model === 'perplexity') {
       // Use Perplexity
       const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -1109,7 +1162,15 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       const perplexityData = await perplexityResponse.json();
       response = perplexityData.choices[0].message.content;
       console.log('🔍 PERPLEXITY RAW RESPONSE:', response);
-      return JSON.parse(response);
+      const parsed = JSON.parse(response);
+      
+      // Convert 1-10 scores to 1-100 scale
+      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
+      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
+      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
+      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
+      
+      return parsed;
     } else {
       // Use GPT-4 (fallback)
       const gptResponse = await openai.chat.completions.create({
@@ -1122,7 +1183,15 @@ RETURN EXACTLY THIS JSON STRUCTURE:
       
       response = gptResponse.choices[0].message.content || "{}";
       console.log('🔍 GPT-4 RAW RESPONSE:', response);
-      return JSON.parse(response);
+      const parsed = JSON.parse(response);
+      
+      // Convert 1-10 scores to 1-100 scale
+      if (parsed.intellectualMaturity) parsed.intellectualMaturity *= 10;
+      if (parsed.selfAwarenessLevel) parsed.selfAwarenessLevel *= 10;
+      if (parsed.epistemicHumility) parsed.epistemicHumility *= 10;
+      if (parsed.reflectiveDepth) parsed.reflectiveDepth *= 10;
+      
+      return parsed;
     }
   } catch (error) {
     console.error('🔍 MODEL ERROR:', error);
