@@ -41,89 +41,20 @@ export default function RewriteViewer({
   const [customInstructions, setCustomInstructions] = useState('');
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gpt4' | 'deepseek'>('deepseek');
   const [isRewriting, setIsRewriting] = useState(false);
-  const [selectedText, setSelectedText] = useState('');
-  const [selectionInstructions, setSelectionInstructions] = useState('');
-  const [showSelectionRewrite, setShowSelectionRewrite] = useState(false);
+
   const { toast } = useToast();
 
   if (!result) return null;
 
-  const handleTextSelection = () => {
-    const selection = window.getSelection();
-    if (selection && selection.toString().trim()) {
-      setSelectedText(selection.toString().trim());
-      setShowSelectionRewrite(true);
-      toast({
-        title: "Text Selected",
-        description: `Selected: "${selection.toString().substring(0, 50)}${selection.toString().length > 50 ? '...' : ''}"`
-      });
-    } else {
-      toast({
-        title: "No Text Selected",
-        description: "Please select some text first to rewrite it.",
-        variant: "destructive"
-      });
-    }
+  const handleDirectEdit = () => {
+    setViewMode('edit');
+    toast({
+      title: "Edit Mode Enabled",
+      description: "You can now directly edit the content in the text area."
+    });
   };
 
-  const rewriteSelectedText = async () => {
-    if (!selectedText || !selectionInstructions.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please select text and provide instructions.",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    setIsRewriting(true);
-    
-    try {
-      const response = await fetch('/api/rewrite-selection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          selectedText,
-          instructions: selectionInstructions,
-          model: selectedModel,
-          fullContext: result.rewrittenContent
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to rewrite selected text');
-      }
-
-      const data = await response.json();
-      
-      // Replace the selected text in the full content
-      const updatedContent = result.rewrittenContent.replace(selectedText, data.rewrittenText);
-      
-      const updatedResult = {
-        ...result,
-        rewrittenContent: updatedContent
-      };
-      
-      onUpdate(updatedResult);
-      setShowSelectionRewrite(false);
-      setSelectedText('');
-      setSelectionInstructions('');
-      
-      toast({
-        title: "Text Rewritten!",
-        description: "Selected text has been rewritten with your instructions."
-      });
-    } catch (error) {
-      console.error('Error rewriting selected text:', error);
-      toast({
-        title: "Rewrite Failed",
-        description: "Failed to rewrite selected text. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRewriting(false);
-    }
-  };
 
   const rewriteTheRewrite = async () => {
     if (!customInstructions.trim()) {
@@ -231,17 +162,17 @@ export default function RewriteViewer({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={handleTextSelection}
+                      onClick={handleDirectEdit}
                       className="px-3 py-1 text-xs"
                     >
-                      <Highlighter className="h-3 w-3 mr-1" />
-                      Select Text
+                      <Edit3 className="h-3 w-3 mr-1" />
+                      Edit
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="flex-1 overflow-hidden space-y-4">
-                <div className="h-64 border rounded-lg p-2">
+                <div className="h-96 border rounded-lg">
                   {viewMode === 'edit' ? (
                     <textarea
                       value={result.rewrittenContent}
@@ -252,54 +183,21 @@ export default function RewriteViewer({
                         };
                         onUpdate(updatedResult);
                       }}
-                      className="w-full h-full resize-none border-none outline-none text-sm leading-relaxed"
+                      className="w-full h-full resize-none border-none outline-none text-sm leading-relaxed p-4"
                       style={{ 
                         fontFamily: '"Times New Roman", serif',
                         fontSize: '14px',
                         lineHeight: '1.6'
                       }}
-                      placeholder="Rewritten content will appear here and can be edited..."
+                      placeholder="Click 'Edit' button above to start editing your content directly..."
                     />
                   ) : (
                     <div 
-                      className="w-full h-full overflow-auto text-sm leading-relaxed prose prose-sm max-w-none"
-                      contentEditable={true}
-                      suppressContentEditableWarning={true}
-                      onInput={(e) => {
-                        const element = e.target as HTMLElement;
-                        const textContent = element.innerText || element.textContent || '';
-                        
-                        const updatedResult = {
-                          ...result,
-                          rewrittenContent: textContent
-                        };
-                        onUpdate(updatedResult);
-                      }}
-                      onBlur={(e) => {
-                        const element = e.target as HTMLElement;
-                        if (window.renderMathInElement) {
-                          setTimeout(() => {
-                            window.renderMathInElement(element, {
-                              delimiters: [
-                                {left: '$$', right: '$$', display: true},
-                                {left: '\\[', right: '\\]', display: true},
-                                {left: '\\(', right: '\\)', display: false}
-                              ],
-                              throwOnError: false,
-                              strict: false
-                            });
-                          }, 50);
-                        }
-                      }}
+                      className="w-full h-full overflow-auto text-sm leading-relaxed prose prose-sm max-w-none p-4"
                       style={{ 
                         fontFamily: '"Times New Roman", serif',
                         fontSize: '14px',
-                        lineHeight: '1.6',
-                        minHeight: '100%',
-                        padding: '8px',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '4px',
-                        outline: 'none'
+                        lineHeight: '1.6'
                       }}
                       dangerouslySetInnerHTML={{
                         __html: result.rewrittenContent
