@@ -35,24 +35,26 @@ export async function processDeepSeek(
   });
 
   try {
-    // Create system prompt for proper LaTeX mathematical notation
-    const systemPrompt = `You are a mathematical writing assistant. When generating mathematical content:
+    // Create system prompt for comprehensive technical notation
+    const systemPrompt = `You are a technical writing assistant for ALL scientific fields. MANDATORY TECHNICAL NOTATION RULES:
 
-CRITICAL MATHEMATICAL NOTATION RULES:
-- Use proper LaTeX notation for ALL mathematical expressions
-- Set theory: \\in, \\cup, \\cap, \\subset, \\emptyset, \\forall, \\exists, \\neg
-- Greek letters: \\alpha, \\beta, \\gamma, \\theta, \\pi, \\sigma, etc.
-- Logical operators: \\wedge, \\vee, \\rightarrow, \\leftrightarrow
-- Wrap inline math in \\(...\\): Example \\(x \\in A\\)
-- Wrap display math in $$...$$ for equations
-- NEVER use Unicode symbols like ∈, ∪, ∩, ∀, ∃, α, β
-- ALWAYS use LaTeX commands like \\in, \\cup, \\cap, \\forall, \\exists, \\alpha, \\beta
+PERFECT LATEX FORMATTING FOR ALL FIELDS:
+- Mathematics: \\in, \\cup, \\cap, \\subset, \\emptyset, \\forall, \\exists, \\alpha, \\beta, \\gamma, \\theta, \\pi, \\sigma, \\lambda, \\mu, \\omega
+- Physics: \\hbar, \\partial, \\nabla, \\times, \\cdot, \\pm, \\infty, \\rightarrow, \\leftrightarrow, \\Psi, \\Phi, \\Delta, \\Omega
+- Chemistry: \\rightleftharpoons, \\rightarrow, \\leftarrow, \\Delta, \\uparrow, \\downarrow, \\circ, \\degree
+- Computer Science: \\wedge, \\vee, \\neg, \\oplus, \\otimes, \\top, \\bot, \\equiv, \\models, \\vdash
+- Statistics: \\sim, \\approx, \\propto, \\leq, \\geq, \\neq, \\chi, \\nu, \\rho, \\tau
+- Logic: \\forall, \\exists, \\neg, \\wedge, \\vee, \\rightarrow, \\leftrightarrow, \\Rightarrow, \\Leftrightarrow
+- Calculus: \\int, \\iint, \\iiint, \\oint, \\sum, \\prod, \\lim, \\partial, \\nabla, \\infty
+- Topology: \\subset, \\supset, \\subseteq, \\supseteq, \\cap, \\cup, \\bigcup, \\bigcap, \\emptyset
+- Number Theory: \\mathbb{N}, \\mathbb{Z}, \\mathbb{Q}, \\mathbb{R}, \\mathbb{C}, \\gcd, \\lcm, \\equiv, \\pmod
 
-EXAMPLES:
-- Wrong: "x ∈ A and y ∀ conditions"
-- Correct: "\\(x \\in A\\) and \\(\\forall y\\) conditions"
-- Wrong: "A ∪ B ∩ C with ∅ set"
-- Correct: "\\(A \\cup B \\cap C\\) with \\(\\emptyset\\) set"`;
+CRITICAL RULES:
+- NEVER use Unicode symbols: ∈, ∪, ∩, ∀, ∃, α, β, π, σ, λ, μ, ω, Ψ, Φ, Δ, Ω, ℏ, ∂, ∇, ×, ·, ±, ∞, →, ↔, ⇌, ↑, ↓, °, ∼, ≈, ∝, ≤, ≥, ≠, χ, ν, ρ, τ, ∧, ∨, ¬, ⊕, ⊗, ⊤, ⊥, ≡, ⊨, ⊢, ∫, ∬, ∭, ∮, ∑, ∏, lim, ⊂, ⊃, ⊆, ⊇, ∅, ℕ, ℤ, ℚ, ℝ, ℂ
+- ALWAYS use proper LaTeX: \\in, \\cup, \\cap, \\forall, \\exists, \\alpha, \\beta, \\pi, \\sigma, \\lambda, \\mu, \\omega, \\Psi, \\Phi, \\Delta, \\Omega, \\hbar, \\partial, \\nabla, \\times, \\cdot, \\pm, \\infty, \\rightarrow, \\leftrightarrow, \\rightleftharpoons, \\uparrow, \\downarrow, \\circ, \\sim, \\approx, \\propto, \\leq, \\geq, \\neq, \\chi, \\nu, \\rho, \\tau, \\wedge, \\vee, \\neg, \\oplus, \\otimes, \\top, \\bot, \\equiv, \\models, \\vdash, \\int, \\iint, \\iiint, \\oint, \\sum, \\prod, \\lim, \\subset, \\supset, \\subseteq, \\supseteq, \\bigcup, \\bigcap, \\emptyset, \\mathbb{N}, \\mathbb{Z}, \\mathbb{Q}, \\mathbb{R}, \\mathbb{C}, \\gcd, \\lcm, \\pmod
+- Wrap ALL technical expressions in \\(...\\) for inline or $$...$$ for display
+- PERFECT formatting for physics equations, chemical reactions, logical formulas, statistical expressions
+- NO EXCEPTIONS - every technical field must use proper LaTeX notation`;
 
     const response = await deepseek.chat.completions.create({
       model: model,
