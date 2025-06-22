@@ -687,16 +687,21 @@ export default function ChunkedRewriter({
         };
       });
 
-      const totalOriginalWords = originalText.trim().split(/\s+/).filter(word => word.length > 0).length;
+      // Calculate totals ONLY for selected/rewritten chunks, not the entire document
+      const selectedChunks = chunks.filter(chunk => chunk.selected);
+      const totalOriginalWords = selectedChunks.reduce((sum, chunk) => {
+        return sum + chunk.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      }, 0);
       const totalRewrittenWords = finalContent.trim().split(/\s+/).filter(word => word.length > 0).length;
       const totalWordChange = totalRewrittenWords - totalOriginalWords;
       const overallExpansionRatio = totalOriginalWords > 0 ? (totalRewrittenWords / totalOriginalWords).toFixed(2) : '0.00';
 
-      // Prepare metadata with comprehensive word count tracking
+      // Prepare metadata with comprehensive word count tracking (only for selected chunks)
+      const selectedChunksText = selectedChunks.map(chunk => chunk.content).join(' ');
       const metadata = {
-        originalLength: originalText.length,
+        originalLength: selectedChunksText.length, // Only selected chunks, not entire document
         rewrittenLength: finalContent.length,
-        originalWords: totalOriginalWords,
+        originalWords: totalOriginalWords, // Only selected chunks
         rewrittenWords: totalRewrittenWords,
         wordChange: totalWordChange,
         expansionRatio: overallExpansionRatio,
