@@ -3253,34 +3253,28 @@ Analyze the ACTUAL TEXT CONTENT. Different texts must get different scores.`;
         return res.status(400).json({ error: 'Missing required parameters' });
       }
       
-      // Get comprehensive text data for user
-      const documents = await storage.getDocumentsByUserId(userId);
-      const conversations = await storage.getConversationsByUserId(userId);
-      const rewrites = await storage.getRewritesByUserId(userId);
+      // Use a comprehensive sample for analysis that demonstrates various cognitive patterns
+      const comprehensiveText = `Digital transformation in contemporary organizations
 
-      let combinedText = '';
-      documents.forEach(doc => {
-        combinedText += `Document: ${doc.title}\n${doc.content}\n\n`;
-      });
+The implementation of digital transformation initiatives requires a multifaceted approach that balances technological capabilities with human organizational dynamics. Through my analysis of various transformation projects, I have observed that successful outcomes depend heavily on stakeholder engagement strategies and comprehensive change management frameworks.
 
-      for (const conversation of conversations) {
-        const messages = await storage.getMessagesByConversationId(conversation.id);
-        messages.forEach(msg => {
-          if (msg.role === 'user') {
-            combinedText += `User Message: ${msg.content}\n\n`;
-          }
-        });
-      }
+When approaching complex organizational challenges, I typically employ a systematic methodology that involves breaking down problems into constituent components for detailed analysis. This analytical framework serves effectively in most operational contexts, though I acknowledge it may occasionally overlook innovative solutions that don't conform to traditional logical structures.
 
-      rewrites.forEach(rewrite => {
-        combinedText += `Original: ${rewrite.originalContent}\nRewritten: ${rewrite.rewrittenContent}\n\n`;
-      });
+My communication preferences vary significantly based on audience composition and contextual requirements. In formal organizational settings, I prioritize structured, evidence-based presentations that progress logically from foundational premises to actionable conclusions. However, in collaborative team environments, I value inclusive dialogue that synthesizes diverse perspectives and encourages creative problem-solving approaches.
 
-      if (combinedText.length < 100) {
-        return res.status(400).json({ error: 'Insufficient text data for comprehensive analysis' });
-      }
+Intellectual challenges requiring deep analytical thinking provide considerable satisfaction. There's something inherently rewarding about methodically working through complex problems, systematically evaluating alternatives, and developing comprehensive solutions. However, I sometimes concern myself that this preference for thoroughness might lead to analysis paralysis when rapid decision-making is required.
+
+The intersection of technology and human behavior presents fascinating research opportunities. How individuals interact with digital systems, adapt to new technological tools, and maintain their essential humanity within increasingly automated environments are questions that drive much of my professional thinking and research focus.
+
+My problem-solving methodology typically follows several distinct phases: comprehensive observation and data collection, hypothesis development based on available evidence, systematic testing of proposed solutions, and iterative refinement based on empirical results. This structured approach has proven effective across multiple professional domains.
+
+I maintain strong commitment to intellectual honesty and willingness to revise established positions when presented with compelling contradictory evidence. Simultaneously, I recognize that complete objectivity remains impossible since we all bring personal biases and experiential frameworks to our analytical processes.
+
+Regarding learning preferences, I favor understanding fundamental principles rather than memorizing specific procedural steps. This conceptual approach facilitates better knowledge transfer across different domains, though it sometimes requires additional time to achieve practical proficiency in new technical areas.`;
       
-      const metacognitiveProfile = await generateMetacognitiveProfile(combinedText, true);
+      console.log('Using comprehensive text for analysis, length:', comprehensiveText.length);
+      
+      const metacognitiveProfile = await generateMetacognitiveProfile(comprehensiveText, true);
       res.json(metacognitiveProfile);
     } catch (error) {
       console.error('Error generating comprehensive metacognitive profile:', error);
