@@ -2811,23 +2811,27 @@ Your job is to solve problems correctly and write clear, student-friendly explan
       }
 
       // Build the prompt for mathematical notation conversion
-      let prompt = `Convert the following text to perfect mathematical notation using LaTeX formatting. Ensure all mathematical expressions, equations, formulas, and symbols are properly formatted with LaTeX markup for perfect rendering.
+      let prompt = `CRITICAL: Only convert actual mathematical expressions to LaTeX. Do NOT add LaTeX markup to regular words or phrases.
 
-CRITICAL REQUIREMENTS:
-- Use proper LaTeX delimiters: $...$ for inline math, $$...$$ for display equations
-- Convert all mathematical symbols to LaTeX (e.g., α → \\alpha, π → \\pi, ∞ → \\infty)
-- Preserve all mathematical meaning and context
-- Format fractions with \\frac{numerator}{denominator}
-- Use proper subscripts and superscripts with _ and ^
-- Keep all non-mathematical text unchanged
-- Ensure equations are properly balanced and syntactically correct
-- IMPORTANT: Return ONLY plain text without any markdown formatting (no #, ##, *, **, etc.)
-- Remove ALL markdown headers, bold text, italic text, and other formatting
-- Present the content as clean, readable plain text with proper LaTeX math notation
-- CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
-- NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]"
-- NEVER add any explanatory text about the conversion process
-- Return ONLY the converted content with no additional commentary
+STRICT RULES:
+- Only convert genuine mathematical expressions (equations, formulas, symbols, variables)
+- Keep all regular text as normal text without any LaTeX formatting
+- Do NOT wrap regular words in \\textit{}, \\text{}, or any LaTeX commands
+- Currency amounts like $25, $300 should remain as regular text
+- Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions
+- Return clean plain text with LaTeX only where mathematically necessary
+- Remove all markdown formatting (#, *, **, etc.)
+- NEVER add editorial comments or metadata
+
+EXAMPLES OF WHAT NOT TO DO:
+- Do NOT convert "luxury dilution" to "\\textit{luxury dilution}"
+- Do NOT convert "the price is $300" to "\\text{the price is } \\$300"
+- Do NOT add LaTeX formatting to regular English words
+
+EXAMPLES OF CORRECT CONVERSION:
+- "x^2 + y^2 = z^2" becomes "\\(x^2 + y^2 = z^2\\)"
+- "α = 0.05" becomes "\\(\\alpha = 0.05\\)"
+- Regular text stays as regular text
 
 Content to convert:
 ${content}`;
@@ -2858,7 +2862,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \\$300. This is mandatory. NEVER add any editorial comments, metadata, or bracketed expressions like '[Content continues...]'. NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.",
+          system: "CRITICAL: Only convert actual mathematical expressions to LaTeX. Do NOT add LaTeX markup to regular words or phrases. Keep all regular text as normal text without any LaTeX formatting. Do NOT wrap regular words in \\textit{}, \\text{}, or any LaTeX commands. Currency amounts like $25, $300 should remain as regular text. Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions. Examples: 'luxury dilution' stays as 'luxury dilution' (NO LaTeX), 'x^2' becomes '\\(x^2\\)' (LaTeX for math). Return clean plain text with LaTeX only where mathematically necessary.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2872,7 +2876,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \\$300. This is mandatory. NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]". NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.' },
+            { role: 'system', content: 'CRITICAL: Only convert actual mathematical expressions to LaTeX. Do NOT add LaTeX markup to regular words or phrases. Keep all regular text as normal text without any LaTeX formatting. Do NOT wrap regular words in \\textit{}, \\text{}, or any LaTeX commands. Currency amounts like $25, $300 should remain as regular text. Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions. Examples: "luxury dilution" stays as "luxury dilution" (NO LaTeX), "x^2" becomes "\\(x^2\\)" (LaTeX for math). Return clean plain text with LaTeX only where mathematically necessary.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
@@ -2881,8 +2885,8 @@ ${content}`;
 
         result = response.choices[0]?.message?.content || '';
       } else if (selectedModel === 'deepseek') {
-        // Create system prompt for DeepSeek to prevent metadata insertions
-        const systemPrompt = 'You are a mathematical notation expert. Convert text to perfect LaTeX formatting while preserving all mathematical meaning. Be precise and accurate with LaTeX syntax. IMPORTANT: Return only clean plain text without any markdown formatting (#, ##, *, **, etc.). Remove all markdown headers and formatting. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $300, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \\$300. This is mandatory. NEVER add any editorial comments, metadata, or bracketed expressions like "[Content continues...]". NEVER add any explanatory text about the conversion process. Return ONLY the converted content with no additional commentary.';
+        // Create system prompt for DeepSeek to prevent metadata insertions and LaTeX corruption
+        const systemPrompt = 'CRITICAL: Only convert actual mathematical expressions to LaTeX. Do NOT add LaTeX markup to regular words or phrases. Keep all regular text as normal text without any LaTeX formatting. Do NOT wrap regular words in \\textit{}, \\text{}, or any LaTeX commands. Currency amounts like $25, $300 should remain as regular text. Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions. Examples: "luxury dilution" stays as "luxury dilution" (NO LaTeX), "x^2" becomes "\\(x^2\\)" (LaTeX for math). Return clean plain text with LaTeX only where mathematically necessary.';
         
         result = await callDeepSeekWithRateLimit(`${systemPrompt}\n\n${prompt}`, {
           temperature: 0.1,
