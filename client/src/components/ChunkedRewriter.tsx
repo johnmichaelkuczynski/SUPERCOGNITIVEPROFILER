@@ -1426,7 +1426,7 @@ export default function ChunkedRewriter({
                             <Eye className="w-4 h-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Chunk {index + 1} Preview</DialogTitle>
                             <DialogDescription>
