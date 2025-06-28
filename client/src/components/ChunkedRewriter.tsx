@@ -1180,29 +1180,13 @@ export default function ChunkedRewriter({
   };
 
   const formatContent = (content: string) => {
+    // Process content for math rendering and return as div with proper formatting
+    const processedContent = processContentForMathRendering(content);
     return (
-      <div className="prose dark:prose-invert prose-sm max-w-none">
-        <MathJax hideUntilTypeset="first">
-          <ReactMarkdown
-            rehypePlugins={[rehypeKatex]}
-            remarkPlugins={[remarkMath]}
-            components={{
-              // Custom renderer for paragraphs to handle inline math better
-              p: ({children}) => <p className="mb-4">{children}</p>,
-              // Custom renderer for math blocks
-              code: ({className, children, ...props}) => {
-                const match = /language-(\w+)/.exec(className || '');
-                if (match && match[1] === 'math') {
-                  return <div className="math-display">$$${String(children)}$$</div>;
-                }
-                return <code className={className} {...props}>{children}</code>;
-              }
-            }}
-          >
-            {content}
-          </ReactMarkdown>
-        </MathJax>
-      </div>
+      <div 
+        className="prose dark:prose-invert prose-sm max-w-none whitespace-pre-wrap"
+        dangerouslySetInnerHTML={{ __html: processedContent }}
+      />
     );
   };
 
@@ -1493,11 +1477,10 @@ export default function ChunkedRewriter({
                       <div className="space-y-2">
                         <div className="font-medium text-gray-600 text-xs mb-1">ORIGINAL CONTENT:</div>
                         <div className="text-xs leading-relaxed">
-                          <MathJax hideUntilTypeset="first">
-                            <div className="whitespace-pre-wrap font-mono">
-                              {chunk.content}
-                            </div>
-                          </MathJax>
+                          <div 
+                            className="whitespace-pre-wrap font-mono"
+                            dangerouslySetInnerHTML={{ __html: processContentForMathRendering(chunk.content) }}
+                          />
                         </div>
                       </div>
                     )}
@@ -2440,7 +2423,7 @@ export default function ChunkedRewriter({
                       <div key={index} className="bg-gray-50 p-4 rounded-lg border">
                         <div className="mb-3">
                           <h4 className="font-medium text-gray-800">
-                            <MathJax>{graph.title || `Graph ${index + 1}`}</MathJax>
+                            <div dangerouslySetInnerHTML={{ __html: processContentForMathRendering(graph.title || `Graph ${index + 1}`) }} />
                           </h4>
                           {graph.description && (
                             <p className="text-sm text-gray-600 mt-1">{graph.description}</p>
