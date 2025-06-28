@@ -32,6 +32,49 @@ interface DocumentRewriterModalProps {
   onRewriteComplete?: (rewrittenContent: string) => void;
 }
 
+// ChunkPreviewExpander component for expandable previews
+interface ChunkPreviewExpanderProps {
+  content: string;
+  chunkId: number;
+}
+
+const ChunkPreviewExpander: React.FC<ChunkPreviewExpanderProps> = ({ content, chunkId }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const previewLength = 200;
+  const showExpandButton = content.length > previewLength;
+  
+  return (
+    <div className="mt-2 p-3 bg-white rounded border text-sm">
+      <div className="whitespace-pre-wrap">
+        {isExpanded ? content : (showExpandButton ? `${content.substring(0, previewLength)}...` : content)}
+      </div>
+      
+      {showExpandButton && (
+        <div className="mt-2 pt-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-xs h-6 px-2"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3 w-3 mr-1" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3 w-3 mr-1" />
+                Show All ({content.length - previewLength} more characters)
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // AI Detection Result interface
 interface AIDetectionResult {
   aiProbability: number;
@@ -1137,11 +1180,10 @@ export default function DocumentRewriterModal({
                           </div>
                           
                           {previewChunkId === chunk.id && (
-                            <div className="mt-2 p-2 bg-white rounded border text-sm">
-                              {chunk.content.length > 200 
-                                ? `${chunk.content.substring(0, 200)}...` 
-                                : chunk.content}
-                            </div>
+                            <ChunkPreviewExpander 
+                              content={chunk.content}
+                              chunkId={chunk.id}
+                            />
                           )}
                         </div>
                       ))}
