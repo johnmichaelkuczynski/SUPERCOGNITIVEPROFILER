@@ -8,10 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ReactMarkdown from 'react-markdown';
-import { MathJaxContext, MathJax } from 'better-react-mathjax';
-import rehypeKatex from 'rehype-katex';
-import remarkMath from 'remark-math';
+import { processContentForMathRendering, renderMathContent } from '@/utils/mathRenderer';
 import 'katex/dist/katex.min.css';
 import AIDetectionPopover from '@/components/AIDetectionPopover';
 import { useLocation } from 'wouter';
@@ -97,6 +94,7 @@ export default function Home() {
   const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>('rewrite');
   const [directInputText, setDirectInputText] = useState<string>('');
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
+  const [showMathView, setShowMathView] = useState(false);
   const directFileInputRef = useRef<HTMLInputElement>(null);
   
   // Document library state for AI Text Processor

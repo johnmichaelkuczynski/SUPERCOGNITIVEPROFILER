@@ -1394,11 +1394,23 @@ export default function ChunkedRewriter({
                             </DialogDescription>
                           </DialogHeader>
                           <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 text-sm leading-relaxed max-w-none w-full">
-                            <MathJax hideUntilTypeset="first">
-                              <div className="whitespace-pre-wrap font-mono">
-                                {chunk.rewritten || chunk.content}
-                              </div>
-                            </MathJax>
+                            <div 
+                              className="whitespace-pre-wrap font-mono"
+                              dangerouslySetInnerHTML={{
+                                __html: processContentForMathRendering(chunk.rewritten || chunk.content)
+                              }}
+                              ref={(el) => {
+                                if (el) {
+                                  setTimeout(() => {
+                                    try {
+                                      renderMathContent(el);
+                                    } catch (e) {
+                                      console.error('KaTeX rendering failed in chunk preview:', e);
+                                    }
+                                  }, 100);
+                                }
+                              }}
+                            />
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -1416,13 +1428,23 @@ export default function ChunkedRewriter({
                     {chunk.rewritten ? (
                       <div className="space-y-2">
                         <div className="font-medium text-green-700 text-xs mb-1">REWRITTEN CONTENT:</div>
-                        <div className="text-xs leading-relaxed">
-                          <MathJax hideUntilTypeset="first">
-                            <div className="whitespace-pre-wrap font-mono">
-                              {chunk.rewritten}
-                            </div>
-                          </MathJax>
-                        </div>
+                        <div 
+                          className="text-xs leading-relaxed whitespace-pre-wrap font-mono"
+                          dangerouslySetInnerHTML={{
+                            __html: processContentForMathRendering(chunk.rewritten)
+                          }}
+                          ref={(el) => {
+                            if (el) {
+                              setTimeout(() => {
+                                try {
+                                  renderMathContent(el);
+                                } catch (e) {
+                                  console.error('KaTeX rendering failed in chunk content:', e);
+                                }
+                              }, 100);
+                            }
+                          }}
+                        />
                       </div>
                     ) : (
                       <div className="space-y-2">
