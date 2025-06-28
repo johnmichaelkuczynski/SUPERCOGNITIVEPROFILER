@@ -5800,6 +5800,13 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
   // Split by paragraphs to maintain coherence
   const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
   
+  // CRITICAL FIX: If we don't have enough paragraphs, split by sentences
+  let textUnits = paragraphs;
+  if (paragraphs.length < targetChunks / 2) {
+    console.log(`Only ${paragraphs.length} paragraphs found, splitting by sentences for better chunking`);
+    textUnits = content.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 20);
+  }
+  
   let currentChunk = '';
   let currentTitle = 'Introduction';
   let chunkIndex = 0;
@@ -5812,15 +5819,15 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
     /^([A-Z][A-Z\s]{3,30})(?:\n|$)/, // ALL CAPS short headings
   ];
   
-  for (let i = 0; i < paragraphs.length; i++) {
-    const paragraph = paragraphs[i].trim();
+  for (let i = 0; i < textUnits.length; i++) {
+    const textUnit = textUnits[i].trim();
     const currentWordCount = currentChunk.split(/\s+/).filter(w => w.length > 0).length;
-    const paragraphWordCount = paragraph.split(/\s+/).filter(w => w.length > 0).length;
+    const unitWordCount = textUnit.split(/\s+/).filter(w => w.length > 0).length;
     
-    // Check if paragraph is a heading
+    // Check if text unit is a heading
     let isHeading = false;
     for (const pattern of headingPatterns) {
-      const match = paragraph.match(pattern);
+      const match = textUnit.match(pattern);
       if (match) {
         isHeading = true;
         const headingText = match[1] || match[0];
@@ -5834,8 +5841,8 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
     // Decide whether to start a new chunk
     const shouldStartNewChunk = (
       (isHeading && currentWordCount > minChunkSize) ||
-      (currentWordCount + paragraphWordCount > maxChunkSize) ||
-      (currentWordCount > optimalChunkSize && paragraph.length > 100)
+      (currentWordCount + unitWordCount > maxChunkSize) ||
+      (currentWordCount > optimalChunkSize && textUnit.length > 100)
     );
     
     if (shouldStartNewChunk && currentChunk.trim().length > 0) {
@@ -5850,18 +5857,18 @@ function createIntelligentChunks(content: string, filename?: string): Array<{
       currentChunk = '';
       chunkIndex++;
       
-      // Update title for new chunk if this paragraph is a heading
+      // Update title for new chunk if this text unit is a heading
       if (!isHeading) {
         currentTitle = `Section ${chunkIndex + 1}`;
       }
     }
     
-    // Add paragraph to current chunk
+    // Add text unit to current chunk
     if (currentChunk.length > 0) {
       currentChunk += '\n\n';
     }
-    currentChunk += paragraph;
-    charPos += paragraph.length + 2; // +2 for line breaks
+    currentChunk += textUnit;
+    charPos += textUnit.length + 2; // +2 for line breaks
   }
   
   // Add final chunk
