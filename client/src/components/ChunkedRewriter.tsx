@@ -31,6 +31,49 @@ interface ChunkedRewriterProps {
   initialProcessingMode?: 'rewrite' | 'homework' | 'text-to-math';
 }
 
+// ChunkPreviewExpander component for expandable previews
+interface ChunkPreviewExpanderProps {
+  content: string;
+  chunkId: string;
+}
+
+const ChunkPreviewExpander: React.FC<ChunkPreviewExpanderProps> = ({ content, chunkId }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const previewLength = 300;
+  const showExpandButton = content.length > previewLength;
+  
+  return (
+    <div className="text-sm text-muted-foreground max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border">
+      <div className="whitespace-pre-wrap">
+        {isExpanded ? content : (showExpandButton ? `${content.substring(0, previewLength)}...` : content)}
+      </div>
+      
+      {showExpandButton && (
+        <div className="mt-2 pt-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-xs h-6 px-2"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3 w-3 mr-1" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3 w-3 mr-1" />
+                Show All ({content.length - previewLength} more characters)
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ChunkedRewriter({ 
   originalText, 
   onRewriteComplete, 

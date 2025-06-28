@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Edit3, X, FileText, Download, Loader2, Share2, RefreshCw, Eye } from 'lucide-react';
+import { Edit3, X, FileText, Download, Loader2, Share2, RefreshCw, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -27,6 +27,49 @@ interface SimpleRewriterProps {
   documentId: string;
   documentName: string;
 }
+
+// ChunkPreviewExpander component for expandable previews
+interface ChunkPreviewExpanderProps {
+  content: string;
+  chunkId: number;
+}
+
+const ChunkPreviewExpander: React.FC<ChunkPreviewExpanderProps> = ({ content, chunkId }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const previewLength = 200;
+  const showExpandButton = content.length > previewLength;
+  
+  return (
+    <div className="text-sm text-gray-600">
+      <div className="whitespace-pre-wrap">
+        {isExpanded ? content : (showExpandButton ? `${content.substring(0, previewLength)}...` : content)}
+      </div>
+      
+      {showExpandButton && (
+        <div className="mt-2 pt-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-xs h-6 px-2"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-3 w-3 mr-1" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3 w-3 mr-1" />
+                Show All ({content.length - previewLength} more characters)
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function SimpleRewriter({
   isOpen,
