@@ -683,9 +683,10 @@ export default function SimpleRewriter({
                                     {chunk.wordCount} words
                                   </Badge>
                                 </div>
-                                <div className="text-xs text-gray-600 line-clamp-3">
-                                  {chunk.content.substring(0, 200)}...
-                                </div>
+                                <ChunkPreviewExpander 
+                                  content={chunk.content}
+                                  chunkId={chunk.id}
+                                />
                               </div>
                             </div>
                           </CardContent>
