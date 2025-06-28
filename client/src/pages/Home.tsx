@@ -715,11 +715,23 @@ Document text: ${extractedText}`;
       .trim();
 
     return (
-      <div className="whitespace-pre-wrap">
-        <MathJax>
-          {cleanContent}
-        </MathJax>
-      </div>
+      <div 
+        className="whitespace-pre-wrap"
+        dangerouslySetInnerHTML={{
+          __html: processContentForMathRendering(cleanContent)
+        }}
+        ref={(el) => {
+          if (el) {
+            setTimeout(() => {
+              try {
+                renderMathContent(el);
+              } catch (e) {
+                console.error('KaTeX rendering failed in formatMessage:', e);
+              }
+            }, 100);
+          }
+        }}
+      />
     );
   };
 
@@ -1166,9 +1178,33 @@ Document text: ${extractedText}`;
                         <span className="text-xs text-muted-foreground">
                           {message.timestamp.toLocaleTimeString()}
                         </span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        {/* Math View Toggle for AI messages */}
+                        {message.role === "assistant" && (
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              size="sm"
+                              variant={!showMathView ? "default" : "outline"}
+                              onClick={() => setShowMathView(false)}
+                              className="text-xs h-6 px-2"
+                            >
+                              Text
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={showMathView ? "default" : "outline"}
+                              onClick={() => setShowMathView(true)}
+                              className="text-xs h-6 px-2"
+                            >
+                              Math
+                            </Button>
+                          </div>
+                        )}
                         
                         {/* Download and Share buttons for each message */}
-                        <div className="flex items-center space-x-1 ml-4">
+                        <div className="flex items-center space-x-1">
                           {/* Print/Save as PDF button */}
                           <Button
                             variant="ghost"
@@ -1373,7 +1409,29 @@ Document text: ${extractedText}`;
                     </div>
                     
                     <div className={`p-4 rounded-lg ${message.role === "user" ? "bg-primary-foreground" : "bg-accent"}`}>
-                      {formatMessage(message.content)}
+                      {message.role === "assistant" && showMathView ? (
+                        <div 
+                          dangerouslySetInnerHTML={{
+                            __html: processContentForMathRendering(message.content)
+                          }}
+                          ref={(el) => {
+                            if (el) {
+                              setTimeout(() => {
+                                try {
+                                  renderMathContent(el);
+                                } catch (e) {
+                                  console.error('KaTeX rendering failed:', e);
+                                }
+                              }, 100);
+                            }
+                          }}
+                          className="prose dark:prose-invert prose-sm max-w-none"
+                        />
+                      ) : (
+                        <div className="whitespace-pre-wrap text-sm">
+                          {message.content}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
