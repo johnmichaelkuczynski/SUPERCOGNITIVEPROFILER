@@ -56,28 +56,34 @@ export function processContentForMathRendering(content: string): string {
   // CRITICAL FIX: Don't destroy LaTeX delimiters! Only fix actual double-escaping
   let processed = content;
   
-  // Only fix legitimate double-escaped math commands, NOT delimiters
-  processed = processed
-    .replace(/\\\\alpha/g, '\\alpha')
-    .replace(/\\\\beta/g, '\\beta')
-    .replace(/\\\\gamma/g, '\\gamma')
-    .replace(/\\\\delta/g, '\\delta')
-    .replace(/\\\\epsilon/g, '\\epsilon')
-    .replace(/\\\\sigma/g, '\\sigma')
-    .replace(/\\\\theta/g, '\\theta')
-    .replace(/\\\\phi/g, '\\phi')
-    .replace(/\\\\psi/g, '\\psi')
-    .replace(/\\\\in/g, '\\in')
-    .replace(/\\\\cup/g, '\\cup')
-    .replace(/\\\\cap/g, '\\cap')
-    .replace(/\\\\forall/g, '\\forall')
-    .replace(/\\\\exists/g, '\\exists')
-    .replace(/\\\\emptyset/g, '\\emptyset')
-    .replace(/\\\\neg/g, '\\neg')
-    .replace(/\\\\wedge/g, '\\wedge')
-    .replace(/\\\\vee/g, '\\vee');
+  // Debug: Log the original content to see what we're working with
+  console.log('🔍 Original content sample:', content.substring(0, 200));
   
-  // DO NOT REMOVE LaTeX DELIMITERS - preserve \( \) and \[ \] exactly as they are
+  // Fix cases where math expressions are not properly wrapped in LaTeX delimiters
+  // Convert standalone math expressions to proper LaTeX format
+  processed = processed
+    .replace(/\b([a-z])\^([0-9]+)\b/g, '\\($1^{$2}\\)') // x^2 -> \(x^{2}\)
+    .replace(/\b([a-z])\^([a-z])\b/g, '\\($1^{$2}\\)') // x^y -> \(x^{y}\)
+    .replace(/\\sqrt\{([^}]+)\}/g, '\\(\\sqrt{$1}\\)') // \sqrt{2} -> \(\sqrt{2}\)
+    .replace(/([a-z])\^2 \+ ([a-z])\^2 = ([a-z])\^2/g, '\\($1^2 + $2^2 = $3^2\\)') // Pythagorean theorem
+    .replace(/\\alpha\b/g, '\\(\\alpha\\)')
+    .replace(/\\beta\b/g, '\\(\\beta\\)')
+    .replace(/\\gamma\b/g, '\\(\\gamma\\)')
+    .replace(/\\delta\b/g, '\\(\\delta\\)')
+    .replace(/\\epsilon\b/g, '\\(\\epsilon\\)')
+    .replace(/\\sigma\b/g, '\\(\\sigma\\)')
+    .replace(/\\theta\b/g, '\\(\\theta\\)')
+    .replace(/\\phi\b/g, '\\(\\phi\\)')
+    .replace(/\\psi\b/g, '\\(\\psi\\)')
+    .replace(/\\in\b/g, '\\(\\in\\)')
+    .replace(/\\cup\b/g, '\\(\\cup\\)')
+    .replace(/\\cap\b/g, '\\(\\cap\\)')
+    .replace(/\\forall\b/g, '\\(\\forall\\)')
+    .replace(/\\exists\b/g, '\\(\\exists\\)')
+    .replace(/\\emptyset\b/g, '\\(\\emptyset\\)')
+    .replace(/\\neg\b/g, '\\(\\neg\\)')
+    .replace(/\\wedge\b/g, '\\(\\wedge\\)')
+    .replace(/\\vee\b/g, '\\(\\vee\\)');
   
   // Ensure proper paragraph structure for HTML rendering
   processed = processed
@@ -88,6 +94,8 @@ export function processContentForMathRendering(content: string): string {
     .replace(/<p><\/p>/g, '')
     // Preserve line breaks within paragraphs
     .replace(/\n/g, '<br>');
+  
+  console.log('🔍 Processed content sample:', processed.substring(0, 200));
   
   return processed;
 }
