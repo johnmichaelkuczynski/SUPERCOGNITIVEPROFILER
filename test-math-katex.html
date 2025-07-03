@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js" 
+            onload="renderMathInElement(document.body);"></script>
+</head>
+<body>
+    <h1>KaTeX Test</h1>
+    
+    <p>This should render as math: \(\sqrt{2}\)</p>
+    <p>This should render as math: \(a^2 + b^2 = c^2\)</p>
+    <p>This should render as math: \(\alpha\)</p>
+    <p>This should render as math: \(\beta\)</p>
+    <p>This should render as math: \(\sigma\)</p>
+    
+    <p>Display math: $$E = mc^2$$</p>
+    
+    <script>
+        setTimeout(() => {
+            console.log('Manual KaTeX render called');
+            if (window.renderMathInElement) {
+                window.renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

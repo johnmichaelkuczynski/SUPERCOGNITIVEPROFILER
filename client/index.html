@@ -9,64 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- KaTeX Configuration -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-    <script>
-      // Perfect KaTeX rendering for ALL technical notation
-      document.addEventListener("DOMContentLoaded", function() {
-        // Store original KaTeX function before overriding
-        const originalRenderMathInElement = window.renderMathInElement;
-        
-        if (typeof originalRenderMathInElement === 'function') {
-          // Global KaTeX wrapper for perfect technical notation
-          window.renderMathInElement = function(element, options = {}) {
-            try {
-              originalRenderMathInElement(element, {
-                delimiters: [
-                  {left: '\\(', right: '\\)', display: false},
-                  {left: '\\[', right: '\\]', display: true},
-                  {left: '$$', right: '$$', display: true}
-                ],
-                throwOnError: false,
-                strict: false,
-                trust: true,
-                macros: {
-                  "\\RR": "\\mathbb{R}",
-                  "\\NN": "\\mathbb{N}",
-                  "\\ZZ": "\\mathbb{Z}",
-                  "\\QQ": "\\mathbb{Q}",
-                  "\\CC": "\\mathbb{C}",
-                  "\\forall": "\\forall",
-                  "\\exists": "\\exists",
-                  "\\in": "\\in",
-                  "\\cup": "\\cup",
-                  "\\cap": "\\cap",
-                  "\\subset": "\\subset",
-                  "\\supset": "\\supset",
-                  "\\subseteq": "\\subseteq",
-                  "\\supseteq": "\\supseteq",
-                  "\\emptyset": "\\emptyset",
-                  "\\neg": "\\neg",
-                  "\\wedge": "\\wedge",
-                  "\\vee": "\\vee",
-                  "\\implies": "\\implies",
-                  "\\iff": "\\iff"
-                },
-                ...options
-              });
-              console.log('✅ KaTeX rendered successfully for technical notation');
-            } catch (e) {
-              console.error('❌ KaTeX rendering failed:', e);
-            }
-          };
-          
-          // Auto-render all math on page load
-          window.renderMathInElement(document.body);
-        }
-      });
-    </script>
+    <!-- KaTeX Implementation - Clean Start -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js" 
+            onload="renderMathInElement(document.body);"></script>
     
     <!-- Open Graph Tags -->
     <meta property="og:title" content="TextMind - Advanced Writing & Analysis Engine" />

@@ -1643,7 +1643,7 @@ Rewrite the selected text with significant expansion:`;
 1. LENGTH EXPANSION: The rewritten content MUST be at least 1.2X the length of the original text. If instructions specify a multiplier (like "3X length"), follow that exactly.
 2. MANDATORY EXPANSION: Count the words in the original and ensure your output has significantly more words. Add detail, examples, explanations, and elaboration.
 3. Improve clarity, coherence, and academic quality while expanding content substantially
-4. CRITICAL LATEX RULES: For mathematical expressions, use ONLY simple LaTeX without \\text{} commands. Write math as: \\(x^2 + y^2 = z^2\\) NOT \\(x^2 + y^2 \\text{ equals } z^2\\). Never use \\text{}, \\textit{}, or similar text commands within math expressions
+4. CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\). NEVER leave math expressions unwrapped. NEVER use \\text{} commands within math expressions
 5. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $200, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
 6. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
 7. Do NOT add headers, titles, introductions, conclusions, or any structural elements
@@ -2678,6 +2678,7 @@ Return only the new content without any additional comments, explanations, or he
       const systemPrompt = `Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.
 
 CRITICAL RULES:
+- CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\). NEVER leave math expressions unwrapped.
 - NEVER add placeholder text like "Rest of text continues..." or similar placeholders
 - NEVER add editorial comments about mathematical notation or formatting
 - NEVER include meta-commentary about the content structure
@@ -2872,7 +2873,7 @@ ${content}`;
           model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           temperature: 0.1, // Low temperature for precise mathematical formatting
-          system: "CRITICAL: Only convert actual mathematical expressions to LaTeX. Do NOT add LaTeX markup to regular words or phrases. Keep all regular text as normal text without any LaTeX formatting. Do NOT wrap regular words in \\textit{}, \\text{}, or any LaTeX commands. Currency amounts like $25, $300 should remain as regular text. Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions. Examples: 'luxury dilution' stays as 'luxury dilution' (NO LaTeX), 'x^2' becomes '\\(x^2\\)' (LaTeX for math). Return clean plain text with LaTeX only where mathematically necessary.",
+          system: "CRITICAL: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\). NEVER leave math expressions unwrapped. Do NOT add LaTeX markup to regular words. Keep regular text as normal text. Currency amounts like $25, $300 stay as regular text. Only use LaTeX for actual mathematical expressions. Return clean text with proper LaTeX wrapping for all math.",
           messages: [{ role: 'user', content: prompt }]
         });
 
@@ -2886,7 +2887,7 @@ ${content}`;
         const response = await openai.chat.completions.create({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'CRITICAL: Only convert actual mathematical expressions to LaTeX. Do NOT add LaTeX markup to regular words or phrases. Keep all regular text as normal text without any LaTeX formatting. Do NOT wrap regular words in \\textit{}, \\text{}, or any LaTeX commands. Currency amounts like $25, $300 should remain as regular text. Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions. Examples: "luxury dilution" stays as "luxury dilution" (NO LaTeX), "x^2" becomes "\\(x^2\\)" (LaTeX for math). Return clean plain text with LaTeX only where mathematically necessary.' },
+            { role: 'system', content: 'CRITICAL: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\). NEVER leave math expressions unwrapped. Do NOT add LaTeX markup to regular words. Currency amounts like $25, $300 stay as regular text. Only use LaTeX for actual mathematical expressions.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 4000,
@@ -2896,7 +2897,7 @@ ${content}`;
         result = response.choices[0]?.message?.content || '';
       } else if (selectedModel === 'deepseek') {
         // Create system prompt for DeepSeek to prevent metadata insertions and LaTeX corruption
-        const systemPrompt = 'CRITICAL: Only convert actual mathematical expressions to LaTeX. Do NOT add LaTeX markup to regular words or phrases. Keep all regular text as normal text without any LaTeX formatting. Do NOT wrap regular words in \\textit{}, \\text{}, or any LaTeX commands. Currency amounts like $25, $300 should remain as regular text. Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions. Examples: "luxury dilution" stays as "luxury dilution" (NO LaTeX), "x^2" becomes "\\(x^2\\)" (LaTeX for math). Return clean plain text with LaTeX only where mathematically necessary.';
+        const systemPrompt = 'CRITICAL: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\). NEVER leave math expressions unwrapped. Do NOT add LaTeX markup to regular words. Currency amounts like $25, $300 stay as regular text. Only use LaTeX for actual mathematical expressions.';
         
         result = await callDeepSeekWithRateLimit(`${systemPrompt}\n\n${prompt}`, {
           temperature: 0.1,
