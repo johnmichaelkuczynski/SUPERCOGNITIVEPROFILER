@@ -54,7 +54,7 @@ CRITICAL RULES:
 - ALWAYS use proper LaTeX: \\in, \\cup, \\cap, \\forall, \\exists, \\alpha, \\beta, \\pi, \\sigma, \\lambda, \\mu, \\omega, \\Psi, \\Phi, \\Delta, \\Omega, \\hbar, \\partial, \\nabla, \\times, \\cdot, \\pm, \\infty, \\rightarrow, \\leftrightarrow, \\rightleftharpoons, \\uparrow, \\downarrow, \\circ, \\sim, \\approx, \\propto, \\leq, \\geq, \\neq, \\chi, \\nu, \\rho, \\tau, \\wedge, \\vee, \\neg, \\oplus, \\otimes, \\top, \\bot, \\equiv, \\models, \\vdash, \\int, \\iint, \\iiint, \\oint, \\sum, \\prod, \\lim, \\subset, \\supset, \\subseteq, \\supseteq, \\bigcup, \\bigcap, \\emptyset, \\mathbb{N}, \\mathbb{Z}, \\mathbb{Q}, \\mathbb{R}, \\mathbb{C}, \\gcd, \\lcm, \\pmod
 - CRITICAL: Wrap ALL mathematical expressions in \\(...\\) for inline math or $$...$$ for display math
 - EVERY single mathematical symbol, equation, or expression MUST be wrapped
-- Examples: \\(\\alpha\\), \\(\\beta\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\)
+- Examples: \\(\\alpha\\), \\(\\beta\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\), \\(\\frac{x^2 y}{x^4 + y^2}\\), \\(\\lim_{(x,y) \\rightarrow (0,0)} \\frac{x^2 y}{x^4 + y^2}\\), \\(\\int_{0}^{1} x^2 dx\\), \\(\\sum_{n=1}^{\\infty} \\frac{1}{n^2}\\)
 - PERFECT formatting for physics equations, chemical reactions, logical formulas, statistical expressions
 - NO EXCEPTIONS - every technical field must use proper LaTeX notation`;
 

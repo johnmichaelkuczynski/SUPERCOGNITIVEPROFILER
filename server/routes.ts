@@ -1643,7 +1643,7 @@ Rewrite the selected text with significant expansion:`;
 1. LENGTH EXPANSION: The rewritten content MUST be at least 1.2X the length of the original text. If instructions specify a multiplier (like "3X length"), follow that exactly.
 2. MANDATORY EXPANSION: Count the words in the original and ensure your output has significantly more words. Add detail, examples, explanations, and elaboration.
 3. Improve clarity, coherence, and academic quality while expanding content substantially
-4. CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\). NEVER leave math expressions unwrapped. NEVER use \\text{} commands within math expressions
+4. CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. This includes fractions, limits, integrals, and complex expressions. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\), \\(\\frac{x^2 y}{x^4 + y^2}\\), \\(\\lim_{(x,y) \\rightarrow (0,0)} \\frac{x^2 y}{x^4 + y^2}\\), \\(\\int_{0}^{1} x^2 dx\\). NEVER leave math expressions unwrapped or use plain text like "frac" or "lim". NEVER use \\text{} commands within math expressions
 5. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $200, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
 6. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
 7. Do NOT add headers, titles, introductions, conclusions, or any structural elements
@@ -2678,7 +2678,7 @@ Return only the new content without any additional comments, explanations, or he
       const systemPrompt = `Complete the entire assignment or request fully and directly. Do not ask follow-up questions, do not provide partial answers, and do not offer to do more work. Simply complete everything that was requested in full.
 
 CRITICAL RULES:
-- CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\). NEVER leave math expressions unwrapped.
+- CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. This includes fractions, limits, integrals, and complex expressions. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\), \\(\\frac{x^2 y}{x^4 + y^2}\\), \\(\\lim_{(x,y) \\rightarrow (0,0)} \\frac{x^2 y}{x^4 + y^2}\\), \\(\\int_{0}^{1} x^2 dx\\). NEVER leave math expressions unwrapped or use plain text like "frac" or "lim".
 - NEVER add placeholder text like "Rest of text continues..." or similar placeholders
 - NEVER add editorial comments about mathematical notation or formatting
 - NEVER include meta-commentary about the content structure
