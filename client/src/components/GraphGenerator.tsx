@@ -9,6 +9,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart3, TrendingUp, Loader2, Download } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { processContentForMathRendering } from '@/utils/mathRenderer';
 
 interface GraphData {
   type: 'line' | 'bar' | 'scatter' | 'pie' | 'area' | 'function' | 'histogram';
@@ -332,7 +333,9 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
           {generatedGraphs.map((graph, index) => (
             <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">{graph.data.title}</CardTitle>
+                <CardTitle className="text-lg">
+                  <div dangerouslySetInnerHTML={{ __html: processContentForMathRendering(graph.data.title) }} />
+                </CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
@@ -346,11 +349,13 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
                   dangerouslySetInnerHTML={{ __html: graph.svg }}
                   className="flex justify-center mb-4"
                 />
-                <p className="text-sm text-gray-600">{graph.data.description}</p>
+                <div className="text-sm text-gray-600">
+                  <div dangerouslySetInnerHTML={{ __html: processContentForMathRendering(graph.data.description) }} />
+                </div>
                 {graph.data.mathExpression && (
-                  <p className="text-xs text-gray-500 mt-2 font-mono">
-                    f(x) = {graph.data.mathExpression}
-                  </p>
+                  <div className="text-xs text-gray-500 mt-2 font-mono">
+                    <div dangerouslySetInnerHTML={{ __html: processContentForMathRendering(`f(x) = ${graph.data.mathExpression}`) }} />
+                  </div>
                 )}
               </CardContent>
             </Card>

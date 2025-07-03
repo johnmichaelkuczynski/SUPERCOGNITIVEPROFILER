@@ -1852,8 +1852,8 @@ export default function ChunkedRewriter({
                       <h2>Supporting Visualizations</h2>
                       ${rewriteMetadata.graphs.map((graph: any, index: number) => `
                         <div class="graph-container">
-                          <h3 class="graph-title">${graph.title || `Graph ${index + 1}`}</h3>
-                          ${graph.description ? `<p class="graph-description">${graph.description}</p>` : ''}
+                          <h3 class="graph-title">${processContentForMathRendering(graph.title || `Graph ${index + 1}`)}</h3>
+                          ${graph.description ? `<p class="graph-description">${processContentForMathRendering(graph.description)}</p>` : ''}
                           <div class="graph-svg">
                             ${graph.svg}
                           </div>
@@ -2426,7 +2426,9 @@ export default function ChunkedRewriter({
                             <div dangerouslySetInnerHTML={{ __html: processContentForMathRendering(graph.title || `Graph ${index + 1}`) }} />
                           </h4>
                           {graph.description && (
-                            <p className="text-sm text-gray-600 mt-1">{graph.description}</p>
+                            <div className="text-sm text-gray-600 mt-1">
+                              <div dangerouslySetInnerHTML={{ __html: processContentForMathRendering(graph.description) }} />
+                            </div>
                           )}
                         </div>
                         <div 
