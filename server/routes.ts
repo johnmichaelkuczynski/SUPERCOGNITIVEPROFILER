@@ -27,6 +27,7 @@ import { Document, Paragraph, TextRun, Packer } from 'docx';
 import PDFDocument from 'pdfkit';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 import { parseGraphRequirements, parseMathExpression, generateEssayWithGraphs, generateSVG } from "./services/graphGenerator";
+import { generateRevisedIntelligenceProfile } from "./services/revisedProfiling";
 
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
@@ -3146,7 +3147,35 @@ ${content}`;
 
   // Mind Profiler API Routes
   
-  // Instant profile analysis
+  // REVISED INTELLIGENCE METRICS - New API endpoint using proper framework
+  app.post('/api/profile/revised-intelligence', async (req: Request, res: Response) => {
+    try {
+      console.log('🔥 REVISED INTELLIGENCE METRICS API CALLED');
+      const { inputText, userId } = req.body;
+      
+      if (!inputText || !userId) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      if (inputText.length < 100) {
+        return res.status(400).json({ error: 'Text sample too short. Minimum 100 characters required.' });
+      }
+      
+      console.log('🔥 CALLING generateRevisedIntelligenceProfile - PURE PASSTHROUGH');
+      const profile = await generateRevisedIntelligenceProfile(inputText);
+      
+      console.log('🔥 RETURNING AUTHENTIC SCORES - NO FILTERING');
+      res.json(profile);
+    } catch (error) {
+      console.error('🔥 REVISED INTELLIGENCE METRICS ERROR:', error);
+      res.status(500).json({
+        error: 'Failed to generate revised intelligence profile', 
+        details: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+  
+  // Instant profile analysis (legacy)
   app.post('/api/profile/instant', async (req: Request, res: Response) => {
     try {
       const { profileType, inputText, userId } = req.body;
@@ -3217,30 +3246,32 @@ ${content}`;
       console.log('🔍 CALLING generateMetacognitiveProfile with text length:', inputText.length);
       console.log('🔍 INPUT TEXT PREVIEW:', inputText.substring(0, 200));
       
-      const metacognitiveProfile = await generateMetacognitiveProfile(inputText, false, model);
+      // REPLACED WITH REVISED INTELLIGENCE METRICS - NO MORE FILTERING
+      console.log('🔥 USING REVISED INTELLIGENCE METRICS - PURE PASSTHROUGH');
+      const revisedProfile = await generateRevisedIntelligenceProfile(inputText);
       
-      // DEBUG LOGGING - Check final output before sending
-      console.log('🔍 FINAL RESPONSE SCORES:');
-      console.log('intellectualMaturity:', metacognitiveProfile.intellectualMaturity);
-      console.log('selfAwarenessLevel:', metacognitiveProfile.selfAwarenessLevel);
-      console.log('epistemicHumility:', metacognitiveProfile.epistemicHumility);
-      console.log('reflectiveDepth:', metacognitiveProfile.reflectiveDepth);
+      // Convert to expected format for backward compatibility
+      const compatibleProfile = {
+        intellectualMaturity: revisedProfile.intellectualMaturity,
+        selfAwarenessLevel: revisedProfile.selfAwarenessLevel,
+        epistemicHumility: revisedProfile.epistemicHumility,
+        reflectiveDepth: revisedProfile.reflectiveDepth,
+        affirmativeInsightFunction: revisedProfile.affirmativeInsightFunction,
+        thesis: revisedProfile.thesis,
+        antithesis: revisedProfile.antithesis,
+        superThesis: revisedProfile.superThesis,
+        overallMetacognitiveProfile: revisedProfile.overallProfile,
+        reasoning: revisedProfile.reasoning
+      };
       
-      // Check if we're returning the dreaded default scores
-      const isProblematicScores = (
-        metacognitiveProfile.intellectualMaturity === 8 && 
-        metacognitiveProfile.selfAwarenessLevel === 7 && 
-        metacognitiveProfile.epistemicHumility === 6 && 
-        metacognitiveProfile.reflectiveDepth === 9
-      );
+      console.log('🔥 AUTHENTIC SCORES FROM DEEPSEEK - NO FILTERING:');
+      console.log('AIF (Primary Metric):', compatibleProfile.affirmativeInsightFunction);
+      console.log('Intellectual Maturity:', compatibleProfile.intellectualMaturity);
+      console.log('Epistemic Humility:', compatibleProfile.epistemicHumility);
+      console.log('Self-Awareness:', compatibleProfile.selfAwarenessLevel);
+      console.log('Reflective Depth:', compatibleProfile.reflectiveDepth);
       
-      if (isProblematicScores) {
-        console.log('🚨 ALERT: RETURNING SUSPECTED DEFAULT SCORES - INVESTIGATE IMMEDIATELY!');
-        console.log('🚨 Request Hash:', requestHash);
-        console.log('🚨 Input Preview:', inputText.substring(0, 100));
-      }
-      
-      res.json(metacognitiveProfile);
+      res.json(compatibleProfile);
     } catch (error) {
       console.error('🔍 METACOGNITIVE ROUTE ERROR:', error);
       res.status(500).json({ 
