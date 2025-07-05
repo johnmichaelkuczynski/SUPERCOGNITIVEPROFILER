@@ -136,13 +136,32 @@ Use dialectical structure (Thesis/Antithesis/Super-Thesis) and return authentic 
     console.log('🔥 RAW DEEPSEEK RESPONSE LENGTH:', rawResponse.length);
     console.log('🔥 RAW RESPONSE PREVIEW:', rawResponse.substring(0, 500));
     
-    // Extract JSON from response
-    const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
+    // Extract JSON from response with better parsing
+    let jsonString = '';
+    let braceCount = 0;
+    let startIndex = rawResponse.indexOf('{');
+    
+    if (startIndex === -1) {
       throw new Error('No valid JSON found in DeepSeek response');
     }
     
-    const parsedResult = JSON.parse(jsonMatch[0]);
+    // Find the complete JSON object by counting braces
+    for (let i = startIndex; i < rawResponse.length; i++) {
+      const char = rawResponse[i];
+      jsonString += char;
+      
+      if (char === '{') {
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          break;
+        }
+      }
+    }
+    
+    console.log('🔥 EXTRACTED JSON STRING:', jsonString);
+    const parsedResult = JSON.parse(jsonString);
     
     console.log('🔥 PARSED SCORES (NO FILTERING):');
     console.log('AIF:', parsedResult.affirmativeInsightFunction);
