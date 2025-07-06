@@ -3054,6 +3054,14 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <FileText className="h-4 w-4" />
                   Export Word
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={startChatDialogue}
+                  className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat
+                </Button>
               </div>
               <Button 
                 onClick={() => setShowResultsDialog(false)}
