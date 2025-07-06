@@ -44,6 +44,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import ReactMarkdown from 'react-markdown';
+import { processContentForMathRendering, renderMathContent } from '@/utils/mathRenderer';
 
 interface SupportingEvidence {
   quote: string;
@@ -510,6 +511,41 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
       ]);
     }
     setShowChatDialog(true);
+  };
+
+  const handleNewAnalysisFromChat = () => {
+    // Create new analysis text based on chat conversation
+    const chatContext = chatMessages.map(msg => 
+      `${msg.role === 'user' ? 'USER' : 'AI'}: ${msg.content}`
+    ).join('\n\n');
+    
+    const newAnalysisText = `Based on our previous discussion, here is the refined context for a new analysis:
+
+ORIGINAL TEXT:
+${inputText}
+
+CHAT DISCUSSION CONTEXT:
+${chatContext}
+
+Please perform a new analysis that takes into account the insights, contestations, and additional perspectives discussed in our conversation.`;
+
+    // Close chat dialog and set up new analysis
+    setShowChatDialog(false);
+    setInputText(newAnalysisText);
+    setChatMessages([]);
+    
+    // Trigger new analysis
+    analyzeProfile.mutate({
+      profileType,
+      analysisMode: 'instant',
+      model: selectedModel,
+      inputText: newAnalysisText
+    });
+
+    toast({
+      title: "New Analysis Triggered",
+      description: "Running fresh analysis based on chat discussion...",
+    });
   };
 
   // Animation progress effect
@@ -3113,9 +3149,19 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                         {message.role === 'user' ? 'You' : 'AI Assistant'}
                       </span>
                     </div>
-                    <div className="text-sm leading-relaxed">
-                      {message.content}
-                    </div>
+                    <div 
+                      className="text-sm leading-relaxed"
+                      dangerouslySetInnerHTML={{
+                        __html: processContentForMathRendering(message.content)
+                      }}
+                      ref={(el) => {
+                        if (el && message.role === 'assistant') {
+                          setTimeout(() => {
+                            renderMathContent(el);
+                          }, 100);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               ))}
@@ -3137,7 +3183,7 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
             </div>
             
             {/* Chat Input */}
-            <div className="p-6 border-t border-gray-200">
+            <div className="p-6 border-t border-gray-200 space-y-4">
               <div className="flex gap-3">
                 <Textarea
                   value={chatInput}
@@ -3155,6 +3201,21 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
+              
+              {/* New Analysis Button */}
+              {chatMessages.length > 2 && (
+                <div className="flex justify-center pt-2 border-t border-gray-100">
+                  <Button
+                    onClick={handleNewAnalysisFromChat}
+                    variant="outline"
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-300 text-purple-700"
+                  >
+                    <Zap className="h-4 w-4" />
+                    New Analysis Based on This Chat
+                  </Button>
+                </div>
+              )}
+              
               <div className="mt-2 text-xs text-gray-500">
                 Press Enter to send • Shift+Enter for new line
               </div>
