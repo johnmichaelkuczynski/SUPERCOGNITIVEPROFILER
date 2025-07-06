@@ -6011,4 +6011,107 @@ export function setupGraphRoutes(app: Express) {
       });
     }
   });
+
+  // Chat with AI about analysis results
+  app.post('/api/profile/chat', async (req: Request, res: Response) => {
+    try {
+      const { message, analysisResults, chatHistory, profileType, selectedModel, originalText } = req.body;
+      
+      if (!message || !analysisResults) {
+        return res.status(400).json({ error: 'Message and analysis results are required' });
+      }
+
+      // Create context for the AI based on the analysis and chat history
+      const analysisContext = `
+You are the AI assistant that performed the following ${profileType} analysis. The user wants to discuss the results with you.
+
+ORIGINAL TEXT ANALYZED:
+${originalText ? originalText.substring(0, 1000) + '...' : 'Text not available'}
+
+ANALYSIS RESULTS:
+${JSON.stringify(analysisResults, null, 2)}
+
+You should:
+1. Help the user understand the analysis better
+2. Address any contestations or disagreements they have
+3. Provide additional insights if requested
+4. Explain your reasoning for specific findings
+5. Be open to discussing alternative interpretations
+6. Maintain a helpful, professional tone
+
+The user's message: ${message}
+`;
+
+      // Create system prompt
+      const systemPrompt = `You are an expert AI analyst specializing in cognitive and psychological assessment. You have just performed a detailed ${profileType} analysis for this user. 
+
+Be conversational, insightful, and willing to engage in nuanced discussion about your analysis. If the user contests any findings, explain your reasoning clearly and be open to their perspective. Provide specific examples from their text when possible.
+
+Keep responses focused, helpful, and under 300 words unless the user specifically asks for more detail.`;
+
+      // Prepare messages for the AI
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: analysisContext }
+      ];
+
+      // Add chat history if available
+      if (chatHistory && chatHistory.length > 0) {
+        chatHistory.forEach((msg: any) => {
+          messages.push({
+            role: msg.role === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          });
+        });
+      }
+
+      // Add the current message
+      messages.push({ role: 'user', content: message });
+
+      let response = '';
+
+      // Route to appropriate AI model
+      if (selectedModel === 'deepseek') {
+        const { processDeepSeek } = await import('./services/deepseek');
+        
+        // For DeepSeek, combine all messages into a single prompt
+        const fullPrompt = messages.map(m => 
+          m.role === 'system' ? `SYSTEM: ${m.content}` : 
+          m.role === 'user' ? `USER: ${m.content}` : 
+          `ASSISTANT: ${m.content}`
+        ).join('\n\n');
+        
+        response = await processDeepSeek(fullPrompt, { temperature: 0.7, maxTokens: 1000 });
+      } else if (selectedModel === 'claude') {
+        const { processAnthropic } = await import('./services/anthropic');
+        response = await processAnthropic(
+          messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+          { temperature: 0.7, maxTokens: 1000 }
+        );
+      } else if (selectedModel === 'gpt4') {
+        const { callOpenAIWithRateLimit } = await import('./utils/openaiWrapper');
+        response = await callOpenAIWithRateLimit({
+          messages: messages.map(m => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content })),
+          temperature: 0.7,
+          max_tokens: 1000
+        });
+      } else if (selectedModel === 'perplexity') {
+        const { processPerplexity } = await import('./services/perplexity');
+        response = await processPerplexity(
+          messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+          { temperature: 0.7, maxTokens: 1000 }
+        );
+      } else {
+        throw new Error(`Unsupported model: ${selectedModel}`);
+      }
+
+      res.json({ response });
+    } catch (error) {
+      console.error('Error in chat API:', error);
+      res.status(500).json({ 
+        error: 'Failed to process chat message', 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 }

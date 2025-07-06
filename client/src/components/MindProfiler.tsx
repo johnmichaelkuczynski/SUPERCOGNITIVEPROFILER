@@ -33,7 +33,11 @@ import {
   Shield,
   XCircle,
   Crown,
-  Cpu
+  Cpu,
+  MessageCircle,
+  Send,
+  Bot,
+  UserIcon
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -170,6 +174,13 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
   const [analysisStage, setAnalysisStage] = useState('');
   const [showLoadingAnimation, setShowLoadingAnimation] = useState(false);
   const [savedEmail, setSavedEmail] = useState('');
+  
+  // Chat interface state
+  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatting, setIsChatting] = useState(false);
+  const [showChatDialog, setShowChatDialog] = useState(false);
+  
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -277,6 +288,37 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         description: error.message || "Failed to generate profile. Please try again.",
         variant: "destructive",
       });
+    },
+  });
+
+  // Chat with AI about analysis mutation
+  const chatWithAI = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await apiRequest('POST', '/api/profile/chat', {
+        message,
+        analysisResults: results,
+        chatHistory: chatMessages,
+        profileType,
+        selectedModel,
+        originalText: inputText
+      });
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      setChatMessages(prev => [...prev, 
+        { role: 'user', content: chatInput },
+        { role: 'assistant', content: data.response }
+      ]);
+      setChatInput('');
+      setIsChatting(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Chat Failed",
+        description: error.message || "Failed to get response from AI. Please try again.",
+        variant: "destructive",
+      });
+      setIsChatting(false);
     },
   });
 
@@ -444,6 +486,30 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
         handleAnalyze();
       }
     }
+  };
+
+  // Chat functionality handlers
+  const handleChatSubmit = () => {
+    if (chatInput.trim() && !isChatting) {
+      setIsChatting(true);
+      chatWithAI.mutate(chatInput.trim());
+    }
+  };
+
+  const handleChatKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSubmit();
+    }
+  };
+
+  const startChatDialogue = () => {
+    if (chatMessages.length === 0) {
+      setChatMessages([
+        { role: 'assistant', content: `Hello! I'm the AI that analyzed your text. I can help you understand the analysis better, discuss any aspects you'd like to contest, or provide additional insights. What would you like to explore about your profile?` }
+      ]);
+    }
+    setShowChatDialog(true);
   };
 
   // Animation progress effect
@@ -859,6 +925,15 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
                 >
                   <Mail className="h-4 w-4" />
                   Email
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={startChatDialogue}
+                  className="flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat
                 </Button>
               </div>
             </div>
@@ -2986,6 +3061,95 @@ export default function MindProfiler({ userId }: MindProfilerProps) {
               >
                 Close
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Chat Dialog */}
+      <Dialog open={showChatDialog} onOpenChange={setShowChatDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <div className="p-6 border-b border-gray-200">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-blue-600" />
+                Chat with AI About Your Analysis
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          
+          <div className="flex flex-col max-h-[calc(90vh-180px)]">
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {chatMessages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex gap-3 ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg p-4 ${
+                      message.role === 'user'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      {message.role === 'user' ? (
+                        <UserIcon className="h-4 w-4" />
+                      ) : (
+                        <Bot className="h-4 w-4" />
+                      )}
+                      <span className="text-sm font-medium">
+                        {message.role === 'user' ? 'You' : 'AI Assistant'}
+                      </span>
+                    </div>
+                    <div className="text-sm leading-relaxed">
+                      {message.content}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {isChatting && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 rounded-lg p-4 max-w-[80%]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Bot className="h-4 w-4" />
+                      <span className="text-sm font-medium">AI Assistant</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      Thinking...
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Chat Input */}
+            <div className="p-6 border-t border-gray-200">
+              <div className="flex gap-3">
+                <Textarea
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyPress={handleChatKeyPress}
+                  placeholder="Ask about your analysis, contest findings, or request additional insights..."
+                  className="flex-1 min-h-[60px] resize-none"
+                  disabled={isChatting}
+                />
+                <Button
+                  onClick={handleChatSubmit}
+                  disabled={!chatInput.trim() || isChatting}
+                  className="px-6"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                Press Enter to send • Shift+Enter for new line
+              </div>
             </div>
           </div>
         </DialogContent>
