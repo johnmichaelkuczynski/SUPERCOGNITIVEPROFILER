@@ -64,7 +64,7 @@ export default function Header({ currentPath }: HeaderProps) {
   return (
     <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer">
               <div className="text-primary-600 text-2xl font-bold">TextMind</div>
@@ -73,7 +73,7 @@ export default function Header({ currentPath }: HeaderProps) {
           </Link>
           <a 
             href="mailto:contact@zhisystems.ai" 
-            className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium"
+            className="text-slate-500 hover:text-slate-700 transition-colors text-xs mt-0.5"
           >
             Contact Us
           </a>
@@ -111,12 +111,16 @@ export default function Header({ currentPath }: HeaderProps) {
           </SheetTrigger>
           <SheetContent side="right">
             <div className="flex flex-col space-y-4 mt-8">
-              <a 
-                href="mailto:contact@zhisystems.ai" 
-                className="px-2 py-1 rounded-md text-slate-600 hover:bg-slate-100 text-sm font-medium"
-              >
-                Contact Us
-              </a>
+              <div className="px-2 mb-4">
+                <div className="text-primary-600 text-xl font-bold mb-1">TextMind</div>
+                <a 
+                  href="mailto:contact@zhisystems.ai" 
+                  className="text-slate-500 hover:text-slate-700 transition-colors text-xs"
+                >
+                  Contact Us
+                </a>
+              </div>
+              <div className="h-px bg-slate-200 my-2"></div>
               <Link href="/">
                 <div className={cn(
                   "px-2 py-1 rounded-md text-slate-600 hover:bg-slate-100 cursor-pointer",
