@@ -221,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Simple document context without complicated instructions
-        processedContent = content + "\n\nContext documents:\n" + finalDocumentContext + "\n\nIMPORTANT: When responding with mathematical content, use proper LaTeX formatting with \\(...\\) for inline math and $$...$$ for display math. Do not escape or convert LaTeX symbols.";
+        processedContent = content + "\n\nContext documents:\n" + finalDocumentContext + "\n\nIMPORTANT: When responding with mathematical content, use proper LaTeX formatting with \\(...\\) for inline math and $$...$$ for display math. Do not escape or convert LaTeX symbols. CRITICAL FORMATTING RULES: Write ONLY in plain text format. NEVER use markdown formatting including ### headers, ** bold text, * italic text, - bullet points, numbered lists, or any other markup. Write in simple paragraph format only.";
       }
       
       // Check final content length before processing
@@ -229,6 +229,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (processedContent.length > MAX_TOTAL_LENGTH) {
         console.log(`Total content too large (${processedContent.length} chars), truncating to ${MAX_TOTAL_LENGTH} chars`);
         processedContent = processedContent.substring(0, MAX_TOTAL_LENGTH) + "\n\n[CONTENT TRUNCATED TO PREVENT API ERRORS]";
+      }
+      
+      // Add system instructions for plain text formatting
+      if (!processedContent.includes("CRITICAL FORMATTING RULES")) {
+        processedContent += "\n\nCRITICAL FORMATTING RULES: Write ONLY in plain text format. NEVER use markdown formatting including ### headers, ** bold text, * italic text, - bullet points, numbered lists, or any other markup. Write in simple paragraph format only.";
       }
       
       console.log(`Processing request with ${processedContent.length} characters using ${model}`);
@@ -289,6 +294,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (typeof result === 'object' && result.content) {
           result = result.content;
         }
+        
+        // Clean markdown formatting from result
+        result = cleanMarkdownFormatting(result);
         
       } catch (modelError) {
         console.error(`Error with ${model} model:`, modelError);
@@ -1646,20 +1654,21 @@ Rewrite the selected text with significant expansion:`;
 3. Improve clarity, coherence, and academic quality while expanding content substantially
 4. CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. This includes fractions, limits, integrals, and complex expressions. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\), \\(\\frac{x^2 y}{x^4 + y^2}\\), \\(\\lim_{(x,y) \\rightarrow (0,0)} \\frac{x^2 y}{x^4 + y^2}\\), \\(\\int_{0}^{1} x^2 dx\\). NEVER leave math expressions unwrapped or use plain text like "frac" or "lim". NEVER use \\text{} commands within math expressions
 5. CRITICAL CURRENCY FORMATTING: Write all currency amounts as regular text ($25, $200, $5). NEVER escape dollar signs with backslashes. Currency should appear as $300, not \$300. This is mandatory.
-6. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
-7. Do NOT add headers, titles, introductions, conclusions, or any structural elements
-8. ABSOLUTELY FORBIDDEN: Do NOT add editorial comments, explanations, or metadata of any kind
-9. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
-10. NEVER add commentary about mathematical notation, formatting, or conversion processes
-11. NEVER add phrases like "(No mathematical expressions requiring LaTeX conversion were present in the provided text.)" or similar metadata
-12. NEVER add bracketed editorial comments like "[Content continues...]" or "[remaining text unchanged]"
-13. Return ONLY the rewritten content with absolutely no additions, commentary, or metadata
+6. CRITICAL FORMATTING RULES: Write ONLY in plain text format. NEVER use markdown formatting including ### headers, ** bold text, * italic text, - bullet points, numbered lists, or any other markup. Write in simple paragraph format only.
+7. Use proper paragraph breaks with double line breaks (\\n\\n) between paragraphs
+8. Do NOT add headers, titles, introductions, conclusions, or any structural elements
+9. ABSOLUTELY FORBIDDEN: Do NOT add editorial comments, explanations, or metadata of any kind
+10. NEVER add placeholder text like "Rest of text continues..." or similar truncation indicators
+11. NEVER add commentary about mathematical notation, formatting, or conversion processes
+12. NEVER add phrases like "(No mathematical expressions requiring LaTeX conversion were present in the provided text.)" or similar metadata
+13. NEVER add bracketed editorial comments like "[Content continues...]" or "[remaining text unchanged]"
+14. Return ONLY the rewritten content with absolutely no additions, commentary, or metadata
 
 METADATA ELIMINATION RULE: Your response must contain ZERO editorial commentary, processing notes, or metadata insertions. Output only the rewritten content itself.
 
 IMPORTANT: Your output must be substantially longer than the input. If the original has 500 words, your output should have at least 600 words (1.2X minimum). Follow any specific length multiplier instructions exactly.
 
-Return only the improved text content that is significantly expanded from the original.`;
+Return only the improved text content that is significantly expanded from the original in plain text format without any markdown formatting.`;
 
       let result: string;
       
@@ -2680,6 +2689,7 @@ Return only the new content without any additional comments, explanations, or he
 
 CRITICAL RULES:
 - CRITICAL LATEX RULES: ALL mathematical expressions MUST be wrapped in \\(...\\) delimiters. This includes fractions, limits, integrals, and complex expressions. Examples: \\(\\alpha\\), \\(\\beta\\), \\(\\sigma\\), \\(x^2\\), \\(\\sqrt{2}\\), \\(a^2 + b^2 = c^2\\), \\(\\frac{x^2 y}{x^4 + y^2}\\), \\(\\lim_{(x,y) \\rightarrow (0,0)} \\frac{x^2 y}{x^4 + y^2}\\), \\(\\int_{0}^{1} x^2 dx\\). NEVER leave math expressions unwrapped or use plain text like "frac" or "lim".
+- CRITICAL FORMATTING RULES: Write ONLY in plain text format. NEVER use markdown formatting including ### headers, ** bold text, * italic text, - bullet points, numbered lists, or any other markup. Write in simple paragraph format only.
 - NEVER add placeholder text like "Rest of text continues..." or similar placeholders
 - NEVER add editorial comments about mathematical notation or formatting
 - NEVER include meta-commentary about the content structure
@@ -2692,7 +2702,7 @@ CRITICAL RULES:
 - Focus only on solving the problem and providing clear explanations - graphs will be handled separately
 - Provide COMPLETE content without any truncation indicators or continuation placeholders
 
-Your job is to solve problems correctly and write clear, student-friendly explanations without any visual elements or placeholder text.`;
+Your job is to solve problems correctly and write clear, student-friendly explanations in plain text format without any markdown or visual elements.`;
 
       if (model === 'deepseek') {
         result = await callDeepSeekWithRateLimit(`${systemPrompt}\n\n${prompt}`, {
@@ -2832,7 +2842,7 @@ STRICT RULES:
 - Currency amounts like $25, $300 should remain as regular text
 - Only use LaTeX for actual math: equations, Greek letters, mathematical operators, fractions
 - Return clean plain text with LaTeX only where mathematically necessary
-- Remove all markdown formatting (#, *, **, etc.)
+- CRITICAL FORMATTING RULES: Write ONLY in plain text format. NEVER use markdown formatting including ### headers, ** bold text, * italic text, - bullet points, numbered lists, or any other markup. Write in simple paragraph format only.
 - NEVER add editorial comments or metadata
 
 EXAMPLES OF WHAT NOT TO DO:
