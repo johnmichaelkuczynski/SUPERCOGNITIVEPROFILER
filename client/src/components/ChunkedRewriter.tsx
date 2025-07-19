@@ -2480,10 +2480,7 @@ export default function ChunkedRewriter({
                     backgroundColor: '#ffffff'
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: finalRewrittenContent
-                      .replace(/\n/g, '<br>')
-                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    __html: processContentForMathRendering(finalRewrittenContent)
                   }}
                   ref={(el) => {
                     if (el && window.renderMathInElement) {
