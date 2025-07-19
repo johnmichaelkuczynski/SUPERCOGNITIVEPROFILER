@@ -1,0 +1,15 @@
+Test document with mathematical expressions to verify deployment fix:
+
+1. Basic algebra: x² + y² = z²
+
+2. Calculus: ∫₀^∞ e^(-x²) dx = √π/2
+
+3. Economics inflation formula: π = (P_t - P_{t-1})/P_{t-1} × 100
+
+4. Greek letters: α, β, γ, θ, λ, μ, σ, Σ, Π
+
+5. Complex fraction: U = (x₁ + x₂)/(x₃ + x₄)
+
+6. Summation: Σ(i=1 to n) x_i
+
+This document contains both currency symbols ($25, $1,000) and mathematical expressions that should be handled differently.
