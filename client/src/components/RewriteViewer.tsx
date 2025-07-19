@@ -184,15 +184,26 @@ export default function RewriteViewer({
                         __html: processContentForMathRendering(result.rewrittenContent)
                       }}
                       ref={(el) => {
-                        if (el) {
+                        if (el && viewMode === 'math') {
+                          // Use MathJax for proper rendering with slight delay to ensure DOM is ready
                           setTimeout(() => {
                             try {
-                              renderMathContent(el);
-                              console.log('✅ Math rendered in RewriteViewer with double-escape fix');
+                              if ((window as any).MathJax && (window as any).MathJax.typesetPromise) {
+                                (window as any).MathJax.typesetPromise([el]).then(() => {
+                                  console.log('✅ MathJax rendered math in RewriteViewer');
+                                }).catch((error: any) => {
+                                  console.error('❌ MathJax rendering failed:', error);
+                                  // Fallback to KaTeX if MathJax fails
+                                  renderMathContent(el);
+                                });
+                              } else {
+                                // Fallback to KaTeX if MathJax not available
+                                renderMathContent(el);
+                              }
                             } catch (e) {
-                              console.error('❌ KaTeX rendering failed in RewriteViewer:', e);
+                              console.error('❌ Math rendering failed in RewriteViewer:', e);
                             }
-                          }, 100);
+                          }, 150);
                         }
                       }}
                     />

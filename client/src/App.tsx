@@ -81,12 +81,11 @@ function Router() {
 const mathJaxConfig = {
   loader: { load: ["input/tex", "output/chtml"] },
   tex: {
-    // STRICT delimiter configuration - NO single dollar signs to prevent currency confusion
-    inlineMath: [['\\(', '\\)']],  // Only \( \) for inline math
-    displayMath: [['\\[', '\\]'], ['$$', '$$']],  // Only \[ \] and $$ $$ for display math
+    // PROPER delimiter configuration for both inline and display math
+    inlineMath: [['\\(', '\\)']],  // \( \) for inline math
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],  // $$ $$ and \[ \] for display math
     processEscapes: true,
     processEnvironments: true,
-    // Disable single $ delimiters completely
     processRefs: true,
     packages: {'[+]': ['noerrors']},
     // Enhanced error handling
@@ -102,8 +101,15 @@ const mathJaxConfig = {
   },
   startup: {
     ready: () => {
-      console.log('🧮 MathJax ready with strict delimiter configuration');
+      console.log('🧮 MathJax ready with proper delimiter configuration for inline \\(\\) and display $$');
       (window as any).MathJax.startup.defaultReady();
+      
+      // Ensure MathJax processes dynamic content properly
+      if ((window as any).MathJax) {
+        (window as any).MathJax.startup.document.state(0);
+        (window as any).MathJax.texReset();
+        (window as any).MathJax.typesetPromise();
+      }
     }
   }
 };

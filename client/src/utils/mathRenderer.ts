@@ -8,44 +8,65 @@ export function renderMathContent(element: HTMLElement): void {
       window.renderMathInElement(element, {
         delimiters: [
           {left: "$$", right: "$$", display: true},
+          {left: "\\[", right: "\\]", display: true},
           {left: "\\(", right: "\\)", display: false}
         ],
-        throwOnError: false
+        throwOnError: false,
+        errorColor: '#cc0000',
+        macros: {
+          "\\f": "#1f(#2)"
+        }
       });
-      console.log('✅ KaTeX math rendered');
+      console.log('✅ KaTeX math rendered with proper delimiters');
     } catch (error) {
       console.error('❌ KaTeX rendering failed:', error);
     }
+  } else {
+    console.warn('❌ KaTeX renderMathInElement not available');
   }
 }
 
 export function processContentForMathRendering(content: string): string {
   let processed = content;
   
-  // Convert unwrapped LaTeX expressions to properly delimited ones
+  // First pass: Convert unwrapped LaTeX expressions to properly delimited ones
   // This is a fallback for when AI models don't generate proper delimiters
   
-  // Convert fractions: frac{...}{...} -> \(\frac{...}{...}\)
-  processed = processed.replace(/\bfrac\{([^}]*)\}\{([^}]*)\}/g, '\\(\\frac{$1}{$2}\\)');
+  // Convert complex display equations (fractions, integrals, limits with complex expressions)
+  // Use $$ for display math for complex multi-line expressions
+  processed = processed.replace(/\bfrac\{([^}]*(?:\{[^}]*\}[^}]*)*)\}\{([^}]*(?:\{[^}]*\}[^}]*)*)\}/g, (match, numerator, denominator) => {
+    // Use display math for complex fractions
+    if (numerator.length > 10 || denominator.length > 10 || numerator.includes('^') || denominator.includes('^')) {
+      return `$$\\frac{${numerator}}{${denominator}}$$`;
+    }
+    return `\\(\\frac{${numerator}}{${denominator}}\\)`;
+  });
   
-  // Convert limits: lim_{...} -> \(\lim_{...}\)
-  processed = processed.replace(/\blim_\{([^}]*)\}/g, '\\(\\lim_{$1}\\)');
-  processed = processed.replace(/\blim\s+to\s+([^}\s]+)/g, '\\(\\lim \\to $1\\)');
+  // Convert complex limits to display math
+  processed = processed.replace(/\blim_\{([^}]*(?:\{[^}]*\}[^}]*)*)\}\s*([^\\s][^.!?]*)/g, (match, subscript, expression) => {
+    if (subscript.length > 8 || expression.length > 20) {
+      return `$$\\lim_{${subscript}} ${expression}$$`;
+    }
+    return `\\(\\lim_{${subscript}} ${expression}\\)`;
+  });
   
-  // Convert specific patterns from the user's screenshots
-  processed = processed.replace(/lim_\{?\(([^}]*)\)\}?/g, '\\(\\lim_{($1)}\\)');
-  processed = processed.replace(/frac\{?\{([^}]*)\}\}?\{?\{([^}]*)\}\}?/g, '\\(\\frac{$1}{$2}\\)');
+  // Convert complex integrals to display math  
+  processed = processed.replace(/\bint_\{([^}]*)\}\^\{([^}]*)\}\s*([^\\s][^.!?]*)/g, (match, lower, upper, expression) => {
+    if (expression.length > 15 || lower.length > 5 || upper.length > 5) {
+      return `$$\\int_{${lower}}^{${upper}} ${expression}$$`;
+    }
+    return `\\(\\int_{${lower}}^{${upper}} ${expression}\\)`;
+  });
   
-  // Convert "to" in mathematical contexts
-  processed = processed.replace(/(\w+)\s+to\s+(\w+)/g, '$1 \\(\\to\\) $2');
+  // Convert summations
+  processed = processed.replace(/\bsum_\{([^}]*)\}\^\{([^}]*)\}/g, (match, lower, upper) => {
+    if (lower.length > 5 || upper.length > 5) {
+      return `$$\\sum_{${lower}}^{${upper}}$$`;
+    }
+    return `\\(\\sum_{${lower}}^{${upper}}\\)`;
+  });
   
-  // Convert integrals: int_{...}^{...} or int -> \(\int_{...}^{...}\) or \(\int\)
-  processed = processed.replace(/\bint_\{([^}]*)\}\^\{([^}]*)\}/g, '\\(\\int_{$1}^{$2}\\)');
-  processed = processed.replace(/\bint\b/g, '\\(\\int\\)');
-  
-  // Convert summations: sum_{...}^{...} -> \(\sum_{...}^{...}\)
-  processed = processed.replace(/\bsum_\{([^}]*)\}\^\{([^}]*)\}/g, '\\(\\sum_{$1}^{$2}\\)');
-  
+  // Simple math expressions stay inline
   // Convert square roots: sqrt{...} -> \(\sqrt{...}\)
   processed = processed.replace(/\bsqrt\{([^}]*)\}/g, '\\(\\sqrt{$1}\\)');
   
@@ -62,11 +83,14 @@ export function processContentForMathRendering(content: string): string {
   
   // Convert common operators: -> becomes \rightarrow, <= becomes \leq, etc.
   processed = processed.replace(/\s+->\s+/g, ' \\(\\rightarrow\\) ');
-  processed = processed.replace(/\s+to\s+/g, ' \\(\\to\\) ');
   processed = processed.replace(/\s*<=\s*/g, ' \\(\\leq\\) ');
   processed = processed.replace(/\s*>=\s*/g, ' \\(\\geq\\) ');
   processed = processed.replace(/\s*!=\s*/g, ' \\(\\neq\\) ');
   processed = processed.replace(/\binfinity\b/g, '\\(\\infty\\)');
+  
+  // Handle vectors and gradients
+  processed = processed.replace(/\\nabla\s*([a-zA-Z]+)/g, '\\(\\nabla $1\\)');
+  processed = processed.replace(/\bnabla\s*([a-zA-Z]+)/g, '\\(\\nabla $1\\)');
   
   // Convert to HTML paragraphs
   return processed
