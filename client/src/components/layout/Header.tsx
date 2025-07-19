@@ -64,12 +64,20 @@ export default function Header({ currentPath }: HeaderProps) {
   return (
     <header className="border-b border-slate-200 bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/">
-          <div className="flex items-center gap-2 cursor-pointer">
-            <div className="text-primary-600 text-2xl font-bold">TextMind</div>
-            <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">Beta</span>
-          </div>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="text-primary-600 text-2xl font-bold">TextMind</div>
+              <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">Beta</span>
+            </div>
+          </Link>
+          <a 
+            href="mailto:contact@zhisystems.ai" 
+            className="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium"
+          >
+            Contact Us
+          </a>
+        </div>
         
         <div className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (
@@ -103,6 +111,12 @@ export default function Header({ currentPath }: HeaderProps) {
           </SheetTrigger>
           <SheetContent side="right">
             <div className="flex flex-col space-y-4 mt-8">
+              <a 
+                href="mailto:contact@zhisystems.ai" 
+                className="px-2 py-1 rounded-md text-slate-600 hover:bg-slate-100 text-sm font-medium"
+              >
+                Contact Us
+              </a>
               <Link href="/">
                 <div className={cn(
                   "px-2 py-1 rounded-md text-slate-600 hover:bg-slate-100 cursor-pointer",
