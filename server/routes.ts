@@ -17,6 +17,7 @@ import { processPerplexity } from "./services/perplexity";
 import { processDocument, extractText } from "./services/documentProcessor";
 import { generateAnalytics } from "./services/analytics";
 import { detectAIContent } from "./services/aiDetection";
+import { gptZeroService } from "./services/gptZeroBypass";
 import { rewriteDocument } from "./services/documentRewriter";
 import { elevenLabsService } from "./services/elevenlabs";
 import { speechToTextService } from "./services/speechToText";
@@ -827,6 +828,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: 'Failed to analyze text',
         error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // GPT Bypass AI analysis endpoint (frontend calls this)
+  app.post('/api/analyze-text', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ success: false, error: 'Text is required and must be a string' });
+      }
+      
+      if (text.length < 50) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Text is too short for accurate AI detection. Please provide at least 50 characters.' 
+        });
+      }
+      
+      console.log(`Running GPTZero analysis on text of length ${text.length}`);
+      
+      // Use GPTZero service for analysis
+      const result = await gptZeroService.analyzeText(text);
+      
+      // Return in format expected by frontend
+      res.json({
+        success: true,
+        aiProbability: result.aiScore / 100, // Convert to 0-1 range
+        humanProbability: (100 - result.aiScore) / 100,
+        isAI: result.isAI,
+        confidence: result.confidence,
+        analysis: {
+          aiScore: result.aiScore,
+          classification: result.isAI ? 'AI_DETECTED' : 'HUMAN',
+          confidence: result.confidence
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error in GPTZero analysis:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'Failed to analyze text',
+        message: error instanceof Error ? error.message : String(error)
       });
     }
   });

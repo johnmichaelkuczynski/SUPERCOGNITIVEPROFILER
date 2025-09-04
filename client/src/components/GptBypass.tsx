@@ -212,15 +212,24 @@ export function GptBypass({}: GptBypassProps) {
         body: JSON.stringify({ text })
       });
 
-      if (!response.ok) throw new Error('Analysis failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed');
+      }
 
       const result = await response.json();
-      const score = result.aiScore || 0;
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Analysis failed');
+      }
+      
+      // Extract AI score from the analysis (0-1 range to percentage)
+      const score = result.analysis?.aiScore || (result.aiProbability * 100) || 0;
 
       if (isOutput) {
-        setOutputAiScore(score);
+        setOutputAiScore(score / 100); // Convert to 0-1 range for display
       } else {
-        setInputAiScore(score);
+        setInputAiScore(score / 100); // Convert to 0-1 range for display
       }
 
       return score;
