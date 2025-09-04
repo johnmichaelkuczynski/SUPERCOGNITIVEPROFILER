@@ -17,6 +17,7 @@ import DocumentRewrite from "@/pages/DocumentRewrite";
 import RewriteHistory from "@/pages/RewriteHistory";
 import TextToSpeech from "@/pages/TextToSpeech";
 import Graphs from "@/pages/Graphs";
+import AITextHumanizer from "@/components/AITextHumanizer";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
@@ -59,6 +60,7 @@ function Router() {
       <div className="flex-grow">
         <Switch>
           <Route path="/login" component={Login} />
+          <Route path="/" component={() => <ProtectedRoute component={Home} />} />
           <Route path="/analytics" component={() => <ProtectedRoute component={Analytics} />} />
           <Route path="/documents" component={() => <ProtectedRoute component={Documents} />} />
           <Route path="/conversations" component={() => <ProtectedRoute component={Conversations} />} />
@@ -67,8 +69,8 @@ function Router() {
           <Route path="/document-rewrite" component={() => <ProtectedRoute component={DocumentRewrite} />} />
           <Route path="/rewrite-history" component={() => <ProtectedRoute component={RewriteHistory} />} />
           <Route path="/text-to-speech" component={() => <ProtectedRoute component={TextToSpeech} />} />
+          <Route path="/ai-humanizer" component={() => <ProtectedRoute component={AITextHumanizer} />} />
           <Route path="/graphs" component={() => <ProtectedRoute component={Graphs} />} />
-          <Route path="/" component={() => <ProtectedRoute component={Home} />} />
           <Route component={NotFound} />
         </Switch>
       </div>

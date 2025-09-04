@@ -14,6 +14,7 @@ export default function Header({ currentPath }: HeaderProps) {
     { label: 'Chat', path: '/' },
     { label: 'Conversations', path: '/conversations' },
     { label: 'Documents', path: '/documents' },
+    { label: 'AI Humanizer', path: '/ai-humanizer' },
     { label: 'Graphs', path: '/graphs' },
     { label: 'Rewrite History', path: '/rewrite-history' },
     { label: 'Text-to-Speech', path: '/text-to-speech' },
