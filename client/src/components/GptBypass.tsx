@@ -165,8 +165,8 @@ export function GptBypass({}: GptBypassProps) {
     return 'destructive';
   };
 
-  // Handle file upload
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle file upload for Box A
+  const handleFileUploadBoxA = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -174,7 +174,7 @@ export function GptBypass({}: GptBypassProps) {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/file-upload', {
         method: 'POST',
         body: formData
       });
@@ -182,14 +182,18 @@ export function GptBypass({}: GptBypassProps) {
       if (!response.ok) throw new Error('File upload failed');
 
       const result = await response.json();
-      setInputText(result.document?.content || result.content || '');
+      setInputText(result.content || '');
+      
+      // Auto-analyze the uploaded content
+      await analyzeText(result.content || '', false);
+      
       toast({
         title: "File uploaded successfully",
-        description: `Processed ${result.document?.filename || file.name}`,
+        description: `Processed ${result.filename || file.name} (${result.wordCount || 0} words)`,
       });
     } catch (error) {
       toast({
-        title: "Upload failed",
+        title: "Upload failed", 
         description: error instanceof Error ? error.message : 'Unknown error occurred',
         variant: "destructive",
       });
@@ -424,21 +428,6 @@ export function GptBypass({}: GptBypassProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt,.pdf,.doc,.docx"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Upload File
-          </Button>
           
           <Dialog open={showChat} onOpenChange={setShowChat}>
             <DialogTrigger asChild>
@@ -514,7 +503,24 @@ export function GptBypass({}: GptBypassProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.pdf,.doc,.docx"
+                  onChange={handleFileUploadBoxA}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload File
+                </Button>
+              </div>
               <Textarea
                 placeholder="Enter the text you want to rewrite..."
                 value={inputText}
@@ -529,7 +535,7 @@ export function GptBypass({}: GptBypassProps) {
                   onClick={() => analyzeText(inputText, false)}
                   disabled={!inputText.trim() || isAnalyzing}
                 >
-                  {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Analyze'}
+                  {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
                 </Button>
               </div>
             </div>
@@ -549,10 +555,10 @@ export function GptBypass({}: GptBypassProps) {
               <div className="flex items-center gap-2">
                 <Label htmlFor="style-selector" className="text-sm font-medium">Predefined Samples:</Label>
                 <Select 
-                  value={Object.keys(styleSamples).find(key => styleSamples[key] === styleText) || "custom"}
+                  value={Object.keys(styleSamples).find(key => styleSamples[key as keyof typeof styleSamples] === styleText) || "custom"}
                   onValueChange={(value) => {
-                    if (value !== "custom" && styleSamples[value]) {
-                      setStyleText(styleSamples[value]);
+                    if (value !== "custom" && value in styleSamples) {
+                      setStyleText(styleSamples[value as keyof typeof styleSamples]);
                     }
                   }}
                 >
@@ -577,13 +583,23 @@ export function GptBypass({}: GptBypassProps) {
               />
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>{styleText.length} characters</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setStyleText(defaultStyleSample)}
-                >
-                  Reset to Default
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => analyzeText(styleText, false)}
+                    disabled={!styleText.trim() || isAnalyzing}
+                  >
+                    {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setStyleText(defaultStyleSample)}
+                  >
+                    Reset to Default
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -605,8 +621,16 @@ export function GptBypass({}: GptBypassProps) {
                 onChange={(e) => setContentMixText(e.target.value)}
                 className="min-h-[200px] resize-none"
               />
-              <div className="text-sm text-muted-foreground">
-                {contentMixText.length} characters
+              <div className="flex justify-between items-center text-sm text-muted-foreground">
+                <span>{contentMixText.length} characters</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => analyzeText(contentMixText, false)}
+                  disabled={!contentMixText.trim() || isAnalyzing}
+                >
+                  {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -638,15 +662,27 @@ export function GptBypass({}: GptBypassProps) {
               />
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>{outputText.length} characters</span>
-                {outputText && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigator.clipboard.writeText(outputText)}
-                  >
-                    Copy
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {outputText && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => analyzeText(outputText, true)}
+                        disabled={!outputText.trim() || isAnalyzing}
+                      >
+                        {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigator.clipboard.writeText(outputText)}
+                      >
+                        Copy
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
