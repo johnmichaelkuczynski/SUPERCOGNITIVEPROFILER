@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Upload, FileText, MessageCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Upload, FileText, MessageCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -165,6 +165,27 @@ export function GptBypass({}: GptBypassProps) {
     if (score < 0.3) return 'default';
     if (score < 0.7) return 'secondary';
     return 'destructive';
+  };
+
+  // Clear functions for each box
+  const clearBoxA = () => {
+    setInputText('');
+    setInputAiScore(null);
+  };
+
+  const clearBoxB = () => {
+    setStyleText('');
+    setStyleAiScore(null);
+  };
+
+  const clearBoxC = () => {
+    setContentMixText('');
+    setContentMixAiScore(null);
+  };
+
+  const clearBoxD = () => {
+    setOutputText('');
+    setOutputAiScore(null);
   };
 
   // Handle file upload for Box A
@@ -541,6 +562,14 @@ export function GptBypass({}: GptBypassProps) {
                   <Upload className="h-4 w-4 mr-2" />
                   Upload File
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearBoxA}
+                  disabled={!inputText.trim()}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
               <Textarea
                 placeholder="Enter the text you want to rewrite..."
@@ -627,6 +656,14 @@ export function GptBypass({}: GptBypassProps) {
                   >
                     Reset to Default
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearBoxB}
+                    disabled={!styleText.trim()}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -658,14 +695,24 @@ export function GptBypass({}: GptBypassProps) {
               />
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>{contentMixText.length} characters</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => analyzeText(contentMixText, 'contentMix')}
-                  disabled={!contentMixText.trim() || isAnalyzing}
-                >
-                  {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => analyzeText(contentMixText, 'contentMix')}
+                    disabled={!contentMixText.trim() || isAnalyzing}
+                  >
+                    {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearBoxC}
+                    disabled={!contentMixText.trim()}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -714,6 +761,14 @@ export function GptBypass({}: GptBypassProps) {
                         onClick={() => navigator.clipboard.writeText(outputText)}
                       >
                         Copy
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearBoxD}
+                        disabled={!outputText.trim()}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </>
                   )}
