@@ -246,10 +246,11 @@ export function GptBypass({}: GptBypassProps) {
         throw new Error(result.error || 'Analysis failed');
       }
       
-      // Extract AI score from the analysis (backend sends 0-1 range)
-      const score = result.analysis?.aiScore || result.aiProbability || 0;
+      // Extract AI score from the analysis
+      // aiProbability is 0-1 range, analysis.aiScore is 0-100 range
+      const score = result.aiProbability || (result.analysis?.aiScore / 100) || 0;
 
-      // Set score based on text type (score is already 0-1 range)
+      // Set score based on text type (score is now 0-1 range)
       switch (textType) {
         case 'input':
           setInputAiScore(score);
@@ -858,7 +859,7 @@ export function GptBypass({}: GptBypassProps) {
         <Button
           variant="secondary"
           onClick={handleReHumanize}
-          disabled={isProcessing || !outputText.trim() || !styleText.trim()}
+          disabled={isProcessing || !outputText.trim()}
           className="flex-1 sm:flex-none"
         >
           {isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
