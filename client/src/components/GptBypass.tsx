@@ -246,22 +246,22 @@ export function GptBypass({}: GptBypassProps) {
         throw new Error(result.error || 'Analysis failed');
       }
       
-      // Extract AI score from the analysis (0-1 range to percentage)
-      const score = result.analysis?.aiScore || (result.aiProbability * 100) || 0;
+      // Extract AI score from the analysis (backend sends 0-1 range)
+      const score = result.analysis?.aiScore || result.aiProbability || 0;
 
-      // Set score based on text type
+      // Set score based on text type (score is already 0-1 range)
       switch (textType) {
         case 'input':
-          setInputAiScore(score / 100);
+          setInputAiScore(score);
           break;
         case 'style':
-          setStyleAiScore(score / 100);
+          setStyleAiScore(score);
           break;
         case 'contentMix':
-          setContentMixAiScore(score / 100);
+          setContentMixAiScore(score);
           break;
         case 'output':
-          setOutputAiScore(score / 100);
+          setOutputAiScore(score);
           break;
       }
 
@@ -289,16 +289,36 @@ export function GptBypass({}: GptBypassProps) {
       return;
     }
 
+    await performRewrite(inputText);
+  };
+
+  // Handle re-humanize (recursive humanization of Box D)
+  const handleReHumanize = async () => {
+    if (!outputText.trim()) {
+      toast({
+        title: "No output to re-humanize",
+        description: "Please run humanization first to generate output",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await performRewrite(outputText);
+  };
+
+  // Perform the actual rewrite operation
+  const performRewrite = async (textToRewrite: string) => {
+
     setIsProcessing(true);
     try {
-      // Analyze input text first
-      await analyzeText(inputText, 'input');
+      // Analyze source text first
+      await analyzeText(textToRewrite, 'input');
 
       const response = await fetch('/api/rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inputText,
+          inputText: textToRewrite,
           styleText: styleText || undefined,
           contentMixText: contentMixText || undefined,
           customInstructions: customInstructions || undefined,
@@ -833,6 +853,16 @@ export function GptBypass({}: GptBypassProps) {
         >
           {isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
           Re-Rewrite
+        </Button>
+        
+        <Button
+          variant="secondary"
+          onClick={handleReHumanize}
+          disabled={isProcessing || !outputText.trim() || !styleText.trim()}
+          className="flex-1 sm:flex-none"
+        >
+          {isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+          RE-HUMANIZE
         </Button>
       </div>
 
