@@ -332,13 +332,13 @@ export function GptBypass({}: GptBypassProps) {
 
       const result = await response.json();
       setOutputText(result.rewrittenText);
-      setInputAiScore(result.inputAiScore);
-      setOutputAiScore(result.outputAiScore);
+      setInputAiScore(result.inputAiScore / 100); // Backend sends 0-100, convert to 0-1
+      setOutputAiScore(result.outputAiScore / 100); // Backend sends 0-100, convert to 0-1
       setJobId(result.jobId);
 
       toast({
         title: "Text rewritten successfully",
-        description: `AI Score: ${(result.inputAiScore * 100).toFixed(1)}% → ${(result.outputAiScore * 100).toFixed(1)}%`,
+        description: `AI Score: ${result.inputAiScore.toFixed(1)}% → ${result.outputAiScore.toFixed(1)}%`,
       });
     } catch (error) {
       toast({
@@ -378,12 +378,12 @@ export function GptBypass({}: GptBypassProps) {
 
       const result = await response.json();
       setOutputText(result.rewrittenText);
-      setOutputAiScore(result.outputAiScore);
+      setOutputAiScore(result.outputAiScore / 100); // Backend sends 0-100, convert to 0-1
       setJobId(result.jobId);
 
       toast({
         title: "Text re-rewritten successfully",
-        description: `New AI Score: ${(result.outputAiScore * 100).toFixed(1)}%`,
+        description: `New AI Score: ${result.outputAiScore.toFixed(1)}%`,
       });
     } catch (error) {
       toast({
@@ -798,6 +798,21 @@ export function GptBypass({}: GptBypassProps) {
             </div>
           </CardContent>
         </Card>
+        
+        {/* RE-HUMANIZE Button - Right under Box D */}
+        {outputText && (
+          <div className="mt-4">
+            <Button
+              variant="secondary"
+              onClick={handleReHumanize}
+              disabled={isProcessing || !outputText.trim()}
+              className="w-full"
+            >
+              {isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              RE-HUMANIZE
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Instructions and Presets */}
@@ -856,15 +871,6 @@ export function GptBypass({}: GptBypassProps) {
           Re-Rewrite
         </Button>
         
-        <Button
-          variant="secondary"
-          onClick={handleReHumanize}
-          disabled={isProcessing || !outputText.trim()}
-          className="flex-1 sm:flex-none"
-        >
-          {isProcessing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-          RE-HUMANIZE
-        </Button>
       </div>
 
       {/* Score Comparison */}
