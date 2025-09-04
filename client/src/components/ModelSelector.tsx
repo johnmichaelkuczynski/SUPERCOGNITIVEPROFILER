@@ -10,10 +10,10 @@ export default function ModelSelector({ selectedModel, onModelChange }: ModelSel
   const models: LLMModel[] = ['deepseek', 'claude', 'gpt4', 'perplexity'];
   
   const modelNames: Record<LLMModel, string> = {
-    'claude': 'Claude',
-    'gpt4': 'GPT-4',
-    'perplexity': 'Perplexity',
-    'deepseek': 'DeepSeek'
+    'claude': 'ZHI 2',
+    'gpt4': 'ZHI 3',
+    'perplexity': 'ZHI 4',
+    'deepseek': 'ZHI 1'
   };
 
   return (
