@@ -28,6 +28,11 @@ import PDFDocument from 'pdfkit';
 import { generateInstantProfile, generateComprehensiveProfile, generateFullProfile, generateMetacognitiveProfile } from "./services/profiling";
 import { parseGraphRequirements, parseMathExpression, generateEssayWithGraphs, generateSVG } from "./services/graphGenerator";
 import { generateRevisedIntelligenceProfile } from "./services/revisedProfiling";
+import { aiProviderService } from "./services/aiProvidersGptBypass";
+import { gptZeroService } from "./services/gptZeroBypass";
+import { textChunkerService } from "./services/textChunkerBypass";
+import { fileProcessorService } from "./services/fileProcessorBypass";
+import type { RewriteRequest, RewriteResponse } from "@shared/schema";
 
 // Function to ensure perfect text formatting
 function ensurePerfectFormatting(text: string): string {
@@ -6142,10 +6147,8 @@ Keep responses focused, helpful, and under 300 words unless the user specificall
         return res.status(400).json({ error: 'inputText and provider are required' });
       }
 
-      // Import services
-      const { aiProviderService } = await import('./services/aiProviders');
-      const { gptZeroService } = await import('./services/gptZero');
-      const { textChunkerService } = await import('./services/textChunker');
+      // Use imported GPT Bypass services
+      // Services already imported at top of file
 
       // Analyze input text AI score
       const inputAnalysis = await gptZeroService.analyzeText(inputText);
@@ -6259,7 +6262,7 @@ Keep responses focused, helpful, and under 300 words unless the user specificall
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      const { fileProcessorService } = await import('./services/fileProcessor');
+      // Use imported GPT Bypass file processor service
       
       // Create temporary file path
       const tempPath = path.join('/tmp', `upload_${Date.now()}_${file.originalname}`);

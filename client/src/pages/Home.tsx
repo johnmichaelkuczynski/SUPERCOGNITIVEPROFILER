@@ -20,6 +20,7 @@ import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import MindProfiler from '@/components/MindProfiler';
 import SimpleRewriter from '@/components/SimpleRewriter';
 import { useDocuments } from '@/hooks/use-documents';
+import { GptBypass } from '@/components/GptBypass';
 
 interface Message {
   id: number;
@@ -1922,6 +1923,11 @@ Document text: ${extractedText}`;
           />
         </div>
       </div>
+      </div>
+
+      {/* GPT Bypass Section */}
+      <div className="mt-12 border-t pt-8">
+        <GptBypass />
       </div>
       
       {/* Document Viewer Dialog */}
