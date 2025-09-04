@@ -157,9 +157,9 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="claude">Claude</SelectItem>
-              <SelectItem value="gpt4">GPT-4</SelectItem>
-              <SelectItem value="deepseek">DeepSeek</SelectItem>
+              <SelectItem value="claude">ZHI 2</SelectItem>
+              <SelectItem value="gpt4">ZHI 3</SelectItem>
+              <SelectItem value="deepseek">ZHI 1</SelectItem>
             </SelectContent>
           </Select>
           
@@ -227,9 +227,9 @@ export default function GraphGenerator({ onGraphGenerated, embedded = false }: G
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="deepseek">DeepSeek</SelectItem>
-                  <SelectItem value="claude">Claude</SelectItem>
-                  <SelectItem value="gpt4">GPT-4</SelectItem>
+                  <SelectItem value="deepseek">ZHI 1</SelectItem>
+                  <SelectItem value="claude">ZHI 2</SelectItem>
+                  <SelectItem value="gpt4">ZHI 3</SelectItem>
                 </SelectContent>
               </Select>
             </div>

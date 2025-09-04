@@ -180,7 +180,15 @@ export default function ChatWindow({
         <div>
           <h2 className="text-lg font-medium">{conversation.title}</h2>
           <p className="text-sm text-muted-foreground">
-            Model: {conversation.model || "Claude"}
+            Model: {(() => {
+              const modelMap: Record<string, string> = {
+                'claude': 'ZHI 2',
+                'gpt4': 'ZHI 3', 
+                'perplexity': 'ZHI 4',
+                'deepseek': 'ZHI 1'
+              };
+              return modelMap[conversation.model || 'claude'] || 'ZHI 2';
+            })()}
           </p>
         </div>
         

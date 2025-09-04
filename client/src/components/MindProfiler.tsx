@@ -724,7 +724,7 @@ Please perform a new analysis that takes into account the insights, contestation
                 className="flex items-center gap-2 px-4 py-3"
               >
                 <Cpu className="h-4 w-4" />
-                DeepSeek
+                ZHI 1
               </Button>
               <Button
                 variant={selectedModel === 'claude' ? 'default' : 'outline'}
@@ -732,7 +732,7 @@ Please perform a new analysis that takes into account the insights, contestation
                 className="flex items-center gap-2 px-4 py-3"
               >
                 <Brain className="h-4 w-4" />
-                Claude
+                ZHI 2
               </Button>
               <Button
                 variant={selectedModel === 'gpt4' ? 'default' : 'outline'}
@@ -740,7 +740,7 @@ Please perform a new analysis that takes into account the insights, contestation
                 className="flex items-center gap-2 px-4 py-3"
               >
                 <Sparkles className="h-4 w-4" />
-                GPT-4
+                ZHI 3
               </Button>
               <Button
                 variant={selectedModel === 'perplexity' ? 'default' : 'outline'}
@@ -748,14 +748,14 @@ Please perform a new analysis that takes into account the insights, contestation
                 className="flex items-center gap-2 px-4 py-3"
               >
                 <Target className="h-4 w-4" />
-                Perplexity
+                ZHI 4
               </Button>
             </div>
             <p className="text-sm text-gray-500">
-              {selectedModel === 'deepseek' && 'DeepSeek - Fast and efficient analysis with strong reasoning capabilities (Default)'}
-              {selectedModel === 'claude' && 'Claude - Advanced reasoning with nuanced psychological insights'}
-              {selectedModel === 'gpt4' && 'GPT-4 - Comprehensive analysis with creative interpretation'}
-              {selectedModel === 'perplexity' && 'Perplexity - Research-enhanced analysis with real-time insights'}
+              {selectedModel === 'deepseek' && 'ZHI 1 - Fast and efficient analysis with strong reasoning capabilities (Default)'}
+              {selectedModel === 'claude' && 'ZHI 2 - Advanced reasoning with nuanced psychological insights'}
+              {selectedModel === 'gpt4' && 'ZHI 3 - Comprehensive analysis with creative interpretation'}
+              {selectedModel === 'perplexity' && 'ZHI 4 - Research-enhanced analysis with real-time insights'}
             </p>
           </div>
 
