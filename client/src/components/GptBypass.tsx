@@ -50,16 +50,60 @@ const instructionPresets = [
   "Senior-Friendly Explanation"
 ];
 
-// Default style sample (The Raven Paradox)
-const defaultStyleSample = `The Raven Paradox, first formulated by philosopher Carl Gustav Hempel in the 1940s, presents a fascinating challenge to our intuitive understanding of logical confirmation. The paradox emerges when we consider the statement "all ravens are black" and attempt to gather evidence supporting this claim.
+// Predefined style samples
+const styleSamples = {
+  "FORMAL AND FUNCTIONAL RELATIONSHIPS": `There are two broad types of relationships: formal and functional.
+Formal relationships hold between descriptions. A description is any statement that can be true or false.
+Example of a formal relationship: The description that a shape is a square cannot be true unless the description that it has four equal sides is true. Therefore, a shape's being a square depends on its having four equal sides.
 
-Logically, the statement "all ravens are black" is equivalent to "all non-black things are non-ravens." This equivalence means that observing a white shoe should provide the same confirmatory evidence for "all ravens are black" as observing a black raven. After all, the white shoe is both non-black and non-raven, perfectly fitting our logically equivalent statement.
+Functional relationships hold between events or conditions. (An event is anything that happens in time.)
+Example of a functional relationship: A plant cannot grow without water. Therefore, a plant's growth depends on its receiving water.
 
-Yet this conclusion strikes most people as absurd. How could examining objects in your living room possibly tell us anything meaningful about ravens? This intuitive resistance reveals a deep tension between formal logical rules and human reasoning patterns.
+The first type is structural, i.e., it holds between statements about features.
+The second is operational, i.e., it holds between things in the world as they act or change.
 
-The paradox illuminates several important philosophical issues: the nature of confirmation, the role of background knowledge in scientific reasoning, and the sometimes counterintuitive implications of logical equivalence. Various solutions have been proposed, from questioning the logical equivalence to arguing that context and prior knowledge play crucial roles in determining what counts as relevant evidence.
+Descriptions as objects of consideration
+The objects of evaluation are descriptions. Something is not evaluated unless it is described, and it is not described unless it can be stated. One can notice non-descriptions — sounds, objects, movements — but in the relevant sense one evaluates descriptions of them.
 
-Ultimately, the Raven Paradox serves as a powerful reminder that logical consistency doesn't always align with intuitive plausibility, challenging us to think more carefully about how we gather and evaluate evidence in both scientific and everyday contexts.`;
+Relationships not known through direct observation
+Some relationships are known, not through direct observation, but through reasoning. Such relationships are structural, as opposed to observational. Examples of structural relationships are:
+
+If A, then A or B.
+
+All tools require some form of use.
+
+Nothing can be both moving and perfectly still.
+
+There are no rules without conditions.
+
+1 obviously expresses a relationship; 2–4 do so less obviously, as their meanings are:
+
+2*. A tool's being functional depends on its being usable.
+3*. An object's being both moving and still depends on contradictory conditions, which cannot occur together.
+4*. The existence of rules depends on the existence of conditions to which they apply.
+
+Structural truth and structural understanding
+Structural understanding is always understanding of relationships. Observational understanding can be either direct or indirect; the same is true of structural understanding.`,
+
+  "ALTERNATIVE ACCOUNT OF EXPLANATORY EFFICIENCY": `A continuation of the earlier case will make it clear what this means and why it matters. Why doesn't the outcome change under the given conditions? Because, says the standard account, the key factor remained in place. But, the skeptic will counter, perhaps we can discard that account; perhaps there's an alternative that fits the observations equally well. But, I would respond, even granting for argument's sake that such an alternative exists, it doesn't follow that it avoids more general problems of the sort we've been discussing. An alternative explanation is better than the original only if it can account for the data more efficiently—that is, with fewer theoretical commitments or with commitments that are independently better supported.`,
+
+  "RATIONAL BELIEF AND UNDERLYING STRUCTURE": `When would it become rational to believe that, next time, you're more likely than not to roll this as opposed to that number—that, for example, you're especially likely to roll a 27? This belief becomes rational when, and only when, you have reason to believe that a 27-roll is favored by the structures involved in the game. And that belief, in its turn, is rational if you know that circumstances at all like the following obtain: The dice are magnetically attracted to the 27-slot. The wheel's center of gravity biases it toward the 27-slot. The 27-slot is wider than the others. The person running the game has reasons to fix it so that 27 comes up.`,
+
+  "HUME, INDUCTION, AND THE LOGIC OF EXPLANATION": `We haven't yet refuted Hume's argument—we've only taken the first step towards doing so. Hume could defend his view against what we've said thus by far by saying the following: Suppose that, to explain why all phi's thus far known are psi's, you posit some underlying structure or law that disposes phi's to be psi's. Unless you think that nature is uniform, you have no right to expect that connection to continue to hold. But if, in order to deal with this, you suppose that nature is uniform, then you're making an assumption that you have no right to make, since that assumption itself depends on induction.`,
+
+  "EXPLANATORY GOODNESS VS. CORRECTNESS": `For an explanation to be good isn't for it to be correct. Sometimes the right explanations are bad ones. A story will make this clear. I'm on a bus. The bus driver is smiling. A mystery! 'What on Earth does he have to smile about?' I ask myself. His job is so boring, and his life must therefore be such a horror.' But then I remember that, just a minute ago, a disembarking passenger gave him fifty $100 bills as a tip. So I have my explanation: 'he just came into a lot of money.' But wait! There's something fishy about this. Those bills looked fake. In which case the bus driver's smile isn't explained by his having come into a lot of money but by his thinking that he has. The correct explanation is: 'he thinks he just came into a lot of money.' But the false explanation—'he just came into a lot of money'—is better, since it's simpler and achieves the same explanatory work.`,
+
+  "KNOWLEDGE VS. AWARENESS": `Knowledge is conceptually articulated awareness. In order for me to know that my shoes are uncomfortably tight, I need to have the concepts shoe, tight, discomfort, etc. I do not need to have these concepts—or, arguably, any concepts—to be aware of the uncomfortable tightness in my shoes. My knowledge of that truth is a conceptualization of my awareness of that state of affairs. Equivalently, there are two kinds of awareness: propositional and objectual. My visual perception of the tree is objectual awareness of the tree. My belief that there is a tree in front of me is propositional awareness of the tree's being there.`,
+
+  "THE LOSER PARADOX": `People who are the bottom of a hierarchy are far less likely to spurn that hierarchy than they are to use it against people who are trying to climb the ranks of that hierarchy. The person who never graduates from college may in some contexts claim that a college degree is worthless, but he is unlikely to act accordingly. When he comes across someone without a college degree who is trying to make something of himself, he is likely to pounce on that person, claiming he is an uncredentialed fraud. This is because it would be psychologically difficult for him to maintain that college degrees are worthless if someone without credentials is succeeding.`,
+
+  "PARADOX OF CONNECTEDNESS": `Communications technology is supposed to connect us but separates us into self-contained, non-interacting units. Solution: Communications technology is not supposed to connect us emotionally. On the contrary, it is supposed to connect us in such a way that we can transact without having to bond emotionally. And that is what it does. It connects us logically while disconnecting us emotionally.`,
+
+  "ANALYSIS PARALYSIS PARADOX": `Given that there is almost always a more rational course of action, the ability to identify rational courses of action may lead to a failure to act. Solution: There is a difference between intelligence and rationality. Intelligence answers the question: What is it objectively possible to do? Rationality answers the question: What do my limited resources of time, energy and intelligence make it incumbent on me to do? And the second answer breaks any deadlocks created by the first.`
+};
+
+// Default style sample (first content-neutral sample)
+const defaultStyleSample = styleSamples["FORMAL AND FUNCTIONAL RELATIONSHIPS"];
 
 export function GptBypass({}: GptBypassProps) {
   const [inputText, setInputText] = useState('');
@@ -476,7 +520,30 @@ export function GptBypass({}: GptBypassProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="style-selector" className="text-sm font-medium">Predefined Samples:</Label>
+                <Select 
+                  value={Object.keys(styleSamples).find(key => styleSamples[key] === styleText) || "custom"}
+                  onValueChange={(value) => {
+                    if (value !== "custom" && styleSamples[value]) {
+                      setStyleText(styleSamples[value]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-[300px]">
+                    <SelectValue placeholder="Select a style sample" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(styleSamples).map((sampleName) => (
+                      <SelectItem key={sampleName} value={sampleName}>
+                        {sampleName}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">Custom Sample</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Textarea
                 placeholder="Paste a writing sample that represents the target style..."
                 value={styleText}
@@ -490,7 +557,7 @@ export function GptBypass({}: GptBypassProps) {
                   size="sm"
                   onClick={() => setStyleText(defaultStyleSample)}
                 >
-                  Use Default
+                  Reset to Default
                 </Button>
               </div>
             </div>
