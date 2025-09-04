@@ -16,6 +16,9 @@ TextMind is a comprehensive full-stack application designed to provide advanced 
   - **Backend integration**: Complete API routes for rewriting, file processing, and GPTZero analysis
   - **PDF processing fixed**: Switched from broken pdf-parse to working pdf.js-extract
   - **Trashcan clear buttons**: All 4 boxes have clear buttons that reset both text content and AI detection scores
+  - **AI detection percentages fixed**: Corrected "10000%" error to show realistic percentages like "99.0%"
+  - **RE-HUMANIZE button**: Added recursive humanization button positioned under Box D for iterative refinement
+  - **Word/PDF downloads**: Box D output can be downloaded as professional Word (.docx) and PDF documents
   
 - **AI Model ZHI Branding**: Updated all UI labels:
   - DeepSeek → ZHI 1 (primary model)
