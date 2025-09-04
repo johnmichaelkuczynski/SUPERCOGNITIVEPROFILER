@@ -125,3 +125,78 @@ export type Rewrite = typeof rewrites.$inferSelect;
 
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type Profile = typeof profiles.$inferSelect;
+
+// GPT Bypass schema additions
+export const rewriteJobs = pgTable("rewrite_jobs", {
+  id: text("id").primaryKey(),
+  inputText: text("input_text").notNull(),
+  styleText: text("style_text"),
+  contentMixText: text("content_mix_text"),
+  customInstructions: text("custom_instructions"),
+  selectedPresets: json("selected_presets").$type<string[]>(),
+  provider: text("provider").notNull(),
+  chunks: json("chunks").$type<TextChunk[]>(),
+  selectedChunkIds: json("selected_chunk_ids").$type<string[]>(),
+  mixingMode: text("mixing_mode").$type<'style' | 'content' | 'both'>(),
+  outputText: text("output_text"),
+  inputAiScore: integer("input_ai_score"),
+  outputAiScore: integer("output_ai_score"),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertRewriteJobSchema = createInsertSchema(rewriteJobs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRewriteJob = z.infer<typeof insertRewriteJobSchema>;
+export type RewriteJob = typeof rewriteJobs.$inferSelect;
+
+// Additional interfaces for GPT Bypass
+export interface TextChunk {
+  id: string;
+  content: string;
+  startWord: number;
+  endWord: number;
+  aiScore?: number;
+}
+
+export interface InstructionPreset {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  instruction: string;
+}
+
+export interface WritingSample {
+  id: string;
+  name: string;
+  preview: string;
+  content: string;
+  category: string;
+}
+
+export interface AIProviderConfig {
+  provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity';
+  model?: string;
+}
+
+export interface RewriteRequest {
+  inputText: string;
+  styleText?: string;
+  contentMixText?: string;
+  customInstructions?: string;
+  selectedPresets?: string[];
+  provider: string;
+  selectedChunkIds?: string[];
+  mixingMode?: 'style' | 'content' | 'both';
+}
+
+export interface RewriteResponse {
+  rewrittenText: string;
+  inputAiScore: number;
+  outputAiScore: number;
+  jobId: string;
+}

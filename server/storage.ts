@@ -1,11 +1,12 @@
 import { 
-  users, documents, conversations, messages, rewrites, profiles,
+  users, documents, conversations, messages, rewrites, profiles, rewriteJobs,
   type User, type InsertUser, 
   type Document, type InsertDocument,
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
   type Rewrite, type InsertRewrite,
-  type Profile, type InsertProfile
+  type Profile, type InsertProfile,
+  type RewriteJob, type InsertRewriteJob
 } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -47,6 +48,12 @@ export interface IStorage {
   getProfilesByUserId(userId: number): Promise<Profile[]>;
   createProfile(profile: InsertProfile): Promise<Profile>;
   deleteProfile(id: number): Promise<boolean>;
+  
+  // RewriteJob methods
+  getRewriteJob(id: string): Promise<RewriteJob | undefined>;
+  createRewriteJob(job: InsertRewriteJob): Promise<RewriteJob>;
+  updateRewriteJob(id: string, job: Partial<RewriteJob>): Promise<RewriteJob | undefined>;
+  deleteRewriteJob(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -56,6 +63,7 @@ export class MemStorage implements IStorage {
   private messages: Map<number, Message>;
   private rewrites: Map<number, Rewrite>;
   private profiles: Map<number, Profile>;
+  private rewriteJobs: Map<string, RewriteJob>;
   private userId: number;
   private documentId: number;
   private conversationId: number;
@@ -70,6 +78,7 @@ export class MemStorage implements IStorage {
     this.messages = new Map();
     this.rewrites = new Map();
     this.profiles = new Map();
+    this.rewriteJobs = new Map();
     this.userId = 1;
     this.documentId = 1;
     this.conversationId = 1;
@@ -295,6 +304,36 @@ export class MemStorage implements IStorage {
 
   async deleteProfile(id: number): Promise<boolean> {
     return this.profiles.delete(id);
+  }
+
+  // RewriteJob methods
+  async getRewriteJob(id: string): Promise<RewriteJob | undefined> {
+    return this.rewriteJobs.get(id);
+  }
+
+  async createRewriteJob(insertJob: InsertRewriteJob): Promise<RewriteJob> {
+    const id = `rj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const job: RewriteJob = {
+      ...insertJob,
+      id,
+      createdAt: new Date(),
+      status: insertJob.status || "pending"
+    };
+    this.rewriteJobs.set(id, job);
+    return job;
+  }
+
+  async updateRewriteJob(id: string, jobUpdate: Partial<RewriteJob>): Promise<RewriteJob | undefined> {
+    const job = this.rewriteJobs.get(id);
+    if (!job) return undefined;
+    
+    const updatedJob = { ...job, ...jobUpdate };
+    this.rewriteJobs.set(id, updatedJob);
+    return updatedJob;
+  }
+
+  async deleteRewriteJob(id: string): Promise<boolean> {
+    return this.rewriteJobs.delete(id);
   }
 }
 
@@ -603,6 +642,52 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Database error in deleteProfile, falling back to memory storage:", error);
       return this.memStorage.deleteProfile(id);
+    }
+  }
+
+  // RewriteJob methods
+  async getRewriteJob(id: string): Promise<RewriteJob | undefined> {
+    try {
+      const [job] = await db.select().from(rewriteJobs).where(eq(rewriteJobs.id, id));
+      return job;
+    } catch (error) {
+      console.error("Database error in getRewriteJob, falling back to memory storage:", error);
+      return this.memStorage.getRewriteJob(id);
+    }
+  }
+
+  async createRewriteJob(job: InsertRewriteJob): Promise<RewriteJob> {
+    try {
+      const jobId = `rj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const [result] = await db.insert(rewriteJobs).values({ ...job, id: jobId }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createRewriteJob, falling back to memory storage:", error);
+      return this.memStorage.createRewriteJob(job);
+    }
+  }
+
+  async updateRewriteJob(id: string, jobUpdate: Partial<RewriteJob>): Promise<RewriteJob | undefined> {
+    try {
+      const [result] = await db
+        .update(rewriteJobs)
+        .set(jobUpdate)
+        .where(eq(rewriteJobs.id, id))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in updateRewriteJob, falling back to memory storage:", error);
+      return this.memStorage.updateRewriteJob(id, jobUpdate);
+    }
+  }
+
+  async deleteRewriteJob(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(rewriteJobs).where(eq(rewriteJobs.id, id));
+      return !!result;
+    } catch (error) {
+      console.error("Database error in deleteRewriteJob, falling back to memory storage:", error);
+      return this.memStorage.deleteRewriteJob(id);
     }
   }
 }

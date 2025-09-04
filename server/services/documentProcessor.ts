@@ -1,7 +1,7 @@
 import { extractMathWithMathpix, isMathematicalContent } from './mathpix';
 import { PDFExtract } from 'pdf.js-extract';
 import mammoth from 'mammoth';
-import { detectAIContent, type AIDetectionResult } from './gptZero';
+import { gptZeroService, type GPTZeroResult } from './gptZero';
 import { log } from '../vite';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,7 +12,7 @@ import { PDFDocument } from 'pdf-lib';
 export interface ProcessedDocument {
   text: string;
   chunks?: Array<{title: string, content: string}>;
-  aiDetection?: AIDetectionResult;
+  aiDetection?: GPTZeroResult;
 }
 
 import { splitIntoChunks, generateSimpleSummaries } from './documentChunker';
@@ -75,7 +75,7 @@ export async function processDocument(file: Express.Multer.File): Promise<Proces
       try {
         log(`Running AI detection on ${file.originalname}...`, 'document');
         const textSample = extractedText.length > 5000 ? extractedText.substring(0, 5000) : extractedText;
-        aiDetection = await detectAIContent(textSample);
+        aiDetection = await gptZeroService.analyzeText(textSample);
       } catch (error) {
         log(`AI detection failed: ${(error as Error).message}`, 'document');
       }

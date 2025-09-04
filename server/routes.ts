@@ -6124,4 +6124,161 @@ Keep responses focused, helpful, and under 300 words unless the user specificall
       });
     }
   });
+
+  // GPT Bypass / AI Text Humanizer Routes
+  app.post('/api/rewrite', async (req: Request, res: Response) => {
+    try {
+      const { 
+        inputText, 
+        styleText, 
+        contentMixText, 
+        customInstructions, 
+        selectedPresets, 
+        provider, 
+        selectedChunkIds 
+      } = req.body;
+
+      if (!inputText || !provider) {
+        return res.status(400).json({ error: 'inputText and provider are required' });
+      }
+
+      // Import services
+      const { aiProviderService } = await import('./services/aiProviders');
+      const { gptZeroService } = await import('./services/gptZero');
+      const { textChunkerService } = await import('./services/textChunker');
+
+      // Analyze input text AI score
+      const inputAnalysis = await gptZeroService.analyzeText(inputText);
+      
+      // If text is chunked and only selected chunks should be rewritten
+      let textToRewrite = inputText;
+      let chunks: any[] = [];
+      
+      if (inputText.length > 2000) {
+        chunks = textChunkerService.chunkText(inputText);
+        if (selectedChunkIds && selectedChunkIds.length > 0) {
+          textToRewrite = textChunkerService.reconstructFromChunks(chunks, selectedChunkIds);
+        }
+      }
+
+      // Perform rewrite
+      const rewrittenText = await aiProviderService.rewrite(provider, {
+        inputText: textToRewrite,
+        styleText,
+        contentMixText,
+        customInstructions,
+        selectedPresets,
+      });
+
+      // Analyze output text AI score
+      const outputAnalysis = await gptZeroService.analyzeText(rewrittenText);
+
+      // Create rewrite job record
+      const jobData = {
+        inputText,
+        styleText: styleText || null,
+        contentMixText: contentMixText || null,
+        customInstructions: customInstructions || null,
+        selectedPresets: selectedPresets || null,
+        provider,
+        chunks: chunks.length > 0 ? chunks : null,
+        selectedChunkIds: selectedChunkIds || null,
+        outputText: rewrittenText,
+        inputAiScore: inputAnalysis.aiScore,
+        outputAiScore: outputAnalysis.aiScore,
+        status: 'completed'
+      };
+
+      const job = await storage.createRewriteJob(jobData);
+
+      res.json({
+        rewrittenText,
+        inputAiScore: inputAnalysis.aiScore,
+        outputAiScore: outputAnalysis.aiScore,
+        jobId: job.id
+      });
+
+    } catch (error) {
+      console.error('Error in rewrite API:', error);
+      res.status(500).json({ 
+        error: 'Failed to rewrite text', 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Text chunking endpoint
+  app.post('/api/text-processing/chunk', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const { textChunkerService } = await import('./services/textChunker');
+      const chunks = textChunkerService.chunkText(text);
+
+      res.json({ chunks });
+    } catch (error) {
+      console.error('Error chunking text:', error);
+      res.status(500).json({ 
+        error: 'Failed to chunk text', 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // GPTZero analysis endpoint
+  app.post('/api/gptzero/analyze', async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+
+      if (!text) {
+        return res.status(400).json({ error: 'Text is required' });
+      }
+
+      const { gptZeroService } = await import('./services/gptZero');
+      const result = await gptZeroService.analyzeText(text);
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error analyzing with GPTZero:', error);
+      res.status(500).json({ 
+        error: 'Failed to analyze text', 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // File upload for GPT Bypass
+  app.post('/api/file-upload', upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const { fileProcessorService } = await import('./services/fileProcessor');
+      
+      // Create temporary file path
+      const tempPath = path.join('/tmp', `upload_${Date.now()}_${file.originalname}`);
+      fs.writeFileSync(tempPath, file.buffer);
+      
+      const result = await fileProcessorService.processFile(tempPath, file.originalname);
+      
+      res.json({
+        content: result.content,
+        filename: result.filename,
+        wordCount: result.wordCount
+      });
+
+    } catch (error) {
+      console.error('Error processing file:', error);
+      res.status(500).json({ 
+        error: 'Failed to process file', 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 }
