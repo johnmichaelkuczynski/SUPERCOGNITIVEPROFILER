@@ -4,6 +4,15 @@
 
 TextMind is a comprehensive full-stack application designed to provide advanced writing, analysis, and AI-powered features for writers and thinkers. It integrates a React frontend with a Node.js/Express backend to offer capabilities such as document processing, large language model (LLM) integration, AI content detection, and sophisticated analytics. The project aims to deliver a powerful tool for generating, analyzing, and refining written content, including academic papers with integrated visualizations.
 
+## Recent Changes
+
+- **September 4, 2025**: Updated all AI model labels in UI to ZHI branding:
+  - DeepSeek → ZHI 1 (primary model)
+  - Claude/Anthropic → ZHI 2
+  - GPT-4/OpenAI → ZHI 3
+  - Perplexity → ZHI 4
+  - Backend API logic and routing remain unchanged
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -26,7 +35,7 @@ Preferred communication style: Simple, everyday language.
 - **Development**: tsx for TypeScript execution
 
 ### Key Features & Design Decisions
-- **LLM Integration**: Supports multiple providers including Claude (Anthropic), GPT-4 (OpenAI), Perplexity, and DeepSeek. Features intelligent document chunking and real-time response streaming via WebSockets.
+- **LLM Integration**: Supports multiple providers including ZHI 2 (Claude/Anthropic), ZHI 3 (GPT-4/OpenAI), ZHI 4 (Perplexity), and ZHI 1 (DeepSeek). Features intelligent document chunking and real-time response streaming via WebSockets.
 - **AI Services**: Includes multi-model document rewriting, GPTZero for AI content detection, ElevenLabs for text-to-speech, Tesseract for OCR, and advanced cognitive profiling/writing analysis.
 - **Graph Generation**: Converts natural language and mathematical expressions into SVG graphs, enabling the creation of academic papers with embedded charts.
 - **Mathematical Notation**: Comprehensive system for rendering LaTeX expressions, ensuring proper display of mathematical and scientific notation throughout the application and in exports. Includes intelligent delimiter detection and currency protection.
