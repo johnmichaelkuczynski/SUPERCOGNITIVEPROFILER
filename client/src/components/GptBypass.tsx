@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Upload, FileText, MessageCircle, RefreshCw, Trash2 } from 'lucide-react';
+import { Loader2, Upload, FileText, MessageCircle, RefreshCw, Trash2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -186,6 +186,74 @@ export function GptBypass({}: GptBypassProps) {
   const clearBoxD = () => {
     setOutputText('');
     setOutputAiScore(null);
+  };
+
+  // Download output as Word document
+  const downloadAsWord = async () => {
+    if (!outputText.trim()) return;
+
+    try {
+      const response = await fetch('/api/download/word', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          content: outputText,
+          filename: 'humanized-text'
+        })
+      });
+
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'humanized-text.docx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Download output as PDF document
+  const downloadAsPDF = async () => {
+    if (!outputText.trim()) return;
+
+    try {
+      const response = await fetch('/api/download/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          content: outputText,
+          filename: 'humanized-text'
+        })
+      });
+
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'humanized-text.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle file upload for Box A
@@ -782,6 +850,24 @@ export function GptBypass({}: GptBypassProps) {
                         onClick={() => navigator.clipboard.writeText(outputText)}
                       >
                         Copy
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={downloadAsWord}
+                        title="Download as Word document"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        Word
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={downloadAsPDF}
+                        title="Download as PDF document"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        PDF
                       </Button>
                       <Button
                         variant="ghost"

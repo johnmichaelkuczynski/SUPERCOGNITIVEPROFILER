@@ -5862,6 +5862,107 @@ Regarding learning preferences, I favor understanding fundamental principles rat
     }
   });
 
+  // Download endpoints for GPT Bypass
+  app.post('/api/download/word', async (req: Request, res: Response) => {
+    try {
+      const { content, filename = 'humanized-text' } = req.body;
+
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      // Import docx library
+      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+
+      // Split content into paragraphs
+      const paragraphs = content.split('\n\n').map((paragraph: string) => 
+        new Paragraph({
+          children: [new TextRun(paragraph.trim())],
+          spacing: { after: 200 } // Add spacing after paragraphs
+        })
+      );
+
+      // Create document
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: paragraphs
+        }]
+      });
+
+      // Generate buffer
+      const buffer = await Packer.toBuffer(doc);
+
+      // Set headers for download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.docx"`);
+      res.setHeader('Content-Length', buffer.length);
+
+      // Send the file
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Error generating Word document:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate Word document',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  app.post('/api/download/pdf', async (req: Request, res: Response) => {
+    try {
+      const { content, filename = 'humanized-text' } = req.body;
+
+      if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      // Import PDFKit
+      const PDFDocument = (await import('pdfkit')).default;
+
+      // Create PDF document
+      const doc = new PDFDocument({
+        margin: 50,
+        size: 'A4'
+      });
+
+      // Set headers for download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+
+      // Pipe the PDF to response
+      doc.pipe(res);
+
+      // Add content to PDF
+      doc.fontSize(12);
+      doc.font('Helvetica');
+
+      // Split content into paragraphs and add them
+      const paragraphs = content.split('\n\n');
+      
+      paragraphs.forEach((paragraph: string, index: number) => {
+        if (index > 0) {
+          doc.moveDown(); // Add space between paragraphs
+        }
+        doc.text(paragraph.trim(), {
+          align: 'left',
+          lineGap: 5
+        });
+      });
+
+      // Finalize the PDF
+      doc.end();
+
+    } catch (error) {
+      console.error('Error generating PDF document:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate PDF document',
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   return httpServer;
 }
 
