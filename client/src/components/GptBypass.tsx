@@ -140,6 +140,8 @@ export function GptBypass({}: GptBypassProps) {
   const [provider, setProvider] = useState('deepseek'); // Default to ZHI 1 (DeepSeek)
   const [isProcessing, setIsProcessing] = useState(false);
   const [inputAiScore, setInputAiScore] = useState<number | null>(null);
+  const [styleAiScore, setStyleAiScore] = useState<number | null>(null);
+  const [contentMixAiScore, setContentMixAiScore] = useState<number | null>(null);
   const [outputAiScore, setOutputAiScore] = useState<number | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -185,7 +187,7 @@ export function GptBypass({}: GptBypassProps) {
       setInputText(result.content || '');
       
       // Auto-analyze the uploaded content
-      await analyzeText(result.content || '', false);
+      await analyzeText(result.content || '', 'input');
       
       toast({
         title: "File uploaded successfully",
@@ -201,7 +203,7 @@ export function GptBypass({}: GptBypassProps) {
   };
 
   // Analyze text with GPTZero
-  const analyzeText = async (text: string, isOutput = false) => {
+  const analyzeText = async (text: string, textType: 'input' | 'style' | 'contentMix' | 'output' = 'input') => {
     if (!text.trim()) return null;
 
     setIsAnalyzing(true);
@@ -226,10 +228,20 @@ export function GptBypass({}: GptBypassProps) {
       // Extract AI score from the analysis (0-1 range to percentage)
       const score = result.analysis?.aiScore || (result.aiProbability * 100) || 0;
 
-      if (isOutput) {
-        setOutputAiScore(score / 100); // Convert to 0-1 range for display
-      } else {
-        setInputAiScore(score / 100); // Convert to 0-1 range for display
+      // Set score based on text type
+      switch (textType) {
+        case 'input':
+          setInputAiScore(score / 100);
+          break;
+        case 'style':
+          setStyleAiScore(score / 100);
+          break;
+        case 'contentMix':
+          setContentMixAiScore(score / 100);
+          break;
+        case 'output':
+          setOutputAiScore(score / 100);
+          break;
       }
 
       return score;
@@ -259,7 +271,7 @@ export function GptBypass({}: GptBypassProps) {
     setIsProcessing(true);
     try {
       // Analyze input text first
-      await analyzeText(inputText, false);
+      await analyzeText(inputText, 'input');
 
       const response = await fetch('/api/rewrite', {
         method: 'POST',
@@ -506,7 +518,7 @@ export function GptBypass({}: GptBypassProps) {
               </CardTitle>
               {inputAiScore !== null && (
                 <Badge variant={getScoreBadgeVariant(inputAiScore)}>
-                  AI: {(inputAiScore * 100).toFixed(1)}%
+                  {inputAiScore > 0.5 ? `AI: ${Math.round(inputAiScore * 100)}%` : `HUMAN: ${Math.round((1 - inputAiScore) * 100)}%`}
                 </Badge>
               )}
             </div>
@@ -541,7 +553,7 @@ export function GptBypass({}: GptBypassProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => analyzeText(inputText, false)}
+                  onClick={() => analyzeText(inputText, 'input')}
                   disabled={!inputText.trim() || isAnalyzing}
                 >
                   {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
@@ -554,10 +566,17 @@ export function GptBypass({}: GptBypassProps) {
         {/* Box B - Style Sample */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">B</span>
-              Style Sample
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">B</span>
+                Style Sample
+              </CardTitle>
+              {styleAiScore !== null && (
+                <Badge variant={getScoreBadgeVariant(styleAiScore)}>
+                  {styleAiScore > 0.5 ? `AI: ${Math.round(styleAiScore * 100)}%` : `HUMAN: ${Math.round((1 - styleAiScore) * 100)}%`}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -596,7 +615,7 @@ export function GptBypass({}: GptBypassProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => analyzeText(styleText, false)}
+                    onClick={() => analyzeText(styleText, 'style')}
                     disabled={!styleText.trim() || isAnalyzing}
                   >
                     {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
@@ -617,10 +636,17 @@ export function GptBypass({}: GptBypassProps) {
         {/* Box C - Content Mix */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">C</span>
-              Content Mix
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">C</span>
+                Content Mix
+              </CardTitle>
+              {contentMixAiScore !== null && (
+                <Badge variant={getScoreBadgeVariant(contentMixAiScore)}>
+                  {contentMixAiScore > 0.5 ? `AI: ${Math.round(contentMixAiScore * 100)}%` : `HUMAN: ${Math.round((1 - contentMixAiScore) * 100)}%`}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -635,7 +661,7 @@ export function GptBypass({}: GptBypassProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => analyzeText(contentMixText, false)}
+                  onClick={() => analyzeText(contentMixText, 'contentMix')}
                   disabled={!contentMixText.trim() || isAnalyzing}
                 >
                   {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
@@ -655,7 +681,7 @@ export function GptBypass({}: GptBypassProps) {
               </CardTitle>
               {outputAiScore !== null && (
                 <Badge variant={getScoreBadgeVariant(outputAiScore)}>
-                  AI: {(outputAiScore * 100).toFixed(1)}%
+                  {outputAiScore > 0.5 ? `AI: ${Math.round(outputAiScore * 100)}%` : `HUMAN: ${Math.round((1 - outputAiScore) * 100)}%`}
                 </Badge>
               )}
             </div>
@@ -677,7 +703,7 @@ export function GptBypass({}: GptBypassProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => analyzeText(outputText, true)}
+                        onClick={() => analyzeText(outputText, 'output')}
                         disabled={!outputText.trim() || isAnalyzing}
                       >
                         {isAnalyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : 'AI Detect'}
