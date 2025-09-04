@@ -12,42 +12,67 @@ import { useToast } from '@/hooks/use-toast';
 
 interface GptBypassProps {}
 
-// Instruction presets (30+ as required)
+// REAL Instruction presets for humanization (1-8 are most important)
 const instructionPresets = [
-  "Academic Writing Enhancement",
-  "Conversational Tone Adaptation",
-  "Creative Expression Amplification",
-  "Technical Documentation Style",
-  "Journalistic Objectivity",
-  "Persuasive Argumentation",
-  "Narrative Storytelling",
-  "Professional Business Communication",
-  "Educational Content Simplification",
-  "Analytical Critical Thinking",
-  "Descriptive Vivid Imagery",
-  "Explanatory Clarity Focus",
-  "Historical Context Integration",
-  "Scientific Precision",
-  "Literary Sophistication",
-  "Marketing Copy Optimization",
-  "Research Paper Formality",
-  "Blog Post Engagement",
-  "Social Media Adaptation",
-  "Email Communication Polish",
-  "Report Writing Structure",
-  "Presentation Script Flow",
-  "Interview Response Preparation",
-  "Product Description Enhancement",
-  "News Article Objectivity",
-  "Opinion Piece Conviction",
-  "Tutorial Step-by-Step Clarity",
-  "Review Content Balance",
-  "FAQ Response Helpfulness",
-  "Biography Narrative Flow",
-  "Manual Instructions Precision",
-  "Diplomatic Language Tact",
-  "Youth-Oriented Communication",
-  "Senior-Friendly Explanation"
+  // MOST IMPORTANT FOR HUMANIZATION (1-8)
+  "1. Mixed cadence + clause sprawl",
+  "2. Asymmetric emphasis", 
+  "3. One aside",
+  "4. Hedge twice",
+  "5. Local disfluency",
+  "6. Analogy injection",
+  "7. Topic snap",
+  "8. Friction detail",
+  
+  // Structure & Cadence
+  "Compression — light (−15%)",
+  "Compression — medium (−30%)",
+  "Compression — heavy (−45%)",
+  "DECREASE BY 50%",
+  "INCREASE BY 150%",
+  "Mixed cadence",
+  "Clause surgery",
+  "Front-load claim",
+  "Back-load claim",
+  "Seam/pivot",
+  
+  // Framing & Inference
+  "Imply one step",
+  "Conditional framing",
+  "Local contrast", 
+  "Scope check",
+  
+  // Diction & Tone
+  "Deflate jargon",
+  "Kill stock transitions",
+  "Hedge once",
+  "Drop intensifiers",
+  "Low-heat voice",
+  "One aside",
+  
+  // Concreteness & Benchmarks
+  "Concrete benchmark",
+  "Swap generic example",
+  "Metric nudge",
+  
+  // Asymmetry & Focus
+  "Asymmetric emphasis",
+  "Cull repeats",
+  "Topic snap",
+  
+  // Formatting & Output Hygiene
+  "No lists",
+  "No meta",
+  "Exact nouns",
+  "Quote once",
+  
+  // Safety / Guardrails
+  "Claim lock",
+  "Entity lock",
+  
+  // Combo presets
+  "Lean & Sharp",
+  "Analytic"
 ];
 
 // Predefined style samples
