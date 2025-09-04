@@ -49,11 +49,36 @@ export class FileProcessorService {
 
   private async processPdfFile(filePath: string): Promise<string> {
     try {
-      // Try to use pdf-parse if available
-      const pdfParse = await import('pdf-parse');
-      const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdfParse.default(dataBuffer);
-      return data.text;
+      // Use pdf.js-extract which is already installed and works better
+      const { PDFExtract } = await import('pdf.js-extract');
+      const pdfExtract = new PDFExtract();
+      
+      return new Promise((resolve, reject) => {
+        pdfExtract.extract(filePath, {}, (err: any, data: any) => {
+          if (err) {
+            console.error('PDF extraction failed:', err);
+            reject(new Error('PDF processing failed. Please ensure the file is a valid PDF.'));
+            return;
+          }
+          
+          // Extract text from all pages
+          let extractedText = '';
+          if (data && data.pages) {
+            data.pages.forEach((page: any) => {
+              if (page.content) {
+                page.content.forEach((item: any) => {
+                  if (item.str) {
+                    extractedText += item.str + ' ';
+                  }
+                });
+              }
+              extractedText += '\n';
+            });
+          }
+          
+          resolve(extractedText.trim() || '');
+        });
+      });
     } catch (error) {
       console.error('PDF processing failed:', error);
       throw new Error('PDF processing failed. Please ensure the file is a valid PDF.');
