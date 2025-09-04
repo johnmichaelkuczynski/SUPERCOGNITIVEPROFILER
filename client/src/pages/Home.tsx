@@ -20,6 +20,7 @@ import { SpeechInput, useSpeechInput } from '@/components/ui/speech-input';
 import MindProfiler from '@/components/MindProfiler';
 import SimpleRewriter from '@/components/SimpleRewriter';
 import { useDocuments } from '@/hooks/use-documents';
+import AITextHumanizer from '@/components/AITextHumanizer';
 
 interface Message {
   id: number;
@@ -91,7 +92,7 @@ export default function Home() {
   const [allDocuments, setAllDocuments] = useState<{name: string, content: string}[]>([]);
   
   // Direct text processor state
-  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math'>('rewrite');
+  const [processingMode, setProcessingMode] = useState<'rewrite' | 'homework' | 'text-to-math' | 'humanizer'>('rewrite');
   const [directInputText, setDirectInputText] = useState<string>('');
   const [isDirectProcessing, setIsDirectProcessing] = useState(false);
   const [showMathView, setShowMathView] = useState(false);
@@ -831,7 +832,7 @@ Document text: ${extractedText}`;
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Mode Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card 
               className={`cursor-pointer transition-all ${processingMode === 'rewrite' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'}`}
               onClick={() => setProcessingMode('rewrite')}
@@ -857,6 +858,15 @@ Document text: ${extractedText}`;
               <CardContent className="p-4 text-center">
                 <h3 className="font-semibold">Text to Math</h3>
                 <p className="text-sm text-muted-foreground mt-2">Convert markup to perfect mathematical notation</p>
+              </CardContent>
+            </Card>
+            <Card 
+              className={`cursor-pointer transition-all ${processingMode === 'humanizer' ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:bg-gray-50'}`}
+              onClick={() => setProcessingMode('humanizer')}
+            >
+              <CardContent className="p-4 text-center">
+                <h3 className="font-semibold">AI Humanizer</h3>
+                <p className="text-sm text-muted-foreground mt-2">Rewrite content to match specific writing styles</p>
               </CardContent>
             </Card>
           </div>
@@ -1061,6 +1071,13 @@ Document text: ${extractedText}`;
           </div>
         </CardContent>
       </Card>
+
+      {/* AI Humanizer Interface - Only show when humanizer mode is selected */}
+      {processingMode === 'humanizer' && (
+        <div className="mb-6">
+          <AITextHumanizer />
+        </div>
+      )}
 
       {/* Main Chat Interface */}
       <div className="flex">
